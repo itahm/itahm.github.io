@@ -4,7 +4,7 @@ var
 	MINUTES1 = 60000,
 	HOURS1 = 3600000,
 	HOURS24 = 86400000,
-	GRID_MIN_WIDTH = 100,
+	GRID_MIN_WIDTH = 200,
 	GRID_MIN_HEIGHT = 50,
 	SUMMARY_MIN_PX = 1,
 	PADDING = 20,
@@ -14,18 +14,10 @@ var
 	MODE_START = 1,
 	MODE_END = 2,
 	MODE_MOVE = MODE_START | MODE_END,
-	BG_COLOR = "#ffffff",
-	MONTH_NAME = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+	BG_COLOR = "#ffffff";
 
 function Chart(container, config) {
 	this.init(container, config);
-}
-
-function format(milliseconds, option) {
-	var date = new Date(milliseconds),
-		day = date.getDate();
-	
-	return MONTH_NAME[date.getMonth()] +" "+ (day > 9? "": "0")+ day +", "+ date.getHours();
 }
 
 (function (window, undefined) {
@@ -339,12 +331,24 @@ function format(milliseconds, option) {
 			setGraphWidth(this);
 		},
 		
-		setXAxis: function(x, value) {
+		setXAxis: function(dataArray) {
+			var data;
+			
 			this.context.save();
 			this.context.textBaseline = "top";
 			this.context.textAlign = "center";
 			this.context.setTransform(1, 0, 0, 1, PADDING + this.axisLeftWidth + MARGIN, PADDING + this.graphArea.height + MARGIN);
-			this.context.fillText(value, x, 0);
+			var k=0;
+			for (var i=0, _i=dataArray.length; i<_i; i++) {
+				data = dataArray[i];
+				
+				this.context.fillText(data[1], data[0], 0);
+				
+				if (k++ > 1000) {
+					throw "loop!";
+				}
+			}
+			
 			this.context.restore();
 		},
 		

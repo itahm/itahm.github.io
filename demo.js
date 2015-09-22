@@ -17,13 +17,15 @@ var
 		unit: ChartData.HOURS,
 		method: ChartData.MAX
 	}));
+	
 	chart.addData(new ChartData(data.min, {
 		capacity: 100,
-		fill: "#ddd",
+		fill: "#fff",
 		option: "cut",
 		unit: ChartData.HOURS,
 		method: ChartData.MIN
 	}));
+	
 	chart.addData(new ChartData(data.avg, {
 		capacity: 100,
 		stroke: "#73a4e6",

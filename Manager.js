@@ -5,7 +5,11 @@ function Manager(chart) {
 		MODE_FIX = 0,
 		MODE_START = 1,
 		MODE_END = 2,
-		MODE_MOVE = MODE_START | MODE_END;
+		MODE_MOVE = MODE_START | MODE_END,
+		MONTH_NAME = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+		HOUR1 = (function (date) {
+			return Math.abs(date.getTime() - date.setHours(date.getHours() +1));
+		})(new Date(0));
 	
 	var data = [],
 		start = new Date().setHours(0, 0, 0, 0),
@@ -16,12 +20,32 @@ function Manager(chart) {
 		mode = MODE_START | MODE_END;
 	
 	function setXAxis() {
-		var count = Math.floor(chart.graphArea.width / GRID_MIN_WIDTH),
-			date = new Date(start);
+		var
+			date = new Date(start),
+			dateMills,
+			minGap = GRID_MIN_WIDTH * tpp,
+			dateGap = HOUR1,
+			date = new Date(start),
+			dataArray = [],
+			pow = 0;
+		
+		for (; minGap > dateGap; dateGap += HOUR1, pow++);
 		
 		date.setMinutes(0, 0, 0);
 		
-		chart.setXAxis((date.setHours(date.getHours() +1) - start) /tpp, "test");
+		while ((dateMills = date.setHours(date.getHours() + pow)) < end) {
+			dataArray[dataArray.length] = [(dateMills - start) /tpp, format(dateMills)];
+		}
+		
+		chart.setXAxis(dataArray);
+	}
+	
+	function format(milliseconds) {
+		var date = new Date(milliseconds),
+			day = date.getDate(),
+			hour = date.getHours();
+		
+		return MONTH_NAME[date.getMonth()] +" "+ (day > 9? "": "0")+ day +", "+ (hour > 9? "": "0") + hour;
 	}
 	
 	function invalidate() {
