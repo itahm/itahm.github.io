@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<title>ITAhM</title>
+		<meta charset="UTF-8">
+		<meta http-equiv="Content-Script-Type" content="text/javascript">
+		<meta http-equiv="Content-Style-Type" content="text/css">
+		<link rel="shortcut icon" href="favicon.ico">
+		
+		<style>
+		#chart {
+			position: fixed; top: 0; right: 0; bottom: 0; left: 0;
+			display: flex;
+			flex-direction: column;
+		}
+		
+		#chart> .chart {
+			flex: 1;
+			height: 0;
+		}
+		
+		canvas {
+			display: block;
+		}
+		</style>
+		<script src="Draggable.js"></script>
+		<script src="DataBlock.js"></script>
+		<script src="ChartData.js"></script>
+		<script src="Manager.js"></script>		
+		<script src="createData.js"></script>
+		<script src="Chart.js"></script>
+	</head>
+
+	<body>
+		<div id="chart">
+		</div>
+		
+		<script src="demo.js"></script>
+	</body>
+</html>
+
