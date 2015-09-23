@@ -19,6 +19,23 @@ function Manager(chart) {
 		tpp = (end - start) / chart.graphArea.width,
 		mode = MODE_START | MODE_END;
 	
+	/**
+	 * constructor
+	 */
+	/*
+	chart.chart.addEventListener("wheel", function (e) {
+		if(e.deltaY > 0) {
+			for (var i=0; i<5; i++) {
+				tpp = (end - start) / chart.graphArea.width;
+			}
+		}
+		else {
+			for (var i=0; i<5; i++) {
+				tpp = (end - start) / chart.graphArea.width;
+			}
+		}
+	}, false);
+	*/
 	function setXAxis() {
 		var
 			date = new Date(start),
