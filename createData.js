@@ -31,25 +31,3 @@ function createData() {
 	
 	return data;
 }
-
-function parseData (data) {
-	var value,
-		result = {
-			avg: {},
-			max: {},
-			min: {}
-		},
-		avg = result.avg,
-		max = result.max,
-		min = result.min;
-	
-	for (var dateMills in data) {
-		value = data[dateMills];
-		
-		avg[dateMills] = value.avg;
-		max[dateMills] = value.max;
-		min[dateMills] = value.min;
-	}
-	
-	return result;
-}

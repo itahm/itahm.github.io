@@ -1,6 +1,8 @@
 var 
 	container = document.querySelector("#chart"),
+	manager = Manager.getInstance(createData()),
 	chart = new Chart(container, {
+		title: "processor load (%)",
 		onxvalue: function (value) {
 			return value && value.toFixed(2);
 		},
@@ -9,29 +11,19 @@ var
 		},
 		bgcolor: "#fff"
 	}),
-	data = parseData(createData());
+	downPng = document.getElementById("down_png"),
+	downCsv = document.getElementById("down_csv"),
+	FILE_PNG_NAME = "chart.png";
 
-	chart.addData(new ChartData(data.max, {
-		capacity: 100,
-		fill: "#e0ffff",
-		unit: ChartData.HOURS,
-		method: ChartData.MAX
-	}));
+	manager.connect(chart);
+	chart.chart.appendChild(setting);
 	
-	chart.addData(new ChartData(data.min, {
-		capacity: 100,
-		fill: "#fff",
-		option: "cut",
-		unit: ChartData.HOURS,
-		method: ChartData.MIN
-	}));
-	
-	chart.addData(new ChartData(data.avg, {
-		capacity: 100,
-		stroke: "#73a4e6",
-		width: 2,
-		unit: ChartData.HOURS,
-		method: ChartData.AVG
-	}));
+	downPng.addEventListener("click", function (e) {
+		chart.download();
+	}, false);
 
-	chart.invalidate();
+	downCsv.addEventListener("click", function (e) {
+		manager.download();
+	}, false);
+	
+	manager.invalidate();

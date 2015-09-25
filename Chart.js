@@ -8,7 +8,7 @@ var
 	GRID_MIN_HEIGHT = 50,
 	SUMMARY_MIN_PX = 1,
 	PADDING = 20,
-	MARGIN = 5,
+	MARGIN = 10,
 	FONT_SIZE = 14,
 	MODE_FIX = 0,
 	MODE_START = 1,
@@ -22,35 +22,50 @@ function Chart(container, config) {
 
 (function (window, undefined) {
 	
-	function setYAxis(chart, high, low, capacity) {
-		var count = Math.floor(chart.graphArea.height /GRID_MIN_HEIGHT),
-			axisGap = chart.graphArea.height / (count -1),
-			valueGap = (high - low) / count,
-			context = chart.context,
-			grid = chart.grid.getContext("2d"),
-			max = context.measureText(chart.onxvalue(max)).width,
-			textArray = [],
-			width = chart.graphArea.width,
-			text,
-			y = PADDING,
-			y2,
-			x1 = PADDING,
-			x2 = chart.canvas.width - (PADDING + chart.axisRightWidth);
+	function getMaxWidth(chart, valueGap, low, capacity, count, textArray) {
+		var value, max, text;
 		
-		for (var i=0; i<count; i++) {
+		for (var i=0; i<=count; i++) {
 			value = low + valueGap * i;
 			text = chart.onyvalue(value);
 			textArray[i] = [text, (value / capacity *100).toFixed(2) +"%"];
-			max = Math.max(max, context.measureText(text).width);
+			
+			if (max === undefined) {
+				max = chart.context.measureText(text).width;
+			}
+			else {
+				max = Math.max(max, chart.context.measureText(text).width);
+			}
 		}
 		
-		x1 += max;
+		return max;
+	}
+	
+	function setYAxis(chart, high, low, capacity) {
+		var count = Math.floor(chart.graphArea.height /GRID_MIN_HEIGHT),
+			axisGap = chart.graphArea.height / count,
+			valueGap = (high - low) / count,
+			context = chart.context,
+			grid = chart.grid.getContext("2d"),
+			textArray = [],
+			width = chart.graphArea.width,
+			y = PADDING + chart.axisTopHeight + MARGIN,
+			y2,
+			x1 = PADDING,
+			x2 = chart.canvas.width - PADDING;
+		
+		if (count === 0) {
+			return;
+		}
+		
+		x1 += (chart.axisLeftWidth = getMaxWidth(chart, valueGap, low, capacity, count, textArray));
+		x2 -= (chart.axisRightWidth = context.measureText("100.00%").width);
 		
 		context.save();
-		//context.lineWidth = .5;
 		context.textBaseline = "middle";
 		context.textAlign = "right";
 		
+		count++;
 		for(; count-- > 0; y += axisGap) {
 			y2 = Math.round(y);
 			
@@ -77,13 +92,17 @@ function Chart(container, config) {
 		
 		drawAxis(chart, x1, x2);
 		
-		chart.axisLeftWidth = max;
+		setGraphWidth(chart);
 	}
 
+	/**
+	 * @param x1 graph area 시작 x 좌표
+	 * @param x2 graph area 끝 x좌표
+	 */
 	function drawAxis(chart, x1, x2) {
 		var context = chart.grid.getContext("2d"),
-			y1 = PADDING,
-			y2 = PADDING + chart.graphArea.height;
+			y1 = PADDING + chart.axisTopHeight + MARGIN,
+			y2 = y1 + chart.graphArea.height;
 			
 		x1 += (MARGIN -1);
 		x2 += (-MARGIN -1);
@@ -94,6 +113,12 @@ function Chart(container, config) {
 		context.moveTo(x2, y1);
 		context.lineTo(x2, y2);
 		context.stroke();
+		
+		context.save();
+		context.textBaseline = "bottom";
+		context.textAlign = "center";
+		context.fillText(chart.title, (x2 + x1) /2, y1 - MARGIN);
+		context.restore();
 	}
 
 	function init(chart) {
@@ -102,9 +127,10 @@ function Chart(container, config) {
 		context = chart.context;
 		context.font = FONT_SIZE +"px tahoma, arial, '맑은 고딕'";
 		
-		conterxt = chart.grid.getContext("2d");
-		conterxt.lineWidth = 2;
-		conterxt.strokeStyle = "#73a4e6";
+		context = chart.grid.getContext("2d");
+		context.font = FONT_SIZE +"px tahoma, arial, '맑은 고딕'";
+		context.lineWidth = 2;
+		context.strokeStyle = "#73a4e6";
 	}
 	
 	function getFile(data, startMills, endMills) {
@@ -150,24 +176,23 @@ function Chart(container, config) {
 	}
 	
 	function setGraphWidth(chart) {
-		return chart.graphArea.width = Math.max(0, chart.canvas.width - (chart.axisLeftWidth + chart.axisRightWidth + PADDING *2 + MARGIN *2));
+		return chart.graphArea.width
+			= Math.max(0, chart.canvas.width - (chart.axisRightWidth + chart.axisLeftWidth + PADDING *2 + MARGIN *2));
 	}
 	
-	/**
-	 * top 에는 margin 없음
-	 */
 	function setGraphHeight(chart) {
-		return chart.graphArea.height = chart.canvas.height - (chart.axisBottomHeight + PADDING *2 + MARGIN);
+		return chart.graphArea.height
+			= Math.max(0, chart.canvas.height - (chart.axisTopHeight + chart.axisBottomHeight + PADDING *2 + MARGIN *2));
 	}
 	
 	function drawGraph(chart, canvas) {
-		chart.context.drawImage(canvas, PADDING + chart.axisLeftWidth + MARGIN, PADDING);
+		chart.context.drawImage(canvas, PADDING + chart.axisLeftWidth + MARGIN, PADDING + chart.axisTopHeight + MARGIN);
 	}
 	
 	function cutGraph(chart, canvas) {
 		chart.context.save();
 		chart.context.globalCompositeOperation = "destination-out";
-		chart.context.drawImage(canvas, PADDING + chart.axisLeftWidth + MARGIN, PADDING);
+		chart.context.drawImage(canvas, PADDING + chart.axisLeftWidth + MARGIN, PADDING + chart.axisTopHeight + MARGIN);
 		chart.context.restore();
 	}
 	
@@ -181,10 +206,8 @@ function Chart(container, config) {
 			height = chart.canvas.height;
 		
 		chart.context.save();
-		
 		chart.context.setTransform(1, 0, 0, 1, 0, 0);
 		chart.context.clearRect(0, 0, width, height);
-		
 		chart.context.restore();
 		
 		chart.grid.getContext("2d").clearRect(0, 0, width, height);
@@ -199,8 +222,10 @@ function Chart(container, config) {
 			this.grid = document.createElement("canvas");
 			this.context = this.canvas.getContext("2d");
 			this.graphArea = {};
-			
-			this.axisRightWidth = this.context.measureText("100.00%").width;
+			this.title = config.title || "";
+			this.axisLeftWidth = 0;
+			this.axisRightWidth = 0;
+			this.axisTopHeight = FONT_SIZE;
 			this.axisBottomHeight = FONT_SIZE;
 			this.ondrag = config.ondrag || function () {};
 			this.onxvalue = config.onxvalue || function (value) {
@@ -240,8 +265,6 @@ function Chart(container, config) {
 			
 			this.resize();
 			
-			this.manager = new Manager(this);
-			
 			event.initEvent("resize", true, true);
 			
 			window.dispatchEvent(event);
@@ -249,16 +272,8 @@ function Chart(container, config) {
 			window.addEventListener("resize", function () {
 				this.resize();
 				
-				this.invalidate();
+				this.manager.invalidate();
 			}.bind(this), false);
-		},
-		
-		addData: function (chartData) {
-			this.manager.addData(chartData);
-		},
-		
-		clearData: function () {
-			this.manager.clearData();
 		},
 		
 		/**
@@ -267,33 +282,41 @@ function Chart(container, config) {
 		 * @param tpp time per pixel in milliseconds
 		 */
 		draw: function (chartData, tpp) {
-			var blockArray = chartData.data,
-				canvas = document.createElement("canvas"),
+			var canvas = document.createElement("canvas"),
 				context = canvas.getContext("2d"),
 				low = this.low,
+				blockArray = chartData.keys,
+				getValue = chartData.get,
 				fill = chartData.fill,
 				stroke = chartData.stroke,
-				xscale, block, index, length;
+				block, length;
 			
 			canvas.width = this.graphArea.width;
 			canvas.height = this.graphArea.height;
 			
 			context.setTransform(1, 0, 0, -1, 0, this.graphArea.height);
 			
-			scale = this.graphArea.height / (this.high - low);
-			
 			for (var i=0, _i=blockArray.length; i<_i; i++) {
 				block = blockArray[i];
 				
 				context.beginPath();
 				
-				for (index=0, length = block.length(); index<length; index++) {
-					context.lineTo(block.getX(index) / tpp, (block.getY(index) - low) * scale);
+				coords = getValue(block[0]);
+				
+				if (fill) {
+					context.moveTo(coords.x, 0);
+				}
+				
+				context.lineTo(coords.x, coords.y);
+				
+				for (var index=1, length = block.length; index<length; index++) {
+					coords = getValue(block[index]);
+					
+					context.lineTo(coords.x, coords.y);
 				}
 				
 				if (fill) {
-					context.lineTo(block.getX(length -1) / tpp, 0);
-					context.lineTo(block.getX(0) / tpp, 0);
+					context.lineTo(coords.x, 0);
 					context.closePath();
 					
 					context.fillStyle = fill;
@@ -327,26 +350,20 @@ function Chart(container, config) {
 			this.low = low;
 			
 			setYAxis(this, high, low, capacity);
-			
-			setGraphWidth(this);
 		},
 		
 		setXAxis: function(dataArray) {
 			var data;
 			
 			this.context.save();
-			this.context.textBaseline = "top";
+			this.context.textBaseline = "bottom";
 			this.context.textAlign = "center";
-			this.context.setTransform(1, 0, 0, 1, PADDING + this.axisLeftWidth + MARGIN, PADDING + this.graphArea.height + MARGIN);
-			var k=0;
+			this.context.setTransform(1, 0, 0, 1, PADDING + this.axisLeftWidth + MARGIN, this.canvas.height - PADDING);
+			
 			for (var i=0, _i=dataArray.length; i<_i; i++) {
 				data = dataArray[i];
 				
 				this.context.fillText(data[1], data[0], 0);
-				
-				if (k++ > 1000) {
-					throw "loop!";
-				}
 			}
 			
 			this.context.restore();
@@ -356,8 +373,20 @@ function Chart(container, config) {
 			clear(this);
 		},
 		
-		invalidate: function () {
-			this.manager.invalidate();
+		download: function () {
+			if (this.canvas.msToBlob) {
+				window.navigator.msSaveBlob(this.canvas.msToBlob(), "chart.png");
+			}
+			else {
+				var a = document.createElement("a"),
+					event = document.createEvent("Event");
+				
+				a.setAttribute("download", "chart.png");
+				a.setAttribute("href", this.canvas.toDataURL("image/png;base64"));
+				
+				event.initEvent("click", true, true);
+				a.dispatchEvent(event);
+			}
 		}
 		
 	};
