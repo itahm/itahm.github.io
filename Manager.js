@@ -24,13 +24,11 @@ function Manager() {
 			end = (function(date) {
 				return date.setDate(date.getDate() +1);
 			})(new Date(start)),
-			tpp,
-			mode = MODE_START | MODE_END;
+			tpp;
+			//mode = MODE_START | MODE_END;
 		
-		/**
-		 * @returns pow GRID_MIN_WIDTH에 몇개의 시간이 들어가야 하는가
-		 * 24시간 기준 나누어 떨어질것. 2, 3, 4, 6, 8, 12, 24 
-		 */
+		this.onchange = function () {}
+		
 		function getPow() {
 			var date = new Date(0),
 				gap = GRID_MIN_WIDTH * tpp + date.getTime(),
@@ -75,36 +73,7 @@ function Manager() {
 				return MONTH_NAME[date.getMonth()] +" "+ (day > 9? "": "0")+ day +", "+ (hour > 9? "": "0") + hour;
 			}
 		}
-		/*
-		function getFile(chartData) {
-			var blockArray = chartData.data,
-				block, index,
-				data = [],
-				date = new Date(start),
-				dateMills = date.setMinutes(0, 0, 0),
-				index=0, value;
 		
-			for (var i=0, _i=blockArray.length; i<_i; i++) {
-				block = blockArray[i];
-			
-				for (index=0, length = block.length(); index<length; index++) {
-					block.getX(index) / tpp, (block.getY(index) - low) * scale);
-			}
-		}
-		while (dateMills < endMills) {
-			
-			value = data[dateMills];
-			
-			if (value) {
-				data[data.length] = index++ +","+ date.toISOString().slice(0, 10) + " "+ date.toTimeString().slice(0, 8) +","+ value.max +","+ value.avg +","+ value.min;
-			}
-			
-			dateMills = date.setHours(date.getHours() +1);
-		}
-	
-		return "data:text/csv;charset=utf-8,"+ encodeURI(data.join("\n"));
-		}
-		*/
 		function download(blob, fileName) {	
 			if (window.navigator.msSaveBlob) {
 				window.navigator.msSaveBlob(blob, fileName);
@@ -170,7 +139,7 @@ function Manager() {
 			
 			chart.setYAxis(high, low, 100);
 			
-			tpp = (end - start) / chart.graphArea.width;
+			//tpp = (end - start) / chart.graphArea.width;
 			scale = chart.graphArea.height / (high - low);
 			
 			setXAxis();
@@ -219,6 +188,8 @@ function Manager() {
 			
 			this.invalidate = invalidate;
 			
+			tpp = (end - start) /chart.graphArea.width;
+			
 			chart.chart.addEventListener("wheel", function (e) {
 				var width = chart.graphArea.width,
 					sign = e.deltaY < 0? 1: -1;
@@ -234,9 +205,23 @@ function Manager() {
 					tpp = (end - start) / width;
 				}
 		
+				this.onchange(start, end);
+				
 				invalidate();
-			}, false);
+			}.bind(this), false);
 			
+			new Draggable(chart.chart).on("dragmove", function (event) {
+				var move = event.moveX * tpp;
+					
+				start -= move;
+				end -= move;
+				
+				this.onchange(start, end);
+				
+				invalidate();
+			}.bind(this));
+			
+			/*
 			new Draggable(chart.chart).on("dragmove", function (event) {
 				var x = event.moveX,
 					_x = Math.abs(x),
@@ -249,7 +234,7 @@ function Manager() {
 				if (mode & MODE_START && mode & MODE_END) {
 					// move
 					var move = x * tpp;
-					
+					console.log("!");
 					start -= move;
 					end -= move;
 				}
@@ -273,9 +258,9 @@ function Manager() {
 				}
 				
 				invalidate();
-			});
+			});*/
 		};
-		
+		/*
 		this.mode = function (start, end) {
 			mode = MODE_FIX;
 			
@@ -287,6 +272,14 @@ function Manager() {
 				mode |= MODE_END;
 			}
 		};
+		*/
+		this.setDate = function (startDate, endDate) {
+			start = startDate;
+			end = endDate;
+			tpp = (end - start) /chart.graphArea.width;
+			
+			invalidate();
+		},
 		
 		this.download = function () {
 			var row = ["index,date,max,avg,min"],

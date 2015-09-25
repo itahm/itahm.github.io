@@ -24,22 +24,29 @@
 		}
 		
 		h4,
-		li {
+		li,
+		input,
+		span,
+		label {
 			font-family: tahoma, arial, "맑은 고딕"
 		}
 		
 		li {
-			font-size: 14px;
+			font-size: 15px;
 		}
 		
+		input,
+		label {
+			font-size: 13px;
+		}
 		canvas {
 			display: block;
 			background-color: #f8f8f8;
 			border-radius: 10px;
 		}
 		
-		#setting,
-		 {
+		#setting
+		{
 			display: none;
 		}
 		
@@ -49,6 +56,10 @@
 		
 		img {
 			vertical-align: middle;
+		}
+		
+		#setting:hover > img {
+			display: none;
 		}
 		
 		#setting:hover > .control {
@@ -77,6 +88,14 @@
 			cursor: pointer;
 		}
 		
+		#download {
+			position: absolute; top: 5px; right: 10px;
+		}
+		
+		#date {
+			position: absolute; bottom: 5px; left: 10px;
+		}
+		
 		</style>
 		<script src="Draggable.js"></script>
 		<script src="Manager.js"></script>		
@@ -95,16 +114,29 @@
 				<li>마우스를 chart위에서 scroll 하세요. 중앙을 기준으로 표시하는 기간을 확대하거나 축소합니다.
 				<li>마우스를 chart위에서 drag 하세요. 표시하는 기간을 전이나 후로 이동합니다.
 				<li>chart는 최대값과 최소값을 벗어난 값은 그리지 않습니다.
-				<li>최신 버전의 ie, chrome, firefox, opera에서는 좌측 상단 아이콘으로부터 csv 파일과 png 파일을 다운로드 할 수 있습니다.
+				<li>우측 상단 "csv" "png" 글자를 누르면 해당하는 파일을 다운로드 할 수 있습니다. (대부분의 최신 버전 브라우저 지원)
 			</ul>
+		</div>
+		<div id="download">
+			<a id="down_csv">csv</a>
+			<a id="down_png">png</a>
+		</div>	
+		<div id="date">
+			<label>
+				from
+				<input type="date" id="start">
+			</label>
+			<label>
+				to
+				<input type="date" id="end">
+				<input type="button" value="apply" id="reset">
+			</label>
 		</div>
 		<div id="setting">
 			<img src="setup.png" width="30px" height="30px">
-			<div class="control">
-				<span>download</span>
-				<a id="down_csv">csv</a>
-				<a id="down_png">png</a>
-			</div>
+			<ul class="control">
+				<li>detail
+			</ul>
 		</div>
 		<script src="demo.js"></script>
 	</body>
