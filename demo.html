@@ -45,30 +45,8 @@
 			border-radius: 10px;
 		}
 		
-		#setting
-		{
-			display: none;
-		}
-		
-		#setting > .control {
-			display: none;
-		}
-		
 		img {
 			vertical-align: middle;
-		}
-		
-		#setting:hover > img {
-			display: none;
-		}
-		
-		#setting:hover > .control {
-			display: inline-block;
-		}
-		
-		div.chart>#setting {
-			display: block;
-			position: absolute; top: 0; left: 0;
 		}
 		
 		a {
@@ -93,7 +71,16 @@
 		}
 		
 		#date {
-			position: absolute; bottom: 5px; left: 10px;
+			position: absolute; top: 5px; left: 10px;
+		}
+		
+		img.button {
+			border: 1px solid transparent;
+		}
+		
+		img.button:hover {
+			border-color: #08f;
+			cursor: pointer;
 		}
 		
 		</style>
@@ -107,21 +94,30 @@
 		<div id="chart">
 			<h4>itahm이 chart를 보여주는 방법</h4>
 			<ul>
-				<li>1년동안의 data만 그릴 수 있고 1시간 간격으로 최대값과 최소값의 영역과 평균값을
-				꺾은 선으로 표현합니다.
+				<li>1년간의 data를 chart에 표현할수 있으며
+				1시간 간격으로 summary한 최대값과 최소값을 영역으로 그리고 평균값을 영역내 꺾은 선으로 그립니다.
 				<li>아래 chart는 1년동안의 cpu load data를 simulation한 것입니다.
 				<li>좌측 y축은 원본값 (load 이므로 0 ~ 100) 이고, 우측 y축은 항상 최대값 대비 백분률입니다.
 				<li>마우스를 chart위에서 scroll 하세요. 중앙을 기준으로 표시하는 기간을 확대하거나 축소합니다.
-				<li>마우스를 chart위에서 drag 하세요. 표시하는 기간을 전이나 후로 이동합니다.
-				<li>chart는 최대값과 최소값을 벗어난 값은 그리지 않습니다.
-				<li>우측 상단 "csv" "png" 글자를 누르면 해당하는 파일을 다운로드 할 수 있습니다. (대부분의 최신 버전 브라우저 지원)
+				<li>마우스를 chart위에서 drag 하세요. 표시하는 기간을 전 후로 이동 시킵니다.
+				<li>chart는 최대값과 최소값을 벗어난 영역은 그리지 않습니다.
+				<li>우측 상단 "csv" "png" 글자를 누르면 해당하는 파일을 다운로드 할 수 있습니다. (일부 브라우저 미지원)
+				<li>좌측 상단 기간 입력을 통해 시작과 끝 날짜를 지정할 수 있습니다. (시간, 분, 초 단위 불가)
+				달력을 지원하지 않는 브라우저 에서는 yyyy-mm-dd 의 형식으로 날짜를 직접 입력해야 합니다.
+				<li>좌측 상단 돋보기 버튼(<img src="img/detail.png" height="16px" width="16px">)을 누르면 1시간 summary가 아닌 1분단위 실 data를 추가적으로 보여줍니다.
+				<li>또한 chart와 실시간 그래프를 오가며 보여줄 수 있는 기능을 버튼(<img src="img/realtime.png" height="16px" width="16px">)을 통해 제공합니다.
 			</ul>
 		</div>
+		
 		<div id="download">
+			<img src="img/download.png" width="16px" height="16px">
 			<a id="down_csv">csv</a>
 			<a id="down_png">png</a>
 		</div>	
 		<div id="date">
+			<img src="img/realtime.png" id="realtime" width="16px" height="16px" title="realtime chart" class="button">
+			<img src="img/detail.png" id="detail" width="16px" height="16px" title="detailed chart" class="button">
+			<img src="img/calendar.png" width="16px" height="16px">
 			<label>
 				from
 				<input type="date" id="start">
@@ -132,12 +128,7 @@
 				<input type="button" value="apply" id="reset">
 			</label>
 		</div>
-		<div id="setting">
-			<img src="setup.png" width="30px" height="30px">
-			<ul class="control">
-				<li>detail
-			</ul>
-		</div>
+		
 		<script src="demo.js"></script>
 	</body>
 </html>

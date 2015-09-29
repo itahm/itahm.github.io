@@ -16,6 +16,7 @@ function Manager() {
 			MODE_END = 2,
 			MODE_MOVE = MODE_START | MODE_END,
 			HOUR1 = 60 *60 *1000,
+			MINUTES1 = 60 *1000,
 			MONTH_NAME = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 		
 		var blockArray,
@@ -24,7 +25,7 @@ function Manager() {
 			end = (function(date) {
 				return date.setDate(date.getDate() +1);
 			})(new Date(start)),
-			tpp;
+			tpp, low, scale;
 			//mode = MODE_START | MODE_END;
 		
 		this.onchange = function () {}
@@ -103,9 +104,9 @@ function Manager() {
 					return date.setHours(date.getHours() +1);
 				})(new Date(end)),
 				block = [],
-				scale, high, low, max, min;
+				high, max, min;
 			
-			// blockArray는 직전에 그린 data를 유지하기 위해 전역변수로 둔다.
+			// low, scale, blockArray는 직전에 그린 data를 유지하기 위해 전역변수로 둔다.
 			blockArray = [block];
 			
 			while (dateMills <= endMills) {
@@ -180,7 +181,7 @@ function Manager() {
 						y: (data[key].avg - low) * scale
 					}
 				}
-			}, tpp);
+			});
 		}
 		
 		this.connect = function (chart) {
@@ -210,7 +211,8 @@ function Manager() {
 				invalidate();
 			}.bind(this), false);
 			
-			new Draggable(chart.chart).on("dragmove", function (event) {
+			new Draggable(chart.chart)
+			.on("dragmove", function (event) {
 				var move = event.moveX * tpp;
 					
 				start -= move;
@@ -220,59 +222,60 @@ function Manager() {
 				
 				invalidate();
 			}.bind(this));
-			
-			/*
-			new Draggable(chart.chart).on("dragmove", function (event) {
-				var x = event.moveX,
-					_x = Math.abs(x),
-					sign = x / _x;
-				
-				if (x == 0 || mode == MODE_FIX) {
-					return;
-				}
-				
-				if (mode & MODE_START && mode & MODE_END) {
-					// move
-					var move = x * tpp;
-					console.log("!");
-					start -= move;
-					end -= move;
-				}
-				else {
-					if (mode & MODE_START) {
-						// fix end
-						for (var i=0; i<_x; i++ ) {
-							start += sign * tpp;
-							
-							tpp = (end - start) / chart.graphArea.width;
-						}
-					}
-					else {
-						// fix start
-						for (var i=0; i<_x; i++ ) {
-							end += sign * tpp;
-							
-							tpp = (end - start) / chart.graphArea.width;
-						}
-					}
-				}
-				
-				invalidate();
-			});*/
 		};
-		/*
-		this.mode = function (start, end) {
-			mode = MODE_FIX;
-			
-			if (start) {
-				mode |= MODE_START;
+		
+		this.detail = function () {
+			if (tpp > MINUTES1) {
+				alert("itahm could not show you more detailed chart view");
+				
+				return;
 			}
 			
-			if (end) {
-				mode |= MODE_END;
+			var detail = {},
+				block = [],
+				blockArray = [block],
+				hDate = new Date(start),
+				mDate = new Date(start),
+				next = hDate.setMinutes(0, 0, 0),
+				m = mDate.setSeconds(0, 0),
+				value, max, min, avg;
+
+			for (; next < end; next = hDate.setHours(hDate.getHours() +1)) {
+				if (next in data) {
+					value = data[next];
+					
+					avg = value.avg;
+					max = value.max;
+					min = value.min;
+					
+					while(m < next) {
+						detail[m] = min + Math.random() * (max - min);
+						block[block.length] = m;
+						m = mDate.setMinutes(mDate.getMinutes() +1);
+					}
+				}
 			}
-		};
-		*/
+			
+			chart.draw({
+				capacity: 100,
+				stroke: "#f00",
+				width: .5,
+				keys: blockArray,
+				get: function (key) {
+					return {
+						x: (key - start) /tpp,
+						y: (detail[key] - low) * scale
+					}
+				}
+			});
+		},
+		
+		this.resize = function () {
+			tpp = (end - start) / chart.graphArea.width;
+			
+			invalidate();
+		}
+		
 		this.setDate = function (startDate, endDate) {
 			start = startDate;
 			end = endDate;

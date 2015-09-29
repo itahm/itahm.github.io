@@ -12,7 +12,6 @@ var
 		bgcolor: "#fff"
 	}),
 	elements = {
-		setting: document.getElementById("setting"),
 		download: document.getElementById("download"),
 		reset: document.getElementById("reset"),
 		downPng: document.getElementById("down_png"),
@@ -20,6 +19,7 @@ var
 		date: document.getElementById("date"),
 		start: document.getElementById("start"),
 		end: document.getElementById("end"),
+		detail: document.getElementById("detail"),
 	},
 	FILE_PNG_NAME = "chart.png";
 
@@ -29,7 +29,6 @@ var
 		elements.end.value = new Date(end).toISOString().slice(0,10);
 	};
 	
-	chart.chart.appendChild(elements.setting);
 	chart.chart.appendChild(elements.download);
 	chart.chart.appendChild(elements.date);
 	
@@ -41,12 +40,26 @@ var
 		manager.download();
 	}, false);
 	
+	elements.detail.addEventListener("click", function (e) {
+		manager.detail();
+	}, false);
+	
 	elements.reset.addEventListener("mousedown", function (e) {
 		e.stopPropagation();
 	}, false);
 	
 	elements.reset.addEventListener("click", function (e) {
-		manager.setDate(new Date(elements.start.value).setHours(0), new Date(elements.end.value).setHours(0));
+		var start = Date.parse(elements.start.value),
+			end = Date.parse(elements.end.value);
+		
+		if (isNaN(start) || isNaN(end)) {
+			return;
+		}
+		
+		end = new Date(end);
+		end.setHours(0);
+		
+		manager.setDate(new Date(start).setHours(0), end.setDate(end.getDate() +1));
 	}, false);
 	
 	manager.invalidate();

@@ -272,16 +272,15 @@ function Chart(container, config) {
 			window.addEventListener("resize", function () {
 				this.resize();
 				
-				this.manager.invalidate();
+				this.manager.resize();
 			}.bind(this), false);
 		},
 		
 		/**
 		 * 
 		 * @param chartData ChartData
-		 * @param tpp time per pixel in milliseconds
 		 */
-		draw: function (chartData, tpp) {
+		draw: function (chartData) {
 			var canvas = document.createElement("canvas"),
 				context = canvas.getContext("2d"),
 				low = this.low,

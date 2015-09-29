@@ -52,7 +52,7 @@ function Draggable(element) {
 			y = e.clientY;
 		
 		if (this.event) {
-			if (this.event.x !== x && this.event.y != y) {
+			if (this.event.x !== x || this.event.y != y) {
 				this.event.dragX = x - this.event.x;
 				this.event.dragY = y - this.event.y;
 				this.event.lastX = x;
@@ -90,6 +90,11 @@ function Draggable(element) {
 			element.addEventListener("mouseout", onMouseUp.bind(this), false);
 		},
 		
+		/**
+		 * @param type "dragstart", "dragmove", "dragend"
+		 * @param handler callback function
+		 * @return this
+		 */
 		on: function (type, handler) {
 			var eventHandler = this.eventHandler[type];
 			
