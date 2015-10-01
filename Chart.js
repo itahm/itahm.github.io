@@ -20,6 +20,14 @@ function Chart(container, config) {
 	this.init(container, config);
 }
 
+function fireEvent(eventType, element) {
+	var event = document.createEvent("Event");
+	
+	event.initEvent(eventType, true, true);
+	
+	element.dispatchEvent(event);
+}
+
 (function (window, undefined) {
 	
 	function getMaxWidth(chart, valueGap, low, capacity, count, textArray) {
@@ -200,18 +208,6 @@ function Chart(container, config) {
 		chart.lastImage = chart.context.getImageData(0, 0, chart.canvas.width, chart.canvas.height);
 		chart.context.drawImage(chart.grid, 0, 0);
 	}
-	
-	function clear(chart) {
-		var width = chart.canvas.width,
-			height = chart.canvas.height;
-		
-		chart.context.save();
-		chart.context.setTransform(1, 0, 0, 1, 0, 0);
-		chart.context.clearRect(0, 0, width, height);
-		chart.context.restore();
-		
-		chart.grid.getContext("2d").clearRect(0, 0, width, height);
-	}
 
 	Chart.prototype = {
 		init: function (container, config) {
@@ -237,9 +233,21 @@ function Chart(container, config) {
 			this.chart.appendChild(this.canvas);
 			this.chart.className = "chart";
 			
-			if (container) {
-				this.attachTo(container);
-			}
+			container.appendChild(this.chart);
+			
+			this.resize();
+			
+			fireEvent("resize", window);
+			
+			window.addEventListener("resize", function () {
+				this.resize();
+				
+				this.manager.resize();
+			}.bind(this), false);
+		},
+		
+		onresize: function () {
+			
 		},
 		
 		resize: function () {
@@ -258,27 +266,11 @@ function Chart(container, config) {
 			init(this);
 		},
 		
-		attachTo: function (container) {
-			var event = document.createEvent("Event");
-			
-			container.appendChild(this.chart);
-			
-			this.resize();
-			
-			event.initEvent("resize", true, true);
-			
-			window.dispatchEvent(event);
-			
-			window.addEventListener("resize", function () {
-				this.resize();
-				
-				this.manager.resize();
-			}.bind(this), false);
-		},
-		
 		/**
 		 * 
-		 * @param chartData ChartData
+		 * @param {Object} chartData
+		 * @param {Array} [chartData.keys] Array[Array[]] 이어야 함
+		 * 
 		 */
 		draw: function (chartData) {
 			var canvas = document.createElement("canvas"),
@@ -339,6 +331,14 @@ function Chart(container, config) {
 			saveChart(this);
 		},
 		
+		addEventListener: function (type, listener) {
+			this.chart.addEventListener(type, listener, false);
+		},
+		
+		appendChild: function (child) {
+			this.chart.appendChild(child);
+		},
+		
 		setYAxis: function(high, low, capacity) {
 			if (high == low) {
 				++high;
@@ -369,7 +369,15 @@ function Chart(container, config) {
 		},
 		
 		clear: function () {
-			clear(this);
+			var width = this.canvas.width,
+				height = this.canvas.height;
+			
+			//this.context.save();
+			//this.context.setTransform(1, 0, 0, 1, 0, 0);
+			this.context.clearRect(0, 0, width, height);
+			//this.context.restore();
+			
+			this.grid.getContext("2d").clearRect(0, 0, width, height);
 		},
 		
 		download: function () {
@@ -382,20 +390,11 @@ function Chart(container, config) {
 				
 				a.setAttribute("download", "chart.png");
 				a.setAttribute("href", this.canvas.toDataURL("image/png;base64"));
-				
-				event.initEvent("click", true, true);
-				a.dispatchEvent(event);
+				console.log(a);
+				fireEvent("click", a);
 			}
 		}
 		
-	};
-	
-	Chart.toDateString = function (date) {
-		var year = date.getFullYear();
-		var month = date.getMonth() + 1;
-		var date  = date.getDate();
-		
-		return year +"-"+ (month > 9? "": "0") + month +"-"+ (date > 9? "": "0") + date;
 	};
 	
 }) (window);

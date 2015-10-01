@@ -66,12 +66,16 @@
 			cursor: pointer;
 		}
 		
-		#download {
-			position: absolute; top: 5px; right: 10px;
+		#controller {
+			position: absolute; top: 5px; right: 10px; left: 0;
 		}
 		
-		#date {
-			position: absolute; top: 5px; left: 10px;
+		#controller > div.right {
+			float: right;
+		}
+		
+		#controller > div.left {
+			float: left;
 		}
 		
 		img.button {
@@ -102,31 +106,33 @@
 				<li>마우스를 chart위에서 drag 하세요. 표시하는 기간을 전 후로 이동 시킵니다.
 				<li>chart는 최대값과 최소값을 벗어난 영역은 그리지 않습니다.
 				<li>우측 상단 "csv" "png" 글자를 누르면 해당하는 파일을 다운로드 할 수 있습니다. (일부 브라우저 미지원)
-				<li>좌측 상단 기간 입력을 통해 시작과 끝 날짜를 지정할 수 있습니다. (시간, 분, 초 단위 불가)
+				<li>좌측 상단 기간 입력을 통해 시작과 끝 날짜를 지정할 수 있습니다.
+				시작은 0시를, 끝은 24시(다음날 0시)로 설정됩니다. (시 분 초 단위 제어 불가)
 				달력을 지원하지 않는 브라우저 에서는 yyyy-mm-dd 의 형식으로 날짜를 직접 입력해야 합니다.
 				<li>좌측 상단 돋보기 버튼(<img src="img/detail.png" height="16px" width="16px">)을 누르면 1시간 summary가 아닌 1분단위 실 data를 추가적으로 보여줍니다.
 				<li>또한 chart와 실시간 그래프를 오가며 보여줄 수 있는 기능을 버튼(<img src="img/realtime.png" height="16px" width="16px">)을 통해 제공합니다.
 			</ul>
 		</div>
-		
-		<div id="download">
-			<img src="img/download.png" width="16px" height="16px">
-			<a id="down_csv">csv</a>
-			<a id="down_png">png</a>
-		</div>	
-		<div id="date">
-			<img src="img/realtime.png" id="realtime" width="16px" height="16px" title="realtime chart" class="button">
-			<img src="img/detail.png" id="detail" width="16px" height="16px" title="detailed chart" class="button">
-			<img src="img/calendar.png" width="16px" height="16px">
-			<label>
-				from
-				<input type="date" id="start">
-			</label>
-			<label>
-				to
-				<input type="date" id="end">
-				<input type="button" value="apply" id="reset">
-			</label>
+		<div id="controller">
+			<div class="right">
+				<img src="img/download.png" width="16px" height="16px">
+				<a id="down_csv">csv</a>
+				<a id="down_png">png</a>
+			</div>
+			<div class="left">
+				<img src="img/realtime.png" id="realtime" width="16px" height="16px" title="realtime chart" class="button">
+				<img src="img/detail.png" id="detail" width="16px" height="16px" title="detailed chart" class="button">
+				<img src="img/calendar.png" width="16px" height="16px">
+				<label>
+					from
+					<input type="date" id="start">
+				</label>
+				<label>
+					to
+					<input type="date" id="end">
+					<input type="button" value="apply" id="reset">
+				</label>
+			</div>
 		</div>
 		
 		<script src="demo.js"></script>
