@@ -34,18 +34,8 @@ function format(milliseconds) {
 	
 	Manager.prototype = {
 		init: function (chart) {
-			var date = new Date();
-		
 			this.data = {};
 			this.chart = chart;
-			this.start = date.setHours(0, 0, 0, 0);
-			this.end = date.setDate(date.getDate() +1);
-			this.tpp = this.resetTPP();
-			this.blocks = [];
-			
-			chart.addEventListener("wheel", this.onwheel.bind(this));
-			
-			new Draggable(chart.chart).on("dragmove", this.ondrag.bind(this));
 		},
 		
 		resetTPP: function () {
@@ -63,26 +53,6 @@ function format(milliseconds) {
 		 */
 		onchange: function (start, end) {
 			
-		},
-		
-		ondrag: function (e) {
-			this.move(e.moveX);
-			
-			this.onchange(this.start, this.end);
-			
-			this.invalidate();
-		},
-		
-		onwheel: function (e) {
-			var zoom = e.deltaY > 0? true: false;
-			
-			for (var i=0; i<WHEEL_REPEAT; i++) {
-				this.zoom(zoom);
-			}
-
-			this.onchange(this.start, this.end);
-			
-			this.invalidate();
 		},
 		
 		/**
@@ -261,14 +231,6 @@ function format(milliseconds) {
 			});
 		},
 		
-		realtime: function () {
-			chart.clear();
-			
-			setTimeout(function () {
-				invalidate();
-			}, 3000);
-		},
-		
 		resize: function () {
 			this.resetTPP();
 			
@@ -350,5 +312,40 @@ function format(milliseconds) {
 	
 	ChartManager.prototype = new Manager();
 	ChartManager.constructor = ChartManager;
+	
+	ChartManager.prototype.init = function (chart) {
+		Manager.prototype.init.call(this, chart);
+		
+		var date = new Date();
+		
+		this.tpp = this.resetTPP();
+		this.blocks = [];
+		this.start = date.setHours(0, 0, 0, 0);
+		this.end = date.setDate(date.getDate() +1);
+		
+		chart.addEventListener("wheel", this.onwheel.bind(this));
+		
+		new Draggable(chart.chart).on("dragmove", this.ondrag.bind(this));
+	}
+	
+	ChartManager.prototype.ondrag = function (e) {
+		this.move(e.moveX);
+		
+		this.onchange(this.start, this.end);
+		
+		this.invalidate();
+	}
+	
+	ChartManager.prototype.onwheel = function (e) {
+		var zoom = e.deltaY > 0? true: false;
+		
+		for (var i=0; i<WHEEL_REPEAT; i++) {
+			this.zoom(zoom);
+		}
+
+		this.onchange(this.start, this.end);
+		
+		this.invalidate();
+	}
 	
 })(this);	
