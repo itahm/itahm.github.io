@@ -21,22 +21,6 @@ function format(milliseconds) {
 	}
 }
 
-function download(blob, fileName) {	
-	if (window.navigator.msSaveBlob) {
-		window.navigator.msSaveBlob(blob, fileName);
-	}
-	else {
-		var a = document.createElement("a"),
-			event = document.createEvent("Event");
-		
-		a.setAttribute("download", fileName);
-		a.setAttribute("href", URL.createObjectURL(blob));
-		
-		event.initEvent("click", true, true);
-		a.dispatchEvent(event);
-	}
-}
-
 (function (window, undefined) {
 	var managerMap = {
 			ChartManager: ChartManager,
@@ -190,6 +174,9 @@ function download(blob, fileName) {
 			
 			chart.setXAxis(this.getAxisValues());
 			
+			// 다시 그려지면 detail 삭제
+			this.detail = undefined;
+			
 			chart.draw({
 				capacity: 100,
 				fill: "#e0ffff",
@@ -229,20 +216,21 @@ function download(blob, fileName) {
 			});
 		},
 		
-		detail: function () {
+		showDetail: function () {
 			if (this.tpp > MINUTES1) {
 				alert("itahm could not show you more detailed chart view");
 				
 				return;
 			}
 			
-			var detail = {},
-				hDate = new Date(this.start),
+			var hDate = new Date(this.start),
 				mDate = new Date(this.start),
 				next = hDate.setMinutes(0, 0, 0),
 				mMills = mDate.setSeconds(0, 0),
 				value, max, min, avg;
 
+			this.detail = {};
+			
 			for (; next < this.end; next = hDate.setHours(hDate.getHours() +1)) {
 				if (next in this.data) {
 					value = this.data[next];
@@ -252,7 +240,7 @@ function download(blob, fileName) {
 					min = value.min;
 					
 					for(; mMills < next; mMills = mDate.setMinutes(mDate.getMinutes() +1)) {
-						detail[mMills] = min + Math.random() * (max - min);
+						this.detail[mMills] = min + Math.random() * (max - min);
 					}
 				}
 			}
@@ -261,11 +249,11 @@ function download(blob, fileName) {
 				capacity: 100,
 				stroke: "#f00",
 				width: .5,
-				keys: [Object.keys(detail)],
+				keys: [Object.keys(this.detail)],
 				get: function (key) {
 					var coords = {
 							x: (key - this.start) /this.tpp,
-							y: (detail[key] - this.low) * this.scale
+							y: (this.detail[key] - this.low) * this.scale
 						};
 
 					return coords;
@@ -297,23 +285,40 @@ function download(blob, fileName) {
 		},
 		
 		download: function () {
-			var row = ["index,date,max,avg,min"],
-				block, date, dateMills, value;
+			var row, block, date, dateMills, value;
 			
-			for (var i=0, _i=blockArray.length, j, _j; i<_i; i++) {
-				block = blockArray[i];
+			if (this.detail) {
+				row = ["index,date,value"];
 				
-				for (j=0, _j=block.length; j<_j; j++) {
-					dateMills = block[j];
-					date = new Date(dateMills);
-					value = this.data[dateMills];
+				block = Object.keys(this.detail).sort(function (a, b) {
+					return Number(a) - Number(b);
+				});
+				
+				for (var i=0, _i=block.length; i<_i;i++) {
+					dateMills = block[i];
 					
-					row[row.length] = j + ","+ date.toISOString().slice(0, 10) + " "+ date.toTimeString().slice(0, 8) +","+ value.max +","+ value.avg +","+ value.min;
+					date = new Date(Number(dateMills));
+					
+					row[row.length] = i + ","+ date.toISOString().slice(0, 10) + " "+ date.toTimeString().slice(0, 8) +","+ this.detail[dateMills]; 
+				}
+			}
+			else {
+				row = ["index,date,max,avg,min"];
+				
+				for (var i=0, _i=this.blocks.length; i<_i; i++) {
+					block = this.blocks[i];
+					
+					for (var j=0, _j=block.length; j<_j; j++) {
+						dateMills = block[j];
+						date = new Date(dateMills);
+						value = this.data[dateMills];
+						
+						row[row.length] = j + ","+ date.toISOString().slice(0, 10) + " "+ date.toTimeString().slice(0, 8) +","+ value.max +","+ value.avg +","+ value.min;
+					}
 				}
 			}
 			
-			//download(new Blob([encodeURI(row.join("\n"))], { type: "text/csv;charset=utf-8;"}), "chart.csv");
-			download(new Blob([row.join("\n")], { type: "text/csv;charset=utf-8;"}), "chart.csv");
+			ITAhM.download(new Blob([row.join("\n")], { type: "text/csv;charset=utf-8;"}), "chart.csv");
 		},
 		
 		getAxisValues: function () {

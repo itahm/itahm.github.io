@@ -390,7 +390,7 @@ function fireEvent(eventType, element) {
 				
 				a.setAttribute("download", "chart.png");
 				a.setAttribute("href", this.canvas.toDataURL("image/png;base64"));
-				console.log(a);
+				
 				fireEvent("click", a);
 			}
 		}

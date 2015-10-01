@@ -45,7 +45,7 @@ var
 	}, false);
 	
 	elements.detail.addEventListener("click", function (e) {
-		manager.detail();
+		manager.showDetail();
 	}, false);
 	
 	elements.realtime.addEventListener("click", function (e) {
