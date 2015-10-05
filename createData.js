@@ -1,11 +1,11 @@
 function createData() {
 	var data = {},
 		end = new Date().setMinutes(0, 0, 0),
-		start = (function () {
-			var date = new Date(end);
+		start = (function (date) {
+			date.setFullYear(date.getFullYear() -1);
 			
-			return date.setFullYear(date.getFullYear() -1);
-		})(),
+			return date.setHours(0);
+		})(new Date(end)),
 		date = new Date(start),
 		dateMills,
 		i=0,
@@ -30,4 +30,21 @@ function createData() {
 	}
 	
 	return data;
+}
+
+function createRData() {
+	var data = {},
+		values = [],
+		date = new Date(),
+		dateMills = date.getTime();
+	
+	for (var i=0; i<1024; i++, dateMills = date.setSeconds(date.getSeconds() -1)) {
+		values[values.length] = data[dateMills] = Math.random() * 100;
+	}
+	
+	return {
+		data: data,
+		high: Math.max.apply(undefined, values),
+		low: Math.min.apply(undefined, values)
+	}
 }

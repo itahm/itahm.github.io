@@ -193,6 +193,10 @@ function fireEvent(eventType, element) {
 			= Math.max(0, chart.canvas.height - (chart.axisTopHeight + chart.axisBottomHeight + PADDING *2 + MARGIN *2));
 	}
 	
+	/**
+	 * @param {Chart} chart
+	 * @param {Canvas} canvas
+	 */
 	function drawGraph(chart, canvas) {
 		chart.context.drawImage(canvas, PADDING + chart.axisLeftWidth + MARGIN, PADDING + chart.axisTopHeight + MARGIN);
 	}
@@ -224,12 +228,20 @@ function fireEvent(eventType, element) {
 			this.axisTopHeight = FONT_SIZE;
 			this.axisBottomHeight = FONT_SIZE;
 			this.ondrag = config.ondrag || function () {};
+			this.manager = config.manager || {
+				resize: function () {
+					
+				}
+			}
+			
 			this.onxvalue = config.onxvalue || function (value) {
 				return value;
-			};
+			}
+			
 			this.onyvalue = config.onyvalue || function (value) {
 				return value;
-			};
+			}
+			
 			this.chart.appendChild(this.canvas);
 			this.chart.className = "chart";
 			
@@ -335,10 +347,18 @@ function fireEvent(eventType, element) {
 			this.chart.addEventListener(type, listener, false);
 		},
 		
+		/**
+		 * @param {Node} child
+		 */
 		appendChild: function (child) {
 			this.chart.appendChild(child);
 		},
 		
+		/**
+		 *@param {Number} high
+		 * @param {Number} low
+		 * @param {Number} capacity
+		 */
 		setYAxis: function(high, low, capacity) {
 			if (high == low) {
 				++high;
@@ -351,7 +371,10 @@ function fireEvent(eventType, element) {
 			setYAxis(this, high, low, capacity);
 		},
 		
-		setXAxis: function(dataArray) {
+		/**
+		 * @param {Array} valueArray
+		 */
+		setXAxis: function(valueArray) {
 			var data;
 			
 			this.context.save();
@@ -359,8 +382,8 @@ function fireEvent(eventType, element) {
 			this.context.textAlign = "center";
 			this.context.setTransform(1, 0, 0, 1, PADDING + this.axisLeftWidth + MARGIN, this.canvas.height - PADDING);
 			
-			for (var i=0, _i=dataArray.length; i<_i; i++) {
-				data = dataArray[i];
+			for (var i=0, _i=valueArray.length; i<_i; i++) {
+				data = valueArray[i];
 				
 				this.context.fillText(data[1], data[0], 0);
 			}
@@ -393,6 +416,15 @@ function fireEvent(eventType, element) {
 				
 				fireEvent("click", a);
 			}
+		},
+		
+		/**
+		 * @param {Manager} manager
+		 */
+		connect: function (manager) {
+			this.manager = manager;
+			
+			manager.resize();
 		}
 		
 	};

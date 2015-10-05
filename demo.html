@@ -78,6 +78,16 @@
 			float: left;
 		}
 		
+		#controller #offline,
+		#controller.realtime #realtime,
+		#controller.realtime #detail {
+			display: none;
+		}
+		
+		#controller.realtime #offline {
+			display: inline;
+		}
+		
 		img.button {
 			border: 1px solid transparent;
 		}
@@ -117,10 +127,11 @@
 		<div id="controller">
 			<div class="right">
 				<img src="img/download.png" width="16px" height="16px">
-				<a id="down_csv">csv</a>
-				<a id="down_png">png</a>
+				<a id="down_csv" title="download chart data as chart.csv">csv</a>
+				<a id="down_png" title="download chart image as chart.png">png</a>
 			</div>
 			<div class="left">
+				<img src="img/chart.png" id="offline" width="16px" height="16px" title="offline chart" class="button">
 				<img src="img/realtime.png" id="realtime" width="16px" height="16px" title="realtime chart" class="button">
 				<img src="img/detail.png" id="detail" width="16px" height="16px" title="detailed chart" class="button">
 				<img src="img/calendar.png" width="16px" height="16px">
