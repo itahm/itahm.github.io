@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta http-equiv="Content-Script-Type" content="text/javascript">
+		<meta http-equiv="Content-Style-Type" content="text/css">
+		<title>ITAhM::Device</title>
+		
+		<style>
+body,
+input,
+a {
+	font-family: arial, tahoma, "맑은 고딕"
+}
+
+li,
+select,
+input,
+span,
+label,
+a {
+	font-size: 12px;
+}
+
+aside {
+	position: fixed; top: 0; bottom: 0; left: 0; width: 300px;
+	box-sizing: border-box;
+	padding: 10px;
+	overflow-y: auto;
+}
+
+section {
+	position: fixed; top: 0; right: 0px; bottom: 0; left: 300px;
+	box-sizing: border-box;
+	padding: 10px;
+	background: #fff url(img/chart.png) no-repeat center;
+}
+
+.table ul {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+	display: flex;
+	border-bottom: 1px solid #ddd;
+}
+
+.table ul:first-child {
+	border-top: 1px solid #ddd;
+}
+
+.table li {
+	flex: 2;
+}
+
+.table li:first-child {
+	flex: 1;
+	text-align: right;
+	background-color: #0084ff;
+	color: #ddf;
+	font-weight: bold;
+}
+
+.table li >* {
+	display: block;
+	padding: .5em;
+}
+
+.table input[type=text],
+.table select {
+	box-sizing: border-box;
+	width: 100%;
+}
+
+body.snmp .interface,
+.hide,
+.snmp:not(body),
+#save,
+#cancel,
+#information:not(.edit) li:nth-child(3),
+#information.edit li:nth-child(2),
+#information.edit #edit {
+	display: none;
+}
+
+body.snmp .snmp,
+#information.edit li:nth-child(3) {
+	display: block;
+}
+
+#information.edit #save,
+#information.edit #cancel {
+	display: inline;
+}
+
+li {
+	margin: 0;
+	vertical-align: bottom;
+}
+
+/** chart */
+
+#chart {
+	display: flex;
+	flex-direction: column;
+}
+
+#chart> .chart {
+	-webkit-flex: 1;
+	flex: 1;
+	height: 0;
+	position: relative;
+}
+		
+#controller {
+	position: absolute; top: 5px; right: 10px; left: 0;
+}
+
+#controller > div.right {
+	float: right;
+}
+
+#controller > div.left {
+	float: left;
+}
+
+#controller #offline,
+#controller.realtime .right,
+#controller.realtime .left :not(#offline) {
+	display: none;
+}
+
+#controller.realtime #offline {
+	display: inline;
+}
+
+#controller img {
+	vertical-align: middle;
+	border: 1px solid transparent;
+}
+
+#controller img.button:hover {
+	border-color: #ddf;
+	cursor: pointer;
+}
+
+#controller a {
+	font-weight: bold;
+}
+
+#controller a:hover {
+	color: #73a4e6;
+	text-decoration: underline;
+	cursor: pointer;
+}
+		
+		</style>
+		
+	</head>
+	
+	<body>
+		
+		<aside>
+			<h3>device information</h3>
+			<div class="table information">
+				<div id="information">
+					<input type="button" value="edit information" id="edit">
+					<input type="button" value="save" id="save">
+					<input type="button" value="cancel" id="cancel">
+				
+					<form id="form">
+						<ul>
+							<li>
+								<span>name</span>
+							<li>
+								<span id="name"></span>
+							<li>
+								<input type="text" name="name">
+						</ul>
+						<ul>
+							<li>
+								<span>ip address</span>
+							<li>
+								<span id="ip"></span>
+							<li>
+								<input type="text" name="ip">
+						</ul>
+						<ul>
+							<li>
+								<span>type</span>
+							<li>
+								<span id="type"></span>
+							<li>
+								<select name="type"></select>
+						</ul>
+						<ul>
+							<li>
+								<span>label</span>
+							<li>
+								<span id="label"></span>
+							<li>
+								<input type="text" name="label">
+						</ul>
+						<ul>
+							<li>
+								<span>snmp</span>
+							<li>
+								<span id="snmp"></span>
+							<li>
+								<select name="snmp">
+									<option>public
+								</select>
+						</ul>
+					</form>
+				</div>
+				
+				<div class="snmp">
+					<ul>
+						<li>
+							<span>status</span>
+						<li>
+							<span id="status"></span>
+					</ul>
+					<ul>
+						<li>
+							<span>uptime</span>
+						<li>
+							<span id="uptime"></span>
+					</ul>
+					<ul>
+						<li>
+							<span>description</span>
+						<li>
+							<span id="description"></span>
+					</ul>
+					<ul>
+						<li>
+							<span>enterprise</span>
+						<li>
+							<span id="enterprise"></span>
+					</ul>
+				</div>
+				
+			</div>
+			
+			<div class="snmp">
+				<h3>
+					snmp response time
+				</h3>
+				<ul>
+					<li><input type="checkbox" id="response">response time (ms)
+				</ul>
+				
+				<h3>
+					processor load
+				</h3>
+				<ul id="cpu_list"></ul>
+			
+				<h3>
+					physical memory
+				</h3>
+				<ul id="mem_list"></ul>
+				
+				<h3>
+					storage usage
+				</h3>
+				<ul id="disk_list"></ul>
+				
+				<h3>
+					interface throughput
+				</h3>
+				<ul id="disk_list"></ul>
+			</div>
+		</aside>
+		
+		<section id="chart">
+			<div id="controller">
+				<div class="right">
+					<img src="img/download.png" width="16px" height="16px">
+					<a id="down_csv" title="download chart data as chart.csv">csv</a>
+					<a id="down_png" title="download chart image as chart.png">png</a>
+				</div>
+				<div class="left">
+					<img src="img/chart.png" id="offline" width="16px" height="16px" title="offline chart" class="button">
+					<div>
+						<img src="img/realtime.png" id="realtime" width="16px" height="16px" title="realtime chart" class="button">
+						<img src="img/detail.png" id="detail" width="16px" height="16px" title="detailed chart" class="button">
+						<img src="img/calendar.png" width="16px" height="16px">
+						<label>
+							from
+							<input type="date" id="start">
+						</label>
+						<label>
+							to
+							<input type="date" id="end">
+							<input type="button" value="apply" id="reset">
+						</label>
+					</div>
+				</div>
+			</div>
+		</section>
+		
+		<script src="js/ITAhM.js"></script>
+		<script src="js/Draggable.js"></script>
+		<script src="js/Manager.js"></script>
+		<script src="js/createData.js"></script>
+		<script src="js/Chart.js"></script>
+		<script src="device.js"></script>
+		<script>
+
+(function (window, top) {		
+
+	if (window === top) {
+		throw "";
+	}
+	
+	var elements = {
+			aside: document.querySelector("aside"),
+			form: document.getElementById("form"),
+			edit: document.getElementById("edit"),
+			cancel: document.getElementById("cancel"),
+			save: document.getElementById("save"),
+			name: document.getElementById("name"),
+			ip: document.getElementById("ip"),
+			type: document.getElementById("type"),
+			label: document.getElementById("label"),
+			snmp: document.getElementById("snmp"),
+			status: document.getElementById("status"),
+			uptime: document.getElementById("uptime"),
+			description: document.getElementById("description"),
+			enterprise: document.getElementById("enterprise"),
+			response: document.getElementById("response"),
+			information: document.getElementById("information")
+		},
+		deviceList = top.getDeviceList(),
+		snmpList = top.getSNMPList(),
+		id = 0,
+		device;
+	
+	elements.edit.addEventListener("click", onEdit, false);
+	elements.save.addEventListener("click", onSave, false);
+	elements.cancel.addEventListener("click", onCancel, false);
+	elements.response.addEventListener("click", onCheckResource, false);
+	//onChangeSnmp();
+	
+	parseType();
+	
+	resetDevice();
+	
+	function parseType() {
+		var type = elements.form.elements.type,
+			map = top.getTypeMap(),
+			group, option;
+		
+		for (var name in map) {
+			group = map[name];
+			
+			option = document.createElement("optgroup");
+			option.setAttribute("label", name);
+			type.add(option);
+			
+			for (var i=0, length=group.length; i<length; i++) {
+				option.appendChild(document.createElement("option")).text = group[i];
+			}
+		}
+	}
+	
+	
+	
+	function onCancel() {
+		close();
+	}
+	
+	function close() {
+		elements.information.classList.remove("edit");
+	}
+	
+	function onEdit(e) {
+		edit();
+	}
+	
+	function onSave() {
+		save();
+	}
+	
+	/**
+	 * monitor하고자 하는 resource check시 chart에 추가하거나 삭제
+	 */
+	function onCheckResource(database, index, e) {
+		var checkbox = e.currentTarget;
+		
+		if (checkbox.checked) {
+			var date = new Date(),
+				request = {
+					database: database,
+					command: "get",
+					data: {}
+				},
+				chart = createChart(database),
+				item = checkedList.add(checkbox, chart);
+			
+			request.data[ip] = {
+				index: index,
+				end: date.setMinutes(0, 0, 0),
+				start: date.setFullYear(date.getFullYear() -1),
+				summary: true
+			};
+			
+			item.request = request;
+			
+			elements.chart.appendChild(chart.chart);
+			
+			item.xhr.request(request);
+		}
+		else {
+			elements.chart.removeChild(checkedList.remove(checkbox).chart.chart);
+		}
+		
+		resize();
+	}
+	
+	function save() {
+		if (id === undefined) {
+			id = top.createDeviceID();
+			device.id = id;
+			
+			deviceList[id] = device;
+		}
+		
+		device.name = elements.form.name.value;
+		device.address = elements.form.ip.value;
+		device.type = elements.form.type.value;
+		
+		var array = [];
+		elements.form.label.value.split(",").forEach(function (label) {
+			array[array.length] = label.trim();
+		});
+		
+		device.label = array.join(",");
+		device.snmp = elements.form.snmp.value;
+		
+		top.getFrame("list").reload();
+		top.getFrame("map").reload();
+		
+		close();
+	}
+	
+	function edit() {
+		restore();
+		
+		elements.information.classList.add("edit");
+	}
+	
+	function restore() {
+		elements.form.elements.name.value = elements.name.textContent;
+		elements.form.elements.ip.value = elements.ip.textContent;
+		elements.form.elements.type.value = elements.type.textContent;
+		elements.form.elements.label.value = elements.label.textContent; 
+		elements.form.elements.snmp.value = elements.snmp.textContent;
+	}
+	
+	function resetDevice () {
+		device = id !== undefined? deviceList[id]: {
+			name: "",
+			address: "",
+			type: "",
+			label: "",
+			snmp: "",
+			x: 0,
+			y: 0
+		};
+		
+		elements.name.textContent = device.name;
+		elements.ip.textContent = device.address;
+		elements.type.textContent = device.type;
+		elements.label.textContent = device.label && (device.label.split(",")).join(", ") || "";
+		elements.snmp.textContent = device.snmp;
+		
+		resetSNMP(device);
+		
+		if (id === undefined) {
+			edit();
+		}
+	}
+	
+	function resetSNMP(device) {
+		var snmp;
+		
+		if (device.snmp && device.address && (snmp = snmpList[device.address])) {
+			elements.status.textContent = snmp.timeout < 0? "up": "down";
+			elements.description.textContent = snmp.sysDescr;
+			elements.uptime.textContent = ITAhM.util.toUptimeString(snmp.hrSystemUptime);
+			elements.enterprise.textContent = ITAhM.util.enterpriseFromOID(snmp.sysObjectID);
+			
+			resetResource(snmp);
+			
+			document.body.classList.add("snmp");
+		}
+		else {
+			document.body.classList.remove("snmp");
+		}
+	}
+	
+	function resetResource(snmp) {
+		/*var checkbox;
+		
+		// delay
+		checkbox = document.getElementById("check_delay");
+		checkbox.addEventListener("click", onCheckResource.bind(checkbox, "delay", 0), false);
+		
+		// cpu
+		for (index in device.hrProcessorIndex) {
+			checkbox = document.createElement("input");
+			checkbox.addEventListener("click", onCheckResource.bind(checkbox, "processor", index), false);
+			
+			li = document.createElement("li");
+			li.appendChild(checkbox).type = "checkbox";
+			li.appendChild(document.createElement("span")).textContent = "index."+ index;
+			
+			elements.cpuList.appendChild(li);
+		}
+		
+		// storage
+		for (index in device["hrStorageIndex"]) {
+			storage = device["hrStorageEntry"][index];
+			
+			li = document.createElement("li");
+			checkbox = document.createElement("input");
+			li.appendChild(checkbox).type = "checkbox";
+			
+			// physical memory
+			if (storage["hrStorageType"] === 2) {				
+				li.appendChild(document.createElement("span")).textContent = "index."+ index;
+				
+				checkbox.addEventListener("click", onCheckResource.bind(checkbox, "memory", index), false);
+				
+				elements.memList.appendChild(li);
+			}
+			
+			// non-removable storage
+			else if (storage["hrStorageType"] === 4) {
+				li.appendChild(document.createElement("span")).textContent = storage["hrStorageDescr"];
+				
+				checkbox.addEventListener("click", onCheckResource.bind(checkbox, "storage", index), false);
+				
+				elements.diskList.appendChild(li);
+			}			
+		}
+		
+		// interface
+		for (index in device["ifIndex"]) {
+			port = device["ifEntry"][index];
+			
+			checkbox = document.createElement("input");
+			
+			li = document.createElement("li");
+			li.title = port["ifDescr"];
+			li.appendChild(checkbox).type = "checkbox";
+			li.appendChild(document.createElement("span")).textContent = port["ifName"];
+			
+			checkbox.addEventListener("click", onCheckResource.bind(checkbox, "inoctet", index), false);
+			checkbox.addEventListener("click", onCheckResource.bind(checkbox, "ouoctet", index), false);
+			
+			elements.portList.appendChild(li);
+		}*/
+	}
+	
+	function resize() {
+		var event = document.createEvent("Event");
+		
+		event.initEvent("resize", true, true);
+		
+		window.dispatchEvent(event);
+	}
+	
+	/**
+	 * public method
+	 */
+	
+	window.resetDevice = function (deviceID) {
+		close();
+		
+		resetDevice(id = deviceID);
+		
+		elements.aside.scrollTop = 0;
+	};
+	
+	window.getDeviceID = function () {
+		return id;
+	}
+	
+})(window, top);
+
+		</script>
+	
+	</body>
+	
+</html>
