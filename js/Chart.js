@@ -244,7 +244,7 @@ function fireEvent(eventType, element) {
 			}
 			
 			this.element.appendChild(this.canvas);
-			thisshell.className = "chart";
+			this.element.className = "chart";
 			
 			container.appendChild(this.element);
 			
