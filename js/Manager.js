@@ -32,9 +32,8 @@ function format(milliseconds) {
 	};
 	
 	Manager.prototype = {
-		init: function (chart) {
+		init: function () {
 			this.data = {};
-			this.chart = chart;
 		},
 		
 		resetTPP: function () {
@@ -85,7 +84,6 @@ function format(milliseconds) {
 		
 		/**
 		 * 
-		 * @param {Number} move 이동 횟수
 		 * @param {Boolean} zoom 확대시 true, 축소시 false
 		 */
 		zoom: function (zoom) {
@@ -162,8 +160,8 @@ function format(milliseconds) {
 	 */
 	RealTimeManager.TPP = 100;
 	
-	RealTimeManager.prototype.init = function (chart) {
-		Manager.prototype.init.call(this, chart);
+	RealTimeManager.prototype.init = function () {
+		Manager.prototype.init.call(this);
 		
 		this.tpp = RealTimeManager.TPP;
 		
@@ -274,14 +272,14 @@ function format(milliseconds) {
 		
 		var date = new Date();
 		
-		this.tpp = this.resetTPP();
+		//this.tpp = this.resetTPP();
 		this.blocks = [];
 		this.start = date.setHours(0, 0, 0, 0);
 		this.end = date.setDate(date.getDate() +1);
 		
 		chart.addEventListener("wheel", this.onwheel.bind(this));
 		
-		new Draggable(chart.chart).on("dragmove", this.ondrag.bind(this));
+		new Draggable(chart).on("dragmove", this.ondrag.bind(this));
 	}
 	
 	ChartManager.prototype.ondrag = function (e) {
@@ -293,6 +291,10 @@ function format(milliseconds) {
 	}
 	
 	ChartManager.prototype.onwheel = function (e) {
+		if (e.target !== this.chart.chart) {
+			return;
+		}
+		
 		var zoom = e.deltaY > 0? true: false;
 		
 		for (var i=0; i<WHEEL_REPEAT; i++) {
@@ -492,13 +494,13 @@ function format(milliseconds) {
 				}
 			}.bind(this)
 		});
-	}
+	};
 	
 	ChartManager.prototype.resize = function () {
 		this.resetTPP();
 		
 		this.invalidate();
-	}
+	};
 	
 	/**
 	 * @param {Number} start 시작 날짜 (milliseconds)
@@ -508,6 +510,6 @@ function format(milliseconds) {
 		Manager.prototype.setDate.call(this, start, end);
 		
 		this.invalidate();
-	}
+	};
 	
 })(this);	

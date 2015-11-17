@@ -218,7 +218,7 @@ function fireEvent(eventType, element) {
 		init: function (container, config) {
 			config = config || {};
 			
-			this.chart = document.createElement("div");
+			this.element = document.createElement("div");
 			this.canvas = document.createElement("canvas");
 			this.grid = document.createElement("canvas");
 			this.context = this.canvas.getContext("2d");
@@ -243,10 +243,10 @@ function fireEvent(eventType, element) {
 				return value;
 			}
 			
-			this.chart.appendChild(this.canvas);
-			this.chart.className = "chart";
+			this.element.appendChild(this.canvas);
+			thisshell.className = "chart";
 			
-			container.appendChild(this.chart);
+			container.appendChild(this.element);
 			
 			this.resize();
 			
@@ -264,7 +264,7 @@ function fireEvent(eventType, element) {
 		},
 		
 		resize: function () {
-			var rect = this.chart.getBoundingClientRect(),
+			var rect = this.element.getBoundingClientRect(),
 				width = Math.max(rect.width, PADDING *2),
 				height = Math.max(rect.height, PADDING *2);
 			
@@ -342,17 +342,6 @@ function fireEvent(eventType, element) {
 			}
 			
 			saveChart(this);
-		},
-		
-		addEventListener: function (type, listener) {
-			this.chart.addEventListener(type, listener, false);
-		},
-		
-		/**
-		 * @param {Node} child
-		 */
-		appendChild: function (child) {
-			this.chart.appendChild(child);
 		},
 		
 		/**
