@@ -4,653 +4,809 @@
 		<meta charset="UTF-8">
 		<meta http-equiv="Content-Script-Type" content="text/javascript">
 		<meta http-equiv="Content-Style-Type" content="text/css">
-		<title>ITAhM::Map</title>
+		<title>ITAhM(connecting...)</title>
+		
 		<style>
-
-body {
-	font-family: arial, tahoma, "맑은 고딕";
-	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
-	/*display: flex;*/
-}
-
-div,
-input,
-select,
-span,
-button {
-	font-size: 12px;
+body, input, button {
+	font-family: tahoma, arial, "맑은 고딕";
+	margin: 0;
+	padding: 0; 
 }
 
 aside {
-	position: fixed; top: 0; bottom: 0; left: 0; width: 199px;
-	border-right: 1px solid #0084ff;
-	padding: 10px;
-	box-sizing: border-box;
+	position: fixed; top: 0; left: 0;
+	height: 0;
+	width: 400px;
+	background-color: #fff;
+	transition: height .2s ease-in;
+}
+
+iframe {
+	width: 100%; height: 100%;
+	border: 0;
+	margin: 0;
+	padding: 0;
+}
+
+body.list aside {
+	bottom: 0;
+	height: 100%;
+}
+
+#frame_list {
+	width: 500px;
+}
+
+#show_list {
+	position: fixed; top: 10px; left: 10px;
+	cursor: pointer;
+}
+
+#hide_list {
+	position: absolute; top: 10px; right: 0;
+	cursor: pointer;
+}
+
+body:not(.list) #hide_list {
+	display: none;
+}
+
+/* svg*/
+svg {
+	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
+	width: 100%; height: 100%;
+}
+
+image {
+	fill: #f00;
+}
+
+#line line {
+	stroke: #0f0;
+	stroke-width: 2;
+}
+
+#navigation line {
+	stroke: #800;
+	stroke-width: 2;
+}
+
+text {
+	font-family: tahoma, arial, "맑은 고딕";
+	font-size: 10px;
+	fill: #000;
+	text-anchor: middle;
+}
+
+#if_name text {
+	fill: #777;
+}
+
+#device text {
+	font-size: 12px;
+	/*alignment-baseline: hanging;*/
+	fill: #000;
+}
+
+#selection circle {
+	stroke: #fdd400;
+	stroke-width: 2px;
+	fill: #ff0;
+}
+
+#navigation circle {
+	stroke: #800;
+	stroke-width: 1px;
+	fill: #f00;
+}
+
+body.loading #navigation,
+body.loading #selection,
+body:not(.snmp) #chart_anchor {
+	display: none;
+}
+
+/* dialog */
+body:not(.dialog) #dialog {
+	display: none;
+}
+
+/* chart */
+#chart {
 	background-color: #fff;
 }
 
-section {
+body:not(.chart) #chart {
+	display: none;
+}
+
+/* 공통 */
+.fullscreen {
 	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
 }
 
-aside input[type=button] {
-	padding: .5em;
-}
-
-form {z-index: 9;
-}
-.peer {
-	margin: 0 0 10px 0;
-}
-
-.title {
-	border-radius: 5px 5px 0 0;
-	background-color: #0084ff;
-	color: #ddf;
-	border: 1px solid #88f;
-	border-bottom: 0;
-	padding: 5px;
-}
-
-.body {
-	border: 1px solid #88f;
-	border-top: 0;
-	padding: 5px;
-	position: relative;
-	min-height: 20px;
-}
-
-.body input,
-.body select {
-	padding: 5px;
-	box-sizing: border-box;
-	width: 100%;
-}
-
-.body a {
-	position: absolute;
-	top: 10px;
-	right: 10px;
-	cursor: pointer;
-}
-
-.body li {
-	cursor: pointer;
-}
-
-.body li:hover:after {
-	content: "x";
-	float: right;
-}
-
-.body:not(.selected) :not(first-child),
-.body:not(.snmp) .snmp,
-.body.snmp .nosnmp,
-body:not(.link) aside {
+body.nolink #link_token,
+#edit_anchor {
 	display: none;
-}
-
-input[disabled] {
-	background-color: transparent;
-	border: 0;
-}
-
-.hide {
-	display: none;
-}
-
-#menu {
-	position: absolute; top: 0; left: 0;
-	width: 100px;
-}
-
-#menu button {
-	padding: 5px 5px 5px 21px ;
-	display: block;
-	width: 100%;
-	text-align: center;
-}
-
-#menu_name {
-	height: 20px;
-	line-height: 20px;
-	padding: 5px;
-	border-radius: 5px 5px 0 0;
-	background-color: #0084ff;
-	color: #ddf;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-}
-
-#menu_link {
-	background: #fff url("img/link.png") no-repeat 5px center;
-}
-
-#menu_select {
-	background: #fff url("img/select.png") no-repeat 5px center;
 }
 
 		</style>
-	
-		<script src="js/Draggable.js"></script>
-		<script src="js/Canvas.js"></script>
-			
+		
 	</head>
 	
-	<body>
+	<body class="loading nolink">
 	
-		<section id="map"></section>
+		<svg id="stage">
+			<g id="transform" transform="translate(0, 0) translate(0, 0) translate(0, 0) scale(1, 1)">
+				<g id="line"></g>
+				<g id="if_name"></g>
+				<g id="selection">
+					<circle id="selection_mark" r="30"></circle>
+				</g>
+				<g id="navigation">
+					<g id="tool">
+						<image xlink:href="img/svg/chart.svg" id="chart_anchor"
+							transform="translate(-42, -8)" width="16" height="16" cursor="pointer">
+						</image>
+						<image xlink:href="img/svg/information.svg" id="edit_anchor"
+							transform="translate(26, -8)" width="16" height="16" cursor="pointer">
+						</image>
+						<line id="link_line"></line>
+						<circle id="link_token" r="5" cursor="crosshair"></circle>
+					</g>
+				</g>
+				<g id="device"></g>
+			</g>
+		</svg>
+		
+		<img src="img/list.png" id="show_list" title="show device list">
 		
 		<aside>
-			<form id="form">
-				<div class="peer">
-					<div class="title">peer1</div>
-					<div class="body" id="peer1">
-						<input id="peer1_name" disabled>
-						<a id="peer1_reset">x</a>
-						<div class="nosnmp">
-							<input id="peer1_ifname" type="text" placeholder="interface name">
-							<ul id="peer1_iflink"></ul>
-						</div>
-						<select id="peer1_iflist" class="snmp">
-							<option value="" selected>select interface
-						</select>
-					</div>
-				</div>
-				<div class="peer">
-					<div class="title">peer2</div>
-					<div class="body" id="peer2">
-						<input id="peer2_name" disabled>
-						<a id="peer2_reset">x</a>
-						<div class="nosnmp">
-							<input id="peer2_ifname" type="text" placeholder="interface name">
-							<ul id="peer2_iflink"></ul>
-						</div>
-						<select id="peer2_iflist" class="snmp">
-							<option value="" selected>select interface
-						</select>
-					</div>
-				</div>
-			</form>
-			<input type="button" value="link" id="link">
-			<input type="button" value="cancel" id="cancel">
+			<img src="img/close.png" id="hide_list" title="hide device list">
+			<iframe id="device_list"></iframe>
 		</aside>
 		
-		<div class="hide">
-			<div id="menu">
-				<div id="menu_name"></div>
-				<button id="menu_link">link</button>
-				<button id="menu_select">select</button>
-			</div>
-		</div>
+		<iframe id="dialog" class="fullscreen"></iframe>
 		
-		<script>	
+		<iframe id="chart" class="fullscreen"></iframe>
+		
+		<script src="js/Draggable.js"></script>
+		<script>
 
-		function allowDrag(e) {
-			e.preventDefault();
-			
-		}
-		
-(function (window, top) {
-	
-	if (window === top) {
-		throw "";
-	}
-	
-	var elements = {
-			map: document.getElementById("map"),
-			form: document.getElementById("form"),
-			show: document.getElementById("show"),
-			link: document.getElementById("link"),
-			cancel: document.getElementById("cancel"),
-			menu: {
-				balloon: document.getElementById("menu"),
-				name: document.getElementById("menu_name"),
-				link: document.getElementById("menu_link"),
-				select: document.getElementById("menu_select")
-			},
-			peer1: {
-				body: document.getElementById("peer1"),
-				name: document.getElementById("peer1_name"),
-				ifName: document.getElementById("peer1_ifname"),
-				ifList: document.getElementById("peer1_iflist"),
-				ifLink: document.getElementById("peer1_iflink"),
-				reset: document.getElementById("peer1_reset")
-			},
-			peer2: {
-				body: document.getElementById("peer2"),
-				name: document.getElementById("peer2_name"),
-				ifName: document.getElementById("peer2_ifname"),
-				ifList: document.getElementById("peer2_iflist"),
-				ifLink: document.getElementById("peer2_iflink"),
-				reset: document.getElementById("peer2_reset")
-			}
-		},
-		canvas = new Canvas(elements.map),
-		menu = new Menu(elements.map, elements.menu.balloon),
-		layer = {
-			line: canvas.add(),
-			device: canvas.add()
-		},
-		deviceList = top.getDeviceList(),
-		iconMap = top.getIconMap(),
-		isDragging = false;
-	
-	/** event */
-	elements.map.addEventListener("mousedown", onHideMenu, false);
-	//elements.map.addEventListener("mouseout", menu.hide, false);
-	elements.menu.link.addEventListener("click", onSelectPeer, false);
-	elements.menu.select.addEventListener("click", onSelectDevice, false);
-	elements.menu.balloon.addEventListener("mousedown", onStopPropagation, false);
-	elements.menu.balloon.addEventListener("click", menu.hide, false);
-	elements.link.addEventListener("click", onLink, false);
-	elements.cancel.addEventListener("click", onCancel, false);
-	elements.peer1.reset.addEventListener("click", resetPeer.bind(undefined, elements.peer1), false);
-	elements.peer2.reset.addEventListener("click", resetPeer.bind(undefined, elements.peer2), false);
-	
-	/** test 
-	document.getElementById("test").addEventListener("click", function () {
-		window.open().document.write(JSON.stringify(deviceList));
-	}, false);
-	*/
-	
-	canvas.ondragstart = onDragStart;
-	canvas.ondragmove = onDragMove;
-	canvas.ondragend = onDragEnd;
-	//canvas.onselect = onSelect;
-	canvas.onenter = onEnter;
-	canvas.onleave;
-	canvas.ondragstart;
-	
-	layer.device.ondraw = onDrawDevice;
-	layer.line.ondraw = onDrawLine;
-	
-	/** constructor */
-	(function () {		
-		var device;
-		
-		for (var id in deviceList) {
-			device = deviceList[id];
-			
-			layer.device.add(device);
-			layer.line.add(device);
-		}
-		
-		(function (context) {
-			context.font = "12px arial, tahoma, '맑은 고딕'";
-			context.textBaseline = "top";
-			context.textAlign = "center";
-		}) (layer.device.context);
-		
-		(function (context) {
-			context.font = "12px arial, tahoma, '맑은 고딕'";
-			context.textBaseline = "top";
-			context.textAlign = "center";
-			context.lineWidth = .5;
-			context.strokeStyle = "#888";
-		}) (layer.line.context);
-		
-		
-		layer.device.invalidate();
-		layer.line.invalidate();
-		
-		canvas.invalidate();
-	}) ();
-	
-	/**
-	 * callback
-	 */
-	
-	function onDrawDevice(context, hitContext, device) {
-		var icon = iconMap[device.type],
-			width = icon.width,
-			height = icon.height,
-			x, y;
-		
-		if (device.x === undefined || device.y === undefined) {
-			return;
-		}
-		
-		x = Math.round(width /2);
-		y = Math.round(height /2);
-		
-		context.drawImage(icon, device.x - x, device.y - y, width, height);
-		context.fillText(device.name, device.x, device.y + y);
-		
-		hitContext.fillRect(device.x - x, device.y - y, width, height);
-	}
-	
+if (!opener) throw "";
 
-	function onDrawLine(context, hitContext, device) {
-		var iFace = device.iFace,
-			peer;		
-		
-		for (var ifName in iFace) {
-			peer = deviceList[iFace[ifName]];
-			
-			context.beginPath();
-			context.moveTo(device.x, device.y);
-			context.lineTo(peer.x, peer.y);
-			context.stroke();
-			
-			context.fillText(ifName, (device.x *2 + peer.x) /3, (device.y *2 + peer.y) /3);
-		}
-	}
-	
-	function onDragStart() {
-		isDragging = true;
-	}
-	
-	function onDragMove(e) {
-		if (e.node) {
-			e.node.data.x += e.moveX;
-			e.node.data.y += e.moveY;
-			
-			e.node.layer.invalidate();
-			layer.line.invalidate();
-			
-			canvas.invalidate();
-		}
-		else {
-			canvas.translate(e.dragX, e.dragY);
-		}
-	}
-	
-	function onDragEnd(e) {//console.log("drag end");
-		isDragging = false;
-		
-		if (e.node) {
-			return;
-		}
-		else {
-			moveMap(e.dragX, e.dragY);
-			
-			layer.device.invalidate();
-			layer.line.invalidate();
-			
-			canvas.invalidate();
-		}
-	}
-	
-	function onLink() {
-		var ifName1 = getIFName(elements.peer1),
-			ifName2 = getIFName(elements.peer2);
-		
-		if (!ifName1 || !ifName2) {
-			return;
-		}
-		
-		elements.peer1.device.iFace[ifName1] = elements.peer2.device.id;
-		elements.peer2.device.iFace[ifName2] = elements.peer1.device.id;
-		
-		layer.line.invalidate();
-		
-		canvas.invalidate();
-		
-		hideDialog();
-	}
-	
-	function onCancel() {
-		hideDialog();
-	}
-	
-	function onEnter(node) {
-		if (isDragging) {//console.log("ignore");
-			return;
-		}
-		
-		elements.menu.name.textContent = node.data.name;
-		
-		menu.node = node;
-		menu.show();
-	}
-	
-	function onHideMenu(e) {//console.log(e.button);
-		if (e.button !== 0) {
-			e.preventDefault();
-		}
-		else {
-			menu.hide();
-		}
-	}
-	
-	function onSelectPeer() {
-		var device = menu.node.data
-			, peer;
-		
-		/** 이미 link 모드 이면 empty peer */
-		if (document.body.classList.contains("link")) {
-			if (!elements.peer1.device) {
-				/** 중복 */
-				if (elements.peer2.device === device) {
-					return;
-				}
-				
-				peer = elements.peer1;
-			}
-			else if (!elements.peer2.device) {
-				/** 중복 */
-				if (elements.peer1.device === device) {
-					return;
-				}
-				
-				peer = elements.peer2;
-			}
-			else {
-				return;
-			}
-		}
-		
-		/** link모드가 아니었다면 항상 peer1 */
-		else {
-			peer = elements.peer1;
-			
-			document.body.classList.add("link");
-		}
-		
-		peer.device = device;
-		peer.name.value = device.name;
-		peer.body.classList.add("selected");
-		
-		if (device.snmp) {
-			peer.body.classList.add("snmp");
-			
-			var list = peer.ifList,
-				iFace = device.iFace,
-				option;
-			
-			for (var name in iFace) {
-				option = document.createElement("optioin");
-				option.text = name;
-				
-				list.add(option);
-			}
-		}
-		else {
-			peer.body.classList.remove("snmp");
-			
-			var list = peer.ifLink,
-				iFace = device.iFace,
-				li;
-			
-			for (var name in iFace) {
-				li = document.createElement("li");
-				li.textContent = name;
-				li.onclick = onRemoveLink.bind(li, device, name);
-				list.appendChild(li);
-			}
-		}
-	}
-	
-	function onSelectDevice() {
-		top.getFrame("device").resetDevice(menu.node.data.id);
-		
-		top.minimize();
-	}
-	
-	function onRemoveLink(device, name) {
-		if (!confirm("remove selected link?")) {
-			return;
-		}
-		
-		var iFace = device.iFace;
-		
-		this.parentNode.removeChild(this);
-		
-		(function (iFace) {
-			for (var name in iFace) {
-				if (iFace[name] == device.id) {
-					delete iFace[name];
-				}
-			}
-		}) (deviceList[iFace[name]].iFace);
-		
-		delete iFace[name];
-		
-		layer.line.invalidate();
-		
-		canvas.invalidate();
-	}
-	
-	function onStopPropagation(e) {
-		e.stopPropagation();
-	}
-	
-	/**
-	 * method
-	 */
-	
-	function hideDialog() {
-		resetPeer(elements.peer1);
-		resetPeer(elements.peer2);
-		
-		elements.form.reset();
-		
-		document.body.classList.remove("link");
-	}
-	
-	function resetPeer(peer) {
-		peer.name.value = "";
-		peer.device = undefined;
-		
-		var child;
-		while (child = peer.ifLink.firstChild) {
-			peer.ifLink.removeChild(child);
-		}
-		
-		peer.body.classList.remove("selected");
-	}
-	
-	function getIFName(peer) {
-		var device = peer.device,
-			ifName;
-		
-		if (!device) {
-			return;
-		}
-		
-		/** interface가 입력되거나 선택 되지 않은 경우 취소 */
-		ifName = device.snmp? peer.ifList.value: peer.ifName.value;
-		if (!ifName) {
-			return;
-		}
-		
-		/** 이미 link에 사용된 interface name 입력시 취소 */
-		if (ifName in device.iFace) {
-			alert("interface name is already in use");
-			
-			return ;
-		}
+var svgNS = "http://www.w3.org/2000/svg",
+	xlinkNS = "http://www.w3.org/1999/xlink";
 
-		return ifName;
-	}
+var deviceData = opener.getDeviceData(),
+	iconData = opener.getIconData();
+
+//device list
+(function (window, undefined){
 	
-	function moveMap(x, y) {
-		var device;
-		
-		for (var id in deviceList) {
-			device = deviceList[id];
-			
-			device.x += x;
-			device.y += y;
-		}
-	}
+	var frame = document.getElementById("device_list"),
+		show = document.getElementById("show_list"),
+		hide = document.getElementById("hide_list");
 	
-	function setPeer() {
-		
-	}
-		
-	/** inner class */
-	function Menu(container, balloon) {
-		var menu = this,
-			fragment = document.createDocumentFragment(),
-			x, y, cX, cY;
-		
-		container.addEventListener("mousemove", function (e) {
-			var rect = container.getBoundingClientRect();
+	function initialize() {
+		show.onclick = function () {
+			document.body.classList.add("list");
 			
-			x = e.clientX - rect.left;
-			y = e.clientY - rect.top;
-			cX = rect.width /2;
-			cY = rect.height /2;
-		}, false);
-		
-		fragment.appendChild(balloon);
-		
-		this.show = function () {
-			var rect,
-				offset = 5;
+			frame.onload = onLoad;
 			
-			container.appendChild(balloon);
-			
-			rect = balloon.getBoundingClientRect();
-			
-			if (x < cX) {
-				x += offset;
-			}
-			else {
-				x -= (rect.width + offset);
-			}
-			
-			if (y < cY) {
-				y += offset;
-			}
-			else {
-				y -= (rect.height + offset);
-			}
-			
-			balloon.style.top = y +"px";
-			balloon.style.left = x +"px";
-			
-			
+			frame.src = "device_list.html";
 		};
 		
-		this.hide = function () {
-			fragment.appendChild(balloon);
+		hide.onclick = function () {
+			document.body.classList.remove("list");
+			
+			frame.src = "about:blank";
 		};
 	}
 	
+	function onLoad() {
+		
+	}
+	
+	window.hideDeviceList = function () {
+		document.body.classList.remove("list");
+	};
+	
+	initialize();
+	
+}) (window);
 
-	/**
-	 * public method
-	 */ 
-	window.selectDevice = function (id) {
-		var device = deviceList[id];
+//device 관리
+(function (window, undefined) {
+	
+	var tmpID = -1;
+	
+	window.createDevice = function () {
+		var id = tmpID--;
 		
-		moveMap(-device.x, -device.y);
+		device.id = id;
+		device.x = 0;
+		device.y = 0;
 		
-		layer.device.invalidate();
-		layer.line.invalidate();
-		
-		canvas.invalidate();
+		deviceData[id] = device;
 	};
 	
-	window.reload = function () {
-		document.location.reload();
+}) (window);
+
+// stage
+(function (window, undefined) {
+	var canvas = document.getElementById("stage"),
+		base, translate, scale, ratio = 1,
+		selectedDevice,
+		deviceMap = {},
+		dragOrigin;
+	
+	function initialize() {		
+		initEvent();
+		
+		resetStage();
+		
+		clearSelectionMark();
+		
+		for (var id in deviceData) {
+			device = deviceData[id];
+			
+			svgDevice = document.createElementNS(svgNS, "image");
+			
+			deviceMap[id] = svgDevice;
+			
+			addDevice(svgDevice, device);
+		}
+		
+		document.body.classList.remove("loading");
+	}
+	
+	function initEvent() {
+		var transformList = document.getElementById("transform").transform.baseVal;
+	
+		new Draggable(canvas);
+			
+		base = transformList.getItem(0);
+		translate = transformList.getItem(1);
+		drag = transformList.getItem(2);
+		scale = transformList.getItem(3);
+		
+		window.addEventListener("resize", function (e) {
+			resetStage();
+		});
+		
+		canvas.addEventListener("selectstart", function (e) {
+			e.preventDefault();
+		});
+		
+		canvas.addEventListener("wheel", function (e) {
+			if (e.deltaY < 0) {
+				//확대
+				ratio *= 1.1;
+			}
+			else {
+				//축소
+				ratio /= 1.1;
+			}
+			
+			scale.setScale(ratio, ratio);
+		});
+		
+		canvas.addEventListener("click", onClick);
+		
+		canvas.addEventListener("dragstart", function (e) {
+			var data = e.detail,
+				target = data.target;
+			
+			// drag 발생시 select 취소
+			canvas.addEventListener("click", cancelClick);
+			canvas.removeEventListener("click", onClick);
+			
+			if (target.tagName === "image") {
+				dragOrigin = {
+					x: Number(target.getAttributeNS(null, "x")),
+					y: Number(target.getAttributeNS(null, "y"))
+				};
+			}
+			else if (target.tagName === "circle") {
+				dragOrigin = {
+					x: Number(target.getAttributeNS(null, "cx")),
+					y: Number(target.getAttributeNS(null, "cy"))
+				};
+			}
+		});
+		
+		canvas.addEventListener("dragmove", function (e) {
+			var data = e.detail,
+				target = data.target;
+		
+			// selectedDevice 인 경우 moveDevice
+			if (target === selectedDevice) {
+				moveDevice(dragOrigin.x + Math.round(data.dragX / ratio), dragOrigin.y + Math.round(data.dragY / ratio));
+				
+				setSelectionMark();
+			}
+			// linkToken 인 경우 moveLinkToken
+			else if (isLinkToken(target)){
+				var destination = data.destination;
+				
+				if (destination !== target && destination.tagName === "image") {
+					moveLinkToken(Number(destination.getAttributeNS(null, "x")), Number(destination.getAttributeNS(null, "y")));
+				}
+				else {
+					moveLinkToken(dragOrigin.x + Math.round(data.dragX / ratio), dragOrigin.y + Math.round(data.dragY / ratio));
+				}
+			}
+			// 그렇지 않은 모든 경우 moveStage
+			else {
+				drag.setTranslate(data.dragX, data.dragY);
+			}
+		});
+		
+		canvas.addEventListener("dragend", function (e) {
+			var data = e.detail,
+				target = data.target,
+				destination = data.destination;
+			
+			if (target === selectedDevice) {
+			}
+			else if (isLinkToken(target)){
+				if (destination.tagName === "image") {
+					showLinkDialog(function (dialog) {
+						dialog.setLink(deviceData[selectedDevice.getAttributeNS(null, "id")], deviceData[destination.getAttributeNS(null, "id")]);
+					});
+				}
+				
+				setSelectionMark();
+			}
+			else {
+				translate.setMatrix(translate.matrix.translate(drag.matrix.e, drag.matrix.f));
+				drag.setTranslate(0, 0);
+			}
+		});
+	}
+	
+	function onClick(e) {
+		var target = e.target;
+	
+		selectedDevice = target.tagName === "image"? target: undefined;
+		
+		if (selectedDevice) {
+			topDevice(selectedDevice);
+			
+			setSelectionMark();
+		}
+		else {
+			clearSelectionMark();
+		}
+	
+	}
+	
+	function cancelClick(e) {
+		canvas.addEventListener("click", onClick);
+		canvas.removeEventListener("click", cancelClick);
+	}
+	
+	// public
+	window.resetStage = function () {
+		rect = canvas.getBoundingClientRect();
+		
+		base.setTranslate(rect.width /2, rect.height /2);
 	};
 	
-}) (window, top);
+	window.moveStage = function (x, y) {
+		translate.setTranslate(- x, - y);
+	};
+	
+	window.getSelectedDeviceID = function () {
+		return selectedDevice.getAttributeNS(null, "id");
+	};
+	
+	window.getSvgDevice = function (id) {
+		return deviceMap[id];
+	};
+	
+	window.getDevice = function (id) {
+		return deviceData[id];
+	};
+	
+	window.editDevice = function () {
+	
+	};
+	
+	window.getDeviceData = function () {
+		return deviceData;
+	};
+	
+	window.initialize = initialize;
+
+}) (window);
+
+// svg device group
+(function (window, undefined) {
+	
+	var canvas = document.getElementById("device"),
+		deviceMap = {},
+		nameMap = {},
+		svgDevice, svgName, device;
+
+	function initialize() {
+	}
+	
+	window.addDevice = function (svgDevice, device) {
+		var id = device.id;
+		
+		svgDevice.setAttributeNS(null, "id", id);
+		svgDevice.setAttributeNS(null, "x", device.x);
+		svgDevice.setAttributeNS(null, "y", device.y);
+		svgDevice.setAttributeNS(xlinkNS, "xlink:href",  iconData[device.type].src);
+		svgDevice.setAttributeNS(null, "width", "40px");
+		svgDevice.setAttributeNS(null, "height", "40px");
+		svgDevice.setAttributeNS(null, "transform", "translate(-20, -20)");
+		
+		canvas.appendChild(svgDevice);
+		
+		svgName = document.createElementNS(svgNS, "text");
+		
+		svgName.textContent = device.name;
+		svgName.setAttributeNS(null, "x", device.x);
+		svgName.setAttributeNS(null, "y", device.y);
+		// text baseline이 글자의 밑을 기준으로 하므로 글자 크기만큼 내려준다.
+		// 아이콘 크기 + 글자 크기 = 20 + 16 = 36
+		svgName.setAttributeNS(null, "transform", "translate(0, 36)");
+		
+		nameMap[id] = svgName;
+		
+		canvas.appendChild(svgName);
+		
+		setLine(device);
+	};
+	
+	window.moveDevice = function (x, y) {
+		var id = getSelectedDeviceID(),
+			svgDevice = getSvgDevice(id);
+		
+		svgName = nameMap[id];
+		
+		svgDevice.setAttributeNS(null, "x", x);
+		svgDevice.setAttributeNS(null, "y", y);
+		
+		svgName.setAttributeNS(null, "x", x);
+		svgName.setAttributeNS(null, "y", y);
+		
+		moveLine(id, x, y);
+	};
+	
+	window.topDevice = function (svgDevice) {
+		canvas.appendChild(svgDevice);
+	};
+	
+	initialize();
+	
+}) (window);
+
+// svg select group
+(function (window, undefined) {
+	
+	var canvas = document.getElementById("selection"),
+		selectionMark = document.getElementById("selection_mark"),
+		fragment = document.createDocumentFragment();
+	
+	function initialize() {
+	}
+		
+	window.setSelectionMark = function () {
+		var id = getSelectedDeviceID(),
+			device = deviceData[id],
+			svgDevice = getSvgDevice(id),
+			x = Number(svgDevice.getAttributeNS(null, "x")),
+			y = Number(svgDevice.getAttributeNS(null, "y"));
+		
+		selectionMark.setAttributeNS(null, "cx", x);
+		selectionMark.setAttributeNS(null, "cy", y);
+		
+		canvas.appendChild(selectionMark);
+		
+		showNavigation(x, y, device.snmp);
+	};
+	
+	window.clearSelectionMark = function () {
+		fragment.appendChild(selectionMark);
+		
+		hideNavigation();
+	};
+	
+	initialize();
+	
+}) (window);
+
+// svg navigation group
+(function (window, undefined) {
+	
+	var canvas = document.getElementById("navigation"),
+		navigation = document.getElementById("tool"),
+		linkToken = document.getElementById("link_token"),
+		svgLink = document.getElementById("link_line"),
+		chartAnchor = document.getElementById("chart_anchor"),
+		editAnchor = document.getElementById("edit_anchor"),
+		fragment = document.createDocumentFragment();
+	
+	function initialize() {
+		chartAnchor.onclick = function (e) {
+			e.stopPropagation();
+			
+			showChart();
+		};
+		
+		editAnchor.onclick = function (e) {
+			e.stopPropagation();
+			
+			var id = getSelectedDeviceID(),
+				device = deviceData[id];
+			
+			if (device.snmp) {
+				sendRequest({
+					command: "select",
+					ip: device.ip
+				}, onResponse, true);
+			}
+			else {
+				onLoadDeviceDialog();
+			}
+		};
+	}
+	
+	function onResponse(data) {
+		if (data) {
+			onLoadDeviceDialog(data);
+		}
+		else {
+			window.close();
+		}
+	}
+	
+	function onLoadDeviceDialog(snmp) {
+		var id = getSelectedDeviceID(),
+			device = deviceData[id];
+		
+		showDeviceDialog(function (dialog) {
+			dialog.initialize(iconData);
+			
+			dialog.setDevice(device, snmp);
+		});
+	}
+	
+	window.showNavigation = function (x, y, chart) {
+		svgLink.setAttributeNS(null, "x1", x);
+		svgLink.setAttributeNS(null, "y1", y);
+		svgLink.setAttributeNS(null, "x2", x);
+		svgLink.setAttributeNS(null, "y2", y);
+		
+		linkToken.setAttributeNS(null, "cx", x);
+		linkToken.setAttributeNS(null, "cy", y -32);
+		
+		chartAnchor.setAttributeNS(null, "x", x);
+		chartAnchor.setAttributeNS(null, "y", y);
+		
+		editAnchor.setAttributeNS(null, "x", x);
+		editAnchor.setAttributeNS(null, "y", y);
+		
+		document.body.classList[chart? "add": "remove"]("snmp");
+		
+		canvas.appendChild(navigation);
+	};
+	
+	window.isLinkToken = function (target) {
+		return target === linkToken;
+	};
+	
+	window.hideNavigation = function () {
+		fragment.appendChild(navigation);
+	};
+	
+	window.moveLinkToken = function (x, y) {
+		linkToken.setAttributeNS(null, "cx", x);
+		linkToken.setAttributeNS(null, "cy", y);
+		
+		svgLink.setAttributeNS(null, "x2", x);
+		svgLink.setAttributeNS(null, "y2", y);
+	};
+	
+	initialize();
+	
+}) (window);
+
+// svg interface name group
+(function (window, undefined) {
+	var canvas = document.getElementById("if_name");
+	
+	window.createLabel = function (name, x1, y1, x2, y2) {
+		var nameSvg = document.createElementNS(svgNS, "text");
+		
+		nameSvg.textContent = name;
+		
+		moveLabel(nameSvg, x1, y1, x2, y2);
+		
+		canvas.appendChild(nameSvg);
+		
+		return nameSvg;
+	};
+	
+	window.moveLabel = function (nameSvg, x1, y1, x2, y2) {
+		nameSvg.setAttributeNS(null, "x", (x1 *2 + x2) /3);
+		nameSvg.setAttributeNS(null, "y", (y1 *2 + y2) /3);
+	};
+	
+}) (window);
+
+// svg line group
+(function (window, undefined) {
+	
+	var canvas = document.getElementById("line"),
+		lineMap = {};
+	
+	window.setLine = function (device) {
+		var ifEntry = device.ifEntry,
+			peerMap = {},
+			peer, data, lineSvg,
+			nameSvg = document.createElementNS(svgNS, "text");
+		
+		lineMap[device.id] = peerMap;
+		
+		for (var name in ifEntry) {
+			peer = deviceData[ifEntry[name]];
+			
+			nameSvg = createLabel(name, device.x, device.y, peer.x, peer.y);
+			
+			data = lineMap[peer.id];
+			
+			if (data) {
+				data = data[device.id];
+				
+				data.name2 = nameSvg;
+			}
+			else {
+				lineSvg = document.createElementNS(svgNS, "line");
+				
+				lineSvg.setAttributeNS(null, "x1", device.x);
+				lineSvg.setAttributeNS(null, "y1", device.y);
+				lineSvg.setAttributeNS(null, "x2", peer.x);
+				lineSvg.setAttributeNS(null, "y2", peer.y);
+				
+				data = {
+					peer1: device.id,
+					name1: nameSvg,
+					peer2: peer.id,
+					svg: canvas.appendChild(lineSvg)
+				};
+			}
+			
+			peerMap[peer.id] = data;
+		}
+	};
+	
+	window.moveLine = function (id, x, y) {
+		var peerMap = lineMap[id],
+			data, svgDevice,
+			x1, y1, x2, y2;
+		
+		for (var peerID in peerMap) {
+			data = peerMap[peerID];
+			svgDevice = data.svg;
+			
+			if (data.peer1 === id) {
+				svgDevice.setAttributeNS(null, "x1", x);
+				svgDevice.setAttributeNS(null, "y1", y);
+				
+				x1 = x;
+				y1 = y;
+				x2 = Number(svgDevice.getAttributeNS(null, "x2"));
+				y2 = Number(svgDevice.getAttributeNS(null, "y2"));
+			}
+			else {
+				svgDevice.setAttributeNS(null, "x2", x);
+				svgDevice.setAttributeNS(null, "y2", y);
+				
+				x1 = Number(svgDevice.getAttributeNS(null, "x1"));
+				y1 = Number(svgDevice.getAttributeNS(null, "y1"));
+				x2 = x;
+				y2 = y;
+			}
+			
+			moveLabel(data.name1, x1, y1, x2, y2);
+			moveLabel(data.name2, x2, y2, x1, y1);
+		}
+	};
+	
+}) (window);
+
+// dialog
+(function (window, undefined) {
+	
+	var dialog = document.getElementById("dialog");
+	
+	function showDialog(onload) {
+		document.body.classList.add("dialog");
+		
+		onload(dialog.contentWindow);
+	}
+	
+	window.showDeviceDialog = function (onload) {
+		dialog.onload = showDialog.bind(undefined, onload);
+		
+		dialog.src = "device.html";
+	};
+	
+	window.showLinkDialog = function (onload) {
+		dialog.onload = showDialog.bind(undefined, onload);
+		
+		dialog.src = "link.html";
+	};
+	
+	window.closeDialog = function () {
+		document.body.classList.remove("dialog");
+		
+		dialog.onload = undefined;
+		
+		dialog.src = "about:blank";
+	};
+	
+}) (window);
+
+//chart
+(function (window, undefined) {
+	
+	var chart = document.getElementById("chart"),
+		device;
+	
+	function onResponse(data) {
+		if (data) {
+			chart.onload = function () {
+				chart.contentWindow.initialize(device, data);
+			};
+			
+			chart.src = "chart.html";
+		}
+		else {
+			window.close();
+		}
+		
+		document.body.classList.add("chart");
+	}
+	
+	window.showChart = function () {
+		device = deviceData[getSelectedDeviceID()];
+		
+		sendRequest({
+			command: "select",
+			ip: device.ip
+		}, onResponse);
+	};
+	
+	window.closeChart = function () {
+		document.body.classList.remove("chart");
+		
+		chart.onload = undefined;
+		
+		dialog.src = "about:blank";
+	};
+	
+}) (window);
+
+function selectDevice(id) {
+	var svgDevice = getSvgDevice(id);
+	
+	x = Number(svgDevice.getAttributeNS(null, "x"));
+	y = Number(svgDevice.getAttributeNS(null, "y"));
+	
+	moveStage(x, y);
+}
+
+function sendRequest(request, callback) {
+	opener.sendRequest(request, callback);
+}
+
+initialize();
 
 		</script>
 	
