@@ -160,8 +160,8 @@ function format(milliseconds) {
 	 */
 	RealTimeManager.TPP = 100;
 	
-	RealTimeManager.prototype.init = function () {
-		Manager.prototype.init.call(this);
+	RealTimeManager.prototype.init = function (chart) {
+		Manager.prototype.init.call(this, chart);
 		
 		this.tpp = RealTimeManager.TPP;
 		
@@ -244,7 +244,7 @@ function format(milliseconds) {
 		this.invalidate();
 	}
 	
-	RealTimeManager.prototype.setDate = function () {
+	RealTimeManager.prototype.setDate = function () {console.log(this, this.chart);
 		var date = new Date(),
 			end = date.getTime(),
 			start = end - this.tpp * this.chart.graphArea.width;
@@ -277,9 +277,9 @@ function format(milliseconds) {
 		this.start = date.setHours(0, 0, 0, 0);
 		this.end = date.setDate(date.getDate() +1);
 		
-		chart.addEventListener("wheel", this.onwheel.bind(this));
+		chart.element.addEventListener("wheel", this.onwheel.bind(this));
 		
-		new Draggable(chart).on("dragmove", this.ondrag.bind(this));
+		new Draggable(chart.element).on("dragmove", this.ondrag.bind(this));
 	}
 	
 	ChartManager.prototype.ondrag = function (e) {

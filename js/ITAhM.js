@@ -289,7 +289,10 @@ var ITAhM = {};
 		toUptimeString: toUptimeString,
 		toBPSString: toBPSString,
 		toBytesString: toBytesString,
-		enterpriseFromOID: enterpriseFromOID
+		enterpriseFromOID: enterpriseFromOID,
+		toDateString: toDateString,
+		toDateFormatString: toDateFormatString,
+		createCustomEvent: createCustomEvent
 	};
 	
 	function enterpriseFromOID(oid) {
@@ -356,6 +359,53 @@ var ITAhM = {};
 		return days +" days " + hours +" hours " + minutes +" minutes " + Math.floor(uptime) +" seconds";
 	}
 	
+	/**
+	 * 표준시로 간주하기 때문에 못씀
+	 */
+	function _toDateString(dateMills) {
+		var date = new Date(dateMills);
+		
+		return date.toISOString().slice(0,10);
+	}
+
+	// ["1월", "2월", "3월", "4월", "5월", "6월", "7월", "8월", "9월", "10월", "11월", "12월"]
+	var MONTH_NAME = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+		getDateFormatString = {
+			ko: function (date) {
+				var format = [date.getMonth() +1, "월", " ", date.getDate(), "일"],
+					hour = date.getHours();
+				
+				if (hour > 0) {
+					format.push(" ", hour, "시");
+				}
+				
+				return format.join("");
+			},
+			en: function (date) {
+				var day = date.getDate(),
+					hour = date.getHours();
+				
+				return MONTH_NAME[date.getMonth()]
+					+ (day === 1? "" : " "+ (day > 9? "": "0")+ day +", "+ (hour > 9? "": "0") + hour);
+			}
+		};
+	
+	/**
+	 * @param date Date object not integer (mills) 
+	 */
+	function toDateFormatString(date) {
+		//return getDateFormatString["en"](date);
+		return (getDateFormatString[navigator.language] || getDateFormatString.en)(date);
+	}
+
+	function toDateString(date) {
+		var year = date.getFullYear(),
+			month = date.getMonth() + 1,
+			day  = date.getDate();
+		
+		return year +"-"+ (month > 9? "": "0") + month +"-"+ (day > 9? "": "0") + day;
+	}
+	
 	function download (blob, fileName) {
 		if (window.navigator.msSaveBlob) {
 			window.navigator.msSaveBlob(blob, fileName);
@@ -375,6 +425,14 @@ var ITAhM = {};
 		
 		event.initEvent(type, true, true);
 		element.dispatchEvent(event);
+	}
+	
+	function createCustomEvent(type, data) {
+		var event = document.createEvent("CustomEvent");
+		
+		event.initCustomEvent(type, true, true, data);
+		
+		return event;
 	}
 	
 }) (window);
