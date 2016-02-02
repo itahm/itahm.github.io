@@ -18,7 +18,7 @@ function processRequest(data) {
 	var c = data.command;
 	
 	if (c === "pull") {
-		if (data.database === "device") {console.log(demoData);
+		if (data.database === "device") {
 			return demoData.device;
 		}
 		else if (data.database === "icon") {

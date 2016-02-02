@@ -200,7 +200,7 @@ var specs = "toolbar=0, location=0, resizable=1, menubar=0, titlebar=0";
 		document.getElementById("disconnect").onclick = function () {
 			closeITAhM();
 			
-			location.reload();
+			location.href = location.origin + location.pathname;
 		}
 	}
 	
