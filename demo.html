@@ -153,7 +153,29 @@ var specs = "toolbar=0, location=0, resizable=1, menubar=0, titlebar=0";
 (function (window, undefined){
 	
 	var itahm,
-		query = {};
+		deviceData,
+		iconData = ITAhM.iconData;
+	
+	if (!iconData) {
+		throw "icon.js is required";
+	}
+	
+	function initIcon() {
+		sendRequest({
+			command: "pull",
+			database: "icon"
+		}, function (data) {
+			document.body.classList.remove("loading");
+			
+			if (data) {
+				for (var type in data) {
+					iconData[type] = data[type];
+				}
+				
+				startITAhM();
+			}
+		});
+	};
 	
 	function initialize () {
 		window.addEventListener("beforeunload", onUnload);
@@ -163,7 +185,7 @@ var specs = "toolbar=0, location=0, resizable=1, menubar=0, titlebar=0";
 				itahm.focus();
 			}
 			else {
-				showITAhM();
+				startITAhM();
 			}
 		};
 	}
@@ -172,12 +194,31 @@ var specs = "toolbar=0, location=0, resizable=1, menubar=0, titlebar=0";
 		closeITAhM();
 	}
 	
-	window.showITAhM = function () {
+	function startITAhM() {
 		document.body.classList.remove("loading");
-			
+		
 		itahm = window.open("map.html", "ITAhM", specs);
-			
+		
 		itahm.focus();
+	};
+	
+	window.onLoadingCompleted = function (f) {
+		f(deviceData, iconData, sendRequest);
+	};
+	
+	window.initDevice = function () {
+		document.body.classList.add("loading");
+		
+		sendRequest({
+			command: "pull",
+			database: "device"
+		}, function (data) {
+			if (data) {
+				deviceData = data;
+				
+				initIcon();
+			}
+		});
 	};
 	
 	window.closeITAhM = function () {
@@ -326,63 +367,6 @@ var specs = "toolbar=0, location=0, resizable=1, menubar=0, titlebar=0";
 	};
 	
 	initEvent();
-	
-}) (window);
-
-//device data
-(function (window, undefined){
-
-	var deviceData;
-	
-	window.initDevice = function () {
-		document.body.classList.add("loading");
-		
-		sendRequest({
-			command: "pull",
-			database: "device"
-		}, function (data) {
-			if (data) {
-				deviceData = data;
-				
-				initIcon();
-			}
-		});
-	};
-	
-	window.getDeviceData = function () {
-		return deviceData;
-	};
-
-}) (window);
-
-//icon data
-(function (window, undefined) {
-	var iconData = ITAhM.iconData;
-
-	if (!iconData) {
-		throw "icon.js is required";
-	}
-	
-	window.initIcon = function () {
-		sendRequest({
-			command: "pull",
-			database: "icon"
-		}, function (data) {
-			document.body.classList.remove("loading");
-			
-			if (data) {
-				for (var type in data) {
-					iconData[type] = data[type];
-				}
-				
-				showITAhM();
-			}
-		});
-	};
-	
-	window.getIconData = function () {
-		return iconData;
-	};
 	
 }) (window);
 

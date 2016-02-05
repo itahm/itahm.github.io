@@ -135,12 +135,6 @@ nav form {
 	
 		<nav>
 			<form id="form">
-				<input type="button" value="map" name="map" class="hidden">
-				<input type="button" value="chart" name="chart"  class="hidden">
-				<div class="hidden">
-					<input type="button" value="add" name="add">
-					<input type="button" value="del" name="remove">
-				</div>
 				<select name="label"></select>
 				<input type="text" name="keyword">
 				<input type="submit" value="search">
@@ -168,8 +162,7 @@ nav form {
  * list
  */
 (function (window, undefined) {
-	var deviceData = top.getDeviceData(),
-		hover = document.querySelector(".hover"),
+	var hover = document.querySelector(".hover"),
 		table = document.getElementById("tbody"),
 		specs = "toolbar=0, location=0, resizable=1, menubar=0, titlebar=0",
 		rowMap = {};
@@ -182,27 +175,21 @@ nav form {
 			labels = {},
 			row, device, checkbox, label;
 		
-		for (var id in deviceData) {
+		top.forEachDevice(function (device) {
 			row = document.createElement("ul");
-			device = deviceData[id];
 			
 			checkbox = document.createElement("input");
 			checkbox.type = "checkbox";
-			checkbox.value = id;
 			checkbox.onclick = onStopPropagation;
 			
 			row.appendChild(document.createElement("li")).appendChild(checkbox);
 			row.appendChild(document.createElement("li")).textContent = device.name;
 			row.appendChild(document.createElement("li")).textContent = device.type;
 			row.appendChild(document.createElement("li")).textContent = device.ip;
-			//row.appendChild(document.createElement("li")).textContent = "";
-			//row.appendChild(document.createElement("li")).textContent = "";
-			//row.appendChild(document.createElement("li")).textContent = "";
-			//row.appendChild(document.createElement("li")).textContent = "";
 			
-			row.onclick = onSelectDevice.bind(undefined, id);
+			row.onclick = onSelectDevice.bind(undefined, device.id);
 			
-			rowMap[id] = row;
+			rowMap[device.id] = row;
 			
 			if (device.label) {
 				label = device.label.split(",");
@@ -215,7 +202,7 @@ nav form {
 			}
 			
 			fragment.appendChild(row);
-		}
+		});
 		
 		table.appendChild(fragment);
 		
@@ -226,7 +213,7 @@ nav form {
 	 * callback method
 	 */
 	function onSelectDevice(id) {
-		top.selectDevice(id);
+		top.centerDevice(id);
 	}
 	
 	function onStopPropagation(e) {
@@ -275,19 +262,21 @@ nav form {
 	
 	window.filterDeviceList = function (keyword) {
 		var row = clearDeviceList().firstChild,
-			next,
+			next, cols,
 			fragment = document.createDocumentFragment(),
 			device;
 		
 		while (row) {
 			next = row.nextSibling;
-			// row => ul
-			// row.firstChild => li
-			// checkbox <== li.firstChild
-			device = deviceData[row.firstChild.firstChild.value];
 			
-			if (device.name.indexOf(keyword) !== -1 || device.ip.indexOf(keyword) !== -1 /*device.type.indexOf(keyword) === -1*/) {
-				fragment.appendChild(row);
+			cols = row.children;
+			
+			for (var i=1, length=cols.length; i<length; i++) {
+				if (cols[i].textContent.indexOf(keyword) !== -1) {
+					fragment.appendChild(row);
+					
+					break;
+				}
 			}
 			
 			row = next;
@@ -317,24 +306,6 @@ nav form {
 		table.appendChild(fragment);
 	};
 	
-	window.removeDeviceList =function () {
-		var checked = document.querySelectorAll("#tbody input:checked"),
-			length = checked.length;
-			
-		if (length == 0 || !confirm("remove "+ length +" device(s)?")) {
-			return;
-		}
-		
-		for (var i=0; i<length; i++) {
-			delete deviceData[checked[i].value];
-		}
-		
-		// TODO label 로 검색중이었다면 label 상태에서 테이블 새로 고쳐주는것이 좋아보임
-		// 이때 label이 삭제되는 경우가 생길 것이므로 label 정리부터 다시 해줘야 함.
-		// 일단은 페이지 새로고침으로 해결
-		location.reload();
-	};
-	
 	window.resetDeviceList = function () {
 		var row;
 		
@@ -349,83 +320,7 @@ nav form {
 		}
 	};
 	
-	window.showChart = function (id) {
-		var device = deviceData[id];
-		
-		if (device.snmp) {
-			window.open("/view/chart.html", id, specs);
-		}
-	};
-	
 })(window);
-
-/**
- * device 관리
- */
-(function (window, undefined) {
-	var deviceData,
-		selectedDevice,
-		tmpID = -1,
-		applyDevice;
-	
-	// callback method
-	function onResponse(data, status) {
-		if (status === 200) {
-			initDeviceList(deviceData = data);
-		}
-		else if (status === 401) {
-			unauthorized();
-		}
-		else {
-			throw "";
-		}
-	}
-	
-	/**
-	 * public method
-	 */
-	window.getDeviceData = function () {
-		return deviceData;
-	};
-	
-	window.addDevice = function () {
-		selectedDevice = undefined;
-		
-		showDialog("dialog/device.html");
-	};
-	
-	window.createDevice = function (device) {
-		var id = tmpID--;
-		
-		device.id = id;
-		device.x = 0;
-		device.y = 0;
-		
-		deviceData[id] = device;
-	}
-	
-	window.selectDevice = function (device) {
-		selectedDevice = device;
-	}
-	
-	window.removeDevice = function (idList) {
-		for (var i=0, length=idList.length; i<length; i++) {
-			delete deviceData[idList[i]];
-		}
-	};
-	
-	window.initDevice = function () {
-		sendRequest({
-			command: "pull",
-			database: "device"
-		}, onResponse);
-	};
-	
-	window.getSelectedDevice = function () {
-		return selectedDevice;
-	};
-	
-}) (window);
 
 /**
  * control
@@ -433,18 +328,12 @@ nav form {
 (function (window, undefined) {
 	var form = document.getElementById("form");
 	
-	initEvent();
-	
 	/**
 	 * private method
 	 */
-	function initEvent() {
-		form.elements.add.addEventListener("click", addDevice, false);
-		form.elements.remove.addEventListener("click", onRemove, false);
+	function initialize() {
 		form.elements.label.addEventListener("change", onChangeLabel, false);
 		form.addEventListener("submit", onSearch, false);
-		form.elements.map.addEventListener("click", onShowMap, false);
-		form.elements.chart.addEventListener("click", onShowChart, false);
 	}
 	
 	/**
@@ -463,22 +352,6 @@ nav form {
 		form.elements.keyword.value = "";
 		
 		selectLabel(form.elements.label.value);
-	}
-	
-	function onChangeMode(e) {
-		console.log(e.currentTarget.value);
-	}
-	
-	function onRemove() {
-		removeDeviceList();
-	}
-	
-	function onShowMap() {
-		//top.showMap();
-	}
-	
-	function onShowChart(id) {
-		//top.showChart();
 	}
 	
 	/*
@@ -506,6 +379,7 @@ nav form {
 		}
 	};
 	
+	initialize();
 })(window);
 
 initialize();
