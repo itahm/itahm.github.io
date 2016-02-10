@@ -340,7 +340,28 @@ if (window === top) throw "";
 		}
 	}
 	
-	window.initialize = function (iconData) {
+	function setDevice(d) {
+		device = d;
+		
+		form.elements.name.value = device.name;
+		form.elements.ip.value = device.ip;
+		form.elements.type.value = device.type;
+		// 저장할때는 trim으로 다 붙여서 넣지만 보여줄때는 보기 좋게 한칸씩 띈다.
+		form.elements.label.value = device.label && (device.label.split(",")).join(", ") || "";
+		
+		if (device.ifEntry) {
+			initCustomInterface();
+		}
+		
+		document.getElementById("profile").title = "working profile:\n" + device.profile;
+		
+		if (snmp) {
+			form.elements.snmp.value = "true";
+			initSnmpInterface(snmp);
+		}
+	};
+	
+	window.initialize = function (device, iconData) {
 		var control = form.elements.type,
 			fragment = document.createDocumentFragment(),
 			group = {}, optgroup, groupName, option;
@@ -363,27 +384,8 @@ if (window === top) throw "";
 		control.appendChild(fragment);
 		
 		setEvent();
-	};
-	
-	window.setDevice = function (d, snmp) {
-		device = d;
 		
-		form.elements.name.value = device.name;
-		form.elements.ip.value = device.ip;
-		form.elements.type.value = device.type;
-		// 저장할때는 trim으로 다 붙여서 넣지만 보여줄때는 보기 좋게 한칸씩 띈다.
-		form.elements.label.value = device.label && (device.label.split(",")).join(", ") || "";
-		
-		if (device.ifEntry) {
-			initCustomInterface();
-		}
-		
-		document.getElementById("profile").title = "working profile:\n" + device.profile;
-		
-		if (snmp) {
-			form.elements.snmp.value = "true";
-			initSnmpInterface(snmp);
-		}
+		setDevice(device);
 	};
 	
 }) (window);

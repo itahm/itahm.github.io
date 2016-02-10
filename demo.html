@@ -93,6 +93,20 @@ input[name="password"] {
 	padding: 5px 10px;
 }
 
+#add_device {
+	
+}
+
+#add_device input {
+	padding: .5em;
+	vertical-align: bottom;
+}
+
+#add_device input[type="text"] {
+	max-width: 2em;
+	text-align: right;
+}
+
 body:not(.connected) #signin,
 body:not(.connected) .agent,
 body:not(.authorized) #start, 
@@ -117,7 +131,7 @@ body:not(.loading) #loading {
 		</header>
 		
 		<section class="box">
-			<h3>Infrastructure Topology Administration Module</h3>
+			<h2>Infrastructure Topology Administration Module</h2>
 			<form id="connect">
 				<div>
 					<input type="text" name="ip" value="127.0.0.1" placeholder="agent ip address" required>
@@ -126,7 +140,7 @@ body:not(.loading) #loading {
 				</div>
 			</form>
 			
-			<h2 class="agent"><span id="agent"></span><button id="disconnect">disconnect</button></h2>
+			<h3 class="agent"><span id="agent"></span><button id="disconnect">disconnect</button></h3>
 			
 			<form id="signin">
 				<input type="text" name="username" value="root" placeholder="username">
@@ -135,6 +149,15 @@ body:not(.loading) #loading {
 			</form>
 			
 			<button id="start">go ITAhM</button>
+			
+			<form id="add_device">
+				<h3>add device</h3>
+				<input type="text" required>.
+				<input type="text" required>.
+				<input type="text" required>.
+				<input type="text" required>
+				<input type="submit" id="add_device" value="search">
+			</form>
 		</section>
 		
 		<section id="loading"></section>
@@ -367,6 +390,23 @@ var specs = "toolbar=0, location=0, resizable=1, menubar=0, titlebar=0";
 	};
 	
 	initEvent();
+	
+}) (window);
+
+// device
+(function (window, undefined) {
+	
+	function initialize() {
+		document.getElementById("add_device").onsubmit = onAddDevice;
+	}
+	
+	function onAddDevice(e) {
+		console.log(e);
+		
+		e.preventDefault();
+	}
+	
+	initialize();
 	
 }) (window);
 
