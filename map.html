@@ -96,7 +96,7 @@ text {
 	fill: #777;
 }
 
-#navigation line {
+#tool line {
 	stroke: #800;
 	stroke-width: 2;
 }
@@ -113,7 +113,7 @@ text {
 	fill: #fff;
 }
 
-#navigation circle {
+#tool circle {
 	stroke: #800;
 	stroke-width: 1px;
 	fill: #f00;
@@ -179,16 +179,14 @@ body.nolink #link_token,
 				<g id="device">
 					<circle r="30" id="selection_mark"></circle>
 				</g>
-				<g id="navigation">
-					<g id="tool">
+				<g id="tool">
+					<g id="part">
 						<image xlink:href="img/svg/chart.svg" id="chart_anchor"
 							transform="translate(-42, -8)" width="16" height="16" cursor="pointer">
 						</image>
 						<image xlink:href="img/svg/information.svg" id="edit_anchor"
 							transform="translate(26, -8)" width="16" height="16" cursor="pointer">
 						</image>
-						<line id="link_line"></line>
-						<circle id="link_token" r="5" cursor="crosshair"></circle>
 					</g>
 				</g>
 				<g id="alert" transform="translate(20, 20)"></g>
@@ -204,6 +202,8 @@ body.nolink #link_token,
 		
 		<nav>
 			<img src="img/save.png" width="16px" height="16px" id="save">
+			<img src="img/zoomin.png" width="16px" height="16px" id="zoom_in">
+			<img src="img/zoomout.png" width="16px" height="16px" id="zoom_out">
 			<input type="radio" name="option" id="option_name" checked>name
 			<input type="radio" name="option" id="option_addr">ip address
 		</nav>
@@ -265,9 +265,15 @@ var svgNS = "http://www.w3.org/2000/svg",
 		};
 		
 		document.getElementById("save").onclick = onSave;
+		document.getElementById("zoom_in").onclick = function () {
+			zoom(true);
+		}
+		document.getElementById("zoom_out").onclick = function () {
+			zoom(false);
+		}
 	}
 	
-	function onSave() {
+	function onSave() {return;
 		var adjust = adjustStage(),
 			x = adjust.x,
 			y = adjust.y;
@@ -317,16 +323,7 @@ var svgNS = "http://www.w3.org/2000/svg",
 	}
 	
 	function onZoom(e) {
-		if (e.deltaY < 0) {
-			//확대
-			ratio *= 1.1;
-		}
-		else {
-			//축소
-			ratio /= 1.1;
-		}
-		
-		scale.setScale(ratio, ratio);
+		zoom(e.deltaY < 0)
 	}
 	
 	function onDragStart(e) {
@@ -372,8 +369,8 @@ var svgNS = "http://www.w3.org/2000/svg",
 		else {
 			var x = drag.matrix.e,
 				y = drag.matrix.f;
-			//translate.matrix.e += drag.matrix.e;
-			//translate.matrix.f += drag.matrix.f;
+			
+			moveSelectionMark(selectedDevice.x + x, selectedDevice.y + y);
 			
 			forEachDevice(function (device) {
 				moveDevice(device.id, device.x + x, device.y + y);
@@ -404,11 +401,24 @@ var svgNS = "http://www.w3.org/2000/svg",
 			x = selectedDevice.x;
 			y = selectedDevice.y;
 			
-			showSelectionMark(x, y, device.snmp);
+			showSelectionMark(x, y, selectedDevice.snmp);
 			
 			topDevice(selectedSvgDevice);
 		}
 	}
+	
+	window.zoom = function (zoomin) {
+		if (zoomin) {
+			//확대
+			ratio *= 1.1;
+		}
+		else {
+			//축소
+			ratio /= 1.1;
+		}
+		
+		scale.setScale(ratio, ratio);
+	};
 	
 	window.getSelectedDevice = function () {
 		return selectedDevice;
@@ -550,13 +560,13 @@ var svgNS = "http://www.w3.org/2000/svg",
 		selectionMark.setAttributeNS(null, "cx", x);
 		selectionMark.setAttributeNS(null, "cy", y);
 		
-		moveNavigation(x, y);
+		moveTool(x, y);
 	};
 	
 	window.showSelectionMark = function (x, y, snmp) {
 		canvas.appendChild(selectionMark);
 		
-		showNavigation(x, y, snmp);
+		showTool(x, y, snmp);
 		
 		moveSelectionMark(x, y);
 	};
@@ -564,7 +574,7 @@ var svgNS = "http://www.w3.org/2000/svg",
 	window.clearSelectionMark = function () {
 		fragment.appendChild(selectionMark);
 		
-		hideNavigation();
+		hideTool();
 	};
 	
 	window.getSvgDevice= function (id) {
@@ -581,11 +591,11 @@ var svgNS = "http://www.w3.org/2000/svg",
 	
 }) (window);
 
-// svg navigation group
+// svg tool group
 (function (window, undefined) {
 	
-	var canvas = document.getElementById("navigation"),
-		navigation = document.getElementById("tool"),
+	var canvas = document.getElementById("tool"),
+		part = document.getElementById("part"),
 		linkToken = document.getElementById("link_token"),
 		svgLink = document.getElementById("link_line"),
 		chartAnchor = document.getElementById("chart_anchor"),
@@ -608,24 +618,15 @@ var svgNS = "http://www.w3.org/2000/svg",
 		};
 	}
 	
-	
-	window.showNavigation = function (x, y, chart) {
+	window.showTool = function (x, y, chart) {console.log(chart);
 		document.body.classList[chart? "add": "remove"]("snmp");
 		
-		canvas.appendChild(navigation);
+		canvas.appendChild(part);
 		
-		moveNavigation(x, y);
+		moveTool(x, y);
 	};
 	
-	window.moveNavigation = function (x, y) {
-		svgLink.setAttributeNS(null, "x1", x);
-		svgLink.setAttributeNS(null, "y1", y);
-		svgLink.setAttributeNS(null, "x2", x);
-		svgLink.setAttributeNS(null, "y2", y);
-		
-		linkToken.setAttributeNS(null, "cx", x);
-		linkToken.setAttributeNS(null, "cy", y -32);
-		
+	window.moveTool = function (x, y) {
 		chartAnchor.setAttributeNS(null, "x", x);
 		chartAnchor.setAttributeNS(null, "y", y);
 		
@@ -633,20 +634,8 @@ var svgNS = "http://www.w3.org/2000/svg",
 		editAnchor.setAttributeNS(null, "y", y);
 	}
 	
-	window.isLinkToken = function (target) {
-		return target === linkToken;
-	};
-	
-	window.hideNavigation = function () {
-		fragment.appendChild(navigation);
-	};
-	
-	window.moveLinkToken = function (x, y) {
-		linkToken.setAttributeNS(null, "cx", x);
-		linkToken.setAttributeNS(null, "cy", y);
-		
-		svgLink.setAttributeNS(null, "x2", x);
-		svgLink.setAttributeNS(null, "y2", y);
+	window.hideTool = function () {
+		fragment.appendChild(part);
 	};
 	
 	initialize();
