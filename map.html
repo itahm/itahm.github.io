@@ -367,16 +367,18 @@ var svgNS = "http://www.w3.org/2000/svg",
 		if (target === selectedSvgDevice) {
 		}
 		else {
-			var x = drag.matrix.e,
-				y = drag.matrix.f;
+			var x = drag.matrix.e / ratio,
+				y = drag.matrix.f / ratio;
 			
-			moveSelectionMark(selectedDevice.x + x, selectedDevice.y + y);
+			if (selectedDevice) {
+				moveSelectionMark(selectedDevice.x + x, selectedDevice.y + y);
+			}
 			
 			forEachDevice(function (device) {
 				moveDevice(device.id, device.x + x, device.y + y);
 			});
 			
-			drag.setTranslate(0, 0);
+			drag.setTranslate(0, 0);console.log("!");
 		}
 	}
 	
@@ -386,6 +388,8 @@ var svgNS = "http://www.w3.org/2000/svg",
 		}
 		else {
 			clearSelectionMark();
+			
+			selectedDevice = undefined;
 		}
 	}
 	
