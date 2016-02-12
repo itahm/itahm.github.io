@@ -378,7 +378,7 @@ var svgNS = "http://www.w3.org/2000/svg",
 				moveDevice(device.id, device.x + x, device.y + y);
 			});
 			
-			drag.setTranslate(0, 0);console.log("!");
+			drag.setTranslate(0, 0);
 		}
 	}
 	
@@ -825,22 +825,23 @@ var svgNS = "http://www.w3.org/2000/svg",
 //data
 (function (window, undefined) {
 	
-	var deviceData,
-		iconData,
-		tmpID = -1;
+	var deviceData = opener.getDeviceData(),
+		iconData = opener.getIconData();
 	
-	window.createDevice = function () {
-		var device = {},
-			id = tmpID--;
+	function initialize() {
+		window.sendRequest = opener.getCommunicator();
 		
-		device.id = id;
-		device.x = 0;
-		device.y = 0;
+		var device;
 		
-		deviceData[id] = device;
+		for (var id in deviceData) {
+			device = deviceData[id];
+			
+			addDevice(device, iconData[device.type].src);
+			addLine(device);
+		}
 		
-		return device;
-	};
+		initStage();
+	}
 	
 	window.getDevice = function (id) {
 		return deviceData[id];
@@ -857,22 +858,7 @@ var svgNS = "http://www.w3.org/2000/svg",
 	};
 	
 	// 페이지의 시작
-	opener.onLoadingCompleted(function (d, i, f) {
-		var device;
-		
-		deviceData = d;
-		iconData = i;
-		window.sendRequest = f;
-		
-		for (var id in deviceData) {
-			device = deviceData[id];
-			
-			addDevice(device, iconData[device.type].src);
-			addLine(device);
-		}
-		
-		initStage();
-	});
+	initialize();
 	
 }) (window);
 

@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>dialog</title>
+		
+		<style>
+body, td, input, label, h2, li {
+	font-family: tahoma, arial, "맑은 고딕";
+}
+
+body, td, input, label,  li {
+	font-size: 14px;
+}
+
+body {
+	margin: 0;
+	padding: 0;
+	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
+	display: flex;
+	flex-direction:row;
+	justify-content: center;
+	align-items: center;
+	background-color: rgba(255, 255, 255, .9);
+}
+
+.dialog {
+	width: 300px;
+	padding: 20px;
+	background-color: #fff;
+	box-shadow: 0px 0px 20px 10px #ddd;
+	position: relative;
+}
+
+#image {
+	position: absolute; top: 20px; right: 20px;
+}
+
+div.table {
+	margin-bottom: 5px;
+}
+
+div.table ul {
+	display: flex;
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+
+div.table li:first-child {
+	flex: 1;
+}
+
+div.table li:last-child {
+	flex: 4;
+}
+
+div.table input[type="text"] {
+	width: 100%;
+	box-sizing: border-box;
+	padding: .5em;
+}
+
+footer {
+	display: flex;
+}
+
+footer input {
+	flex: 1;
+	padding: .5em;
+}
+
+		</style>
+		
+	</head>
+	
+	<body>
+	
+		<div class="dialog">
+			<img id="image" width="40px" height="40px">
+			<form autocomplete="off">
+				<h2>icon</h2>
+				<div class="table">
+					<ul>
+						<li>type
+						<li><input type="text" name="type" placeholder="type of device">
+					</ul>
+					<ul>
+						<li>group
+						<li><input type="text" name="group" placeholder="group name">
+					</ul>
+					<ul>
+						<li>image
+						<li><input type="text" name="url" placeholder="http://my.image.com/image.svg">
+					</ul>
+				</div>
+				<footer>
+					<input type="reset" value="cancel">
+					<input type="submit" value="apply">
+				</footer>
+			</form>
+		</div>
+		
+		<script>
+	
+if (top === window) {
+	throw "";
+}
+
+(function (window, undefined) {
+	var form = document.querySelector("form"),
+		image = document.getElementById("image"),
+		iconData;
+	
+	/**
+	 * private method
+	 */
+	function initialize() {
+		form.onsubmit = onApply;
+		form.onreset = onCancel;
+		
+		form.elements.type.select();
+	}
+	
+	/**
+	 * callback method
+	 */
+	 function onApply(e) {
+		e.preventDefault();
+		
+		var type = form.elements.type.value;
+		
+		iconData[type] = {
+			group: form.elements.group.value,
+			src: form.elements.url.value
+		};
+		
+		top.setIcon();
+		
+		top.closeDialog();
+	}
+	
+	function onCancel(e) {
+		top.closeDialog();
+	}
+	
+	window.initialize = function (d, type) {
+		iconData = d;
+
+		if (type) {
+			var icon = iconData[type];
+			
+			image.src = icon.src;
+			
+			form.elements.type.value = type;
+			form.elements.group.value = icon.group;
+			form.elements.url.value = icon.src;
+		}
+		
+		initialize();
+	};
+	
+}) (window);
+
+function f() {
+	
+}
+		</script>
+	
+	</body>
+	
+</html>

@@ -24,6 +24,16 @@ function processRequest(data) {
 		else if (data.database === "icon") {
 			return {};
 		}
+		else if (data.database === "profile") {
+			return {
+				public: {
+					name: "public",
+					version: "v2c",
+					community: "public",
+					udp: 161
+				}
+			};
+		}
 	}
 	else if (c === "select") {
 		return demoData.snmp;
