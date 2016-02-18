@@ -159,8 +159,7 @@ body:not(.chart) #chart {
 	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
 }
 
-body.nolink #link_token,
-#edit_anchor {
+body.nolink #link_token {
 	display: none;
 }
 
@@ -201,11 +200,11 @@ body.nolink #link_token,
 		</aside>
 		
 		<nav>
-			<img src="img/save.png" width="16px" height="16px" id="save">
-			<img src="img/zoomin.png" width="16px" height="16px" id="zoom_in">
-			<img src="img/zoomout.png" width="16px" height="16px" id="zoom_out">
-			<input type="radio" name="option" id="option_name" checked>name
-			<input type="radio" name="option" id="option_addr">ip address
+			<img src="img/add_device.png" width="16px" height="16px" title="add new device" id="add_device">
+			<img src="img/zoomin.png" width="16px" height="16px" title="zoom in" id="zoom_in">
+			<img src="img/zoomout.png" width="16px" height="16px" title="zoom out" id="zoom_out">
+			<input type="radio" name="option" id="option_name" title="show name" checked>name
+			<label title="show ip address"><input type="radio" name="option" id="option_addr">ip address</label>
 		</nav>
 		<iframe id="dialog" class="fullscreen"></iframe>
 		
@@ -232,7 +231,7 @@ var svgNS = "http://www.w3.org/2000/svg",
 			
 			frame.onload = onLoad;
 			
-			frame.src = "device_list.html";
+			frame.src = "list.html";
 		};
 		
 		hide.onclick = function () {
@@ -264,7 +263,8 @@ var svgNS = "http://www.w3.org/2000/svg",
 			document.body.classList.toggle("address");
 		};
 		
-		document.getElementById("save").onclick = onSave;
+		document.getElementById("add_device").onclick = onAddDevice;
+		
 		document.getElementById("zoom_in").onclick = function () {
 			zoom(true);
 		}
@@ -273,14 +273,9 @@ var svgNS = "http://www.w3.org/2000/svg",
 		}
 	}
 	
-	function onSave() {return;
-		var adjust = adjustStage(),
-			x = adjust.x,
-			y = adjust.y;
-		
-		forEachDevice(function (device) {
-			getSvgDevice(device.id);
-			//console.log(device);
+	function onAddDevice() {
+		showDialog("device.html", function (dialog) {
+			dialog.initialize();
 		});
 	}
 	
@@ -442,17 +437,6 @@ var svgNS = "http://www.w3.org/2000/svg",
 	
 	};
 	
-	window.adjustStage = function () {
-		var adjust = {
-				x: translate.matrix.e,
-				y: translate.matrix.f
-			};
-		
-		translate.setTranslate(0, 0);
-		
-		return adjust;
-	};
-	
 	window.initStage = function () {
 		resetStage();
 		
@@ -519,7 +503,7 @@ var svgNS = "http://www.w3.org/2000/svg",
 		iconMap[device.id] = svgDevice;
 		labelMap[device.id] = svgLabel;
 		
-		if (device.id < 1) {
+		if (device.id < 0) {
 			var svgAlert = document.createElementNS(svgNS, "use");
 			
 			svgAlert.setAttributeNS(xlinkNS, "xlink:href", "#circle");
@@ -614,15 +598,15 @@ var svgNS = "http://www.w3.org/2000/svg",
 		};
 		
 		editAnchor.onclick = function (e) {
-			showDeviceDialog(function (dialog) {
-				dialog.initialize(getSelectedDevice(), iconData);
+			showDialog("device.html", function (dialog) {
+				dialog.initialize(getSelectedDevice());
 			});
 			
 			e.stopPropagation();
 		};
 	}
 	
-	window.showTool = function (x, y, chart) {console.log(chart);
+	window.showTool = function (x, y, chart) {
 		document.body.classList[chart? "add": "remove"]("snmp");
 		
 		canvas.appendChild(part);
@@ -754,22 +738,12 @@ var svgNS = "http://www.w3.org/2000/svg",
 	
 	var dialog = document.getElementById("dialog");
 	
-	function showDialog(onload) {
+	window.showDialog = function (url, onload) {
 		document.body.classList.add("dialog");
 		
-		onload(dialog.contentWindow);
-	}
-	
-	window.showDeviceDialog = function (onload) {
-		dialog.onload = showDialog.bind(undefined, onload);
+		dialog.onload = onload.bind(undefined, dialog.contentWindow);
 		
-		dialog.src = "device.html";
-	};
-	
-	window.showLinkDialog = function (onload) {
-		dialog.onload = showDialog.bind(undefined, onload);
-		
-		dialog.src = "link.html";
+		dialog.src = url;
 	};
 	
 	window.closeDialog = function () {
@@ -826,7 +800,8 @@ var svgNS = "http://www.w3.org/2000/svg",
 (function (window, undefined) {
 	
 	var deviceData = opener.getDeviceData(),
-		iconData = opener.getIconData();
+		iconData = opener.getIconData(),
+		tmpID = -1;
 	
 	function initialize() {
 		window.sendRequest = opener.getCommunicator();
@@ -843,6 +818,10 @@ var svgNS = "http://www.w3.org/2000/svg",
 		initStage();
 	}
 	
+	window.createDevice = function (data) {
+		opener.addDevice(data);
+	};
+	
 	window.getDevice = function (id) {
 		return deviceData[id];
 	};
@@ -853,8 +832,10 @@ var svgNS = "http://www.w3.org/2000/svg",
 		}
 	};
 	
-	window.getDeviceData = function () {
-		return deviceData;
+	window.forEachIcon = function (f) {
+		for (var type in iconData) {
+			f(type, iconData[type]);
+		}
 	};
 	
 	// 페이지의 시작
@@ -864,6 +845,10 @@ var svgNS = "http://www.w3.org/2000/svg",
 
 function sendRequest(request, callback) {
 	opener.sendRequest(request, callback);
+}
+
+function reload() {
+	location.reload();
 }
 
 		</script>

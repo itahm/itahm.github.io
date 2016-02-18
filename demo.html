@@ -11,7 +11,7 @@ body, header, li, input, button, legend {
 	font-family: tahoma, arial, "맑은 고딕";
 }
 
-li, input, button {
+li, input, button, legend {
 	font-size: 14px;
 }
 
@@ -42,7 +42,7 @@ nav {
 
 .box {
 	margin: auto;
-	width: 1000px;
+	width: 800px;
 	padding: 10px;
 	box-sizing: border-box;
 }
@@ -116,29 +116,58 @@ ul.inline {
 
 fieldset {
 	border: none;
-	border-top: 1px solid #0084ff;
+	padding: 20px;
+	border-top: 2px solid #0084ff;
+	position: relative;
 }
 
 legend {
 	padding: .5em;
+	background-color: #0084ff;
+	color: #fff;
+	font-weight: bold;
+	border-radius: 5px;
+	width: 100px;
 }
 
-#profile_list li {
+fieldset img {
+	position: absolute; top: 0; right: 0;
 	cursor: pointer;
 }
 
-#profile_list li:hover {
+.list,
+.list2 {
+	margin: 0;
+}
+
+.list2 {
+	list-style: none;
+	padding: 0;
+}
+
+.list li,
+.list2 li {
+	padding: 3px;
+}
+
+.list li:hover,
+.list2 ul>li:hover {
 	color: #0084ff;
+	cursor: pointer;
 }
 
 #type_list {
-	max-height: 100px;
+	max-height: 200px;
 	overflow: auto;
+}
+
+.center {
+	text-align: center;
 }
 
 body:not(.connected) #signin,
 body:not(.connected) .agent,
-body:not(.authorized) #start,
+/*body:not(.authorized) #start,*/
 body:not(.authorized) .authorized, 
 body.connected #connect,
 body.authorized #signin,
@@ -180,32 +209,35 @@ body:not(.dialog) #dialog {
 					<input type="submit" value="sign in">
 				</form>
 				
-				<button id="start">go ITAhM</button>
+				<div class="authorized center">
+					<button id="start">ITAhM</button>
+				</div>
 				
 				<fieldset class="authorized">
 					<legend>device</legend>
-						<ul class="inline">
-							<li>number of devices : </li>
-							<li id="num_device"></li>
-						</ul>
-						<form id="add_device">
-							<h3>add device</h3>
-							<input type="text" pattern="25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?" title="number(0 ~ 255)" id="ip1" required>.
-							<input type="text" pattern="25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?" title="number(0 ~ 255)" id="ip2" required>.
-							<input type="text" pattern="25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?" title="number(0 ~ 255)" id="ip3" required>.
-							<input type="text" pattern="25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?" title="number(0 ~ 255)" id="ip4" required>
-							<input type="submit" value="add">
-						</form>
+					<img src="img/synchronize.png" width="16px" height="16px" title="synchronize device data" id="device_sync">
+					<ul class="inline">
+						<li>number of devices : </li>
+						<li id="num_device"></li>
+					</ul>
 				</fieldset>
 				
 				<fieldset class="authorized">
-					<legend>profile</legend>
-					<ul id="profile_list"></ul>
+					<legend>user account</legend>
+					<img src="img/synchronize.png" title="synchronize user account data" id="account_sync">
+					<ul id="account_list" class="list"></ul>
+				</fieldset>
+				
+				<fieldset class="authorized">
+					<legend>snmp profile</legend>
+					<img src="img/synchronize.png" title="synchronize snmp profile data" id="profile_sync">
+					<ul id="profile_list" class="list"></ul>
 				</fieldset>
 				
 				<fieldset class="authorized">
 					<legend>icon</legend>
-					<ul id="type_list"></ul>
+					<img src="img/synchronize.png" title="synchronize custom icon data" id="icon_sync">
+					<ul id="type_list" class="list2"></ul>
 				</fieldset>
 				
 			</section>
@@ -228,9 +260,7 @@ var specs = "toolbar=0, location=0, resizable=1, menubar=0, titlebar=0";
 // 공통 
 (function (window, undefined){
 	
-	var itahm,
-		deviceData,
-		tmpID = -1;
+	var itahm;
 	
 	function initialize () {
 		window.addEventListener("beforeunload", onUnload);
@@ -255,41 +285,6 @@ var specs = "toolbar=0, location=0, resizable=1, menubar=0, titlebar=0";
 		itahm = window.open("map.html", "ITAhM", specs);
 		
 		itahm.focus();
-	};
-	
-	window.initDevice = function () {
-		document.body.classList.add("loading");
-		
-		sendRequest({
-			command: "pull",
-			database: "device"
-		}, function (data) {
-			if (data) {
-				deviceData = data;
-				
-				setDevice(deviceData);
-				
-				initIcon();
-			}
-		});
-	};
-	
-	window.addDevice = function (ip) {
-		var device = {},
-			id = tmpID--;
-		
-		device.id = id;
-		device.ip = ip;
-		device.x = 0;
-		device.y = 0;
-		
-		deviceData[id] = device;
-		
-		setDevice(deviceData);
-	};
-	
-	window.getDeviceData = function  () {
-		return deviceData;
 	};
 	
 	window.getCommunicator = function () {
@@ -448,30 +443,68 @@ var specs = "toolbar=0, location=0, resizable=1, menubar=0, titlebar=0";
 // device
 (function (window, undefined) {
 	
-	var form = document.getElementById("add_device"),
-		ip1 = document.getElementById("ip1"),
-		ip2 = document.getElementById("ip2"),
-		ip3 = document.getElementById("ip3"),
-		ip4 = document.getElementById("ip4"),
-		numOfDevice = document.getElementById("num_device"),
-		tmpID = -1;
+	var deviceData,
+		tmpID = -1,
+		sequence,
+		numOfDevice = document.getElementById("num_device");
 	
 	function initialize() {
-		form.onsubmit = onAddDevice;
+		document.getElementById("device_sync").onclick = onSync;
+	}
+
+	function onSync() {
+		if (confirm()) {
+			sendRequest({
+				command: "push",
+				database: "device",
+				sequence: sequence,
+				data: deviceData
+			}, function (response) {
+				if (response) {
+					location.reload();
+				}
+				else {
+					alert("synchronization failed.");
+				}
+			});
+		}
 	}
 	
-	function onAddDevice(e) {
-		e.preventDefault();
-		
-		addDevice([ip1.value, ip2.value, ip3.value, ip4.value].join("."));
-		
-		form.reset();
-		
-		alert("synchronize device data if you want to apply modifycation");
-	}
-	
-	window.setDevice = function (deviceData) {
+	function setDevice() {
 		numOfDevice.textContent = Object.keys(deviceData).length;
+	}
+	
+	window.initDevice = function () {
+		document.body.classList.add("loading");
+		
+		sendRequest({
+			command: "pull",
+			database: "device"
+		}, function (response) {
+			if (response) {
+				deviceData = response.data;
+				sequence = response.sequence;
+				
+				setDevice();
+				
+				initIcon();
+			}
+		});
+	};
+	
+	window.addDevice = function (data) {
+		var id = tmpID--;
+		
+		deviceData[id] = data;
+		data.id = id;
+		data.x = 0;
+		data.y = 0;
+		
+		setDevice();
+	};
+	
+	window.getDeviceData = function  () {
+		return deviceData;
 	};
 	
 	initialize();
@@ -481,7 +514,10 @@ var specs = "toolbar=0, location=0, resizable=1, menubar=0, titlebar=0";
 //icon
 (function (window, undefined) {
 	
-	var iconData = ITAhM.iconData,
+	var originData = ITAhM.iconData,
+		iconData = {},
+		customData,
+		sequence,
 		list = document.getElementById("type_list");
 	
 	if (!iconData) {
@@ -489,19 +525,25 @@ var specs = "toolbar=0, location=0, resizable=1, menubar=0, titlebar=0";
 	}
 	
 	function initialize() {
+		document.getElementById("icon_sync").onclick = onSync;
 		
+		for (var type in originData) {
+			iconData[type] = originData[type];
+		}
 	}
 	
-	function onResponse(data) {
-		if (data) {
-			// custom data 덮어쓰기
-			for (var type in data) {
-				iconData[type] = data[type];
+	function onResponse(response) {
+		if (response) {
+			customData = response.data;
+			sequence = response.sequence;
+		
+			for (var type in customData) {
+				iconData[type] = customData[type];
 			}
 			
-			setIcon();
+			resetIconList();
 			
-			initProfile();
+			initAccount();
 		}
 		else {
 			// 오류
@@ -510,10 +552,68 @@ var specs = "toolbar=0, location=0, resizable=1, menubar=0, titlebar=0";
 		document.body.classList.remove("loading");
 	}
 	
+	function onSync() {
+		if (confirm()) {
+			sendRequest({
+				command: "push",
+				database: "icon",
+				sequence: sequence,
+				data: iconData
+			}, function (response) {
+				if (response) {
+					location.reload();
+				}
+				else {
+					alert("synchronization failed.");
+				}
+			});
+		}
+	}
+	
 	function onSelectIcon(type) {
 		showDialog("icon.html", function (dialog) {
-			dialog.initialize(iconData, type);
+			dialog.initialize(type, iconData[type]);
 		});
+	}
+	
+	function resetIconList() {
+		var df = document.createDocumentFragment(),
+			icon, groupName, groupElement, labelElement,
+			map = {},
+			li;
+		
+		while (li = list.firstChild) {
+			list.removeChild(li);
+		}
+		
+		for (var type in iconData) {
+			icon = iconData[type];
+			
+			groupName = icon.group;
+			
+			groupElement = map[groupName];
+			
+			if (!groupElement) {
+				groupElement = document.createElement("ul");
+				
+				labelElement = document.createElement("li");
+				labelElement.textContent = groupName;
+				
+				df.appendChild(labelElement)
+				labelElement.appendChild(groupElement);
+				
+				map[groupName] = groupElement;
+			}
+			
+			li = document.createElement("li");
+			
+			li.textContent = type;
+			li.onclick = onSelectIcon.bind(undefined, type);
+			
+			groupElement.appendChild(li);
+		}
+		
+		list.appendChild(df);
 	}
 	
 	window.initIcon = function () {
@@ -523,24 +623,29 @@ var specs = "toolbar=0, location=0, resizable=1, menubar=0, titlebar=0";
 		}, onResponse);
 	};
 	
-	window.setIcon = function () {
-		var df = document.createDocumentFragment(),
-			li;
+	window.setIcon = function (type, data) {
+		iconData[type] = customData[type] = data;
 		
-		while (li = list.firstChild) {
-			list.removeChild(li);
+		resetIconList();
+	};
+	
+	window.resetIcon = function (type) {
+		var icon = originData[type];
+		
+		delete customData[type];
+		
+		if (icon) {
+			iconData[type] = icon;
+		}
+		else {
+			delete iconData[type];
 		}
 		
-		for (var type in iconData) {
-			li = document.createElement("li");
-			
-			li.textContent = type;
-			li.onclick = onSelectIcon.bind(undefined, type);
-			
-			df.appendChild(li);
-		}
-		
-		list.appendChild(df);
+		resetIconList();
+	};
+	
+	window.getIcon = function  (type) {
+		return iconData[type];
 	};
 	
 	window.getIconData = function  () {
@@ -551,21 +656,113 @@ var specs = "toolbar=0, location=0, resizable=1, menubar=0, titlebar=0";
 	
 }) (window);
 
+// account
+(function (window, undefined) {
+	
+	var accountData,
+		sequence,
+		list = document.getElementById("account_list");
+	
+	function initialize() {
+		document.getElementById("account_sync").onclick = onSync;
+	}
+
+	function onSync() {
+		if (confirm()) {
+			sendRequest({
+				command: "push",
+				database: "account",
+				sequence: sequence,
+				data: accountData
+			}, function (response) {
+				if (response) {
+					location.reload();
+				}
+				else {
+					alert("synchronization failed.");
+				}
+			});
+		}
+	}
+	
+	function onSelectAccount(name) {
+		showDialog("account.html", function (dialog) {
+			dialog.initialize(name, accountData[name]);
+		});
+	}
+	
+	window.initAccount = function () {
+		sendRequest({
+			command: "pull",
+			database: "account"
+		}, function (response) {
+			if (response) {
+				accountData = response.data;
+				sequence = response.sequence;
+				
+				resetAccountList();
+				
+				initProfile();
+			}
+			else {
+				throw "";
+			}
+		});
+	};
+	
+	window.resetAccountList = function () {
+		var df = document.createDocumentFragment(),
+			li;
+		
+		while (li = list.firstChild) {
+			list.removeChild(li);
+		}
+		
+		for (var name in accountData) {
+			li = document.createElement("li");
+			
+			li.textContent = name;
+			li.onclick = onSelectAccount.bind(undefined, name);
+			
+			df.appendChild(li);
+		}
+		
+		list.appendChild(df);
+	};
+	
+	window.setAccount = function (name, account) {
+		accountData[name] = account;
+		
+		resetAccountList();
+	};
+	
+	window.removeAccount = function (name) {
+		delete accountData[name];
+		
+		resetAccountList();
+	};
+	
+	initialize();
+	
+}) (window);
+
 // profile
 (function (window, undefined) {
 	
 	var profileData,
+		sequence,
 		list = document.getElementById("profile_list");
 	
 	function initialize() {
-		
+		document.getElementById("profile_sync").onclick = onSync;
 	}
 	
-	function onResponse(data) {
-		profileData = data;
-		
-		if (data) {
-			setProfile();
+	function onResponse(response) {
+		if (response) {
+			profileData = response.data;
+			sequence = response.sequence;
+			
+			resetProfileList();
 			
 			startITAhM();
 		}
@@ -576,9 +773,27 @@ var specs = "toolbar=0, location=0, resizable=1, menubar=0, titlebar=0";
 		document.body.classList.remove("loading");
 	}
 	
+	function onSync() {
+		if (confirm()) {
+			sendRequest({
+				command: "push",
+				database: "profile",
+				sequence: sequence,
+				data: profileData
+			}, function (response) {
+				if (response) {
+					location.reload();
+				}
+				else {
+					alert("synchronization failed.");
+				}
+			});
+		}
+	}
+	
 	function onSelectProfile(name) {
 		showDialog("profile.html", function (dialog) {
-			dialog.initialize(profileData, name);
+			dialog.initialize(name, profileData[name]);
 		})
 		
 	}
@@ -590,7 +805,7 @@ var specs = "toolbar=0, location=0, resizable=1, menubar=0, titlebar=0";
 		}, onResponse);
 	};
 	
-	window.setProfile = function () {
+	window.resetProfileList = function () {
 		var df = document.createDocumentFragment(),
 			li;
 		
@@ -608,6 +823,18 @@ var specs = "toolbar=0, location=0, resizable=1, menubar=0, titlebar=0";
 		}
 		
 		list.appendChild(df);
+	};
+	
+	window.setProfile = function (name, profile) {
+		profileData[name] = profile;
+		
+		resetProfileList();
+	};
+	
+	window.removeProfile = function (name) {
+		delete profileData[name];
+		
+		resetProfileList();
 	};
 	
 	initialize();
@@ -682,6 +909,10 @@ function QueryParser(search) {
 var query = new QueryParser(location.search),
 	ip = query.get("ip"),
 	tcp = query.get("tcp");
+
+function confirm() {
+	return confirm("reload ITAhM after synchronization.\n\ncontinue?");
+}
 
 if (ip && tcp) {
 	tryConnect(ip, tcp);

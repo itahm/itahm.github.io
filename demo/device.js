@@ -21,7 +21,7 @@ demoData.device = {
         "id": "4",
         "label": "",
         "community": "",
-        "type": "l4switch",
+        "type": "layer4 switch",
         "ifEntry": {
             "eth1": "73",
             "eth2": "5"
@@ -74,7 +74,7 @@ demoData.device = {
         "x": 227.24,
         "y": -164.84000000000003,
         "id": "15",
-        "type": "concentrator",
+        "type": "vpn concentrator",
         "ifEntry": {
             "eth7": "47",
             "eth8": "46"
@@ -148,7 +148,7 @@ demoData.device = {
         "snmp": true,
         "y": 20.160000000000025,
         "id": "52",
-        "type": "l3switch",
+        "type": "layer3 switch",
         "ifEntry": {
             "g0/1": "41",
             "g0/2": "58",
@@ -163,7 +163,7 @@ demoData.device = {
         "snmp": true,
         "y": 20.160000000000025,
         "id": "53",
-        "type": "l3switch",
+        "type": "layer3 switch",
         "ifEntry": {
             "g0/1": "40",
             "g0/2": "58",
@@ -179,7 +179,7 @@ demoData.device = {
         "snmp": true,
         "y": 181.24,
         "id": "57",
-        "type": "l3switch",
+        "type": "layer3 switch",
         "ifEntry": {
             "ge3": "53"
         }
@@ -191,7 +191,7 @@ demoData.device = {
         "snmp": true,
         "y": 176.92,
         "id": "58",
-        "type": "l3switch",
+        "type": "layer3 switch",
         "ifEntry": {
             "f0/2": "53",
             "f0/3": "52"
@@ -204,7 +204,7 @@ demoData.device = {
         "snmp": true,
         "y": 270.80000000000007,
         "id": "62",
-        "type": "workgroup",
+        "type": "workgroup switch",
         "ifEntry": {
             "fe24": "73",
             "fe1": "11",
@@ -219,7 +219,7 @@ demoData.device = {
         "y": 33.160000000000025,
         "id": "68",
         "label": "idc,dmz",
-        "type": "l3switch",
+        "type": "layer3 switch",
         "ifEntry": {
             "g2/47": "40",
             "g2/48": "41"
@@ -232,7 +232,7 @@ demoData.device = {
         "snmp": true,
         "y": -62.839999999999975,
         "id": "69",
-        "type": "l3switch",
+        "type": "layer3 switch",
         "ifEntry": {
             "g2/47": "40",
             "g2/48": "41"
@@ -245,7 +245,7 @@ demoData.device = {
         "snmp": true,
         "y": 175.16,
         "id": "73",
-        "type": "l3switch",
+        "type": "layer3 switch",
         "ifEntry": {
             "g3/1": "53",
             "g3/2": "52",
@@ -261,7 +261,7 @@ demoData.device = {
         "snmp": true,
         "y": 175.16,
         "id": "74",
-        "type": "l3switch",
+        "type": "layer3 switch",
         "ifEntry": {
             "g2/1": "53",
             "g2/2": "52"

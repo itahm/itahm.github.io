@@ -1,6 +1,22 @@
 ;"use strict";
 
-var demoData = {};
+var demoData = {
+		icon: {},
+		profile: {
+			public: {
+				name: "public",
+				version: "v2c",
+				community: "public",
+				udp: 161
+			}
+		},
+		account: {
+			root: {
+				username: "root",
+				password: "root"
+			}
+		}
+	};
 
 function Communicator() {
 	this.connect = function (server, port) {
@@ -19,21 +35,41 @@ function processRequest(data) {
 	
 	if (c === "pull") {
 		if (data.database === "device") {
-			return demoData.device;
+			return {
+				data: demoData.device
+			};
 		}
 		else if (data.database === "icon") {
-			return {};
+			return {
+				data: demoData.icon
+			};
 		}
 		else if (data.database === "profile") {
 			return {
-				public: {
-					name: "public",
-					version: "v2c",
-					community: "public",
-					udp: 161
-				}
+				data: demoData.profile
 			};
 		}
+		else if (data.database === "account") {
+			return {
+				data: demoData.account
+			};
+		}
+	}
+	else if (c === "push") {
+		if (data.database === "device") {
+			demoData.device = data.data;
+		}
+		else if (data.database === "icon") {
+			demoData.icon = data.data;
+		}
+		else if (data.database === "profile") {
+			demoData.profile = data.data;
+		}
+		else if (data.database === "account") {
+			demoData.account = data.data;
+		}
+		
+		return {};
 	}
 	else if (c === "select") {
 		return demoData.snmp;

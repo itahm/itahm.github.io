@@ -70,6 +70,10 @@ footer input {
 	padding: .5em;
 }
 
+input[type="checkbox"] {
+	vertical-align: middle;
+}
+
 		</style>
 		
 	</head>
@@ -93,6 +97,7 @@ footer input {
 						<li>image
 						<li><input type="text" name="url" placeholder="http://my.image.com/image.svg">
 					</ul>
+					<label><input type="checkbox" name="reset">reset</label>
 				</div>
 				<footer>
 					<input type="reset" value="cancel">
@@ -109,8 +114,7 @@ if (top === window) {
 
 (function (window, undefined) {
 	var form = document.querySelector("form"),
-		image = document.getElementById("image"),
-		iconData;
+		image = document.getElementById("image");
 	
 	/**
 	 * private method
@@ -118,6 +122,8 @@ if (top === window) {
 	function initialize() {
 		form.onsubmit = onApply;
 		form.onreset = onCancel;
+		
+		form.elements.reset.onclick = onReset;
 		
 		form.elements.type.select();
 	}
@@ -128,28 +134,26 @@ if (top === window) {
 	 function onApply(e) {
 		e.preventDefault();
 		
-		var type = form.elements.type.value;
-		
-		iconData[type] = {
+		top.setIcon(form.elements.type.value, {
 			group: form.elements.group.value,
 			src: form.elements.url.value
-		};
-		
-		top.setIcon();
+		});
 		
 		top.closeDialog();
 	}
 	
+	function onReset(e) {
+		top.resetIcon(form.elements.type.value);
+		
+		top.closeDialog();
+	}
+	 
 	function onCancel(e) {
 		top.closeDialog();
 	}
 	
-	window.initialize = function (d, type) {
-		iconData = d;
-
+	window.initialize = function (type, icon) {
 		if (type) {
-			var icon = iconData[type];
-			
 			image.src = icon.src;
 			
 			form.elements.type.value = type;

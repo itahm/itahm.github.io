@@ -5,11 +5,11 @@
 		<title>dialog</title>
 		
 		<style>
-body, td, input, label, h2, li {
+body, td, input, h2 {
 	font-family: tahoma, arial, "맑은 고딕";
 }
 
-body, td, input, label,  li {
+body, td, input {
 	font-size: 14px;
 }
 
@@ -34,10 +34,6 @@ input {
 	padding: .5em;
 }
 
-input[type="radio"] {
-	margin: .5em;
-}
-
 input[type="checkbox"] {
 	vertical-align: middle;
 }
@@ -59,39 +55,36 @@ footer input {
 	</head>
 	
 	<body>
-	
+		
 		<div class="dialog">
 			<form autocomplete="off">
-				<h2>snmp profile</h2>
+				<h2>account</h2>
 				<table>
 					<tbody>
 						<tr>
-							<td>profile name: </td>
+							<td>username</td>
 							<td>
-								<input type="text" name="name" class="table text"
-									placeholder="snmp profile name" required autofocus>
+								<input type="text" name="username" class="table text" required>
 							</td>
 						</tr>
 						<tr>
-							<td>udp port: </td>
+							<td>password</td>
 							<td>
-								<input type="number" min="1" step="1" value="161" name="udp" class="table text"
-									placeholder="snmp udp port" pattern="\d*" required>
+								<input type="password" name="password"
+									class="table text"
+									placeholder="new password"
+									pattern="[a-zA-Z0-9]{6,}"
+									title="at least 6 alphanumeric characters"
+									required>
 							</td>
 						</tr>
 						<tr>
-							<td>snmp version: </td>
+							<td>confirm password</td>
 							<td>
-								<label><input type="radio" value="v1" name="version" disabled>v1</label>
-								<label><input type="radio" value="v2c" name="version" checked>v2c</label>
-								<label><input type="radio" value="v3" name="version" disabled>v3</label>
-							</td>
-						</tr>
-						<tr>
-							<td>community: </td>
-							<td>
-								<input type="text" name="community" value="public" class="table text"
-									placeholder="snmp community string" required>
+								<input type="password" name="password2"
+									class="table text"
+									placeholder="confirm password"
+									required>
 							</td>
 						</tr>
 					</tbody>
@@ -105,46 +98,54 @@ footer input {
 		</div>
 		
 		<script>
-	
+
 if (top === window) {
 	throw "";
 }
-
+		
+//account 관리
 (function (window, undefined) {
 	var form = document.querySelector("form");
 	
 	/**
-	 * private method
+	 * 초기화
 	 */
 	function initialize() {
 		form.onsubmit = onApply;
 		form.onreset = onCancel;
 		form.elements.remove.onclick = onRemove;
 		
-		form.elements.name.select();
+		form.elements.username.select();
 	}
 	
 	/**
 	 * callback method
 	 */
-	 function onApply(e) {
+	function onApply(e) {
 		e.preventDefault();
 		
-		var name = form.elements.name.value;
-		
-		top.setProfile(name, {
-			name: name,
-			udp: form.elements.udp.value,
-			version: form.elements.version.value,
-			community: form.elements.community.value
-		});
-		
-		top.closeDialog();
-	}
+		var username = form.elements.username.value,
+			password = form.elements.password.value,
+			password2 = form.elements.password2.value;
+			
+		if (password === password2) {
+			top.setAccount(username, {
+				username: username,
+				password: password
+			});
+			
+			top.closeDialog();
+		}
+		else {
+			alert("password does not match the confirm password");
+			
+			form.elements.password2.select();
+		}
+	};
 	
 	function onRemove(e) {
-		if (confirm("remove profile?")) {
-			top.removeProfile(form.elements.name.value);
+		if (confirm("remove account?")) {
+			top.removeAccount(form.elements.username.value);
 			
 			top.closeDialog();
 		}
@@ -152,14 +153,12 @@ if (top === window) {
 	
 	function onCancel(e) {
 		top.closeDialog();
-	}
+	};
 	
-	window.initialize = function (name, profile) {
-		if (name) {
-			form.elements.name.value = name,
-			form.elements.udp.value = profile.udp;
-			form.elements.version.value = profile.version;
-			form.elements.community.value = profile.community;
+	window.initialize = function (username, account) {
+		if (username) {
+			form.elements.username.value = username,
+			form.elements.password.value = account.password;
 		}
 		
 		initialize();
