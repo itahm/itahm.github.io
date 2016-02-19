@@ -287,10 +287,6 @@ var specs = "toolbar=0, location=0, resizable=1, menubar=0, titlebar=0";
 		itahm.focus();
 	};
 	
-	window.getCommunicator = function () {
-		return sendRequest;
-	};
-	
 	window.closeITAhM = function () {
 		if (itahm && !itahm.closed) {
 			itahm.close();
