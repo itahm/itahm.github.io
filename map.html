@@ -211,6 +211,7 @@ body.nolink #link_token {
 		<iframe id="chart" class="fullscreen"></iframe>
 		
 		<script src="js/Draggable.js"></script>
+		<script src="js/Communicator.js"></script>
 		<script>
 
 if (!opener) throw "";
@@ -761,19 +762,19 @@ var svgNS = "http://www.w3.org/2000/svg",
 	
 	var chart = document.getElementById("chart");
 	
-	function onResponse(device, data) {
+	function onResponse(device, data, status) {
 		if (data) {
 			chart.onload = function () {
 				chart.contentWindow.initialize(device, data);
 			};
 			
-			chart.src = "chart.html";
+			chart.src = "performance.html";
 			
 			document.body.classList.add("chart");
 		}
-		else {
+		else {console.log(status);
 			// 오류
-			window.close();
+			//window.close();
 		}
 	}
 	
@@ -784,6 +785,7 @@ var svgNS = "http://www.w3.org/2000/svg",
 			command: "select",
 			ip: device.ip
 		}, onResponse.bind(undefined, device));
+		
 	};
 	
 	window.closeChart = function () {
@@ -799,12 +801,16 @@ var svgNS = "http://www.w3.org/2000/svg",
 //data
 (function (window, undefined) {
 	
-	var deviceData = opener.getDeviceData(),
-		iconData = opener.getIconData(),
-		tmpID = -1;
+	var deviceData, iconData;
 	
 	function initialize() {
-		var device;
+		var agent = opener.getAddress().split(":"),
+			device;
+		
+		deviceData = opener.getDeviceData();
+		iconData = opener.getIconData();
+		
+		window.sendRequest = opener.sendRequest;
 		
 		for (var id in deviceData) {
 			device = deviceData[id];
@@ -836,18 +842,10 @@ var svgNS = "http://www.w3.org/2000/svg",
 		}
 	};
 	
-	// 페이지의 시작
+	// 페이지의 시작	
 	initialize();
 	
 }) (window);
-
-function sendRequest(request, callback) {
-	opener.sendRequest(request, callback);
-}
-
-function reload() {
-	location.reload();
-}
 
 		</script>
 	

@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta http-equiv="Content-Script-Type" content="text/javascript">
+		<meta http-equiv="Content-Style-Type" content="text/css">
+		<title>ITAhM</title>
+		
+		<style>
+body,
+svg text {
+	font-family: arial, tahoma, "맑은 고딕";
+	font-size: 14px;
+}
+
+body {
+	
+}
+
+svg {
+	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
+	width: 100%;
+	height: 100%;
+}
+
+#grid path {
+	stroke: #ddd;
+	stroke-width: .5;
+	fill: none;
+}
+
+/* graph 기본 및 색상*/
+#graph path {
+	stroke: #fc0;
+	stroke-width: 2;
+	fill: none;
+}
+
+#graph path:hover {
+	cursor: pointer;
+}
+
+#graph path[class="0"] {
+	stroke: #0084ff;
+}
+
+#graph path[class="1"] {
+	stroke: #dd3232;
+}
+
+#graph path[class="2"] {
+	stroke: #969a52;
+}
+
+#graph path[class="3"] {
+	stroke: #0065a9;
+}
+
+#graph path[class="4"] {
+	stroke: #805462;
+}
+
+#graph path[class="5"] {
+	stroke: #00919c;
+}
+
+#graph path[class="6"] {
+	stroke: #ffef6c;
+}
+
+#graph path[class="7"] {
+	stroke: #572c29;
+}
+
+#graph path[class="8"] {
+	stroke: #b38e50;
+}
+
+#graph path[class="9"] {
+	stroke: #ffb6ad;
+}
+
+#graph path[class="10"] {
+	stroke: #fbaf5f;
+}
+
+#graph path[class="11"] {
+	stroke: #fc0;
+}
+
+#graph path.ifInOctets {
+	stroke: #7d7;
+}
+
+#graph path.ifOutOctets {
+	stroke: #ffb347;
+}
+/**/
+
+#axis_left text {
+	text-anchor: end;
+}
+
+#axis_right text {
+	text-anchor: start;
+}
+
+#end_label text {
+	text-anchor: end;
+}
+
+body:not(.start) #start_date,
+body:not(.end) #end_date {
+	fill: #aaa;
+}
+
+body.start #start_fixed,
+body.end #end_fixed,
+body:not(.start) #start_move,
+body:not(.end) #end_move {
+	display: none;
+}
+
+		</style>
+		
+	</head>
+	
+	<body class="start end">
+		
+		<svg id="chart">
+			<g transform="translate(20, 20)">
+		        <g transform="translate(0, -100) translate(0, 10)" id="axis_date">
+		        	<g>
+		        		<image xlink:href="img/unlock.png" width="16" height="16" id="start_move"></image>
+		        		<image xlink:href="img/lock_gray.png" width="16" height="16" id="start_fixed"></image>
+		        		<text x="20" y="14" id="start_date">start</text>
+		        	</g>
+		        	<g transform="translate(0, 0)" id="end_label">
+		        		<text x="-20" y="14" id="end_date">end</text>
+		        		<image x="-16" xlink:href="img/unlock.png" width="16" height="16" id="end_move"></image>
+		        		<image x="-16" xlink:href="img/lock_gray.png" width="16" height="16" id="end_fixed"></image>
+		        	</g>
+		        </g>
+		        <g transform="translate(0, 0) scale(1 -1)" id="graph"></g>
+		        <g transform="translate(0, 0)" id="axis_left"></g>
+				<g transform="translate(0, 0)" id="axis_right"></g>
+		        <g transform="translate(0, 0)" id="grid"></g>
+		    </g>
+		</svg>
+		
+		<script src="js/ITAhM.js"></script>
+		<script src="js/Draggable.js"></script>
+		<script>
+
+// 공통
+var svgNS = "http://www.w3.org/2000/svg",
+	xlinkNS = "http://www.w3.org/1999/xlink",
+	RESPONSE_TIMEOUT = 3000,
+	MIN_CHART_WIDTH = 100,
+	MIN_CHART_HEIGHT = 100,
+	MIN_AXIS_VSPACE = 50,
+	MIN_AXIS_HSPACE = 160,
+	MAX_AXIS_VAL_CNT = 10,
+	DATE_AXIS_HEIGHT = 30,
+	MARGIN = 20,
+	PADDING = 5,
+	WHEEL_REPEAT = 50,
+	HOUR24 = 24 * 60 * 60 * 1000;
+
+function Path(container) {
+	this.initialize(container);
+}
+
+function clear(svgElement) {
+	var element;
+	
+	while(element = svgElement.firstChild) {
+		svgElement.removeChild(element);
+	}
+}
+
+function createSvgText(x, y, text) {
+	var svgText = document.createElementNS(svgNS, "text");
+	
+	svgText.setAttributeNS(null, "x", x);
+	svgText.setAttributeNS(null, "y", y);
+	svgText.textContent = text;
+	
+	return svgText;
+}
+	
+// core
+(function (window, undefined) {
+	var chart = document.getElementById("chart"),
+		origin, mode, capacity;
+		
+	var rect = {},
+		resizeTimer,
+		realStart, realEnd, start, end, tpp, width,
+		data;
+	
+	function initialize() {
+		window.addEventListener("resize", function () {
+			if (resizeTimer) {
+				clearTimeout(resizeTimer);
+			}
+			
+			resizeTimer = setTimeout(onResize, 300);
+		});
+		
+		document.addEventListener("selectstart", function (e) {
+			e.preventDefault();
+		});
+		
+		new Draggable(chart);
+		
+		chart.addEventListener("dragstart", function (e) {
+			onDragStart(e);
+		});
+		
+		chart.addEventListener("dragmove", function (e) {
+			onDragMove(e);
+		});
+		
+		chart.addEventListener("dragend", function (e) {
+			onDragEnd(e);
+		});
+		
+		/*
+		document.getElementById("download").addEventListener("click", function () {
+			download(chart);
+		});*/
+	}
+	
+	function onResize() {
+		var r = chart.getBoundingClientRect(),
+			width = r.width - MARGIN *2,
+			height = r.height - MARGIN *2 - DATE_AXIS_HEIGHT;
+	
+		//window resize 발생 했으나 chart 크기 변화는 없음
+		if (width === rect.width && height === rect.height) {
+			return;
+		}
+		
+		rect = {
+			width: width,
+			height: height
+		};
+		
+		// resize시 start와 end는 변함 없지만 width의 변화로 인해 tpp는 다시 계산되어야 함.
+		tpp = (end - start) / width;
+		
+		if (origin) {
+			// 그릴 data가 없으면 graph는 그리지 않지만
+			drawSummaryGraph(origin, capacity);
+			
+			onDragEnd();
+		}
+		// grid는 항상 다시 그림
+		drawGrid();
+	}
+	
+	function invalidate() {
+		
+	}
+	
+	function onDragStart(e) {
+	}
+	
+	function onDragMove(e) {
+		if (!origin) {
+			return;
+		}
+		
+		var move = tpp * e.detail.moveX,
+			tmp,
+			redraw = false;
+		
+		if (document.body.classList.contains("start")) {
+			tmp = new Date(realStart).setMinutes(0, 0, 0);
+			
+			realStart -= move;
+			
+			start = new Date(realStart).setMinutes(0, 0, 0);
+			
+			if (start != tmp) {
+				redraw = true;
+			}
+		}
+		
+		if (document.body.classList.contains("end")) {
+			tmp = new Date(realEnd).setMinutes(0, 0, 0);
+			
+			realEnd -= move;
+			
+			end = new Date(realEnd).setMinutes(0, 0, 0);
+			
+			if (end != tmp) {
+				redraw = true;
+			}
+		}
+		
+		if (redraw) {				
+			tpp = (end - start) / rect.width;
+			
+			writeDateLabel(start, end);
+			
+			drawSummaryGraph(origin, capacity, true);
+		}
+	}
+	
+	function onDragEnd() {
+		if (tpp < 60000) {
+			parent.drawDetailGraph(start, end);
+		}
+	}
+	
+	function download(svg){
+		var image = document.createElement("img"),
+			canvas = document.createElement("canvas"),
+			context = canvas.getContext("2d"),
+			fileName = "chart.png";
+		
+		canvas.width = rect.width;
+		canvas.height = rect.height;
+		
+		image.onload = function () {
+			context.drawImage(image, 0, 0, rect.width,rect.height);
+			
+			if (canvas.msToBlob) {
+				var blob = canvas.msToBlob();
+				
+				navigator.msSaveBlob(blob, fileName);
+			}
+			else {
+				var a = document.createElement("a"),
+					event = document.createEvent("MouseEvent");
+				
+				a.setAttribute("download", fileName);
+				a.setAttribute("href", canvas.toDataURL("image/png;base64"));
+				
+				event.initEvent("click", true, true);
+				
+				a.dispatchEvent(event);
+			}
+		}
+		
+		image.src = "data:image/svg+xml," + encodeURIComponent(new XMLSerializer().serializeToString(svg));
+	}
+	
+	window.buildData = function (source) {
+		var data = {},
+			tmp;
+	
+		for (var index in source) {
+			tmp = source[index].buildData(realStart, realEnd);
+			
+			if (!tmp) {
+				return;
+			}
+			
+			data[index] = tmp;
+		}
+		
+		return data;
+	};
+	
+	window.initChartRect = function () {
+		var r = chart.getBoundingClientRect();
+		
+		rect = {
+			width: r.width - MARGIN *2,
+			height: r.height - MARGIN *2 - DATE_AXIS_HEIGHT
+		};
+		
+		drawGrid();
+	};
+	
+	window.getCoordinates = function (source, date, index) {
+		var y = source[index].get(date);
+		
+		return {
+			x: (date - start) / tpp,
+			// summary data 이면 mode 값(max, avg, min) detail data 이면 값 자신
+			y: y[mode] || y
+		}
+	};
+	
+	window.getRect = function () {
+		return rect;
+	};
+	
+	// chart 초기화
+	window.initChart = function (o, m, c, f) {
+		var date = new Date(),
+			tmp;
+		
+		origin = o;
+		mode = m;
+		capacity = c;
+		window.valueToString = f;
+		
+		// data rebuild는 최초, 시간의 변경시 발생함
+		realStart = date.setHours(0, 0, 0, 0);
+		realEnd = date.setDate(date.getDate() +1);
+		
+		start = realStart;
+		end = realEnd;
+		
+		tpp = (end - start) / rect.width;
+		
+		drawSummaryGraph(origin, capacity);
+		
+		onDragEnd();
+		
+		writeDateLabel (realStart, realEnd);
+	};
+	
+	window.mode = function (m) {
+		mode = m;
+		
+		drawSummaryGraph(origin, capacity);
+		
+		onDragEnd();
+	};
+	
+	window.initialize = function () {
+		var r = chart.getBoundingClientRect();
+		
+		rect = {
+			width: r.width - MARGIN *2,
+			height: r.height - MARGIN *2 - DATE_AXIS_HEIGHT
+		};
+		
+		drawGrid();
+		
+		initialize();
+	};
+	
+}) (window);
+
+// axis
+(function (window, undefined) {
+	var leftAxis = document.getElementById("axis_left"),
+		rightAxis = document.getElementById("axis_right"),
+		dateAxis = document.getElementById("axis_date"),
+		leftAxisOffset = leftAxis.transform.baseVal.getItem(0),
+		rightAxisOffset = rightAxis.transform.baseVal.getItem(0),
+		dateAxisOffset = dateAxis.transform.baseVal.getItem(0),
+		startDate = document.getElementById("start_date"),
+		endDate = document.getElementById("end_date"),
+		labelOffset = document.getElementById("end_label").transform.baseVal.getItem(0),
+		data,
+		startFixed = false,
+		endFixed = false;
+	
+	function initialize() {
+		document.getElementById("start_move").onclick = function () {
+			document.body.classList.remove("start");
+		};
+		
+		document.getElementById("end_move").onclick = function () {
+			document.body.classList.remove("end");
+		};
+		
+		document.getElementById("start_fixed").onclick = function () {
+			document.body.classList.add("start");
+		};
+		
+		document.getElementById("end_fixed").onclick = function () {
+			document.body.classList.add("end");
+		};
+	}
+	
+	window.setDateAxis = function (width, height) {
+		dateAxisOffset.setTranslate(0, height);
+		labelOffset.setTranslate(width, 0);
+	};
+	
+	window.writeDateLabel = function (start, end) {
+		startDate.textContent = ITAhM.util.toDateFormatString(new Date(start));
+		endDate.textContent = ITAhM.util.toDateFormatString(new Date(end));
+	};
+	
+	window.drawAxis = function (high, low, capacity) {
+		clear(leftAxis);
+		clear(rightAxis);
+		
+		var	rect = getRect(),
+			count = Math.min(MAX_AXIS_VAL_CNT, Math.round(rect.height / MIN_AXIS_VSPACE)),
+			grow = (high - low) / count,
+			space = rect.height / count,
+			valueArray = [];
+		
+		for (var i=0; i<=count; i++) {
+			leftAxis.appendChild(createSvgText(0, space * i, valueToString(high - i * grow)));
+		}
+		
+		rect.left = leftAxis.getBBox().width;
+		leftAxisOffset.setTranslate(rect.left, 0);
+		
+		if (capacity) {
+			high = high / capacity *100;
+			low = low / capacity *100;
+			grow = (high - low) / count;
+			
+			for (var i=0; i<=count; i++) {
+				rightAxis.appendChild(createSvgText(0, space * i, (high - i * grow).toFixed(2) +"%"));
+			}
+			
+			rect.right = rightAxis.getBBox().width;
+			rightAxisOffset.setTranslate(rect.width - rect.right, 0);
+		}
+	};
+	
+	initialize();
+	
+}) (window);
+	
+//graph
+(function (window, undefined) {
+	var graph = document.getElementById("graph"),
+		offset = graph.transform.baseVal.getItem(0),
+		scale = graph.transform.baseVal.getItem(1),
+		high, low,
+		rect;
+	
+	function draw(origin, capacity) {
+		var data = buildData(origin),
+			max = [], min = [];
+
+		if (!data) {
+			return;
+		}
+		
+		for (var index in data) {
+			max[max.length] = data[index].high;
+			min[min.length] = data[index].low;
+		}
+		
+		high = Math.max.apply(undefined, max);
+		low = Math.min.apply(undefined, min);
+		
+		for (var index in data) {
+			drawEachGraph(origin, data[index].keys, index);
+		}
+		
+		drawAxis(high, low, capacity);
+	}
+	
+	function drawEachGraph(source, blocks, index) {
+		var path,
+			unit = rect.height / (high - low),
+			x, lastX, value,
+			dateArray, date, coords,
+			result = {};
+		
+		path = new Path(graph);
+		
+		path.beginPath();
+		path.set("class", index);
+		
+		for (var i=0, _i=blocks.length; i<_i; i++) {
+			dateArray = blocks[i];
+			
+			date = dateArray[0];
+			
+			coords = getCoordinates(source, date, index);
+			
+			value = coords.y;
+			
+			result[date] = value;
+			
+			path.moveTo(lastX = coords.x, (value - low) * unit);
+			
+			for (var j=1,_j=dateArray.length; j<_j; j++) {
+				date = dateArray[j];
+				
+				coords = getCoordinates(source, date, index);
+				
+				x = coords.x;
+				value = coords.y;
+				
+				result[date] = value;
+				
+				if (x - lastX < 1) {
+					//continue;
+				}
+				
+				path.lineTo(lastX = x, (value - low) * unit);					
+			}
+
+			path.draw();
+		}
+		
+		return result;
+	}
+	
+
+	window.updateChart = function (detail) {
+		var data = buildData(detail),
+			result = {};
+		
+		if (!data) {
+			return;
+		}
+		
+		clear(graph);
+		
+		for (var index in data) {
+			result[index] = drawEachGraph(detail, data[index].keys, index);
+		}
+		
+		return result;
+	}
+	
+	window.drawSummaryGraph = function (origin, capacity) {
+		clear(graph);
+		
+		rect = getRect();
+		
+		graph.setAttributeNS(null, "width", rect.width);
+		graph.setAttributeNS(null, "height", rect.height);
+		
+		offset.setTranslate(0, rect.height);
+		
+		scale.setScale(1, -1);
+		
+		draw(origin, capacity);
+	};
+	
+}) (window);
+	
+//grid
+(function (window, undefined) {
+	
+	var grid, translate;
+	
+	function initialize() {
+		grid = document.getElementById("grid");
+		offset = grid.transform.baseVal.getItem(0);
+	}
+	
+	window.drawGrid = function (count, space) {
+		var rect = getRect(),
+			count = Math.min(MAX_AXIS_VAL_CNT, Math.round(rect.height / MIN_AXIS_VSPACE)),
+			space = rect.height / count,
+			path;
+		
+		clear(grid);
+		
+		path = new Path(grid);
+		//offset.setTranslate(rect.left, 0);
+		
+		for (var i=0, y; i<=count; i++) {
+			y = i * space -.5;
+			
+			path.moveTo(0, y).lineTo(rect.width, y);
+		}
+		
+		path.draw();
+		
+		setDateAxis(rect.width, rect.height);
+	};
+	
+	initialize();
+	
+}) (window);
+	
+//Path object
+(function (window, undefined) {
+	
+	Path.prototype = {
+		initialize: function (container) {
+			this.container = container;
+			this.path = document.createElementNS(svgNS, "path");
+			
+			container.appendChild(this.path);
+			
+			this.beginPath();
+		},
+		
+		moveTo: function (x, y) {
+			this.distance[this.distance.length] = "M"+ x +" "+ y;
+			
+			return this;
+		},
+		
+		lineTo: function (x, y) {
+			this.distance[this.distance.length] = "L"+ x +" "+ y;
+			
+			return this;
+		},
+		
+		draw: function () {
+			this.path.setAttributeNS(null, "d", this.distance.join(" "));
+		},
+		
+		set: function (key, value) {
+			this.path.setAttributeNS(null, key, value);
+		},
+		
+		beginPath: function () {
+			this.distance = [];
+		},
+		
+		closePath: function () {
+			this.distance[this.distance.length] = "Z"
+		}
+	};
+	
+}) (window);
+
+		</script>
+	
+	</body>
+	
+</html>

@@ -58,6 +58,10 @@ select {
 	padding: .5em;
 }
 
+section.information {
+	overflow: hidden;
+}
+
 section.information li {
 	flex: 1;
 	min-width: 120px;
@@ -477,22 +481,24 @@ function ChartSummaryData(data) {
 		return value.toFixed(2) + "ms";
 	}
 	
-	function onResponse(data) {
+	function onResponse(data, status) {
 		if (!data) {
+			alert("error.");
+			
+			document.body.classList.remove("loading");
+			
 			return;
 		}
 		
 		initChart({
 			0: new ChartSummaryData(data)
 		}, 0, RESPONSE_TIMEOUT);
-		
-		document.body.classList.remove("loading");
 	}
 	
 	window.onSelectResponse = function () {
-		window.valueToString = valueToString;
-		
 		document.body.classList.add("loading");
+		
+		window.valueToString = valueToString;
 		
 		setResource("response");
 		
@@ -519,8 +525,12 @@ function ChartSummaryData(data) {
 		return value.toFixed(2) + "%";
 	}
 	
-	function onResponse(index, data) {
+	function onResponse(index, data, status) {
 		if (!data) {
+			alert("error.");
+			
+			document.body.classList.remove("loading");
+			
 			return;
 		}
 		
@@ -528,8 +538,6 @@ function ChartSummaryData(data) {
 		
 		if (Object.keys(summaryData).length === count) {
 			initChart(summaryData, -1, 100);
-			
-			document.body.classList.remove("loading");
 		}
 	}
 	
@@ -551,9 +559,9 @@ function ChartSummaryData(data) {
 	};
 	
 	window.onSelectProcessor = function () {
-		window.valueToString = valueToString;
-		
 		document.body.classList.add("loading");
+		
+		window.valueToString = valueToString;
 		
 		setResource("processor");
 		
@@ -593,6 +601,8 @@ function ChartSummaryData(data) {
 	
 	function onResponse(index, data) {
 		if (!data) {
+			document.body.classList.remove("loading");
+			
 			return;
 		}
 		
@@ -600,8 +610,6 @@ function ChartSummaryData(data) {
 		
 		if (Object.keys(summaryData).length === count) {
 			initChart(summaryData, -1);
-			
-			document.body.classList.remove("loading");
 		}
 	}
 	
@@ -636,9 +644,9 @@ function ChartSummaryData(data) {
 	};
 	
 	window.onSelectStorage = function () {
-		window.valueToString = valueToString;
-		
 		document.body.classList.add("loading");
+		
+		window.valueToString = valueToString;
 		
 		setResource("storage");
 		
@@ -660,8 +668,12 @@ function ChartSummaryData(data) {
 		return ITAhM.util.toBytesString(value).replace("ytes", "");
 	}
 	
-	function onResponse(data) {
+	function onResponse(data, status) {
 		if (!data) {
+			alert("error.");
+			
+			document.body.classList.remove("loading");
+			
 			return;
 		}
 		
@@ -670,8 +682,6 @@ function ChartSummaryData(data) {
 		summaryData[index] = new ChartSummaryData(data);
 		
 		initChart(summaryData, index, memory.hrStorageSize * memory.hrStorageAllocationUnits);
-		
-		document.body.classList.remove("loading");
 	}
 	
 	window.initMemory = function (i, m) {
@@ -680,9 +690,9 @@ function ChartSummaryData(data) {
 	};
 	
 	window.onSelectMemory = function () {
-		window.valueToString = valueToString;
-		
 		document.body.classList.add("loading");
+		
+		window.valueToString = valueToString;
 		
 		setResource("memory");
 		
@@ -702,9 +712,9 @@ function ChartSummaryData(data) {
 	
 	function initialize() {
 		ifList.onchange = function () {
-			selectedIndex = ifList.value;
-			
 			document.body.classList.add("loading");
+			
+			selectedIndex = ifList.value;
 			
 			sendSummaryRequest("ifInOctets", selectedIndex, onResponse.bind(undefined, "ifInOctets"));
 			sendSummaryRequest("ifOutOctets", selectedIndex, onResponse.bind(undefined, "ifOutOctets"));
@@ -713,7 +723,7 @@ function ChartSummaryData(data) {
 			mode.disabled = false;
 		};
 		
-		mode.onchange = function () {console.log(summaryData, mode.value);
+		mode.onchange = function () {
 			initChart(summaryData, mode.value, iFace[selectedIndex].ifSpeed);
 		};
 	}
@@ -722,8 +732,12 @@ function ChartSummaryData(data) {
 		return ITAhM.util.toBPSString(value);
 	}
 	
-	function onResponse(index, data) {
+	function onResponse(index, data, status) {
 		if (!data) {
+			alert("error.");
+			
+			document.body.classList.remove("loading");
+			
 			return;
 		}
 		
@@ -731,8 +745,6 @@ function ChartSummaryData(data) {
 		
 		if (Object.keys(summaryData).length === 2) {
 			initChart(summaryData, -1, iFace[selectedIndex].ifSpeed);
-			
-			document.body.classList.remove("loading");
 		}
 	}
 	
@@ -826,10 +838,6 @@ function ChartSummaryData(data) {
 		
 		function initialize() {
 			window.addEventListener("resize", function () {
-				if (!origin) {
-					return;
-				}
-				
 				if (resizeTimer) {
 					clearTimeout(resizeTimer);
 				}
@@ -878,8 +886,11 @@ function ChartSummaryData(data) {
 			// resize시 start와 end는 변함 없지만 width의 변화로 인해 tpp는 다시 계산되어야 함.
 			tpp = (end - start) / width;
 			
-			drawGraph(selected, capacity);
-			
+			if (origin) {
+				// 그릴 data가 없으면 graph는 그리지 않지만
+				drawGraph(selected, capacity);
+			}
+			// grid는 항상 다시 그림
 			drawGrid();
 		}
 		
@@ -947,7 +958,7 @@ function ChartSummaryData(data) {
 			
 			canvas.width = rect.width;
 			canvas.height = rect.height;
-			console.log(rect);
+			
 			image.onload = function () {
 				context.drawImage(image, 0, 0, rect.width,rect.height);
 				
@@ -1036,6 +1047,8 @@ function ChartSummaryData(data) {
 			drawGraph(selected, capacity);
 			
 			writeDateLabel (realStart, realEnd);
+			
+			document.body.classList.remove("loading");
 		};
 		
 		initialize();
@@ -1165,12 +1178,19 @@ function ChartSummaryData(data) {
 		}
 		
 		function drawMultiGraph(data, capacity) {
-			var high = [],
+			var indexData,
+				high = [],
 				low = [];
 			
 			for (var index in data) {
-				high[high.length] = data[index].high;
-				low[low.length] = data[index].low;
+				indexData = data[index];
+				
+				if (!indexData) {
+					return;
+				}
+				
+				high[high.length] = indexData.high;
+				low[low.length] = indexData.low;
 			}
 			
 			high = Math.max.apply(undefined, high);
@@ -1189,7 +1209,7 @@ function ChartSummaryData(data) {
 		
 		function drawSingleGraph(data, index, capacity) {
 			if (!data) {
-				throw "";
+				return;
 			}
 			
 			var pathMax, pathAvg, pathMin,
@@ -1206,7 +1226,6 @@ function ChartSummaryData(data) {
 			pathMax.beginPath();
 			
 			pathAvg = new Path(graph);
-			//pathAvg.set("class", "avg");
 			pathAvg.beginPath();
 			
 			pathMin = new Path(graph);
@@ -1443,7 +1462,8 @@ function ChartSummaryData(data) {
 					high = Math.max(value.max, high || value.max);
 					low = Math.min(value.min, low || value.min);
 				}
-				else if (tmp.length > 0) {
+				// 값이 둘 이상이어야 graph를 그릴 수 있음
+				else if (tmp.length > 1) {
 					keys[keys.length] = tmp;
 					
 					tmp = [];

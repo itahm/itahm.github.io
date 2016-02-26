@@ -11,18 +11,17 @@ function Communicator() {
 	}
 	
 	function send(data) {
-		if (!xhr) {
+		if (!xhr) {console.log("!?#");
 			xhr = new XMLHttpRequest();
 		}
-		
-		document.body.classList.add("loading");
 		
 		response = undefined;
 		
 		xhr.open("POST", url, true);
 		xhr.onload = onSuccess;
+		xhr.ontimeout = onTimeout;
 		xhr.onloadend = onLoad;
-		xhr.timeout = 3000;
+		xhr.timeout = 5000;
 		xhr.withCredentials = true;
 		xhr.send(JSON.stringify(data));
 	}
@@ -34,12 +33,17 @@ function Communicator() {
 		}
 	};
 	
+	function onTimeout(e) {
+		alert("request timed out.");
+	};
+	
 	function onLoad(e) {
 		var data = dataQ.shift();
 		
-		callbackQ.shift()(response, xhr.status);
+		if (xhr.status === 0)
+			console.log(xhr);
 		
-		document.body.classList.remove("loading");
+		callbackQ.shift()(response, xhr.status);
 		
 		if (data) {
 			send(data);
@@ -48,7 +52,9 @@ function Communicator() {
 	
 	this.connect = function (server, port) {
 		xhr = new XMLHttpRequest();
-		url = "http://"+ server + (port? (":"+ port): "")
+		url = "http://"+ server + (port? (":"+ port): "");
+		
+		return this;
 	},
 	
 	this.close = function () {

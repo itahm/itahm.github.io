@@ -248,18 +248,21 @@ body:not(.dialog) #dialog {
 		<section id="loading"></section>
 		
 		<script src="js/ITAhM.js"></script>
+		<script src="js/object.js"></script>
 		<script src="js/icon.js"></script>
 		<script src="js/Communicator.js"></script>
 		<script>
 
 var specs = "toolbar=0, location=0, resizable=1, menubar=0, titlebar=0";
 
-// 공통 
+// connect
 (function (window, undefined){
 	
-	var itahm;
+	var itahm,
+		form = document.getElementById("connect"),
+		agent = document.getElementById("agent");
 	
-	function initialize () {
+	function initialize() {
 		window.addEventListener("beforeunload", onUnload);
 		
 		document.getElementById("start").onclick = function () {
@@ -270,41 +273,7 @@ var specs = "toolbar=0, location=0, resizable=1, menubar=0, titlebar=0";
 				startITAhM();
 			}
 		};
-	}
-	
-	function onUnload() {
-		closeITAhM();
-	}
-	
-	window.startITAhM = function () {
-		document.body.classList.remove("loading");
 		
-		itahm = window.open("map.html", "ITAhM", specs);
-		
-		itahm.focus();
-	};
-	
-	window.getCommunicator = function () {
-		return sendRequest;
-	};
-	
-	window.closeITAhM = function () {
-		if (itahm && !itahm.closed) {
-			itahm.close();
-		}
-	};
-	
-	initialize();
-	
-}) (window);
-
-// connect
-(function (window, undefined){
-	
-	var form = document.getElementById("connect"),
-		agent = document.getElementById("agent");
-	
-	function initialize() {
 		document.getElementById("disconnect").onclick = function () {
 			closeITAhM();
 			
@@ -312,26 +281,31 @@ var specs = "toolbar=0, location=0, resizable=1, menubar=0, titlebar=0";
 		}
 	}
 	
+	function onUnload() {
+		closeITAhM();
+	}
+	
+	
+	// main response
 	function onResponse(callback, data, status) {
 		if (status === 200) {
-			callback(data);
 		}
 		else {
-			callback();
+			data = undefined;
 			
-			if (status === 401) {
-				document.body.className = "connected";
-				
-				//alert("no session.");
-				
-				//closeITAhM();
-				
-				//window.focus();
+			if (status === 0) {
+				alert("request timed out.");
 			}
-			else {
-				
+			else if (status === 401) {
+				alert("no session.");
 			}
+			
+			closeITAhM();
+			
+			location.reload();
 		}
+		
+		callback(data, status);
 	}
 	
 	function onEcho(data, status) {
@@ -361,6 +335,12 @@ var specs = "toolbar=0, location=0, resizable=1, menubar=0, titlebar=0";
 		}
 	}
 	
+	function closeITAhM() {
+		if (itahm && !itahm.closed) {
+			itahm.close();
+		}
+	}
+	
 	window.tryConnect = function (ip, tcp) {
 		var communicator = new Communicator(); 
 		
@@ -374,6 +354,16 @@ var specs = "toolbar=0, location=0, resizable=1, menubar=0, titlebar=0";
 			command: "echo"
 		}, onEcho);
 	}
+	
+	window.startITAhM = function () {
+		document.body.classList.remove("loading");
+		
+		itahm = window.open("map.html", "ITAhM", specs);
+	};
+	
+	window.getAddress = function () {
+		return form.elements["ip"].value +":"+ form.elements["tcp"].value;
+	};
 	
 	initialize();
 	
@@ -458,11 +448,12 @@ var specs = "toolbar=0, location=0, resizable=1, menubar=0, titlebar=0";
 				data: deviceData
 			}, function (response) {
 				if (response) {
-					location.reload();
 				}
 				else {
 					alert("synchronization failed.");
 				}
+				
+				location.reload();
 			});
 		}
 	}
@@ -493,7 +484,7 @@ var specs = "toolbar=0, location=0, resizable=1, menubar=0, titlebar=0";
 		var id = tmpID--;
 		
 		deviceData[id] = data;
-		data.id = id;
+		// data.id 할당하지 않은 상태로 agent에 전달되면 생성해 준다.
 		data.x = 0;
 		data.y = 0;
 		
@@ -868,42 +859,7 @@ var specs = "toolbar=0, location=0, resizable=1, menubar=0, titlebar=0";
 }) (window);
 
 // QueryParser object
-(function (window, undefined) {
-	
-	QueryParser.prototype = {
-		map: {},
-		
-		initialize: function (search) {
-			var queries,
-				pair;
-				
-			if (!search) {
-				return;
-			}
-			
-			queries = search.substring(1).split("&");
-			
-			for (var i=0, length=queries.length; i<length; i++) {
-				pair = queries[i].split("=");
-				
-				if (pair.length === 2) {
-					this.map[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1]);
-				}
-			}
-		},
-		
-		get: function (key) {
-			return this.map[key];
-		}		
-	};
-	
-}) (window);
-
-function QueryParser(search) {
-	this.initialize(search);
-}
-
-var query = new QueryParser(location.search),
+var query = new ITAhM.QueryParser(location.search),
 	ip = query.get("ip"),
 	tcp = query.get("tcp");
 
