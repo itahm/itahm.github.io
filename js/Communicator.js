@@ -11,7 +11,7 @@ function Communicator() {
 	}
 	
 	function send(data) {
-		if (!xhr) {console.log("!?#");
+		if (!xhr) {
 			xhr = new XMLHttpRequest();
 		}
 		
@@ -21,7 +21,7 @@ function Communicator() {
 		xhr.onload = onSuccess;
 		xhr.ontimeout = onTimeout;
 		xhr.onloadend = onLoad;
-		xhr.timeout = 5000;
+		xhr.timeout = 8000;
 		xhr.withCredentials = true;
 		xhr.send(JSON.stringify(data));
 	}

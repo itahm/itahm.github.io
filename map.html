@@ -96,7 +96,7 @@ text {
 	fill: #777;
 }
 
-#tool line {
+#link line {
 	stroke: #800;
 	stroke-width: 2;
 }
@@ -175,16 +175,20 @@ body.nolink #link_token {
 			</defs>
 			<g id="transform" transform="translate(0, 0) translate(0, 0) translate(0, 0) scale(1, 1)">
 				<g id="line"></g>
+				<g id="link"></g>
 				<g id="device">
 					<circle r="30" id="selection_mark"></circle>
 				</g>
 				<g id="tool">
-					<g id="part">
-						<image xlink:href="img/svg/chart.svg" id="chart_anchor"
-							transform="translate(-42, -8)" width="16" height="16" cursor="pointer">
+					<g id="anchor" transform="translate(0, 0)">
+						<image xlink:href="img/svg/chart.svg" id="chart_anchor" title="click to view chart"
+							transform="translate(-34, -0) translate(-8, -8)" width="16" height="16" cursor="pointer">
 						</image>
-						<image xlink:href="img/svg/information.svg" id="edit_anchor"
-							transform="translate(26, -8)" width="16" height="16" cursor="pointer">
+						<image xlink:href="img/svg/information.svg" id="edit_anchor" title="click to edit device."
+							transform="translate(34, 0) translate(-8, -8)" width="16" height="16" cursor="pointer">
+						</image>
+						<image xlink:href="img/svg/anchor.svg" id="link_anchor" title="drag to connect link."
+							transform="translate(0, -34) translate(-8, -8)" width="16" height="16" cursor="pointer">
 						</image>
 					</g>
 				</g>
@@ -210,6 +214,7 @@ body.nolink #link_token {
 		
 		<iframe id="chart" class="fullscreen"></iframe>
 		
+		<script src="js/ITAhM.js"></script>
 		<script src="js/Draggable.js"></script>
 		<script src="js/Communicator.js"></script>
 		<script>
@@ -287,7 +292,11 @@ var svgNS = "http://www.w3.org/2000/svg",
 // stage
 (function (window, undefined) {
 	var canvas = document.getElementById("stage"),
-		base, translate, scale, ratio = 1,
+		linkAnchor = document.getElementById("link_anchor"),
+		eventData = {},
+		event = ITAhM.util.createCustomEvent("link", eventData),
+		base, translate, drag, scale, link,
+		ratio = 1,
 		selectedDevice,
 		selectedSvgDevice,
 		cancelSelect = false,
@@ -302,7 +311,8 @@ var svgNS = "http://www.w3.org/2000/svg",
 		translate = transformList.getItem(1);
 		drag = transformList.getItem(2);
 		scale = transformList.getItem(3);
-		
+		link = linkAnchor.transform.baseVal.getItem(0);
+			
 		window.addEventListener("resize", function (e) {
 			resetStage();
 		});
@@ -326,11 +336,17 @@ var svgNS = "http://www.w3.org/2000/svg",
 		var data = e.detail,
 			target = data.target;
 		
-		if (target === selectedSvgDevice) {
+		if (selectedDevice) {
 			dragOrigin = {
 				x: selectedDevice.x,
 				y: selectedDevice.y
 			};
+			
+			if (target === selectedSvgDevice) {
+			}
+			else if (target === linkAnchor) {
+				setLinkAnchor(dragOrigin.x, dragOrigin.y, dragOrigin.x, dragOrigin.y -34);
+			}
 		}
 		
 		cancelSelect = true;
@@ -339,20 +355,37 @@ var svgNS = "http://www.w3.org/2000/svg",
 	function onDragMove(e) {
 		var data = e.detail,
 			target = data.target;
-	
-		// selectedDevice 인 경우 move
-		if (target === selectedSvgDevice) {
+		
+		if (selectedDevice) {
 			var x = dragOrigin.x + Math.round(data.dragX / ratio),
 				y = dragOrigin.y + Math.round(data.dragY / ratio);
-			
-			moveSelectionMark(x, y);
-			
-			moveDevice(selectedDevice.id, x, y);
+		
+			// selectedDevice 인 경우 move
+			if (target === selectedSvgDevice) {
+				moveSelectionMark(x, y);
+				
+				moveDevice(selectedDevice.id, x, y);
+			}
+			else if (target === linkAnchor) {
+				var destination = data.destination;
+				
+				if (isDevice(destination) &&  destination !== selectedSvgDevice) {
+					moveLinkAnchor(Number(destination.getAttributeNS(null, "x")), Number(destination.getAttributeNS(null, "y")));
+				}
+				else {
+					moveLinkAnchor(x, y - 34);
+				}
+			}
+			else {
+				// 아닌경우 map 이동
+				drag.setTranslate(data.dragX, data.dragY);
+			}
+			// 코드가 좀 지저분함. 고칠것.
+			return;
 		}
+		
 		// 아닌경우 map 이동
-		else {
-			drag.setTranslate(data.dragX, data.dragY);
-		}
+		drag.setTranslate(data.dragX, data.dragY);
 	}
 	
 	function onDragEnd(e) {
@@ -361,6 +394,17 @@ var svgNS = "http://www.w3.org/2000/svg",
 			destination = data.destination;
 		
 		if (target === selectedSvgDevice) {
+		}
+		else if (target === linkAnchor) {
+			canvas.appendChild(linkAnchor);
+			
+			restoreLinkAnchor();
+			
+			if (isDevice(destination) &&  destination !== selectedSvgDevice) {
+				eventData.peer = selectedDevice;
+				
+				destination.dispatchEvent(event);
+			}
 		}
 		else {
 			var x = drag.matrix.e / ratio,
@@ -430,9 +474,11 @@ var svgNS = "http://www.w3.org/2000/svg",
 		base.setTranslate(rect.width /2, rect.height /2);
 	};
 	
-	window.moveStage = function (x, y) {
-		translate.setTranslate(- x, - y);
-	};
+	window.centerDevice = function (id) {
+		var device = getDevice(id);
+		
+		translate.setTranslate(- device.x, - device.y);
+	}
 	
 	window.editDevice = function () {
 	
@@ -483,7 +529,8 @@ var svgNS = "http://www.w3.org/2000/svg",
 		svgDevice.setAttributeNS(null, "height", "40px");
 		svgDevice.setAttributeNS(null, "transform", "translate(-20, -20)");
 		
-		svgDevice.onclick = onSelect.bind(undefined, device.id); 
+		svgDevice.onclick = onSelect.bind(undefined, device.id);
+		svgDevice.addEventListener("link", onLink.bind(undefined, device.id));
 		
 		canvas.appendChild(svgDevice);
 		
@@ -504,7 +551,9 @@ var svgNS = "http://www.w3.org/2000/svg",
 		iconMap[device.id] = svgDevice;
 		labelMap[device.id] = svgLabel;
 		
-		if (device.id < 0) {
+		// 장애 상태인 deivce는 아래와 같은 방법으로 표시 
+		/*
+		if (장애) {
 			var svgAlert = document.createElementNS(svgNS, "use");
 			
 			svgAlert.setAttributeNS(xlinkNS, "xlink:href", "#circle");
@@ -516,6 +565,11 @@ var svgNS = "http://www.w3.org/2000/svg",
 			
 			alertMap[device.id] = svgAlert;
 		}
+		*/
+	};
+	
+	window.isDevice = function (node) {
+		return node.parentNode === canvas && node.tagName === "image";
 	};
 	
 	window.moveDevice = function (id, x, y) {
@@ -549,7 +603,7 @@ var svgNS = "http://www.w3.org/2000/svg",
 		selectionMark.setAttributeNS(null, "cx", x);
 		selectionMark.setAttributeNS(null, "cy", y);
 		
-		moveTool(x, y);
+		moveAnchor(x, y);
 	};
 	
 	window.showSelectionMark = function (x, y, snmp) {
@@ -563,18 +617,12 @@ var svgNS = "http://www.w3.org/2000/svg",
 	window.clearSelectionMark = function () {
 		fragment.appendChild(selectionMark);
 		
-		hideTool();
+		hideAnchor();
 	};
 	
 	window.getSvgDevice= function (id) {
 		return iconMap[id];
 	};
-	
-	window.centerDevice = function (id) {
-		var device = getDevice(id);
-		
-		moveStage(device.x, device.y);
-	}
 	
 	initialize();
 	
@@ -584,13 +632,17 @@ var svgNS = "http://www.w3.org/2000/svg",
 (function (window, undefined) {
 	
 	var canvas = document.getElementById("tool"),
-		part = document.getElementById("part"),
-		linkToken = document.getElementById("link_token"),
+		link = document.getElementById("link"),
+		anchor = document.getElementById("anchor"),
+		drag = anchor.transform.baseVal.getItem(0);
 		svgLink = document.getElementById("link_line"),
 		chartAnchor = document.getElementById("chart_anchor"),
 		editAnchor = document.getElementById("edit_anchor"),
+		linkAnchor = document.getElementById("link_anchor"),
+		linkDrag = linkAnchor.transform.baseVal.getItem(0),
+		linkSVG = document.createElementNS(svgNS, "line"),
 		fragment = document.createDocumentFragment();
-	
+		
 	function initialize() {
 		chartAnchor.onclick = function (e) {
 			showChart();
@@ -610,21 +662,52 @@ var svgNS = "http://www.w3.org/2000/svg",
 	window.showTool = function (x, y, chart) {
 		document.body.classList[chart? "add": "remove"]("snmp");
 		
-		canvas.appendChild(part);
+		canvas.appendChild(anchor);
 		
-		moveTool(x, y);
+		moveAnchor(x, y);
 	};
 	
-	window.moveTool = function (x, y) {
-		chartAnchor.setAttributeNS(null, "x", x);
-		chartAnchor.setAttributeNS(null, "y", y);
-		
-		editAnchor.setAttributeNS(null, "x", x);
-		editAnchor.setAttributeNS(null, "y", y);
+	window.moveAnchor = function (x, y) {
+		drag.setTranslate(x, y);
 	}
 	
-	window.hideTool = function () {
-		fragment.appendChild(part);
+	window.hideAnchor = function () {
+		fragment.appendChild(anchor);
+	};
+	
+	window.setLinkAnchor = function (x1, y1, x2, y2) {
+		link.appendChild(linkSVG);
+		
+		link.appendChild(linkAnchor);
+		
+		linkDrag.setTranslate(0, 0);
+		
+		linkAnchor.setAttributeNS(null, "x", x2);
+		linkAnchor.setAttributeNS(null, "y", y2);
+		
+		linkSVG.setAttributeNS(null, "x1", x1);
+		linkSVG.setAttributeNS(null, "y1", y1);
+		linkSVG.setAttributeNS(null, "x2", x2);
+		linkSVG.setAttributeNS(null, "y2", y2);
+	};
+	
+	window.moveLinkAnchor = function (x, y) {
+		linkAnchor.setAttributeNS(null, "x", x);
+		linkAnchor.setAttributeNS(null, "y", y);
+		
+		linkSVG.setAttributeNS(null, "x2", x);
+		linkSVG.setAttributeNS(null, "y2", y);
+	};
+	
+	window.restoreLinkAnchor = function () {
+		anchor.appendChild(linkAnchor);
+		
+		linkDrag.setTranslate(0, -34);
+		
+		linkAnchor.setAttributeNS(null, "x", 0);
+		linkAnchor.setAttributeNS(null, "y", 0);
+		
+		fragment.appendChild(linkSVG);
 	};
 	
 	initialize();
@@ -635,27 +718,73 @@ var svgNS = "http://www.w3.org/2000/svg",
 (function (window, undefined) {
 	
 	var canvas = document.getElementById("line"),
-		lineMap = {};
+		database = {};
+
+	function createLabel(name, x1, y1, x2, y2) {
+		var labelSvg = document.createElementNS(svgNS, "text");
+		
+		labelSvg.textContent = name;
+		
+		moveLabel(labelSvg, x1, y1, x2, y2);
+		
+		return labelSvg;
+	};
+	
+	function moveLabel(labelSvg, x1, y1, x2, y2) {
+		labelSvg.setAttributeNS(null, "x", (x1 *2 + x2) /3);
+		labelSvg.setAttributeNS(null, "y", (y1 *2 + y2) /3);
+	};
+	
+
+	window.onLink = function (id, e) {
+		var device = getDevice(id),
+			peer = e.detail.peer,
+			peerID = peer.id,
+			ifEntry = device.ifEntry;
+		
+		if (id < 0 || peerID < 0) {
+			alert("synchronize device data first.");
+			
+			return;
+		}
+		
+		if (peerID in ifEntry) {
+			if (ifEntry[peerID]) {
+				// 이미 링크가 존재하고, 시스템에 의해 생성된 것이므로 지울수도 없음
+				return;
+			}
+			else {
+				delete ifEntry[peerID];
+				delete peer.ifEntry[id];
+			}
+		}
+		else {
+			ifEntry[peerID] = "";
+			peer.ifEntry[id] = "";
+		}
+		
+		location.reload();
+	};
 	
 	window.addLine = function (device) {
 		var ifEntry = device.ifEntry,
-			peerMap = {},
-			peer, data, lineSvg,
+			peerList = {},
+			id = device.id,
+			peer, peerID, linkData, lineSvg,
 			labelSvg;
 		
-		lineMap[device.id] = peerMap;
+		database[id] = peerList;
 		
-		for (var name in ifEntry) {
-			peer = getDevice(ifEntry[name]);
+		for (var peerID in ifEntry) {
+			peer = getDevice(peerID);
 			
-			labelSvg = createLabel(name, device.x, device.y, peer.x, peer.y);
+			labelSvg = createLabel(ifEntry[peerID], device.x, device.y, peer.x, peer.y);
 			
-			data = lineMap[peer.id];
-			
-			if (data) {
-				data = data[device.id];
+			// peer가 먼저 svg 만들었다면 공유
+			if (database[peerID]) {
+				linkData = database[peerID][id];
 				
-				data.name2 = labelSvg;
+				linkData.name2 = labelSvg;
 			}
 			else {
 				lineSvg = document.createElementNS(svgNS, "line");
@@ -665,10 +794,10 @@ var svgNS = "http://www.w3.org/2000/svg",
 				lineSvg.setAttributeNS(null, "x2", peer.x);
 				lineSvg.setAttributeNS(null, "y2", peer.y);
 				
-				data = {
-					peer1: device.id,
+				linkData = {
+					peer1: id,
 					name1: labelSvg,
-					peer2: peer.id,
+					peer2: peerID,
 					svg: canvas.appendChild(lineSvg)
 				};
 			}
@@ -676,17 +805,17 @@ var svgNS = "http://www.w3.org/2000/svg",
 			// label이 선보다 위에 그려지도록 나중에 붙여줌
 			canvas.appendChild(labelSvg);
 			
-			peerMap[peer.id] = data;
+			peerList[peerID] = linkData;
 		}
 	};
 	
 	window.moveLine = function (id, x, y) {
-		var peerMap = lineMap[id],
+		var linkData = database[id],
 			data, svgDevice, device,
 			x1, y1, x2, y2;
 		
-		for (var peerID in peerMap) {
-			data = peerMap[peerID];
+		for (var peerID in linkData) {
+			data = linkData[peerID];
 			svgDevice = data.svg;
 			
 			if (data.peer1 === id) {
@@ -715,21 +844,6 @@ var svgNS = "http://www.w3.org/2000/svg",
 			moveLabel(data.name1, x1, y1, x2, y2);
 			moveLabel(data.name2, x2, y2, x1, y1);
 		}
-	};
-	
-	function createLabel(name, x1, y1, x2, y2) {
-		var labelSvg = document.createElementNS(svgNS, "text");
-		
-		labelSvg.textContent = name;
-		
-		moveLabel(labelSvg, x1, y1, x2, y2);
-		
-		return labelSvg;
-	};
-	
-	function moveLabel(labelSvg, x1, y1, x2, y2) {
-		labelSvg.setAttributeNS(null, "x", (x1 *2 + x2) /3);
-		labelSvg.setAttributeNS(null, "y", (y1 *2 + y2) /3);
 	};
 	
 }) (window);
@@ -823,7 +937,7 @@ var svgNS = "http://www.w3.org/2000/svg",
 	}
 	
 	window.createDevice = function (data) {
-		opener.addDevice(data);
+		opener.createDevice(data);
 	};
 	
 	window.getDevice = function (id) {
@@ -847,6 +961,10 @@ var svgNS = "http://www.w3.org/2000/svg",
 	
 }) (window);
 
+// dialog 에서 호출.
+function reload() {
+	location.reload();
+}
 		</script>
 	
 	</body>

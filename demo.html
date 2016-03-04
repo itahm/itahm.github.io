@@ -302,6 +302,9 @@ var specs = "toolbar=0, location=0, resizable=1, menubar=0, titlebar=0";
 			else if (status === 401) {
 				alert("no session.");
 			}
+			else if (status === 400) {
+				console.log(data.error);
+			}
 			
 			closeITAhM();
 			
@@ -483,11 +486,12 @@ var specs = "toolbar=0, location=0, resizable=1, menubar=0, titlebar=0";
 		});
 	};
 	
-	window.addDevice = function (data) {
+	window.createDevice = function (data) {
 		var id = tmpID--;
 		
 		deviceData[id] = data;
-		// data.id 할당하지 않은 상태로 agent에 전달되면 생성해 준다.
+		
+		data.id = id;
 		data.x = 0;
 		data.y = 0;
 		

@@ -68,6 +68,8 @@ var ITAhM = ITAhM || {};
 		toDateFormatString: function (date) {
 			var language = navigator.language;
 			
+			language = undefined;
+			
 			if (language === "ko") {
 				var format = [date.getMonth() +1, "월", " ", date.getDate(), "일"],
 					hour = date.getHours();
@@ -78,12 +80,31 @@ var ITAhM = ITAhM || {};
 				
 				return format.join("");
 			}
-			else {
+			else if (language === "en"){
 				var day = date.getDate(),
 					hour = date.getHours(),
 					MONTH_NAME = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 			
 				return MONTH_NAME[date.getMonth()] + (day === 1? "" : " "+ (day > 9? "": "0")+ day +", "+ (hour > 9? "": "0") + hour);
+			}
+			else {
+				var month = date.getMonth() +1,
+					day = date.getDate(),
+					hour = date.getHours();
+				
+				if (month === 0 && day === 1 && hour === 0) {
+					return gate.getFullYear();
+				}
+				else {
+					var min = date.getMinutes();
+					
+					if (min === 0) {
+						return [month<10? "0": "", month, "-", day<10? "0": "", day, hour<10? " 0":" ", hour].join("");
+					}
+					else {
+						return [hour<10? " 0":" ", hour, ":", min > 9? min: "0"+ min].join("");
+					}
+				}				
 			}
 		},
 		

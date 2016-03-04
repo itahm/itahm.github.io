@@ -23,8 +23,8 @@ demoData.device = {
         "community": "",
         "type": "layer4 switch",
         "ifEntry": {
-            "eth1": "73",
-            "eth2": "5"
+        	"73": "eth1",
+        	"5": "eth2" 
         }
     },
     "5": {
@@ -37,7 +37,7 @@ demoData.device = {
         "community": "",
         "type": "router",
         "ifEntry": {
-            "e1/0": "4"
+        	"4": "e1/0" 
         }
     },
     "10": {
@@ -50,7 +50,7 @@ demoData.device = {
         "type": "storage",
         "community": "",
         "ifEntry": {
-            "eth2": "62"
+            "62": "eth2"
         }
     },
     "11": {
@@ -64,7 +64,7 @@ demoData.device = {
         "type": "server",
         "community": "",
         "ifEntry": {
-            "eth0": "62"
+        	"62": "eth0" 
         }
     },
     "15": {
@@ -76,8 +76,8 @@ demoData.device = {
         "id": "15",
         "type": "vpn concentrator",
         "ifEntry": {
-            "eth7": "47",
-            "eth8": "46"
+        	"47": "eth7",
+            "46": "eth8"
         }
     },
     "40": {
@@ -89,10 +89,10 @@ demoData.device = {
         "id": "40",
         "type": "firewall",
         "ifEntry": {
-            "eth1": "53",
-            "eth2": "46",
-            "eth3": "68",
-            "eth4": "69"
+        	"53": "eth1",
+        	"46": "eth2",
+        	"68": "eth3",
+        	"69": "eth4" 
         }
     },
     "41": {
@@ -104,10 +104,10 @@ demoData.device = {
         "id": "41",
         "type": "firewall",
         "ifEntry": {
-            "eth1": "52",
-            "eth2": "47",
-            "eth3": "68",
-            "eth4": "69"
+        	"52": "eth1",
+        	"47": "eth2",
+        	"68": "eth3",
+        	"69": "eth4" 
         }
     },
     "46": {
@@ -120,10 +120,10 @@ demoData.device = {
         "label": "idc,public",
         "type": "router",
         "ifEntry": {
-            "g2/21": "40",
-            "g0/8": "80",
-            "g1/1": "47",
-            "g1/11": "15"
+        	"40": "g2/21",
+        	"80": "g0/8",
+        	"47": "g1/1",
+        	"15": "g1/11"
         }
     },
     "47": {
@@ -136,9 +136,9 @@ demoData.device = {
         "label": "public,idc",
         "type": "router",
         "ifEntry": {
-            "g2/21": "41",
-            "g1/2": "46",
-            "g1/11": "15"
+        	"41": "g2/21",
+        	"46": "g1/2",
+        	"15": "g1/11" 
         }
     },
     "52": {
@@ -150,10 +150,10 @@ demoData.device = {
         "id": "52",
         "type": "layer3 switch",
         "ifEntry": {
-            "g0/1": "41",
-            "g0/2": "58",
-            "g0/3": "73",
-            "g0/4": "74"
+        	"41": "g0/1",
+        	"58": "g0/2",
+        	"73": "g0/3",
+        	"74": "g0/4" 
         }
     },
     "53": {
@@ -165,11 +165,11 @@ demoData.device = {
         "id": "53",
         "type": "layer3 switch",
         "ifEntry": {
-            "g0/1": "40",
-            "g0/2": "58",
-            "g0/3": "73",
-            "g0/4": "74",
-            "g0/5": "57"
+        	"40": "g0/1",
+        	"58": "g0/2",
+        	"73": "g0/3",
+        	"74": "g0/4",
+        	"57": "g0/5" 
         }
     },
     "57": {
@@ -181,7 +181,7 @@ demoData.device = {
         "id": "57",
         "type": "layer3 switch",
         "ifEntry": {
-            "ge3": "53"
+        	"53": "ge3" 
         }
     },
     "58": {
@@ -193,8 +193,8 @@ demoData.device = {
         "id": "58",
         "type": "layer3 switch",
         "ifEntry": {
-            "f0/2": "53",
-            "f0/3": "52"
+        	"53": "f0/2",
+        	"52": "f0/3" 
         }
     },
     "62": {
@@ -206,9 +206,9 @@ demoData.device = {
         "id": "62",
         "type": "workgroup switch",
         "ifEntry": {
-            "fe24": "73",
-            "fe1": "11",
-            "fe23": "10"
+        	"73": "fe24",
+        	"11": "fe1",
+        	"10": "fe23" 
         }
     },
     "68": {
@@ -221,8 +221,8 @@ demoData.device = {
         "label": "idc,dmz",
         "type": "layer3 switch",
         "ifEntry": {
-            "g2/47": "40",
-            "g2/48": "41"
+        	"40": "g2/47",
+        	"41": "g2/48" 
         }
     },
     "69": {
@@ -234,8 +234,8 @@ demoData.device = {
         "id": "69",
         "type": "layer3 switch",
         "ifEntry": {
-            "g2/47": "40",
-            "g2/48": "41"
+        	"40": "g2/47",
+        	"41": "g2/48" 
         }
     },
     "73": {
@@ -247,10 +247,10 @@ demoData.device = {
         "id": "73",
         "type": "layer3 switch",
         "ifEntry": {
-            "g3/1": "53",
-            "g3/2": "52",
-            "f1/1": "62",
-            "f1/2": "4"
+        	"53": "g3/1",
+        	"52": "g3/2",
+        	"62": "f1/1",
+        	"4": "f1/2" 
         }
     },
     "74": {
@@ -263,8 +263,8 @@ demoData.device = {
         "id": "74",
         "type": "layer3 switch",
         "ifEntry": {
-            "g2/1": "53",
-            "g2/2": "52"
+        	"53": "g2/1",
+        	"52": "g2/2" 
         }
     },
     "80": {
@@ -276,7 +276,7 @@ demoData.device = {
         "id": "80",
         "type": "cloud",
         "ifEntry": {
-            "kt": "46"
+        	"46": "kt" 
         }
     }
 };

@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta http-equiv="Content-Script-Type" content="text/javascript">
+		<meta http-equiv="Content-Style-Type" content="text/css">
+		<title>ITAhM</title>
+		
+		<style>
+body,
+li,
+select,
+input,
+span,
+label,
+a,
+h3,
+button,
+svg text {
+	font-family: arial, tahoma, "맑은 고딕"
+}
+
+li,
+select,
+input,
+span,
+label,
+a,
+button,
+svg text {
+	font-size: 14px;
+}
+
+body {
+	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
+	display: flex;
+	flex-direction: column;
+}
+
+header img {
+	float: right;
+	cursor: pointer;
+}
+
+section {
+	border: 1px solid #0084ff;
+	margin: 10px;
+}
+
+ul {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	display: flex;
+}
+
+select {
+	padding: .5em;
+}
+
+section.information {
+	overflow: hidden;
+}
+
+section.information li {
+	flex: 1;
+	min-width: 120px;
+	padding: 10px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+section.information ul:first-child {
+	background-color: #0084ff;
+	color: #fff;
+}
+
+section.information ul:first-child li {
+	text-align: center;
+	font-weight: bold;
+}
+
+section.select {
+	padding: 10px;
+}
+
+section.select ul {
+	display: flex;
+}
+	
+section.select li {
+	flex: 1;
+}
+
+section.select select {
+	box-sizing: border-box;
+	width: 100%;
+}
+
+nav {
+	margin: 10px 10px 0 10px;
+	display: flex;
+	justify-content: space-between;
+}
+
+div.button img {
+	vertical-align: bottom;
+	border: 1px solid transparent;
+}
+
+div.button img:hover {
+	cursor: pointer;
+	border-color: #b4cfec;
+	background-color: #b4cfec;
+}
+
+button.download span {
+	margin-left: 10px;
+}
+
+#loading {
+	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
+	background: #fff url("img/waiting.gif") no-repeat center;
+	opacity: .8;
+}
+
+body:not(.loading) #loading {
+	display: none;
+}
+
+/* svg */
+section.chart {
+	background: #fff url(img/chart.png) no-repeat center;
+	flex: 1;
+	position: relative;
+}
+
+#chart {
+	position: absolute; top: 0; right: 0; bottom: 0; left: 0;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	width: 100%;
+	height: 100%;
+}
+
+#grid path {
+	stroke: #ddd;
+	stroke-width: .5;
+	fill: none;
+}
+
+#graph path {
+	stroke: /*#e0ffff*/#fc0;
+	stroke-width: 2;
+	fill: none;
+}
+
+#axis_left text {
+	text-anchor: end;
+}
+
+#axis_right text {
+	text-anchor: start;
+}
+
+#end_label text {
+	text-anchor: end;
+}
+
+body:not(.start) #start_date,
+body:not(.end) #end_date {
+	fill: #aaa;
+}
+
+body.start #start_fixed,
+body.end #end_fixed,
+body:not(.start) #start_move,
+body:not(.end) #end_move {
+	display: none;
+}
+
+option[value="ifInOctets"] {
+	padding: 4px 4px 4px 20px;
+}
+		</style>
+		
+	</head>
+	
+	<body class="start end loading avg">
+		
+		<header>
+			<img src="img/close.png" id="close">
+		</header>
+		
+		<section class="information">
+			<ul>
+				<li>
+					<span id="description">nameⓘ</span>
+				</li>
+				<li>
+					<span>ip address</span>
+				</li>
+				<li>
+					<span>type</span>
+				</li>
+				<li>
+					<span>label</span>
+				</li>
+				<li>
+					<span>profile</span>
+				</li>
+				<li>
+					<span>status</span>
+				</li>
+				<li>
+					<span>uptime</span>
+				</li>
+				<li>
+					<span>enterprise</span>
+				</li>
+			</ul>
+			
+			<ul>
+				<li>
+					<span id="name">name</span>
+				</li>
+				<li>
+					<span id="ip">ip</span>
+				</li>
+				<li>
+					<span id="type">type</span>
+				<li>
+					<span id="label">label</span>
+				</li>
+				<li>
+					<span id="profile">profile</span>
+				</li>
+				<li>
+					<span id="status">status</span>
+				</li>
+				<li>
+					<span id="uptime">uptime</span>
+				</li>
+				<li>
+					<span id="enterprise">enterprise</span>
+				</li>
+			</ul>
+		</section>
+		
+		<section class="select">
+			<ul>
+				<li>
+					<label>
+						<input type="radio" id="select_response" name="resource">response time
+					</label>
+				<li>
+					<label>
+						<input type="radio" id="select_processor" name="resource">processor load
+					</label>
+				<li>
+					<label>
+						<input type="radio" id="select_memory" name="resource">physical memory
+					</label>
+				<li>
+					<label>
+						<input type="radio" id="select_storage" name="resource">storage usage
+					</label>
+				<li>
+					<label title="select interface from dropdown list below">
+						<input type="radio" id="select_throughput" name="resource">interface throughput
+					</label>
+					<select id="select_iface" disabled></select>
+			</ul>
+		</section>
+		
+		<nav>
+			<select id="mode" disabled>
+				<option selected>max
+				<option>avg
+				<option>min
+			</select>
+			<div class="button">
+				<img src="img/save.png" id="save" style="display: none;">
+			</div>
+		</nav>
+		
+		<section class="chart">
+			<iframe id="chart"></iframe>
+		</section>
+		
+		<section id="loading"></section>
+		
+		<script src="js/ITAhM.js"></script>
+		<script src="js/object.js"></script>
+		<script src="js/snmp.js"></script>
+		<script src="js/Draggable.js"></script>
+		<script>
+
+// 공통
+var svgNS = "http://www.w3.org/2000/svg",
+	xlinkNS = "http://www.w3.org/1999/xlink",
+	RESPONSE_TIMEOUT = 3000;
+
+// 공통
+(function (window, undefined) {
+	
+	var name = document.getElementById("name"),
+		ip = document.getElementById("ip"),
+		type = document.getElementById("type"),
+		label = document.getElementById("label"),
+		profile = document.getElementById("profile"),
+		status = document.getElementById("status"),
+		uptime = document.getElementById("uptime"),
+		enterprise = document.getElementById("enterprise"),
+		chart = document.getElementById("chart"),
+		mode = document.getElementById("mode"),
+		device,
+		chartData;
+	
+	function initialize() {
+		document.getElementById("close").onclick = function () {
+			top.closeChart();
+		};
+		
+		mode.onchange = function () {
+			chart.contentWindow.mode(this.value);
+		};
+	}
+	
+	function sendRequest(database, index, start, end, callback, summary) {
+		var request = {
+				command: "query",
+				ip: device.ip,
+				summary: summary,
+				database: database,
+				index: index,
+				start: start,
+				end: end
+			};
+		
+		top.sendRequest(request, callback);
+	}
+	
+	// public. 페이지의 시작, map으로부터 호출됨. 
+	window.initialize = function (d, snmp) {
+		initialize();
+		
+		device = d;
+		
+		name.textContent = device.name;
+		ip.textContent = device.ip;
+		type.textContent = device.type;
+		label.textContent = device.label && (device.label.split(",")).join(", ") || "";
+		profile.textContent = device.profile;
+		status.textContent = snmp.timeout < 0? "up": "down";
+		uptime.textContent = ITAhM.util.toUptimeString(snmp.hrSystemUptime);
+		enterprise.textContent = ITAhM.util.enterpriseFromOID(snmp.sysObjectID);
+		
+		initProcessor(snmp);
+		initStorage(snmp);
+		initThroughput(snmp);
+		
+		chart.onload = function () {
+			chart.contentWindow.initialize();
+			
+			document.body.classList.remove("loading");
+		}
+		
+		chart.src = "chart.2.html";
+	};
+	
+	window.getDetailData = function (database, index, start, end, callback) {
+		sendRequest(database, index, start, end, callback, false);
+	};
+	
+	window.getSummaryData = function (database, index, callback) {
+		var date = new Date(),
+			end = date.setDate(date.getDate() +1),
+			start = date.setFullYear(date.getFullYear() -1);
+		
+		sendRequest(database, index, start, end, callback, true);
+	};
+	
+	window.initChart = function (origin, capacity, valueToString) {
+		mode.disabled = false;
+		
+		chart.contentWindow.initChart(origin, mode.value, capacity, valueToString);
+		
+		document.body.classList.remove("loading");
+	};
+	
+	window.updateChart = function (data) {
+		chartData = chart.contentWindow.updateChart(data);
+	};
+	
+}) (window);
+
+// response time
+(function (window, undefined) {
+	
+	var summary, start, end;
+	
+	function initialize() {
+		document.getElementById("select_response").onchange = function () {
+			document.body.classList.add("loading");
+			
+			disableThroughput();
+			
+			onSelectResponseTime();
+		};
+	}
+	
+	function valueToString(value) {
+		return value.toFixed(2) + "ms";
+	}
+	
+	function onResponse(data, status) {
+		if (!data) {
+			document.body.classList.remove("loading");
+			
+			return;
+		}
+		
+		if (summary) {
+			window.drawDetailGraph = sendDetailRequest;
+			
+			initChart({
+				0: new ITAhM.ChartSummaryData(data)
+			}, RESPONSE_TIMEOUT, valueToString);
+		}
+		else {
+			updateChart({
+				0: new ITAhM.ChartData(data)
+			});
+		}
+	}
+	
+	function onSelectResponseTime() {
+		summary = true;
+		
+		getSummaryData("responseTime", 0, onResponse);
+	}
+	
+	function sendDetailRequest(s, e) {
+		summary = false;
+		start = s;
+		end = e;
+		
+		getDetailData("responseTime", 0, start, end, onResponse);
+	}
+	
+	initialize();
+	
+}) (window);
+
+// processor
+(function (window, undefined) {
+	
+	var summary, start, end,
+		indexArray = [], indexPos,
+		origin = {}, detail = {};
+	
+	function initialize() {
+		document.getElementById("select_processor").onchange = function () {
+			document.body.classList.add("loading");
+			
+			disableThroughput();
+			
+			onSelectProcessorLoad();
+		};
+	}
+	
+	function valueToString(value) {
+		return value.toFixed(2) + "%";
+	}
+	
+	function onResponse(data, status) {
+		if (!data) {
+			document.body.classList.remove("loading");
+			
+			return;
+		}
+		
+		if (summary) {
+			origin[indexArray[indexPos++]] = new ITAhM.ChartSummaryData(data);
+		}
+		else {
+			detail[indexArray[indexPos++]] = new ITAhM.ChartData(data);
+		}
+		
+		tryRequest();
+	}
+	
+	function tryRequest() {
+		if (indexPos < indexArray.length) {
+			if (summary) {
+				getSummaryData("hrProcessorLoad", indexArray[indexPos], onResponse);
+			}
+			else {
+				getDetailData("hrProcessorLoad", indexArray[indexPos], start, end, onResponse);
+			}
+		}
+		else {
+			if (summary) {
+				window.drawDetailGraph = sendDetailRequest;
+				
+				initChart(origin, 100, valueToString);
+			}
+			else {
+				updateChart(detail);
+			}
+		}
+	}
+	
+	function onSelectProcessorLoad() {
+		summary = true;
+		
+		indexPos = 0;
+		
+		tryRequest();
+	};
+	
+	function sendDetailRequest(s, e) {
+		summary = false;
+		start = s;
+		end = e;
+		
+		indexPos = 0;
+		
+		tryRequest();
+	}
+	
+	window.initProcessor = function (snmp) {
+		for (var index in snmp.hrProcessorIndex) {
+			indexArray[indexArray.length] = index;
+		}
+	};
+	
+	initialize();
+	
+}) (window);
+
+// storage
+(function (window, undefined) {
+	
+	var summary, start, end,
+		indexArray = [], indexPos,
+		origin = {}, detail = {},
+		capacity;
+	
+	function initialize() {
+		document.getElementById("select_storage").onchange = function () {
+			document.body.classList.add("loading");
+				
+			disableThroughput();
+			
+			onSelectStorageUsage();
+		};
+	}
+	
+	function valueToString(value) {
+		return ITAhM.util.toBytesString(value).replace("ytes", "");
+	}
+	
+	function onResponse(data, status) {
+		if (!data) {
+			document.body.classList.remove("loading");
+			
+			return;
+		}
+		
+		if (summary) {
+			origin[indexArray[indexPos++]] = new ITAhM.ChartSummaryData(data);
+		}
+		else {
+			detail[indexArray[indexPos++]] = new ITAhM.ChartData(data);
+		}
+		
+		tryRequest();
+	}
+	
+	function tryRequest() {
+		if (indexPos < indexArray.length) {
+			if (summary) {
+				getSummaryData("hrStorageUsed", indexArray[indexPos], onResponse);
+			}
+			else {
+				getDetailData("hrStorageUsed", indexArray[indexPos], start, end, onResponse);
+			}
+		}
+		else {
+			if (summary) {
+				window.drawDetailGraph = sendDetailRequest;
+				
+				initChart(origin, capacity, valueToString);	
+			}
+			else {
+				updateChart(detail);
+			}
+		}
+	}
+	
+	function onSelectStorageUsage() {
+		summary = true;
+		
+		indexPos = 0;
+		
+		tryRequest();
+	};
+	
+	function sendDetailRequest(s, e) {
+		summary = false;
+		start = s;
+		end = e;
+		
+		indexPos = 0;
+		
+		tryRequest();
+	}
+	
+	window.initStorage = function (snmp) {
+		var storage,
+			capacityArray = [];
+		
+		for (var index in snmp.hrStorageIndex) {
+			storage = snmp.hrStorageEntry[index];
+			
+			// size가 0인 것 제외.
+			if (storage.hrStorageSize > 0) {
+				// hrStorageFixedDisk 
+				if (storage.hrStorageType === 4) {
+					capacityArray[capacityArray.length] = storage.hrStorageSize * storage.hrStorageAllocationUnits;
+					
+					indexArray[indexArray.length] = index;
+				}
+				// hrStorageRam
+				else if (storage.hrStorageType === 2) {
+					initMemory(index, storage);
+				}
+			}
+		}
+		//storage는 각 디스크마다 용량이 다르므로 표시할 수 없음
+		//capacity = Math.max.apply(undefined, capacityArray);
+	};
+	
+	initialize();
+	
+}) (window);
+
+// memory
+(function (window, undefined) {
+	
+	var summary, start, end,
+		indexArray = [], indexPos,	
+		origin = {}, detail = {},
+		capacity;
+	
+	function initialize() {
+		document.getElementById("select_memory").onchange = function () {
+			document.body.classList.add("loading");
+				
+			disableThroughput();
+			
+			onSelectMemoryUsage();
+		};
+	}
+	
+	function valueToString(value) {
+		return ITAhM.util.toBytesString(value).replace("ytes", "");
+	}
+	
+	function onResponse(data, status) {
+		if (!data) {
+			document.body.classList.remove("loading");
+			
+			return;
+		}
+		
+		if (summary) {
+			origin[indexArray[indexPos++]] = new ITAhM.ChartSummaryData(data);
+		}
+		else {
+			detail[indexArray[indexPos++]] = new ITAhM.ChartData(data);
+		}
+		
+		tryRequest();
+	}
+	
+	function tryRequest() {
+		if (indexPos < indexArray.length) {
+			if (summary) {
+				getSummaryData("hrStorageUsed", indexArray[indexPos], onResponse);
+			}
+			else {
+				getDetailData("hrStorageUsed", indexArray[indexPos], start, end, onResponse);
+			}
+		}
+		else {
+			if (summary) {
+				window.drawDetailGraph = sendDetailRequest;
+				
+				initChart(origin, capacity, valueToString);	
+			}
+			else {
+				updateChart(detail);
+			}
+		}
+	}
+	
+	function onSelectMemoryUsage() {
+		summary = true;
+		
+		indexPos = 0;
+		
+		tryRequest();
+	};
+	
+	function sendDetailRequest(s, e) {
+		summary = false;
+		start = s;
+		end = e;
+		
+		indexPos = 0;
+		
+		tryRequest();
+	}
+	
+	window.initMemory = function (index, m) {
+		indexArray[0] = index;
+		
+		capacity = m.hrStorageSize * m.hrStorageAllocationUnits;
+	};
+	
+	initialize();
+	
+}) (window);
+
+// throughput
+(function (window, undefined) {
+	
+	var summary, start, end,
+		list = document.getElementById("select_iface"),
+		databaseArray = [], indexPos,
+		origin = {}, detail = {};
+	
+	function initialize() {
+		document.getElementById("select_throughput").onchange = function () {
+			list.disabled = false;
+		};
+		
+		list.onchange = function () {
+			document.body.classList.add("loading");
+			
+			onSelectThroughput();
+		};
+	}
+	
+	function valueToString(value) {
+		return ITAhM.util.toBPSString(value);
+	}
+	
+	function onResponse(data, status) {
+		if (!data) {
+			document.body.classList.remove("loading");
+			
+			return;
+		}
+		
+		if (summary) {
+			origin[databaseArray[indexPos++]] = new ITAhM.ChartSummaryData(data);
+		}
+		else {
+			detail[databaseArray[indexPos++]] = new ITAhM.ChartData(data);
+		}
+		
+		tryRequest();
+	}
+	
+	function tryRequest() {
+		if (indexPos < databaseArray.length) {
+			if (summary) {
+				getSummaryData(databaseArray[indexPos], list.value, onResponse);
+			}
+			else {
+				getDetailData(databaseArray[indexPos], list.value, start, end, onResponse);
+			}
+		}
+		else {
+			if (summary) {
+				window.drawDetailGraph = sendDetailRequest;
+				
+				initChart(origin, list.options[list.selectedIndex].dataset.speed, valueToString);	
+			}
+			else {
+				updateChart(detail);
+			}
+		}
+	}
+	
+	function onSelectThroughput() {
+		summary = true;
+		
+		indexPos = 0;
+		
+		tryRequest();
+	};
+	
+	function sendDetailRequest(s, e) {
+		summary = false;
+		start = s;
+		end = e;
+		
+		indexPos = 0;
+		
+		tryRequest();
+	}
+	
+	window.disableThroughput = function () {
+		list.disabled = true;
+		list.selectedIndex = -1;
+	};
+	
+	window.initThroughput = function (snmp) {
+		var entry = snmp.ifEntry,
+			t;
+		
+		for (index in snmp.ifIndex) {
+			t = entry[index];
+			
+			option = document.createElement("option");
+			option.value = index;
+			option.dataset.speed = t.ifSpeed;
+			option.text = t.ifName;
+			option.title = t.ifDescr;
+			
+			list.appendChild(option);
+		}
+		
+		databaseArray = ["ifInOctets", "ifOutOctets"];
+		
+		disableThroughput();
+	};
+	
+	initialize();
+	
+}) (window);
+
+(function (window, undefined) {}) (window);
+
+		</script>
+	
+	</body>
+	
+</html>
