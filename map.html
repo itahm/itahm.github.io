@@ -88,7 +88,7 @@ text {
 }
 
 #line line {
-	stroke: #0f0;
+	stroke: #836953;
 	stroke-width: 2;
 }
 
@@ -192,7 +192,6 @@ body.nolink #link_token {
 						</image>
 					</g>
 				</g>
-				<g id="alert" transform="translate(20, 20)"></g>
 			</g>
 		</svg>
 		
@@ -515,6 +514,42 @@ var svgNS = "http://www.w3.org/2000/svg",
 		selectDevice(id);
 	}
 	
+	function moveLine(x, y, data, direct) {
+		var svgDevice, device,
+			x1, y1, x2, y2;
+	
+		svgDevice = data.svg;
+		
+		if (direct) {
+			device = getDevice(data.peer2);
+			
+			svgDevice.setAttributeNS(null, "x1", x);
+			svgDevice.setAttributeNS(null, "y1", y);
+			
+			x1 = x;
+			y1 = y;
+			x2 = device.x;
+			y2 = device.y;
+		}
+		else {
+			device = getDevice(data.peer1);
+			
+			svgDevice.setAttributeNS(null, "x2", x);
+			svgDevice.setAttributeNS(null, "y2", y);
+			
+			x1 = device.x;
+			y1 = device.y;
+			x2 = x;
+			y2 = y;
+		}
+		
+		data.name1.setAttributeNS(null, "x", (x1 *2 + x2) /3);
+		data.name1.setAttributeNS(null, "y", (y1 *2 + y2) /3);
+		
+		data.name2.setAttributeNS(null, "x", (x2 *2 + x1) /3);
+		data.name2.setAttributeNS(null, "y", (y2 *2 + y1) /3);
+	}
+	
 	window.addDevice = function (device, icon) {
 		var svgDevice = document.createElementNS(svgNS, "image"),
 			svgLabel = document.createElementNS(svgNS, "text"),
@@ -551,21 +586,35 @@ var svgNS = "http://www.w3.org/2000/svg",
 		iconMap[device.id] = svgDevice;
 		labelMap[device.id] = svgLabel;
 		
-		// 장애 상태인 deivce는 아래와 같은 방법으로 표시 
-		/*
-		if (장애) {
-			var svgAlert = document.createElementNS(svgNS, "use");
-			
-			svgAlert.setAttributeNS(xlinkNS, "xlink:href", "#circle");
-			svgAlert.setAttributeNS(null, "class", "alert");
-			svgAlert.setAttributeNS(null, "x", device.x);
-			svgAlert.setAttributeNS(null, "y", device.y);
-			
-			canvas.appendChild(svgAlert);
-			
-			alertMap[device.id] = svgAlert;
+		if (device.shutdown) {
+			setAlert(device, true);
 		}
-		*/
+	};
+	
+	window.setAlert = function (device, shutdown) {
+		var svgAlert = alertMap[device.id];
+		
+		if (shutdown) {
+			if (!svgAlert) {
+				svgAlert = document.createElementNS(svgNS, "use");
+				
+				svgAlert.setAttributeNS(xlinkNS, "xlink:href", "#circle");
+				svgAlert.setAttributeNS(null, "class", "alert");
+				svgAlert.setAttributeNS(null, "x", device.x);
+				svgAlert.setAttributeNS(null, "y", device.y);
+				
+				canvas.appendChild(svgAlert);
+				
+				alertMap[device.id] = svgAlert;
+			}
+		}
+		else {
+			if (svgAlert) {
+				delete alertMap[device.id];
+				
+				canvas.removeChild(svgAlert);
+			}
+		}
 	};
 	
 	window.isDevice = function (node) {
@@ -592,7 +641,7 @@ var svgNS = "http://www.w3.org/2000/svg",
 		device.x = x;
 		device.y = y;
 		
-		moveLine(id, x, y);
+		forEachLine(id, moveLine.bind(undefined, x, y));
 	};
 	
 	window.topDevice = function (svgDevice) {
@@ -809,40 +858,14 @@ var svgNS = "http://www.w3.org/2000/svg",
 		}
 	};
 	
-	window.moveLine = function (id, x, y) {
+	window.forEachLine = function (id, f) {
 		var linkData = database[id],
-			data, svgDevice, device,
-			x1, y1, x2, y2;
+			data;
 		
 		for (var peerID in linkData) {
 			data = linkData[peerID];
-			svgDevice = data.svg;
 			
-			if (data.peer1 === id) {
-				device = getDevice(data.peer2);
-				
-				svgDevice.setAttributeNS(null, "x1", x);
-				svgDevice.setAttributeNS(null, "y1", y);
-				
-				x1 = x;
-				y1 = y;
-				x2 = device.x;
-				y2 = device.y;
-			}
-			else {
-				device = getDevice(data.peer1);
-				
-				svgDevice.setAttributeNS(null, "x2", x);
-				svgDevice.setAttributeNS(null, "y2", y);
-				
-				x1 = device.x;
-				y1 = device.y;
-				x2 = x;
-				y2 = y;
-			}
-			
-			moveLabel(data.name1, x1, y1, x2, y2);
-			moveLabel(data.name2, x2, y2, x1, y1);
+			f(data, data.peer1 === id);
 		}
 	};
 	
@@ -918,7 +941,7 @@ var svgNS = "http://www.w3.org/2000/svg",
 	var deviceData, iconData;
 	
 	function initialize() {
-		var agent = opener.getAddress().split(":"),
+		var thread = new Worker("event.js"),
 			device;
 		
 		deviceData = opener.getDeviceData();
@@ -934,6 +957,18 @@ var svgNS = "http://www.w3.org/2000/svg",
 		}
 		
 		initStage();
+		
+		thread.addEventListener("message", onEvent);
+
+		thread.postMessage("http://"+ opener.getAddress());
+	}
+	
+	function onEvent(e) {
+		var event = e.data;
+		
+		if ("shutdown" in event) {
+			setAlert(deviceData[event.id], event.shutdown);
+		}
 	}
 	
 	window.createDevice = function (data) {

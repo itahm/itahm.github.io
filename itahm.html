@@ -291,21 +291,22 @@ var specs = "toolbar=0, location=0, resizable=1, menubar=0, titlebar=0";
 		if (status === 200) {
 		}
 		else {
-			data = undefined;
-			
 			if (status === 0) {
 				alert("request timed out.");
 			}
 			else if (status === 401) {
 				alert("no session.");
+				
+				closeITAhM();
+				
+				location.reload();
 			}
 			else if (status === 400) {
 				console.log(data.error);
 			}
 			
-			closeITAhM();
+			data = undefined;
 			
-			location.reload();
 		}
 		
 		callback(data, status);

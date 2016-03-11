@@ -15,8 +15,6 @@ function Communicator() {
 			xhr = new XMLHttpRequest();
 		}
 		
-		response = undefined;
-		
 		xhr.open("POST", url, true);
 		xhr.onload = onSuccess;
 		xhr.ontimeout = onTimeout;
@@ -27,10 +25,9 @@ function Communicator() {
 	}
 	
 	function onSuccess(e) {
-		if (xhr.status === 200) {
-			var text = xhr.responseText;
-			response = text.length > 0? JSON.parse(text): {};
-		}
+		var text = xhr.responseText;
+		
+		response = text.length > 0? JSON.parse(text): {};
 	};
 	
 	function onTimeout(e) {
@@ -39,9 +36,6 @@ function Communicator() {
 	
 	function onLoad(e) {
 		var data = dataQ.shift();
-		
-		if (xhr.status === 0)
-			console.log(xhr);
 		
 		callbackQ.shift()(response, xhr.status);
 		

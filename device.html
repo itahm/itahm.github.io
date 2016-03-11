@@ -70,6 +70,10 @@ input[type="checkbox"] {
 	display: none;
 }
 
+.snmp[disabled] ~span {
+	color: #aaa;
+}
+
 .address {
 	display: flex;
 	align-items: flex-end;
@@ -137,7 +141,7 @@ footer input {
 					<li>snmp
 					<li>
 						<label>
-							<input type="checkbox" name="snmp" class="snmp">
+							<input type="checkbox" name="snmp" class="snmp" disabled>
 							<span class="on">on</span><span class="off">off</span>
 						</label>
 					
@@ -180,7 +184,19 @@ if (window === top) throw "";
 		device.label = form.elements.label.value.split(",").map(function (value) {
 			return value.trim();
 		}).join(",");
-		device.snmp = form.elements.snmp.checked;
+		
+		//등록된 장비이면
+		if ("snmp" in device) {
+			// true인 것은 true나 false 모두 가능
+			if (device.snmp) {
+				device.snmp = form.elements.snmp.checked;
+			}
+			// false인 것은 변경하지 않거나 제거 가능 (true 불가)
+			else if (form.elements.snmp.checked){
+				delete device.snmp;
+			}
+		}
+		//else 등록 전 장비이면 snmp 없음
 		
 		if (!device.id) {
 			top.createDevice(device);
@@ -235,7 +251,10 @@ if (window === top) throw "";
 			// 저장할때는 trim으로 다 붙여서 넣지만 보여줄때는 보기 좋게 한칸씩 띈다.
 			form.elements.label.value = device.label && (device.label.split(",")).join(", ") || "";
 			
-			form.elements.snmp.checked = device.snmp;
+			if ("snmp" in device) {
+				form.elements.snmp.checked = device.snmp;
+				form.elements.snmp.disabled = false;
+			}
 		}
 		
 		initialize();

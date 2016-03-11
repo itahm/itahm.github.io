@@ -19,6 +19,10 @@ var ITAhM = ITAhM || {};
 		this.initialize(data);
 	};
 	
+	ITAhM.Path = function (container) {
+		this.initialize(container);
+	}
+	
 	ITAhM.QueryParser.prototype = {
 		map: {},
 		
@@ -150,5 +154,43 @@ var ITAhM = ITAhM || {};
 			return this.data[date];
 		}
 	};
-	
+
+	//Path object
+	ITAhM.Path.prototype = {
+		initialize: function (container) {
+			this.container = container;
+			this.path = document.createElementNS(svgNS, "path");
+			this.beginPath();
+		},
+		
+		moveTo: function (x, y) {
+			this.distance[this.distance.length] = "M"+ x +" "+ y;
+			
+			return this;
+		},
+		
+		lineTo: function (x, y) {
+			this.distance[this.distance.length] = "L"+ x +" "+ y;
+			
+			return this;
+		},
+		
+		draw: function () {
+			this.container.appendChild(this.path);
+			
+			this.path.setAttributeNS(null, "d", this.distance.join(" "));
+		},
+		
+		set: function (key, value) {
+			this.path.setAttributeNS(null, key, value);
+		},
+		
+		beginPath: function () {
+			this.distance = [];
+		},
+		
+		closePath: function () {
+			this.distance[this.distance.length] = "Z"
+		}
+	};
 }) (window);
