@@ -2,250 +2,109 @@
 <html>
 
 	<head>
-		<title>ITAhM</title>
+		<title>help</title>
 		<meta charset="UTF-8">
-		<meta http-equiv="Content-Script-Type" content="text/javascript">
-		<meta http-equiv="Content-Style-Type" content="text/css">
-		<link rel="shortcut icon" href="favicon.ico">
-		
 		<style>
-		#chart {
-			position: fixed; top: 20px; right: 20px; bottom: 20px; left: 20px;
-			display: -webkit-flex;
-			display: flex;
-			flex-direction: column;
-		}
-		
-		#chart> .chart {
-			-webkit-flex: 1;
-			flex: 1;
-			height: 0;
-			position: relative;
-		}
-		
-		h4,
-		li,
-		input,
-		span,
-		label {
-			font-family: tahoma, arial, "맑은 고딕"
-		}
-		
-		li {
-			font-size: 15px;
-		}
-		
-		input,
-		label {
-			font-size: 13px;
-		}
-		canvas {
-			display: block;
-			background-color: #f8f8f8;
-			border-radius: 10px;
-		}
-		
-		img {
-			vertical-align: middle;
-		}
-		
-		a {
-			font-weight: bold;
-		}
-		
-		a:link,
-		a:visited,
-		a:active {
-			color: #000;
-			text-decoration: none;
-		}
-		
-		a:hover {
-			color: #73a4e6;
-			text-decoration: none;
-			cursor: pointer;
-		}
-		
-		#controller {
-			position: absolute; top: 5px; right: 10px; left: 0;
-		}
-		
-		#controller > div.right {
-			float: right;
-		}
-		
-		#controller > div.left {
-			float: left;
-		}
-		
-		#controller #offline,
-		#controller.realtime #realtime,
-		#controller.realtime #detail,
-		#controller.realtime .date {
-			display: none;
-		}
-		
-		#controller.realtime #offline {
-			display: inline;
-		}
-		
-		img.button {
-			border: 1px solid transparent;
-		}
-		
-		img.button:hover {
-			border-color: #08f;
-			cursor: pointer;
-		}
-		
+body {
+	background-color: #efefef;
+	padding: 20px;
+}
+
+body, h1, h2, h3, p, li {
+	font-family: tahoma, arial, "맑은 고딕";
+}
+
+h1, h2, h3 {
+	color: #0084ff;
+}
+
+p {
+	font-size: 15px;
+}
+
 		</style>
-		<script src="ITAhM.js"></script>
-		<script src="Draggable.js"></script>
-		<script src="Manager.js"></script>		
-		<script src="createData.js"></script>
-		<script src="Chart.js"></script>
+		
 	</head>
 
 	<body>
-		<div id="chart">
-			<h4>itahm이 chart를 보여주는 방법</h4>
-			<ul>
-				<li>1년간의 data를 chart에 표현할수 있으며
-				1시간 간격으로 summary한 최대값과 최소값을 영역으로 그리고 평균값을 영역내 꺾은 선으로 그립니다.
-				<li>아래 chart는 1년동안의 cpu load data를 simulation한 것입니다.
-				<li>좌측 y축은 원본값 (load 이므로 0 ~ 100) 이고, 우측 y축은 항상 최대값 대비 백분률입니다.
-				<li>마우스를 chart위에서 scroll 하세요. 중앙을 기준으로 표시하는 기간을 확대하거나 축소합니다.
-				<li>마우스를 chart위에서 drag 하세요. 표시하는 기간을 전 후로 이동 시킵니다.
-				<li>chart는 최대값과 최소값을 벗어난 영역은 그리지 않습니다.
-				<li>우측 상단 "csv" "png" 버튼을 누르면 해당하는 파일을 다운로드 할 수 있습니다. (일부 브라우저 미지원)
-				<li>좌측 상단 기간 입력을 통해 시작과 끝 날짜를 지정할 수 있습니다.
-				시작(from)은 입력 날짜의 0시를, 끝(to)은 입력 날짜의 24시(다음날 0시)로 설정됩니다. (시 분 초 단위 제어 불가)
-				달력을 지원하지 않는 브라우저 에서는 yyyy-mm-dd 의 형식으로 날짜를 직접 입력해야 합니다.
-				<li>좌측 상단 돋보기 버튼(<img src="img/detail.png" height="16px" width="16px">)을 누르면 1시간 summary가 아닌 1분단위 실 data를 추가적으로 보여줍니다.
-				<li>또한 chart와 실시간 그래프를 오가며 보여줄 수 있는 기능을 버튼(<img src="img/realtime.png" height="16px" width="16px">)을 통해 제공합니다.
-			</ul>
-		</div>
-		<div id="controller">
-			<div class="right">
-				<img src="img/download.png" width="16px" height="16px">
-				<a id="down_csv" title="download chart data as chart.csv">csv</a>
-				<a id="down_png" title="download chart image as chart.png">png</a>
-			</div>
-			<div class="left">
-				<img src="img/chart.png" id="offline" width="16px" height="16px" title="offline chart" class="button">
-				<img src="img/realtime.png" id="realtime" width="16px" height="16px" title="realtime chart" class="button">
-				<img src="img/detail.png" id="detail" width="16px" height="16px" title="detailed chart" class="button">
-				<img src="img/calendar.png" width="16px" height="16px">
-				<div class="date">
-					<label>
-						from
-						<input type="date" id="start">
-					</label>
-					<label>
-						to
-						<input type="date" id="end">
-						<input type="button" value="apply" id="reset">
-					</label>
-				</div>
-			</div>
-		</div>
+		<h1>ITAhM</h1>
+		<p>ITAhM은 Infrastructure Topology Administration Module (기업 IT 시스템 토폴로지 관리 모듈)의
+			약어 로써 이에 high performance, hyper등으로 설정할 수 있는 h를 더한 서비스의 이름 입니다.
+			한글로는 "아이탐" 입니다.</p>
+		<p>Module은 아이탐의 향후 확장 계획을 내포하고 있습니다.</p>
 		
-		<script>
+		<h3>구성</h3>
+		<ul>
+			<li>에이전트: 자바 응용프로그램. 다음과 같이 구성되어 있습니다.
+				<ul>
+					<li>snmp 서비스
+					<li>database
+					<li>http 서버
+				</ul>
+			<li>User Interface: http://itahm.com
+		</ul>
 		
-var 
-	container = document.querySelector("#chart"),
-	chart = new Chart(container, {
-		id: 1,
-		title: "processor load (%)",
-		onxvalue: function (value) {
-			return value && value.toFixed(2);
-		},
-		onyvalue: function (value) {
-			return value && value.toFixed(2);
-		},
-		bgcolor: "#fff"
-	}),
-	manager = Manager.getInstance(chart),
-	manager2 = Manager.getInstance(chart, "RealTimeManager"),
-	elements = {
-		controller: document.getElementById("controller"),
-		reset: document.getElementById("reset"),
-		downPng: document.getElementById("down_png"),
-		downCsv: document.getElementById("down_csv"),
-		start: document.getElementById("start"),
-		end: document.getElementById("end"),
-		detail: document.getElementById("detail"),
-		offline: document.getElementById("offline"),
-		realtime: document.getElementById("realtime")
-	},
-	FILE_PNG_NAME = "chart.png",
-	timer;
+		<h3>설치</h3>
+		<ul>
+			<li>서비스가 시작되고 데이터가 저장될 폴더를 생성합니다. (예. c:\Users\홍길동\itahm)
+			<li>홈페이지 (http://itahm.com/itahm.html) 우측 상단 download를 통해 jar 파일을 폴더로 다운로드 합니다.
+			<li>에이전트를 실행 합니다. java -jar ITAhM.1.0.3.jar (유닉스 계열은 background로 실행)
+			<li>홈페이지에서 agent의 IP와 TCP 주소를 입력하여 접속합니다.  
+		</ul>
 
-manager.data = createData();
-
-manager.onchange = function (start, end) {
-	elements.start.value = new Date(start).toISOString().slice(0,10);
-	elements.end.value = new Date(end).toISOString().slice(0,10);
-};
-
-chart.appendChild(elements.controller);
-chart.connect(manager);
-
-elements.controller.addEventListener("mousedown", function (e) {
-	e.stopPropagation();
-}, false);
-
-elements.downPng.addEventListener("click", function (e) {
-	chart.download();
-}, false);
-
-elements.downCsv.addEventListener("click", function (e) {
-	manager.download();
-}, false);
-
-elements.detail.addEventListener("click", function (e) {
-	manager.showDetail();
-}, false);
-
-elements.offline.addEventListener("click", function (e) {
-	elements.controller.classList.remove("realtime");
-	
-	clearInterval(timer);
-	
-	manager2.clear();
-	
-	chart.connect(manager);
-}, false);
-
-elements.realtime.addEventListener("click", function (e) {
-	elements.controller.classList.add("realtime");
-	
-	chart.connect(manager2);
-	
-	timer = setInterval(function () {
-		manager2.update(new Date().getTime(), Math.random() *100);
-	}, 1000);
-}, false);
-
-elements.reset.addEventListener("mousedown", function (e) {
-	e.stopPropagation();
-}, false);
-
-elements.reset.addEventListener("click", function (e) {
-	var start = Date.parse(elements.start.value),
-		end = Date.parse(elements.end.value);
-	
-	if (isNaN(start) || isNaN(end)) {
-		return;
-	}
-	
-	end = new Date(end);
-	end.setHours(0);
-	
-	manager.setDate(new Date(start).setHours(0), end.setDate(end.getDate() +1));
-}, false);		
+		<h3>database</h3>
+		<ul>
+			<li>장비
+			<li>snmp 프로파일
+			<li>사용자 계정
+			<li>아이콘의
+		</ul>
 		
-		</script>
+		<h2>database 관리</h2>
+		<p>모든 변경된 database는 동기화를 통해 agent에 반영되고 공유됩니다.</p>
+		<h3>장비</h3>
+		<ul>
+			<li>장비의 생성/수정/삭제는 topology map에서 수행합니다.
+			<li>다른 database들과 달리 생성과 수정이 독립적입니다.
+			<li>동기화 되지 않은 장비는 다른 장비와 링크를 연결할 수 없습니다.
+			<li>topology의 변경 또한 동기화를 통해 에이전트에 저장됩니다.
+		</ul>
+		<h3>프로파일</h3>
+		<ul>
+			<li>새로운 프로파일을 생성하는 방법은 기존 정보를 수정하여 복사하는 것입니다.
+			<li>키값은 profile name 입니다.
+			<li>기존 정보에서 profile name을 변경하고 ip, udp, community를 수정하면 새로운 정보가 생성됩니다. 
+		</ul>
+		<h3>계정</h3>
+		<ul>
+			<li>새로운 계정을 생성하는 방법은 기존 정보를 수정하여 복사하는 것입니다.
+			<li>키값은 username 입니다.
+			<li>기존 정보에서 username을 변경하고 비밀번호를 수정하면 새로운 정보가 생성됩니다. 
+		</ul>
+		<h3>아이콘</h3>
+		<ul>
+			<li>새로운 아이콘을 생성하는 방법은 기존 정보를 수정하여 복사하는 것입니다.
+			<li>키값은 type 입니다.
+			<li>기존 정보에서 type을 변경하고 group과 이미지 경로를 수정하면 새로운 아이콘이 생성됩니다.
+			<li>restore 수행시 아이탐이 제공하는 기본값으로 초기화 되거나 삭제 됩니다. 
+		</ul>
+		
+		<h2>유의사항</h2>
+		<ul>
+			<li>웹브라우저가 agent와 ajax 통신을 하고 session을 유지하기 위해 3자 쿠키(3rd party cookie)를 허용해 주어야 합니다.
+			<li>아이탐의 기본 기능인 구성관리와 차트서비스는 팝업된 윈도우에서 실행되므로 팝업을 허용해 주어야 합니다.
+			<li>에이전트를 실행시킬수 있도록 서버에 자바가 설치되어 있어야 합니다.
+			<li>일부 오래된 버전의 브라우저에서 차트가 느리게 동작 할 수 있습니다.
+				브라우저를 업그레이드 하거나 크롬을 사용해 보세요.
+			<li>shutdown 수행시 신중해야 합니다.
+				일단 에이전트가 종료되면 통신 할 수 없기때문에 직접 서버에 접속해 에이전트를 다시 시작해야 합니다.  
+			<li>에이전트는 스스로 ip <i>127.0.0.1</i>, tcp <i>162</i>, community <i>public</i> 의 정보를 가진 노드를 등록합니다.
+				에이전트 실행 전에 snmp 클라이언트를 활성화 해 주세요.
+			<li>이동식디스크등 물리적인 장치의 추가 및 삭제시 관리 index가 변경되어 이전 데이터를 잃게 될 수 있으니 유의 하십시오.
+				
+		</ul>
+
 	</body>
+	
 </html>
 

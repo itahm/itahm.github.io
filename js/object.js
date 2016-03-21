@@ -7,8 +7,8 @@ var ITAhM = ITAhM || {};
 
 (function (window, undefined) {
 	
-	ITAhM.QueryParser = function (search) {
-		this.initialize(search);
+	ITAhM.QueryParser = function () {
+		this.initialize();
 	};
 	
 	ITAhM.ChartData = function (data) {
@@ -26,15 +26,15 @@ var ITAhM = ITAhM || {};
 	ITAhM.QueryParser.prototype = {
 		map: {},
 		
-		initialize: function (search) {
+		initialize: function () {
 			var queries,
 				pair;
 				
-			if (!search) {
+			if (!location.search) {
 				return;
 			}
 			
-			queries = search.substring(1).split("&");
+			queries = location.search.substring(1).split("&");
 			
 			for (var i=0, length=queries.length; i<length; i++) {
 				pair = queries[i].split("=");

@@ -163,17 +163,32 @@ body.nolink #link_token {
 	display: none;
 }
 
+.v, .h {
+	position: fixed; top: 0; left: 0;
+	background-color: rgba(0, 0, 0, .1);
+}
+
+.v {
+	bottom: 0;
+	width: 50%; height: 100%;
+}
+
+.h {
+	right: 0; 
+	width: 100%; height: 50%;
+}
 		</style>
 		
 	</head>
 	
 	<body class="loading nolink name">
-	
+	<div class="v"></div>
+	<div class="h"></div>
 		<svg id="stage">
 			<defs>
 				<circle r="35" id="circle"></circle>
 			</defs>
-			<g id="transform" transform="translate(0, 0) translate(0, 0) translate(0, 0) scale(1, 1)">
+			<g id="transform" transform="translate(0, 0) translate(0, 0) scale(1, 1) translate(0, 0)">
 				<g id="line"></g>
 				<g id="link"></g>
 				<g id="device">
@@ -302,15 +317,9 @@ var svgNS = "http://www.w3.org/2000/svg",
 		dragOrigin;
 	
 	function initialize() {
-		var transformList = document.getElementById("transform").transform.baseVal;
-	
 		new Draggable(canvas);
 			
-		base = transformList.getItem(0);
-		translate = transformList.getItem(1);
-		drag = transformList.getItem(2);
-		scale = transformList.getItem(3);
-		link = linkAnchor.transform.baseVal.getItem(0);
+		initTransform();
 			
 		window.addEventListener("resize", function (e) {
 			resetStage();
@@ -325,6 +334,16 @@ var svgNS = "http://www.w3.org/2000/svg",
 		canvas.addEventListener("dragstart", onDragStart);
 		canvas.addEventListener("dragmove", onDragMove);
 		canvas.addEventListener("dragend", onDragEnd);
+	}
+	
+	function initTransform() {
+		var transform = document.getElementById("transform").transform.baseVal;
+		
+		base = transform.getItem(0);
+		scale = transform.getItem(2);
+		translate = transform.getItem(3);
+		drag = transform.getItem(1);
+		link = linkAnchor.transform.baseVal.getItem(0);
 	}
 	
 	function onZoom(e) {
@@ -409,16 +428,20 @@ var svgNS = "http://www.w3.org/2000/svg",
 			var x = drag.matrix.e / ratio,
 				y = drag.matrix.f / ratio;
 			
-			if (selectedDevice) {
-				moveSelectionMark(selectedDevice.x + x, selectedDevice.y + y);
-			}
-			
-			forEachDevice(function (device) {
-				moveDevice(device.id, device.x + x, device.y + y);
-			});
+			moveStage(x, y);
 			
 			drag.setTranslate(0, 0);
 		}
+	}
+	
+	function moveStage(x, y) {
+		if (selectedDevice) {
+			moveSelectionMark(selectedDevice.x + x, selectedDevice.y + y);
+		}
+		
+		forEachDevice(function (device) {
+			moveDevice(device.id, device.x + x, device.y + y);
+		});
 	}
 	
 	function onCancelSelect() {
@@ -474,9 +497,13 @@ var svgNS = "http://www.w3.org/2000/svg",
 	};
 	
 	window.centerDevice = function (id) {
-		var device = getDevice(id);
+		var device = getDevice(id),
+			//x = - device.x * ratio,
+			//y = - device.y * ratio;
+			x = - device.x,
+			y = - device.y;
 		
-		translate.setTranslate(- device.x, - device.y);
+		moveStage(x, y);
 	}
 	
 	window.editDevice = function () {

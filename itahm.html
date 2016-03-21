@@ -4,7 +4,7 @@
 		<meta charset="UTF-8">
 		<meta http-equiv="Content-Script-Type" content="text/javascript">
 		<meta http-equiv="Content-Style-Type" content="text/css">
-		<title>ITAhM(connecting...)</title>
+		<title>ITAhM</title>
 		
 		<style>
 body, header, li, input, button, legend {
@@ -22,6 +22,36 @@ header {
 	color: #fff;
 }
 
+header ul {
+	list-style: none;
+	display: flex;
+}
+
+header li {
+	margin: 0 16px;
+}
+
+header a,
+header a:visited,
+header a:link,
+header a:active,
+header a:hover {
+	color: #fff;
+	text-decoration: none;
+	cursor: pointer;
+}
+
+header a:hover {
+	text-decoration: underline;
+}
+
+nav {
+	height: 100px;
+	display: flex;
+	justify-content: flex-end;
+	align-items: flex-end;
+}
+
 div.body {
 	position: fixed; top: 100px; right: 0; bottom: 0; left: 0;
 	overflow: auto;
@@ -33,14 +63,7 @@ div.body {
 	height: 100%;
 }
 
-nav {
-	height: 100px;
-	display: flex;
-	justify-content: flex-end;
-	align-items: flex-end;
-}
-
-.box {
+.fixed_width {
 	margin: auto;
 	width: 800px;
 	padding: 10px;
@@ -88,30 +111,34 @@ ul.inline {
 }
 
 #loading {
-	top: 0;
-	background: #fff url("img/waiting.gif") no-repeat center;
-	opacity: .8;
+	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
+	background: rgba(255, 255, 255, .8) url("img/waiting.gif") no-repeat center;
 }
 
-#start {
-	font-weight: bold;
-	font-size: 18px;
-	margin: 10px 0;
-	padding: 5px 10px;
+#popup {
+	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
+	background-color: rgba(255, 255, 255, .8);
 }
 
-#add_device {
-	
+#popup div {
+	background-color: #ccc;
+	margin: 0 auto;
+	width: 800px;
+	height: 100%;
+	position: relative;
 }
 
-#add_device input {
-	padding: .5em;
-	vertical-align: bottom;
+#document {
+	position: absolute; top: 20px; right: 0; bottom: 0; left: 0;
+	width: 100%; height: 100%;
+	border: none;
+	padding: 0;
+	margin: 0;
 }
 
-#add_device input[type="text"] {
-	max-width: 2em;
-	text-align: right;
+#popup img {
+	position: absolute; top: 2px; right: 2px;
+	cursor: pointer;
 }
 
 fieldset {
@@ -134,7 +161,11 @@ fieldset img {
 	position: absolute; top: 0; right: 0;
 	cursor: pointer;
 }
-
+/*
+iframe[src="about:blank"] {
+	display: none;
+}
+*/
 .list,
 .list2 {
 	margin: 0;
@@ -167,11 +198,11 @@ fieldset img {
 
 body:not(.connected) #signin,
 body:not(.connected) .agent,
-/*body:not(.authorized) #start,*/
 body:not(.authorized) .authorized, 
 body.connected #connect,
 body.authorized #signin,
 body:not(.loading) #loading,
+body:not(.popup) #popup,
 body:not(.dialog) #dialog {
 	display: none;
 }
@@ -180,18 +211,21 @@ body:not(.dialog) #dialog {
 		
 	</head>
 	
-	<body class="">
+	<body>
 		
 		<header>
-			<nav class="box">
+			<nav class="fixed_width">
 				<ul>
-					<li><a></a></li>
+					<li class="authorized"><a id="start">ITAhM</a>
+					<li><a id="help">help</a>
+					<li><a href="https://dl.dropboxusercontent.com/s/8vd5s666358kai5/ITAhM.1.0.1.jar" download="ITAhM.1.0.1.jar">download</a>
+					<li class="authorized"><a id="shutdown" title="shutdown agent service">shutdown</a>
 				</ul>
 			</nav>
 		</header>
 		
 		<div class="body">
-			<section class="box">
+			<section class="fixed_width">
 				<h2>Infrastructure Topology Administration Module</h2>
 				<form id="connect">
 					<div>
@@ -208,10 +242,6 @@ body:not(.dialog) #dialog {
 					<input type="password" name="password" value="root" placeholder="password">
 					<input type="submit" value="sign in">
 				</form>
-				
-				<div class="authorized center">
-					<button id="start">ITAhM</button>
-				</div>
 				
 				<fieldset class="authorized">
 					<legend>device</legend>
@@ -247,6 +277,13 @@ body:not(.dialog) #dialog {
 		
 		<section id="loading"></section>
 		
+		<section id="popup">
+			<div>
+				<img id="close_popup" src="img/close.png" title="close">
+				<iframe id="document" src="about:blank"></iframe>
+			</div>
+		</section>
+		
 		<script src="js/ITAhM.js"></script>
 		<script src="js/object.js"></script>
 		<script src="js/icon.js"></script>
@@ -254,6 +291,42 @@ body:not(.dialog) #dialog {
 		<script>
 
 var specs = "toolbar=0, location=0, resizable=1, menubar=0, titlebar=0";
+
+// common
+(function (window, undefined){
+
+	var doc = document.getElementById("document");
+	
+	function initialize() {
+		document.getElementById("shutdown").onclick = shutDown;
+		
+		document.getElementById("help").onclick = function () {
+			document.body.classList.add("popup");
+			
+			doc.src="help.html";
+		};
+		
+		document.getElementById("close_popup").onclick = function () {
+			document.body.classList.remove("popup");
+			
+			doc.src="about:black";
+		};
+	}
+	
+	function shutDown() {
+		if (confirm("are you sure you want shutdown agent?")) {
+			sendRequest({
+				command: "shutdown"
+			}, function (data, status) {
+				location.href = location.href.replace(location.search, "");
+			});
+		}
+	}
+	
+	initialize();
+	
+
+}) (window);
 
 // connect
 (function (window, undefined){
@@ -316,6 +389,8 @@ var specs = "toolbar=0, location=0, resizable=1, menubar=0, titlebar=0";
 		var ip = form.elements["ip"].value,
 			tcp = form.elements["tcp"].value;
 		
+		document.body.classList.remove("loading");
+		
 		// agent에 연결 가능하나 session 없음
 		if (status === 401) {
 			document.body.classList.add("connected");
@@ -347,6 +422,11 @@ var specs = "toolbar=0, location=0, resizable=1, menubar=0, titlebar=0";
 	
 	window.tryConnect = function (ip, tcp) {
 		var communicator = new Communicator(); 
+		
+		document.body.classList.add("loading");
+		
+		form.elements["ip"].value = ip;
+		form.elements["tcp"].value = tcp;
 		
 		window.sendRequest = function (request, callback) {
 			communicator.send(request, onResponse.bind(undefined, callback));
@@ -865,7 +945,7 @@ var specs = "toolbar=0, location=0, resizable=1, menubar=0, titlebar=0";
 }) (window);
 
 // QueryParser object
-var query = new ITAhM.QueryParser(location.search),
+var query = new ITAhM.QueryParser(),
 	ip = query.get("ip"),
 	tcp = query.get("tcp");
 

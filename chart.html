@@ -106,6 +106,17 @@ text {
 	writing-mode: tb;
 }
 
+#date_text tspan:first-child,
+#date_text tspan:last-child {
+	font-weight: bold;
+	fill: #0084ff;
+	cursor: pointer;
+}
+
+#date_text tspan:first-child:hover {
+	cursor: pointer;
+}
+
 nav {
 	position: fixed; right: 0; bottom: 0; left: 0;
 	display: flex;
