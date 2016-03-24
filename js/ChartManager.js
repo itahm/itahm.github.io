@@ -315,7 +315,7 @@ function format(milliseconds) {
 			}
 			
 			this.mode = mode;
-		}
+		},
 		/**
 		 * realtime mode only
 		 * @param {Number} dateMills
