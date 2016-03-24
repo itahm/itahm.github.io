@@ -75,11 +75,7 @@ svg {
 	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
 	width: 100%; height: 100%;
 }
-/*
-image {
-	fill: #f00;
-}
-*/
+
 text {
 	font-family: tahoma, arial, "맑은 고딕";
 	font-size: 10px;
@@ -93,12 +89,14 @@ text {
 }
 
 #line text {
-	fill: #777;
+	font-size: 11px;
+	fill: #333;
 }
 
 #link line {
 	stroke: #800;
 	stroke-width: 2;
+	stroke-dasharray: 2, 2;
 }
 
 #device text {
@@ -119,7 +117,7 @@ text {
 	fill: #f00;
 }
 
-.alert {
+use.alert {
 	stroke-width: 5;
 	stroke: #f00;
 	fill: none;
@@ -159,7 +157,8 @@ body:not(.chart) #chart {
 	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
 }
 
-body.nolink #link_token {
+body:not(.alert) #alert,
+body:not(.ifname) #line text {
 	display: none;
 }
 
@@ -167,11 +166,16 @@ body.nolink #link_token {
 		
 	</head>
 	
-	<body class="loading nolink name">
+	<body class="loading name ifname">
 		<svg id="stage">
 			<defs>
 				<circle r="35" id="circle"></circle>
 			</defs>
+			<g>
+				<image id="alert" xlink:href="img/svg/alert.svg"
+				transform="translate(-50, -50)" cursor="pointer"
+				x="100%" y="100%" width="50" height="50" />
+			</g>
 			<g id="transform" transform="translate(0, 0) translate(0, 0) scale(1, 1) translate(0, 0)">
 				<g id="line"></g>
 				<g id="link"></g>
@@ -205,9 +209,15 @@ body.nolink #link_token {
 			<img src="img/add_device.png" width="16px" height="16px" title="add new device" id="add_device">
 			<img src="img/zoomin.png" width="16px" height="16px" title="zoom in" id="zoom_in">
 			<img src="img/zoomout.png" width="16px" height="16px" title="zoom out" id="zoom_out">
-			<input type="radio" name="option" id="option_name" title="show name" checked>name
+			<label><input type="checkbox" id="option_interface" checked>interface</label>
+ 			<label title="show name"><input type="radio" name="option" id="option_name" checked>name</label>
 			<label title="show ip address"><input type="radio" name="option" id="option_addr">ip address</label>
 		</nav>
+		
+		<div>
+			
+		</div>
+		
 		<iframe id="dialog" class="fullscreen"></iframe>
 		
 		<iframe id="chart" class="fullscreen"></iframe>
@@ -225,12 +235,10 @@ var svgNS = "http://www.w3.org/2000/svg",
 //device list
 (function (window, undefined){
 	
-	var frame = document.getElementById("device_list"),
-		show = document.getElementById("show_list"),
-		hide = document.getElementById("hide_list");
+	var frame = document.getElementById("device_list");
 	
 	function initialize() {
-		show.onclick = function () {
+		document.getElementById("show_list").onclick = function () {
 			document.body.classList.add("list");
 			
 			frame.onload = onLoad;
@@ -238,7 +246,7 @@ var svgNS = "http://www.w3.org/2000/svg",
 			frame.src = "list.html";
 		};
 		
-		hide.onclick = function () {
+		document.getElementById("hide_list").onclick = function () {
 			document.body.classList.remove("list");
 			
 			frame.src = "about:blank";
@@ -266,15 +274,11 @@ var svgNS = "http://www.w3.org/2000/svg",
 			document.body.classList.toggle("name");
 			document.body.classList.toggle("address");
 		};
-		
 		document.getElementById("add_device").onclick = onAddDevice;
 		
-		document.getElementById("zoom_in").onclick = function () {
-			zoom(true);
-		}
-		document.getElementById("zoom_out").onclick = function () {
-			zoom(false);
-		}
+		document.getElementById("option_interface").onchange = function () {
+			document.body.classList[this.checked? "add": "remove"]("ifname");
+		};
 	}
 	
 	function onAddDevice() {
@@ -294,7 +298,7 @@ var svgNS = "http://www.w3.org/2000/svg",
 		eventData = {},
 		event = ITAhM.util.createCustomEvent("link", eventData),
 		base, translate, drag, scale, link,
-		ratio = 1,
+		mapData = opener.getMapData(),
 		selectedDevice,
 		selectedSvgDevice,
 		cancelSelect = false,
@@ -302,15 +306,13 @@ var svgNS = "http://www.w3.org/2000/svg",
 	
 	function initialize() {
 		new Draggable(canvas);
-			
+		
 		initTransform();
-			
+		
+		scale.setScale(mapData.ratio, mapData.ratio);
+		
 		window.addEventListener("resize", function (e) {
 			resetStage();
-		});
-		
-		canvas.addEventListener("selectstart", function (e) {
-			e.preventDefault();
 		});
 		
 		canvas.addEventListener("wheel", onZoom);
@@ -318,6 +320,12 @@ var svgNS = "http://www.w3.org/2000/svg",
 		canvas.addEventListener("dragstart", onDragStart);
 		canvas.addEventListener("dragmove", onDragMove);
 		canvas.addEventListener("dragend", onDragEnd);
+		document.getElementById("zoom_in").onclick = function () {
+			zoom(true);
+		}
+		document.getElementById("zoom_out").onclick = function () {
+			zoom(false);
+		}
 	}
 	
 	function initTransform() {
@@ -359,8 +367,8 @@ var svgNS = "http://www.w3.org/2000/svg",
 			target = data.target;
 		
 		if (selectedDevice) {
-			var x = dragOrigin.x + Math.round(data.dragX / ratio),
-				y = dragOrigin.y + Math.round(data.dragY / ratio);
+			var x = dragOrigin.x + Math.round(data.dragX / mapData.ratio),
+				y = dragOrigin.y + Math.round(data.dragY / mapData.ratio);
 		
 			// selectedDevice 인 경우 move
 			if (target === selectedSvgDevice) {
@@ -409,8 +417,8 @@ var svgNS = "http://www.w3.org/2000/svg",
 			}
 		}
 		else {
-			var x = drag.matrix.e / ratio,
-				y = drag.matrix.f / ratio;
+			var x = drag.matrix.e / mapData.ratio,
+				y = drag.matrix.f / mapData.ratio;
 			
 			moveStage(x, y);
 			
@@ -460,14 +468,14 @@ var svgNS = "http://www.w3.org/2000/svg",
 	window.zoom = function (zoomin) {
 		if (zoomin) {
 			//확대
-			ratio *= 1.1;
+			mapData.ratio *= 1.1;
 		}
 		else {
 			//축소
-			ratio /= 1.1;
+			mapData.ratio /= 1.1;
 		}
 		
-		scale.setScale(ratio, ratio);
+		scale.setScale(mapData.ratio, mapData.ratio);
 	};
 	
 	window.getSelectedDevice = function () {
@@ -481,13 +489,9 @@ var svgNS = "http://www.w3.org/2000/svg",
 	};
 	
 	window.centerDevice = function (id) {
-		var device = getDevice(id),
-			//x = - device.x * ratio,
-			//y = - device.y * ratio;
-			x = - device.x,
-			y = - device.y;
+		var device = getDevice(id);
 		
-		moveStage(x, y);
+		moveStage(- device.x, - device.y);
 	}
 	
 	window.editDevice = function () {
@@ -517,6 +521,11 @@ var svgNS = "http://www.w3.org/2000/svg",
 		alertMap = {};
 
 	function initialize() {
+		document.getElementById("alert").onclick = function () {
+			for (var id in alertMap) {
+				setTimeout(centerDevice.bind(undefined, id), 500);
+			}
+		};
 	}
 	
 	function onSelect(id, e) {
@@ -598,14 +607,14 @@ var svgNS = "http://www.w3.org/2000/svg",
 		labelMap[device.id] = svgLabel;
 		
 		if (device.shutdown) {
-			setAlert(device, true);
+			setAlert(device);
 		}
 	};
 	
-	window.setAlert = function (device, shutdown) {
+	window.setAlert = function (device) {
 		var svgAlert = alertMap[device.id];
 		
-		if (shutdown) {
+		if (device.shutdown) {
 			if (!svgAlert) {
 				svgAlert = document.createElementNS(svgNS, "use");
 				
@@ -626,6 +635,8 @@ var svgNS = "http://www.w3.org/2000/svg",
 				canvas.removeChild(svgAlert);
 			}
 		}
+		
+		document.body.classList[Object.keys(alertMap).length === 0? "remove": "add"]("alert");
 	};
 	
 	window.isDevice = function (node) {
@@ -949,7 +960,7 @@ var svgNS = "http://www.w3.org/2000/svg",
 //data
 (function (window, undefined) {
 	
-	var deviceData, iconData;
+	var deviceData, iconData, mapData;
 	
 	function initialize() {
 		var thread = new Worker("event.js"),
@@ -957,6 +968,7 @@ var svgNS = "http://www.w3.org/2000/svg",
 		
 		deviceData = opener.getDeviceData();
 		iconData = opener.getIconData();
+		mapData = opener.getMapData();
 		
 		window.sendRequest = opener.sendRequest;
 		
@@ -978,7 +990,11 @@ var svgNS = "http://www.w3.org/2000/svg",
 		var event = e.data;
 		
 		if ("shutdown" in event) {
-			setAlert(deviceData[event.id], event.shutdown);
+			var device = deviceData[event.id];
+			
+			device.shutdown = event.shutdown;
+			
+			setAlert(device);
 		}
 	}
 	

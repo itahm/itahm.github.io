@@ -200,6 +200,11 @@ nav form {
 					labels[label[i]] = null;
 				}
 			}
+			else {
+				row.classList.add("unlabeled");
+				
+				labels["unlabeled"] = null;
+			}
 			
 			fragment.appendChild(row);
 		});

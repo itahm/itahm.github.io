@@ -295,7 +295,10 @@ var specs = "toolbar=0, location=0, resizable=1, menubar=0, titlebar=0";
 // common
 (function (window, undefined){
 
-	var doc = document.getElementById("document");
+	var doc = document.getElementById("document"),
+		mapData = {
+			ratio: 1
+		};
 	
 	function initialize() {
 		document.getElementById("shutdown").onclick = shutDown;
@@ -322,6 +325,10 @@ var specs = "toolbar=0, location=0, resizable=1, menubar=0, titlebar=0";
 			});
 		}
 	}
+	
+	window.getMapData = function () {
+		return mapData;
+	};
 	
 	initialize();
 	
