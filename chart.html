@@ -575,7 +575,6 @@ function createSvgTextSpan(x, y, text) {
 				
 				tmp = (value - low) * unit;
 				if (isNaN(tmp)) {
-					console.log(value);
 					throw "!"
 				}
 				
@@ -588,7 +587,7 @@ function createSvgTextSpan(x, y, text) {
 		return result;
 	}
 
-	window.updateChart = function (detail) {
+	window.updateChart = function (detail) {console.log(detail);
 		var data = buildData(detail),
 			result = {};
 		
@@ -613,9 +612,6 @@ function createSvgTextSpan(x, y, text) {
 		clear(graph);
 		
 		rect = getRect();
-		
-		//graph.setAttributeNS(null, "width", rect.width);
-		//graph.setAttributeNS(null, "height", rect.height);
 		
 		offset.setTranslate(0, rect.height);
 		

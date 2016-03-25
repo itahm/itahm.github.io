@@ -354,7 +354,7 @@ var svgNS = "http://www.w3.org/2000/svg",
 		type.textContent = device.type;
 		label.textContent = device.label && (device.label.split(",")).join(", ") || "";
 		profile.textContent = device.profile;
-		status.textContent = snmp.timeout < 0? "up": "down";
+		status.textContent = snmp.timeout < 0? "up": "down";console.log(snmp.hrSystemUptime, new Date(snmp.hrSystemUptime));
 		uptime.textContent = ITAhM.util.toUptimeString(snmp.hrSystemUptime);
 		enterprise.textContent = ITAhM.util.enterpriseFromOID(snmp.sysObjectID);
 		

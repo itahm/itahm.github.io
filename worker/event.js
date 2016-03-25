@@ -11,7 +11,7 @@
 	
 	function send() {
 		if (!xhr) {
-			xhr = new XMLHttpRequest();
+			xhr = Communicator.xhr();
 		}
 		
 		xhr.open("POST", url, true);
@@ -28,12 +28,12 @@
 			response = JSON.parse(xhr.responseText);
 			
 			window.postMessage(response.data);
-			console.log("받은 index: "+ response.index);
+			
 			request.index = response.index +1;
-			console.log("보낸 index: "+ request.index);
+			
 			send();
 		}
-		else {console.log(xhr.status, "retry");
+		else {
 			setTimeout(send, TIMEOUT);
 		}
 	};

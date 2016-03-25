@@ -428,7 +428,7 @@ var specs = "toolbar=0, location=0, resizable=1, menubar=0, titlebar=0";
 	}
 	
 	window.tryConnect = function (ip, tcp) {
-		var communicator = new Communicator(); 
+		var communicator = Communicator.getInstance(); 
 		
 		document.body.classList.add("loading");
 		
@@ -531,6 +531,11 @@ var specs = "toolbar=0, location=0, resizable=1, menubar=0, titlebar=0";
 	}
 
 	function onSync() {
+		/*
+		if (Object.keys(deviceData).length > 10) {			
+			return;
+		}
+		*/
 		if (confirmSync()) {
 			sendRequest({
 				command: "push",

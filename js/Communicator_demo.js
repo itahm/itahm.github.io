@@ -1,5 +1,5 @@
 ;"use strict";
-
+console.log("updated");
 var demoData = {
 		icon: {},
 		profile: {
@@ -75,7 +75,17 @@ function processRequest(data) {
 		return demoData.snmp;
 	}
 	else if (c === "query") {
-		return demoData.responseTime;
+		if (data.database != "responseTime") {
+			if (data.summary) {
+				alert("선택한 리소스는 데모를 제공하지 않습니다.");
+			}
+			
+			return {};
+		}
+		if (data.summary) {
+			return demoData.responseTime;
+		}
+		else return {};
 	}
 	else if (c === "echo") {
 		return {};
@@ -83,4 +93,15 @@ function processRequest(data) {
 	else if (c === "signin") {
 		return {};
 	}
+}
+
+Communicator.getInstance = function () {
+	return new Communicator();
+};
+
+Communicator.xhr = function () {
+	return {
+		open: function () {},
+		send: function () {}
+	};
 }

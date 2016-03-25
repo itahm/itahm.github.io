@@ -69,3 +69,11 @@ function Communicator() {
 		callbackQ.push(callback);
 	};
 }
+
+Communicator.getInstance = function () {
+	return new Communicator();
+}
+
+Communicator.xhr = function () {
+	return new XMLHttpRequest();
+}

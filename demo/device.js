@@ -142,7 +142,7 @@ demoData.device = {
         }
     },
     "52": {
-        "ip": "",
+        "ip": "172.16.0.30",
         "x": 52.24000000000001,
         "name": "backbone switch",
         "snmp": true,
@@ -157,7 +157,7 @@ demoData.device = {
         }
     },
     "53": {
-        "ip": "",
+        "ip": "10.10.99.8",
         "x": -147.76,
         "name": "backbone switch",
         "snmp": true,
@@ -173,7 +173,7 @@ demoData.device = {
         }
     },
     "57": {
-        "ip": "",
+        "ip": "10.20.20.254",
         "x": -260.48,
         "name": "server farm (A)",
         "snmp": true,
@@ -185,7 +185,7 @@ demoData.device = {
         }
     },
     "58": {
-        "ip": "",
+        "ip": "192.168.254.10",
         "x": -88.92000000000004,
         "name": "server farm (S)",
         "snmp": true,
@@ -198,7 +198,7 @@ demoData.device = {
         }
     },
     "62": {
-        "ip": "",
+        "ip": "172.16.30.200",
         "x": -74.16000000000014,
         "name": "workgroup 1",
         "snmp": true,
@@ -212,7 +212,7 @@ demoData.device = {
         }
     },
     "68": {
-        "ip": "",
+        "ip": "10.6.188.7",
         "x": 202.24,
         "name": "dmz (A)",
         "snmp": true,
@@ -226,7 +226,7 @@ demoData.device = {
         }
     },
     "69": {
-        "ip": "",
+        "ip": "10.50.50.5",
         "x": 280.24,
         "name": "dmz (S)",
         "snmp": true,
@@ -239,7 +239,7 @@ demoData.device = {
         }
     },
     "73": {
-        "ip": "",
+        "ip": "100.3.64.78",
         "x": 2.240000000000009,
         "name": "user (A)",
         "snmp": true,
@@ -254,7 +254,7 @@ demoData.device = {
         }
     },
     "74": {
-        "ip": "",
+        "ip": "1.1.1.1",
         "x": 217.24,
         "snmp": true,
         "name": "user (S)",
@@ -268,7 +268,7 @@ demoData.device = {
         }
     },
     "80": {
-        "ip": "",
+        "ip": "99.99.99.99",
         "x": -147.76,
         "snmp": true,
         "name": "isp KT",
