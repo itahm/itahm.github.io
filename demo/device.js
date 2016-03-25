@@ -25,7 +25,8 @@ demoData.device = {
         "ifEntry": {
         	"73": "eth1",
         	"5": "eth2" 
-        }
+        },
+        "shutdown": true
     },
     "5": {
         "ip": "1.2.3.47",
@@ -65,7 +66,8 @@ demoData.device = {
         "community": "",
         "ifEntry": {
         	"62": "eth0" 
-        }
+        },
+    	"shutdown": true
     },
     "15": {
         "ip": "192.168.100.100",
