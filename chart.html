@@ -327,10 +327,6 @@ function createSvgTextSpan(x, y, text) {
 		drawSummaryGraph(origin, capacity, true);
 	}
 	
-	window.isDetailDrawable = function () {
-		return tpp < 60000;
-	};
-	
 	window.buildData = function (source) {
 		var data = {},
 			tmp;
@@ -349,7 +345,9 @@ function createSvgTextSpan(x, y, text) {
 	};
 	
 	window.drawDetailGraph = function () {
-		parent.drawDetailGraph(start, end);
+		if (tpp < 60000) {
+			parent.drawDetailGraph(start, end);
+		}
 	};
 	
 	window.initChartRect = function () {
@@ -553,7 +551,6 @@ function createSvgTextSpan(x, y, text) {
 			
 			tmp = (value - low) * unit;
 			if (isNaN(tmp)) {
-				console.log(value);
 				throw "!"
 			}
 			
@@ -587,7 +584,7 @@ function createSvgTextSpan(x, y, text) {
 		return result;
 	}
 
-	window.updateChart = function (detail) {console.log(detail);
+	window.updateChart = function (detail) {
 		var data = buildData(detail),
 			result = {};
 		

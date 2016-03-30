@@ -11,6 +11,7 @@ body,
 li,
 select,
 input,
+div,
 span,
 label,
 a,
@@ -23,6 +24,7 @@ svg text {
 li,
 select,
 input,
+div,
 span,
 label,
 a,
@@ -104,29 +106,46 @@ nav {
 	justify-content: space-between;
 }
 
-div.button img {
-	vertical-align: bottom;
-	border: 1px solid transparent;
-}
-
-div.button img:hover {
-	cursor: pointer;
-	border-color: #b4cfec;
-	background-color: #b4cfec;
-}
-
-button.download span {
-	margin-left: 10px;
-}
-
 #loading {
 	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
 	background: #fff url("img/waiting.gif") no-repeat center;
 	opacity: .8;
 }
 
-body:not(.loading) #loading {
+body:not(.loading) #loading,
+body:not(.responsetime) .responsetime,
+body:not(.processor) .processor,
+body:not(.memory) .memory,
+body:not(.storage) .storage,
+body:not(.throughput) .throughput {
 	display: none;
+}
+
+.legend span.legend {
+	display: inline-block;
+	width: 16px; height: 16px;
+}
+
+.legend span.ifInOctets {
+	background-color: #7d7;
+}
+
+.legend span.ifOutOctets {
+	background-color: #ffb347;
+}
+
+#status {
+	font-weight: bold;
+	color: #0f0;
+}
+
+#status:not(.shutdown):after {
+	content: "up";
+}
+
+#status.shutdown:after {
+	color: #f00;
+	content: "down";
 }
 
 /* svg */
@@ -238,7 +257,7 @@ option[value="ifInOctets"] {
 					<span id="profile">profile</span>
 				</li>
 				<li>
-					<span id="status">status</span>
+					<span id="status"></span>
 				</li>
 				<li>
 					<span id="uptime">uptime</span>
@@ -281,8 +300,17 @@ option[value="ifInOctets"] {
 				<option>avg
 				<option>min
 			</select>
-			<div class="button">
-				<img src="img/save.png" id="save" style="display: none;">
+			<div class="legend">
+				<div class="memory">
+					<span id="memory">memory</span>
+				</div>
+				<div class="throughput">
+					<span id="bandwidth">bandwidth</span>
+					<span class="ifInOctets legend"></span>
+					<span>in</span>
+					<span class="ifOutOctets legend"></span>
+					<span>out</span>
+				</div>
 			</div>
 		</nav>
 		
@@ -301,7 +329,8 @@ option[value="ifInOctets"] {
 // 공통
 var svgNS = "http://www.w3.org/2000/svg",
 	xlinkNS = "http://www.w3.org/1999/xlink",
-	RESPONSE_TIMEOUT = 3000;
+	// agent timeout 값과 맞춰줘야함.
+	RESPONSE_TIMEOUT = 5000;
 
 // 공통
 (function (window, undefined) {
@@ -354,7 +383,11 @@ var svgNS = "http://www.w3.org/2000/svg",
 		type.textContent = device.type;
 		label.textContent = device.label && (device.label.split(",")).join(", ") || "";
 		profile.textContent = device.profile;
-		status.textContent = snmp.timeout < 0? "up": "down";console.log(snmp.hrSystemUptime, new Date(snmp.hrSystemUptime));
+		//status.textContent = snmp.shutdown? "down": "up";
+		if (device.shutdown) {
+			status.className = "shutdown";
+		}
+		//status.className = snmp.shutdown? "down": "up";
 		uptime.textContent = ITAhM.util.toUptimeString(snmp.hrSystemUptime);
 		enterprise.textContent = ITAhM.util.enterpriseFromOID(snmp.sysObjectID);
 		
@@ -438,6 +471,8 @@ var svgNS = "http://www.w3.org/2000/svg",
 	}
 	
 	function onSelectResponseTime() {
+		document.body.className = "responsetime";
+		
 		summary = true;
 		
 		getSummaryData("responseTime", 0, onResponse);
@@ -515,6 +550,8 @@ var svgNS = "http://www.w3.org/2000/svg",
 	}
 	
 	function onSelectProcessorLoad() {
+		document.body.className = "processor";
+		
 		summary = true;
 		
 		indexPos = 0;
@@ -603,6 +640,8 @@ var svgNS = "http://www.w3.org/2000/svg",
 	}
 	
 	function onSelectStorageUsage() {
+		document.body.className = "storage";
+		
 		summary = true;
 		
 		indexPos = 0;
@@ -710,6 +749,8 @@ var svgNS = "http://www.w3.org/2000/svg",
 	}
 	
 	function onSelectMemoryUsage() {
+		document.body.className = "memory";
+		
 		summary = true;
 		
 		indexPos = 0;
@@ -731,6 +772,8 @@ var svgNS = "http://www.w3.org/2000/svg",
 		indexArray[0] = index;
 		
 		capacity = m.hrStorageSize * m.hrStorageAllocationUnits;
+
+		document.getElementById("memory").textContent = ITAhM.util.toBytesString(capacity);
 	};
 	
 	initialize();
@@ -741,7 +784,9 @@ var svgNS = "http://www.w3.org/2000/svg",
 (function (window, undefined) {
 	
 	var summary, start, end,
+		ifEntry,
 		list = document.getElementById("select_iface"),
+		bandwidth = document.getElementById("bandwidth"),
 		databaseArray = [], indexPos,
 		origin = {}, detail = {};
 	
@@ -800,9 +845,14 @@ var svgNS = "http://www.w3.org/2000/svg",
 	}
 	
 	function onSelectThroughput() {
+		document.body.className = "throughput";
+		
 		summary = true;
 		
 		indexPos = 0;
+		
+		// bandwidth set
+		bandwidth.textContent = ITAhM.util.toBPSString(ifEntry[list.value].ifSpeed);
 		
 		tryRequest();
 	};
@@ -823,11 +873,16 @@ var svgNS = "http://www.w3.org/2000/svg",
 	};
 	
 	window.initThroughput = function (snmp) {
-		var entry = snmp.ifEntry,
-			t;
+		var t;
+		
+		ifEntry = snmp.ifEntry;
 		
 		for (index in snmp.ifIndex) {
-			t = entry[index];
+			t = ifEntry[index];
+			
+			if (t.ifSpeed === 0) {
+				continue;
+			}
 			
 			option = document.createElement("option");
 			option.value = index;

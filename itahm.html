@@ -129,7 +129,7 @@ ul.inline {
 }
 
 #document {
-	position: absolute; top: 20px; right: 0; bottom: 0; left: 0;
+	position: absolute; top: 0; right: 0; bottom: 0; left: 0;
 	width: 100%; height: 100%;
 	border: none;
 	padding: 0;
@@ -218,7 +218,7 @@ body:not(.dialog) #dialog {
 				<ul>
 					<li class="authorized"><a id="start">ITAhM</a>
 					<li><a id="help">help</a>
-					<li><a href="https://dl.dropbox.com/s/yzwgqqprlbwmall/ITAhM.1.1.3.1.jar" download="ITAhM.1.1.3.1.jar">download</a>
+					<li><a href="https://dl.dropbox.com/s/etcpzg7gftjcskl/ITAhM.1.0.2.jar" download="ITAhM.1.0.2.jar">download</a>
 					<li class="authorized"><a id="shutdown" title="shutdown agent service">shutdown</a>
 				</ul>
 			</nav>
@@ -279,7 +279,6 @@ body:not(.dialog) #dialog {
 		
 		<section id="popup">
 			<div>
-				<img id="close_popup" src="img/close.png" title="close">
 				<iframe id="document" src="about:blank"></iframe>
 			</div>
 		</section>
@@ -304,16 +303,11 @@ var specs = "toolbar=0, location=0, resizable=1, menubar=0, titlebar=0";
 		document.getElementById("shutdown").onclick = shutDown;
 		
 		document.getElementById("help").onclick = function () {
-			document.body.classList.add("popup");
+			openDocument("help.html");
 			
-			doc.src="help.html";
 		};
 		
-		document.getElementById("close_popup").onclick = function () {
-			document.body.classList.remove("popup");
-			
-			doc.src="about:black";
-		};
+		document.getElementById("popup").onclick = closeDocument;
 	}
 	
 	function shutDown() {
@@ -324,6 +318,18 @@ var specs = "toolbar=0, location=0, resizable=1, menubar=0, titlebar=0";
 				location.href = location.href.replace(location.search, "");
 			});
 		}
+	}
+	
+	function openDocument(url) {
+		document.body.classList.add("popup");
+		
+		doc.src=url;
+	}
+	
+	function closeDocument() {
+		document.body.classList.remove("popup");
+		
+		doc.src="about:black";
 	}
 	
 	window.getMapData = function () {

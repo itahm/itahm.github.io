@@ -1,5 +1,5 @@
 ;"use strict";
-console.log("updated");
+
 var demoData = {
 		icon: {},
 		profile: {

@@ -244,7 +244,7 @@ function format(milliseconds) {
 		this.invalidate();
 	}
 	
-	RealTimeManager.prototype.setDate = function () {console.log(this, this.chart);
+	RealTimeManager.prototype.setDate = function () {
 		var date = new Date(),
 			end = date.getTime(),
 			start = end - this.tpp * this.chart.graphArea.width;

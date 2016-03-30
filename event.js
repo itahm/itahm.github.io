@@ -1,5 +1,7 @@
 ; "use strict" ;
 
+self.importScripts("js/Communicator.js");
+
 (function (window, undefined) {
 	
 	var xhr,
