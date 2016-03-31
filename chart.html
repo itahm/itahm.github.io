@@ -7,6 +7,8 @@
 		<title>ITAhM</title>
 		
 		<style>
+@import url(css/calendar.css);
+
 body,
 text {
 	font-family: arial, tahoma, "맑은 고딕";
@@ -14,6 +16,29 @@ text {
 }
 
 body {
+}
+
+#cal_box {
+	text-align: right;
+	position: absolute; bottom: 0;
+}
+
+#cal_box.start  {
+	left: 0;
+}
+
+#cal_box.end  {
+	right: 0;
+}
+
+#cal_box:not(.show) {
+	display: none;
+}
+
+.calendar {
+	background-color: #fff;
+	border: 1px solid #0084ff;
+	padding: 3px;
 }
 
 svg {
@@ -147,16 +172,26 @@ nav input[type="checkbox"]:checked ~img.lock {
 		</svg>
 		
 		<nav>
-			<label>
-				<input type="checkbox" id="fix_start" checked>
-				<img src="img/unlock.png">
-				<img src="img/lock_gray.png" class="lock">
-			</label>
-			<label>
-				<input type="checkbox" id="fix_end" checked>
-				<img src="img/unlock.png">
-				<img src="img/lock_gray.png" class="lock">
-			</label>
+			<div>
+				<div id="cal_box">
+					<img id="cal_close" src="img/close.png">
+					<div id="calendar" class="calendar"></div>
+				</div>
+				<img id="cal_start" src="img/calendar.png" title="show date picker">
+				<label>
+					<input type="checkbox" id="fix_start" checked>
+					<img src="img/unlock.png">
+					<img src="img/lock_gray.png" class="lock">
+				</label>
+			</div>
+			<div>
+				<img id="cal_end" src="img/calendar.png" title="show date picker">
+				<label>
+					<input type="checkbox" id="fix_end" checked>
+					<img src="img/unlock.png">
+					<img src="img/lock_gray.png" class="lock">
+				</label>
+			</div>
 		</nav>
 		<script src="js/ITAhM.js"></script>
 		<script src="js/object.js"></script>
@@ -210,6 +245,8 @@ function createSvgTextSpan(x, y, text) {
 	var chart = document.getElementById("chart"),
 		fixStart = document.getElementById("fix_start"),
 		fixEnd = document.getElementById("fix_end"),
+		calendar = document.getElementById("cal_box"),
+		initialized = false,
 		origin, mode, capacity;
 		
 	var rect = {},
@@ -218,12 +255,14 @@ function createSvgTextSpan(x, y, text) {
 		data;
 	
 	function initialize() {
-		var date = new Date();
+		initialized = true;
 		
-		start = date.setHours(0, 0, 0, 0);
-		end = date.setDate(date.getDate() +1);
+		var r = chart.getBoundingClientRect();
 		
-		writeDateLabel(start, end);
+		rect = {
+			width: r.width - MARGIN *2,
+			height: r.height - MARGIN *2 - DATE_AXIS_HEIGHT
+		};
 		
 		window.addEventListener("resize", function () {
 			if (resizeTimer) {
@@ -250,6 +289,52 @@ function createSvgTextSpan(x, y, text) {
 		chart.addEventListener("dragend", function (e) {
 			drawDetailGraph();
 		});
+		
+		document.getElementById("cal_start").onclick = function () {
+			calendar.className = "show start";
+		};
+		
+		document.getElementById("cal_end").onclick = function () {
+			calendar.className = "show end";
+		};
+		
+		document.getElementById("cal_close").onclick = function () {
+			calendar.className = "";
+		};
+		
+		new ITAhM.Calendar("calendar", function (date) {
+			var mills = date.getTime();
+			
+			if (calendar.classList.contains("start")) {
+				if (mills >= end) {
+					alert("retry!");
+					
+					return;
+				}
+				
+				start = mills;
+			}
+			else if (calendar.classList.contains("end")) {
+				if (mills <= start) {
+					alert("retry!");
+					
+					return;
+				}
+				
+				end = mills;
+			}
+			else {
+				return;
+			}
+			
+			tpp = (end - start) / rect.width;
+			
+			writeDateLabel(start, end);
+			
+			drawSummaryGraph(origin, capacity);
+			
+			calendar.className = "";
+		});
 	}
 	
 	function onResize() {
@@ -274,9 +359,7 @@ function createSvgTextSpan(x, y, text) {
 		
 		drawGrid();
 		
-		if (origin) {
-			drawSummaryGraph(origin, capacity);
-		}
+		drawSummaryGraph(origin, capacity);
 	}
 	
 	function invalidate() {
@@ -288,10 +371,6 @@ function createSvgTextSpan(x, y, text) {
 	}
 	
 	function onDragMove(e) {
-		if (!origin) {
-			return;
-		}
-		
 		var drag = tpp * e.detail.dragX,
 			move = Math.abs(moved - drag),
 			direction = moved > drag? -1: 1,
@@ -350,17 +429,6 @@ function createSvgTextSpan(x, y, text) {
 		}
 	};
 	
-	window.initChartRect = function () {
-		var r = chart.getBoundingClientRect();
-		
-		rect = {
-			width: r.width - MARGIN *2,
-			height: r.height - MARGIN *2 - DATE_AXIS_HEIGHT
-		};
-		
-		drawGrid();
-	};
-	
 	window.getCoordinates = function (source, date, index) {
 		var y = source[index].get(date);
 		
@@ -380,6 +448,10 @@ function createSvgTextSpan(x, y, text) {
 		var date = new Date(),
 			tmp;
 		
+		if (!initialized) {
+			initialize();
+		}
+		
 		origin = o;
 		mode = m;
 		capacity = c;
@@ -391,6 +463,8 @@ function createSvgTextSpan(x, y, text) {
 		
 		tpp = (end - start) / rect.width;
 		
+		drawGrid();
+		
 		writeDateLabel(start, end);
 		
 		drawSummaryGraph(origin, capacity);
@@ -401,7 +475,7 @@ function createSvgTextSpan(x, y, text) {
 		
 		drawSummaryGraph(origin, capacity);
 	};
-	
+	/*
 	window.initialize = function () {
 		var r = chart.getBoundingClientRect();
 		
@@ -414,7 +488,7 @@ function createSvgTextSpan(x, y, text) {
 		
 		initialize();
 	};
-	
+	*/
 }) (window);
 
 // axis
