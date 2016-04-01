@@ -113,24 +113,24 @@ nav {
 }
 
 body:not(.loading) #loading,
-body:not(.responsetime) .responsetime,
-body:not(.processor) .processor,
-body:not(.memory) .memory,
-body:not(.storage) .storage,
-body:not(.throughput) .throughput {
+#legend:not(.responsetime) .responsetime,
+#legend:not(.processor) .processor,
+#legend:not(.memory) .memory,
+#legend:not(.storage) .storage,
+#legend:not(.throughput) .throughput {
 	display: none;
 }
 
-.legend span.legend {
+#legend span.legend {
 	display: inline-block;
 	width: 16px; height: 16px;
 }
 
-.legend span.ifInOctets {
+#legend span.ifInOctets {
 	background-color: #7d7;
 }
 
-.legend span.ifOutOctets {
+#legend span.ifOutOctets {
 	background-color: #ffb347;
 }
 
@@ -188,11 +188,6 @@ section.chart {
 	text-anchor: end;
 }
 
-body:not(.start) #start_date,
-body:not(.end) #end_date {
-	fill: #aaa;
-}
-
 body.start #start_fixed,
 body.end #end_fixed,
 body:not(.start) #start_move,
@@ -207,7 +202,7 @@ option[value="ifInOctets"] {
 		
 	</head>
 	
-	<body class="start end loading avg">
+	<body>
 		
 		<header>
 			<img src="img/close.png" id="close">
@@ -300,7 +295,7 @@ option[value="ifInOctets"] {
 				<option>avg
 				<option>min
 			</select>
-			<div class="legend">
+			<div id="legend">
 				<div class="memory">
 					<span id="memory">memory</span>
 				</div>
@@ -396,8 +391,6 @@ var svgNS = "http://www.w3.org/2000/svg",
 		initThroughput(snmp);
 		
 		chart.onload = function () {
-			//chart.contentWindow.initialize();
-			
 			document.body.classList.remove("loading");
 		}
 		
@@ -433,7 +426,8 @@ var svgNS = "http://www.w3.org/2000/svg",
 // response time
 (function (window, undefined) {
 	
-	var summary, start, end;
+	var legend = document.getElementById("legend"),
+		summary, start, end;
 	
 	function initialize() {
 		document.getElementById("select_response").onchange = function () {
@@ -471,7 +465,7 @@ var svgNS = "http://www.w3.org/2000/svg",
 	}
 	
 	function onSelectResponseTime() {
-		document.body.className = "responsetime";
+		legend.className = "responsetime";
 		
 		summary = true;
 		
@@ -493,7 +487,8 @@ var svgNS = "http://www.w3.org/2000/svg",
 // processor
 (function (window, undefined) {
 	
-	var summary, start, end,
+	var legend = document.getElementById("legend"),
+		summary, start, end,
 		indexArray = [], indexPos,
 		origin = {}, detail = {};
 	
@@ -550,7 +545,7 @@ var svgNS = "http://www.w3.org/2000/svg",
 	}
 	
 	function onSelectProcessorLoad() {
-		document.body.className = "processor";
+		legend.className = "processor";
 		
 		summary = true;
 		
@@ -582,7 +577,8 @@ var svgNS = "http://www.w3.org/2000/svg",
 // storage
 (function (window, undefined) {
 	
-	var summary, start, end,
+	var legend = document.getElementById("legend"),
+		summary, start, end,
 		indexArray = [], indexPos,
 		origin = {}, detail = {},
 		capacity;
@@ -640,7 +636,7 @@ var svgNS = "http://www.w3.org/2000/svg",
 	}
 	
 	function onSelectStorageUsage() {
-		document.body.className = "storage";
+		legend.className = "storage";
 		
 		summary = true;
 		
@@ -691,7 +687,8 @@ var svgNS = "http://www.w3.org/2000/svg",
 // memory
 (function (window, undefined) {
 	
-	var summary, start, end,
+	var legend = document.getElementById("legend"),
+		summary, start, end,
 		indexArray = [], indexPos,	
 		origin = {}, detail = {},
 		capacity;
@@ -749,7 +746,7 @@ var svgNS = "http://www.w3.org/2000/svg",
 	}
 	
 	function onSelectMemoryUsage() {
-		document.body.className = "memory";
+		legend.className = "memory";
 		
 		summary = true;
 		
@@ -783,7 +780,8 @@ var svgNS = "http://www.w3.org/2000/svg",
 // throughput
 (function (window, undefined) {
 	
-	var summary, start, end,
+	var legend = document.getElementById("legend"),
+		summary, start, end,
 		ifEntry,
 		list = document.getElementById("select_iface"),
 		bandwidth = document.getElementById("bandwidth"),
@@ -845,7 +843,7 @@ var svgNS = "http://www.w3.org/2000/svg",
 	}
 	
 	function onSelectThroughput() {
-		document.body.className = "throughput";
+		legend.className = "throughput";
 		
 		summary = true;
 		

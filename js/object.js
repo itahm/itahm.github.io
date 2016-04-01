@@ -269,7 +269,7 @@ var ITAhM = ITAhM || {};
 				ul = document.createElement("ul");
 				
 				for (var j=0; j<7; j++) {
-					ul.appendChild(document.createElement("li")).textContent = 1;
+					ul.appendChild(document.createElement("li"));
 				}
 				
 				this.body.appendChild(ul);
@@ -292,7 +292,7 @@ var ITAhM = ITAhM || {};
 		set: function (date) {
 			var year = date.getFullYear(),
 				month = date.getMonth(),
-				dateArray = Array(6*7).fill(0),
+				dateArray = new Array(6*7).fill(0),
 				index, lastDate;
 			
 			date.setDate(1);

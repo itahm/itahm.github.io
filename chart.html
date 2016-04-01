@@ -148,6 +148,19 @@ nav {
 	justify-content: space-between;
 }
 
+nav img {
+	background-color: #fff;
+}
+
+nav label {
+	position:relative;
+}
+
+nav input[type="checkbox"] {
+	position:absolute;
+	visibility: hidden;
+}
+	
 nav input[type="checkbox"]:not(:checked) ~img:not(.lock),
 nav input[type="checkbox"]:checked ~img.lock {
 	display: none;
@@ -177,12 +190,12 @@ nav input[type="checkbox"]:checked ~img.lock {
 					<img id="cal_close" src="img/close.png">
 					<div id="calendar" class="calendar"></div>
 				</div>
-				<img id="cal_start" src="img/calendar.png" title="show date picker">
-				<label>
+				<label style="">
 					<input type="checkbox" id="fix_start" checked>
 					<img src="img/unlock.png">
 					<img src="img/lock_gray.png" class="lock">
 				</label>
+				<img id="cal_start" src="img/calendar.png" title="show date picker">
 			</div>
 			<div>
 				<img id="cal_end" src="img/calendar.png" title="show date picker">
@@ -307,7 +320,7 @@ function createSvgTextSpan(x, y, text) {
 			
 			if (calendar.classList.contains("start")) {
 				if (mills >= end) {
-					alert("retry!");
+					alert("invalid date range.");
 					
 					return;
 				}
