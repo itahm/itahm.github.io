@@ -64,6 +64,25 @@ nav img {
 	cursor: pointer;
 }
 
+#history {
+	position: fixed; right: 0; bottom: 0;
+	text-align: right;
+}
+
+#history p {
+	cursor: default;
+	padding-left: 20px;
+}
+
+#history p:hover {
+	background: transparent url(img/check.png) no-repeat 0 center;
+}
+
+#history span {
+	margin: 5px 10px;
+	color: #f00;
+}
+
 body:not(.address) tspan:last-child,
 body:not(.name) tspan:first-child,
 body:not(.list) #hide_list {
@@ -214,9 +233,7 @@ body:not(.ifname) #line text {
 			<label title="show ip address"><input type="radio" name="option" id="option_addr">ip address</label>
 		</nav>
 		
-		<div>
-			
-		</div>
+		<div id="history"></div>
 		
 		<iframe id="dialog" class="fullscreen"></iframe>
 		
@@ -960,7 +977,8 @@ var svgNS = "http://www.w3.org/2000/svg",
 //data
 (function (window, undefined) {
 	
-	var deviceData, iconData, mapData;
+	var history = document.getElementById("history"),
+		deviceData, iconData, mapData;
 	
 	function initialize() {
 		var thread = new Worker("event.js"),
@@ -987,15 +1005,32 @@ var svgNS = "http://www.w3.org/2000/svg",
 	}
 	
 	function onEvent(e) {
-		var event = e.data;
+		var event = e.data,
+			device = deviceData[event.id],
+			log = document.createElement("p");
+		
+		log.appendChild(document.createElement("span")).textContent = new Date().toLocaleString();
+		log.appendChild(document.createElement("span")).textContent = device.name +"("+ device.ip +")";
+		
+		log.onclick = function () {
+			this.parentNode.removeChild(this);
+		}
 		
 		if ("shutdown" in event) {
-			var device = deviceData[event.id];
+			log.appendChild(document.createElement("span")).textContent = event.shutdown? "down": "up";
 			
 			device.shutdown = event.shutdown;
 			
 			setAlert(device);
 		}
+		else if ("ifAdminStatus" in event) {
+			log.appendChild(document.createElement("span")).textContent = event.ifAdminStatus;
+		}
+		else {
+			return;
+		}
+		
+		history.appendChild(log);
 	}
 	
 	window.createDevice = function (data) {
