@@ -5,11 +5,11 @@
 		<title>dialog</title>
 		
 		<style>
-body, td, input, h2 {
+body, input, h2, li, select {
 	font-family: tahoma, arial, "맑은 고딕";
 }
 
-body, td, input {
+body, input, li, select {
 	font-size: 14px;
 }
 
@@ -25,12 +25,19 @@ body {
 }
 
 .dialog {
+	width: 300px;
 	padding: 20px;
 	background-color: #fff;
 	box-shadow: 0px 0px 20px 10px #ddd;
 }
 
-input {
+input[type="text"],
+input[type="password"],
+input[type="submit"],
+input[type="reset"],
+select {
+	width: 100%;
+	box-sizing: border-box;
 	padding: .5em;
 }
 
@@ -38,8 +45,25 @@ input[type="checkbox"] {
 	vertical-align: middle;
 }
 
-table {
-	margin-bottom: 5px;
+.table {
+	margin-bottom: 10px;
+}
+
+.table ul {
+	display: flex;
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+
+.table li:first-child {
+	text-align: right;
+	padding: .5em;
+	flex: 2;
+}
+
+.table li:last-child {
+	flex: 3;
 }
 
 footer{
@@ -59,36 +83,39 @@ footer input {
 		<div class="dialog">
 			<form autocomplete="off">
 				<h2>account</h2>
-				<table>
-					<tbody>
-						<tr>
-							<td>username</td>
-							<td>
-								<input type="text" name="username" class="table text" required>
-							</td>
-						</tr>
-						<tr>
-							<td>password</td>
-							<td>
-								<input type="password" name="password"
-									class="table text"
-									placeholder="new password"
-									pattern="[a-zA-Z0-9]{6,}"
-									title="at least 6 alphanumeric characters"
-									required>
-							</td>
-						</tr>
-						<tr>
-							<td>confirm password</td>
-							<td>
-								<input type="password" name="password2"
-									class="table text"
-									placeholder="confirm password"
-									required>
-							</td>
-						</tr>
-					</tbody>
-				</table>
+				<div class="table">
+					<ul>
+						<li>username
+						<li>
+							<input type="text" name="username" class="table text" required>
+					</ul>
+					<ul>
+						<li>password
+						<li>
+							<input type="password" name="password"
+								class="table text"
+								placeholder="new password"
+								pattern="[a-zA-Z0-9]{6,}"
+								title="at least 6 alphanumeric characters"
+								required>
+					</ul>
+					<ul>
+						<li>confirm password
+						<li>
+							<input type="password" name="password2"
+								class="table text"
+								placeholder="confirm password"
+								required>
+					</ul>
+					<ul>
+						<li>level
+						<li>
+							<select name="level">
+								<option value="0">root
+								<option value="2" selected>user
+							</select>
+					</ul>
+				</div>
 				<label><input type="checkbox" name="remove">remove</label>
 				<footer>
 					<input type="reset" value="cancel">
@@ -131,7 +158,8 @@ if (top === window) {
 		if (password === password2) {
 			top.setAccount(username, {
 				username: username,
-				password: password
+				password: password,
+				level: form.elements.level.value
 			});
 			
 			top.closeDialog();
@@ -159,6 +187,7 @@ if (top === window) {
 		if (username) {
 			form.elements.username.value = username,
 			form.elements.password.value = account.password;
+			form.elements.level.value = account.level;
 		}
 		
 		initialize();

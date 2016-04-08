@@ -219,6 +219,7 @@ body:not(.dialog) #dialog {
 			<nav class="fixed_width">
 				<ul>
 					<li class="authorized"><a id="start">ITAhM</a>
+					<li class="authorized"><a id="signout">sign out</a>
 					<li><a id="help">help</a>
 					<li><a href="https://dl.dropbox.com/s/j742q6zk26yfd93/ITAhM.1.0.2.1.jar" download="ITAhM.1.0.2.1.jar">download</a>
 					<li class="authorized"><a id="shutdown" title="shutdown agent service">shutdown</a>
@@ -240,8 +241,8 @@ body:not(.dialog) #dialog {
 				<h3 class="agent"><span id="agent"></span><button id="disconnect">disconnect</button></h3>
 				
 				<form id="signin">
-					<input type="text" name="username" value="root" placeholder="username">
-					<input type="password" name="password" value="root" placeholder="password">
+					<input type="text" name="username" placeholder="username" autofocus>
+					<input type="password" name="password" placeholder="password">
 					<input type="submit" value="sign in">
 				</form>
 				
@@ -313,7 +314,7 @@ var specs = "toolbar=0, location=0, resizable=1, menubar=0, titlebar=0";
 	}
 	
 	function shutDown() {
-		if (confirm("are you sure you want shutdown agent?")) {
+		if (confirm("are you sure you want to shutdown agent?")) {
 			sendRequest({
 				command: "shutdown"
 			}, function (data, status) {
@@ -420,7 +421,7 @@ var specs = "toolbar=0, location=0, resizable=1, menubar=0, titlebar=0";
 			
 			setAgent(ip +" : "+ tcp);
 			
-			onAuthorized();
+			onAuthorized(data.level);
 		}
 		else {
 			alert("can not connect to server");
@@ -476,6 +477,8 @@ var specs = "toolbar=0, location=0, resizable=1, menubar=0, titlebar=0";
 	
 	function initEvent() {
 		form.addEventListener("submit", onSignin, false);
+		
+		document.getElementById("signout").onclick = onSignout;
 	}
 	
 	function onSignin(e) {
@@ -485,11 +488,11 @@ var specs = "toolbar=0, location=0, resizable=1, menubar=0, titlebar=0";
 			command: "signin",
 			username: form.elements["username"].value,
 			password: form.elements["password"].value
-		}, function (data) {
+		}, function (data, status) {
 			document.body.classList.remove("loading");
 			
 			if (data) {
-				onAuthorized();
+				onAuthorized(data.level);
 			}
 			else {
 				alert("Incorrect username or password");
@@ -501,11 +504,21 @@ var specs = "toolbar=0, location=0, resizable=1, menubar=0, titlebar=0";
 		document.body.classList.add("loading");
 	}
 	
+	function onSignout(e) {
+		sendRequest({command: "signout"}, function (data, status) {console.log("!");
+			//closeITAhM();
+			
+			location.reload();
+		});
+	}
+	
 	window.setAgent = function (agent) {
 		agentElement.textContent = agent;
 	};
 	
-	window.onAuthorized = function () {
+	window.onAuthorized = function (level) {
+		window.level = level;
+		
 		document.title = "ITAhM("+ agentElement.textContent +")";
 		
 		document.body.classList.add("authorized");
@@ -970,7 +983,12 @@ var query = new ITAhM.QueryParser(),
 	tcp = query.get("tcp");
 
 function confirmSync() {
-	return confirm("reload ITAhM after synchronization.\n\ncontinue?");
+	if (level !== 0) {
+		alert("no permission");
+	}
+	else {
+		return confirm("reload ITAhM after synchronization.\n\ncontinue?");
+	}
 }
 
 if (ip && tcp) {
