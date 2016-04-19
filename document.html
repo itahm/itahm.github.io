@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<title>ITAhM</title>
+		<meta charset="UTF-8">
+		<style>
+body {
+	background-color: #fff;
+	padding: 20px;
+}
+
+body, h1, h2, h3, p, li {
+	font-family: tahoma, arial, "맑은 고딕";
+}
+
+h1, h2, h3 {
+	color: #0084ff;
+}
+
+li,
+p {
+	font-size: 15px;
+}
+
+li p {
+	font-size: 13px;
+}
+
+li {
+	margin: 5px;
+}
+
+li img {
+	vertical-align: middle;
+}
+
+		</style>
+		
+	</head>
+
+	<body>
+		<h1>ITAhM</h1>
+		<p>ITAhM은 Infrastructure Topology Administration Module (기업 IT 시스템 토폴로지 관리 모듈)의
+			약어이며, high performance를 의미 하는 h가 더해진 서비스의 이름 입니다.
+			한글로는 "아이탐" 입니다.</p>
+		<p>향후 확장 가능한 더 큰 프로젝트의 일부 Module로써 개발되었습니다.</p>
+		
+		<h3>구성</h3>
+		<ul>
+			<li>에이전트: 자바 응용프로그램으로 다음과 같이 구성되어 있습니다.
+				<ul>
+					<li>snmp 서비스
+					<li>database
+					<li>http 서버
+				</ul>
+				<p>에이전트는 하나 이상 설치할 수 있으며 이렇게 함으로써 복수개의 그룹을 만들 수 있습니다.</p>
+			<li>사용자 인터페이스: 웹브라우저
+				<p>http://itahm.com</p>
+		</ul>
+		
+		<h3>특징</h3>
+		<ul>
+			<li>High Performance(고성능)
+				<p>불과 500KBytes 크기의 자바 응용프로그램으로,	일반 개인용 desktop 수준으로 충분히 많은 수의 장치들을 관리할 수 있습니다.</p>
+			<li>UX(User Experience)
+				<p>사용자의 최소 조작으로 모든 기능을 사용할 수 있도록 사용자 경험이 최대한 반영되어 있습니다.</p>
+			<li>Compact(최적화)
+				<p>에이전트에는 직접 개발한 웹서버, 데이터베이스, snmp서비스를 모두 포함되어 있으며,<br>
+					각 서비스들은 에이전트를 구성하는 기능만을 포함하고 있어 매우 정밀하고 최적화 되어 있습니다.</p>
+			<li>technologies(기술)
+				<p>직접 개발한 에이전트 서비스 이외에 html5 표준을 따르는 고성능의 graphic 라이브러리등 앞선 기술을 보유하고 적용하고 있습니다.</p>
+		</ul>
+		
+		<h3>기술</h3>
+		<p>아래 나열하는 모든 기술들은 기존 엔터프라이즈 솔루션이 가지고 있지 않은 기술들입니다.</p>
+		<ul>
+			<li>확장성
+				<p>에이전트는 java 응용프로그램으로 자바를 지원하는 windows나 linux등 모든 os에 설치 가능 합니다.</p>
+				<p>Uer Interface는 웹브라우저를 통해 구현하였고 Internet Explorer, google Chrome, Firefox, Opera등 모든 브라우저에 동작합니다.</p>
+			<li>통신
+				<p>웹브라우저와 웹서버 그리고 3rd party 서비스간 json(JavaScript Object Notation) 통신 기술을 보유하고 있습니다.</p>
+			<li>그래픽
+				<p>Topology는 브라우저의 성능에 비례하여 거의 무한히 많은 장치들을 그려낼 수 있고 확대/축소 이동의 딜레이를 느끼지 못할만큼 빠릅니다.
+				<p>Chart는 1년 이상 요약 데이터를 드래그에 의해 간편하게 조회 할 수 있으며 1분단위 세부정보와 실시간 모니터링을 제공합니다. 
+			<li>모바일
+				<p>에이전트에서 발생하는 알림을 모바일 앱으로 수신하도록 하여 기존 sms를 대체합니다.</p>
+		</ul>
+		
+		<h3>장점(요약)</h3>
+		<ul>
+			<li>비용
+				<p>한시적으로 무료로 제공하고 있습니다.</p>
+				<p>알림에 사용되는 sms문자 비용을 절감할 수 있습니다.</p>
+			<li>성능
+				<p>에이전트 서버는 저사양 서버 또는 데스크탑에서 충분히 가동할 수 있을 만큼 자원대비 성능이 탁월하며<br>
+					여러대의 서버를 병렬로 구성하여 그룹화 할수도 있습니다.</p>
+			<li>기능과 편의(UX)
+				<p>기존 엔터프라이즈 솔루션이 제공하는 거의 모든 기능을 편리하고 최적화하여 서비스 합니다.</p> 
+		</ul>
+
+		<p>에이전트를 직접 다운로드하고 테스트하고자 하는 경우 아래 링크를 참조해 주십시오.</p>
+		<a href="http://itahm.com">http://itahm.com</a>
+		<p>아이탐이 Topology를 어떻게 그리고 Chart를 어떻게 표현하는지 살펴보고자 하는 경우 아래 링크를 참조해 주십시오.<br>
+			데모화면은 가상의 데이터로 표현되므로 일부 불완전한 출력이 있을 수 있습니다.<br>
+			에이전트를 설치하고 서비스를 사용하는 과정은 링크의 우측 상단 help를 제공하고 있습니다.</p>
+		<a href="http://itahm.com/demo.html">http://itahm.com/demo.html</a>
+		<p>문의사항은 itahm2014@gamil.com 으로 보내주십시오. 감사합니다.</p>
+	</body>
+	
+</html>
+

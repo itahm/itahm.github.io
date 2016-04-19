@@ -448,7 +448,7 @@ var specs = "toolbar=0, location=0, resizable=1, menubar=0, titlebar=0";
 		}
 		
 		communicator.connect(ip, tcp);
-		
+		console.log("!");
 		communicator.send({
 			command: "echo"
 		}, onEcho);
@@ -489,7 +489,7 @@ var specs = "toolbar=0, location=0, resizable=1, menubar=0, titlebar=0";
 			password: form.elements["password"].value
 		}, function (data, status) {
 			document.body.classList.remove("loading");
-			
+			console.log(data, status)
 			if (data) {
 				onAuthorized(data.level);
 			}
