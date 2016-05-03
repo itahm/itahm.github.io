@@ -225,6 +225,7 @@ body:not(.ifname) #line text {
 		</aside>
 		
 		<nav>
+			<img src="img/synchronize.png" width="16px" height="16px" title="synchronize device data" id="device_sync">
 			<img src="img/add_device.png" width="16px" height="16px" title="add new device" id="add_device">
 			<img src="img/zoomin.png" width="16px" height="16px" title="zoom in" id="zoom_in">
 			<img src="img/zoomout.png" width="16px" height="16px" title="zoom out" id="zoom_out">
@@ -291,11 +292,38 @@ var svgNS = "http://www.w3.org/2000/svg",
 			document.body.classList.toggle("name");
 			document.body.classList.toggle("address");
 		};
+		
+		document.getElementById("device_sync").onclick = onSync;
+		
 		document.getElementById("add_device").onclick = onAddDevice;
 		
 		document.getElementById("option_interface").onchange = function () {
 			document.body.classList[this.checked? "add": "remove"]("ifname");
 		};
+	}
+	
+	function onSync() {
+		/*
+		if (Object.keys(deviceData).length > 10) {			
+			return;
+		}
+		*/
+		if (confirmSync()) {
+			sendRequest({
+				command: "push",
+				database: "device",
+				sequence: sequence,
+				data: deviceData
+			}, function (response) {
+				if (response) {
+				}
+				else {
+					alert("synchronization failed.");
+				}
+				
+				location.reload();
+			});
+		}
 	}
 	
 	function onAddDevice() {

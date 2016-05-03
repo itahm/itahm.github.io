@@ -7,11 +7,11 @@
 		<title>ITAhM</title>
 		
 		<style>
-body, header, li, input, button, legend {
+body, header, li, input, button, legend, textarea {
 	font-family: tahoma, arial, "맑은 고딕";
 }
 
-li, input, button, legend {
+li, input, button, legend, textarea {
 	font-size: 14px;
 }
 
@@ -142,6 +142,10 @@ ul.inline {
 	cursor: pointer;
 }
 
+#gcm textarea {
+	vertical-align: middle;
+}
+
 fieldset {
 	border: none;
 	padding: 20px;
@@ -220,7 +224,7 @@ body:not(.dialog) #dialog {
 					<li class="authorized"><a id="start">ITAhM</a>
 					<li class="authorized"><a id="signout">sign out</a>
 					<li><a id="help">help</a>
-					<li><a href="https://dl.dropbox.com/s/jkeew8p10xocjq0/ITAhM.1.0.2.2.jar" download="ITAhM.1.0.2.2.jar">download</a>
+					<li><a href="https://dl.dropbox.com/s/xekujyr3u2ccigb/ITAhM.1.1.3.jar" download="ITAhM.1.1.3.jar">download</a>
 					<li class="authorized"><a id="shutdown" title="shutdown agent service">shutdown</a>
 				</ul>
 			</nav>
@@ -240,18 +244,17 @@ body:not(.dialog) #dialog {
 				<h3 class="agent"><span id="agent"></span><button id="disconnect">disconnect</button></h3>
 				
 				<form id="signin">
-					<input type="text" name="username" placeholder="username" autofocus>
-					<input type="password" name="password" placeholder="password">
+					<input type="text" name="username" placeholder="username" required>
+					<input type="password" name="password" placeholder="password" required>
 					<input type="submit" value="sign in">
 				</form>
 				
 				<fieldset class="authorized">
-					<legend>device</legend>
-					<img src="img/synchronize.png" width="16px" height="16px" title="synchronize device data" id="device_sync">
-					<ul class="inline">
-						<li>number of devices : </li>
-						<li id="num_device"></li>
-					</ul>
+					<legend>message</legend>
+					<form id="gcm">
+						<textarea rows="3" cols="80" name="message"></textarea>
+						<input type="submit" value="send">
+					</form>
 				</fieldset>
 				
 				<fieldset class="authorized">
@@ -339,8 +342,30 @@ var specs = "toolbar=0, location=0, resizable=1, menubar=0, titlebar=0";
 	};
 	
 	initialize();
-	
 
+}) (window);
+
+// gcm
+(function (window, undefined){
+	
+	var form = document.getElementById("gcm");
+	
+	function initialize() {
+		form.addEventListener("submit", onSendMessage);
+	}
+	
+	function onSendMessage(e) {
+		e.preventDefault();
+		
+		sendRequest({
+			command: "message",
+			message: form.elements.message.value
+		}, function (data, status) {
+		});
+	}
+	
+	initialize();
+	
 }) (window);
 
 // connect
@@ -395,6 +420,7 @@ var specs = "toolbar=0, location=0, resizable=1, menubar=0, titlebar=0";
 			
 			data = undefined;
 			
+			console.log("status "+ status);
 		}
 		
 		callback(data, status);
@@ -448,7 +474,7 @@ var specs = "toolbar=0, location=0, resizable=1, menubar=0, titlebar=0";
 		}
 		
 		communicator.connect(ip, tcp);
-		console.log("!");
+		
 		communicator.send({
 			command: "echo"
 		}, onEcho);
@@ -543,39 +569,9 @@ var specs = "toolbar=0, location=0, resizable=1, menubar=0, titlebar=0";
 	
 	var deviceData,
 		tmpID = -1,
-		sequence,
-		numOfDevice = document.getElementById("num_device");
+		sequence;
 	
 	function initialize() {
-		document.getElementById("device_sync").onclick = onSync;
-	}
-
-	function onSync() {
-		/*
-		if (Object.keys(deviceData).length > 10) {			
-			return;
-		}
-		*/
-		if (confirmSync()) {
-			sendRequest({
-				command: "push",
-				database: "device",
-				sequence: sequence,
-				data: deviceData
-			}, function (response) {
-				if (response) {
-				}
-				else {
-					alert("synchronization failed.");
-				}
-				
-				location.reload();
-			});
-		}
-	}
-	
-	function setDevice() {
-		numOfDevice.textContent = Object.keys(deviceData).length;
 	}
 	
 	window.initDevice = function () {
@@ -588,8 +584,6 @@ var specs = "toolbar=0, location=0, resizable=1, menubar=0, titlebar=0";
 			if (response) {
 				deviceData = response.data;
 				sequence = response.sequence;
-				
-				setDevice();
 				
 				initIcon();
 			}
@@ -605,8 +599,6 @@ var specs = "toolbar=0, location=0, resizable=1, menubar=0, titlebar=0";
 		data.x = 0;
 		data.y = 0;
 		data.ifEntry = {};
-		
-		setDevice();
 	};
 	
 	window.getDeviceData = function  () {
