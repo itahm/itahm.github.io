@@ -5,28 +5,21 @@
 		<title>dialog</title>
 		
 		<style>
-td, input, label, h2, select, li {
-	font-family: tahoma, arial, "맑은 고딕";
-}
-
-td, input, label, select, li {
-	font-size: 14px;
-}
+@import "css/itahm.css";
 
 body {
 	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
 	display: flex;
-	/*flex-direction:row;*/
 	justify-content: center;
 	align-items: center;
-	background-color: rgba(255, 255, 255, .9);
+	background-color: rgba(0, 0, 0, .8);
 }
 
-form.dialog {
+form {
 	width: 300px;
 	padding: 20px;
 	background-color: #fff;
-	box-shadow: 0px 0px 20px 10px #ddd;
+	/*box-shadow: 0px 0px 20px 10px #ddd;*/
 }
 
 .table {
@@ -109,7 +102,7 @@ footer input {
 	
 	<body>
 	
-		<form class="dialog">
+		<form class="rounded">
 			<h2>device</h2>
 			<div class="table">
 				<ul>
@@ -163,19 +156,64 @@ if (window === top) throw "";
 	var form = document.querySelector("form"),
 		device;
 	
-	function initialize() {
-		form.addEventListener("submit", onApply, false);
-		form.addEventListener("reset", onCancel, false);
+	form.elements.type.appendChild(buildType());
+	
+	form.addEventListener("submit", onApply, false);
+	form.addEventListener("reset", onCancel, false);
+	
+	function buildType() {
+		var df = document.createDocumentFragment(),
+			groupName, optgroup, option,
+			iconData = {},
+			group = {},
+			icon, data, type;
+		
+		data = top.databases.icon.origin;
+		for (type in data) {
+			iconData[type] = data[type];
+		}
+		
+		data = top.databases.icon.data;
+		for (type in data) {
+			iconData[type] = data[type];
+		}
+		
+		for (type in iconData) {
+			icon = iconData[type];
+			
+			groupName = icon.group;
+			
+			optgroup = group[groupName];
+			
+			if (!optgroup) {
+				optgroup = document.createElement("optgroup");
+				optgroup.label = groupName;
+				
+				group[groupName] = optgroup;
+				
+				df.appendChild(optgroup);
+			}
+			
+			optgroup.appendChild(document.createElement("option")).text = type;
+		}
+		
+		return df;
 	}
 	
-	/**
-	 * call back
-	 */
 	function onApply(e) {
 		e.preventDefault();
 		
 		if (!device) {
-			device = {};
+			var id = top.databases.device.tmpID--;
+			
+			device = {
+				id: id,
+				x: 0,
+				y: 0,
+				ifEntry: {}
+			};
+			
+			top.databases.device.data[id] = device;
 		}
 		
 		device.name = form.elements.name.value;
@@ -198,43 +236,14 @@ if (window === top) throw "";
 		}
 		//else 등록 전 장비이면 snmp 없음
 		
-		if (!device.id) {
-			top.createDevice(device);
-		}
-		
-		top.reload();
-		
-		form.reset();
-	}
-	
-	function onCancel(e) {
 		top.closeDialog();
 	}
 	
-	window.initialize = function (d) {
-		var typeElement = form.elements.type,
-			fragment = document.createDocumentFragment(),
-			group = {}, optgroup, groupName, option;
-		
-		top.forEachIcon(function (type, icon) {
-			groupName = icon.group;
-			optgroup = group[groupName];
-			if (!optgroup) {
-				optgroup = document.createElement("optgroup");
-				optgroup.label = groupName;
-				
-				group[groupName] = optgroup;
-				
-				fragment.appendChild(optgroup);
-			}
-			
-			optgroup.appendChild(document.createElement("option")).text = type;
-		});
-		
-		typeElement.appendChild(fragment);
-
-		typeElement.value="unknown";
-		
+	function onCancel(e) {
+		top.closeDialog(true);
+	}
+	
+	window.initialize = function (d) {		
 		if (d) {
 			device = d;
 			
@@ -256,8 +265,9 @@ if (window === top) throw "";
 				form.elements.snmp.disabled = false;
 			}
 		}
-		
-		initialize();
+		else {
+			form.elements.type.value="unknown";
+		}
 	};
 	
 }) (window);

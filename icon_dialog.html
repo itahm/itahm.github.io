@@ -5,30 +5,22 @@
 		<title>dialog</title>
 		
 		<style>
-body, td, input, label, h2, li {
-	font-family: tahoma, arial, "맑은 고딕";
-}
-
-body, td, input, label,  li {
-	font-size: 14px;
-}
+@import "css/itahm.css";
 
 body {
-	margin: 0;
-	padding: 0;
+	margin: 0; padding: 0;
 	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
 	display: flex;
-	flex-direction:row;
 	justify-content: center;
 	align-items: center;
-	background-color: rgba(255, 255, 255, .9);
+	background-color: rgba(0, 0, 0, .8);
 }
 
-.dialog {
+form {
 	width: 300px;
 	padding: 20px;
 	background-color: #fff;
-	box-shadow: 0px 0px 20px 10px #ddd;
+	/*box-shadow: 0px 0px 10px 10px #777;*/
 	position: relative;
 }
 
@@ -80,31 +72,29 @@ input[type="checkbox"] {
 	
 	<body>
 	
-		<div class="dialog">
+		<form class="rounded" autocomplete="off">
 			<img id="image" width="40px" height="40px">
-			<form autocomplete="off">
-				<h2>icon</h2>
-				<div class="table">
-					<ul>
-						<li>type
-						<li><input type="text" name="type" placeholder="type of device">
-					</ul>
-					<ul>
-						<li>group
-						<li><input type="text" name="group" placeholder="group name">
-					</ul>
-					<ul>
-						<li>image
-						<li><input type="text" name="url" placeholder="http://my.image.com/image.svg">
-					</ul>
-					<label><input type="checkbox" name="reset">reset</label>
-				</div>
-				<footer>
-					<input type="reset" value="cancel">
-					<input type="submit" value="apply">
-				</footer>
-			</form>
-		</div>
+			<h2>icon</h2>
+			<div class="table">
+				<ul>
+					<li>type
+					<li><input type="text" name="type" placeholder="type of device">
+				</ul>
+				<ul>
+					<li>group
+					<li><input type="text" name="group" placeholder="group name">
+				</ul>
+				<ul>
+					<li>image
+					<li><input type="text" name="url" placeholder="http://my.image.com/image.svg">
+				</ul>
+				<label><input type="checkbox" name="reset">reset</label>
+			</div>
+			<footer>
+				<input type="reset" value="cancel">
+				<input type="submit" value="apply">
+			</footer>
+		</form>
 		
 		<script>
 	
@@ -117,43 +107,33 @@ if (top === window) {
 		image = document.getElementById("image");
 	
 	/**
-	 * private method
-	 */
-	function initialize() {
-		form.onsubmit = onApply;
-		form.onreset = onCancel;
-		
-		form.elements.reset.onclick = onReset;
-		
-		form.elements.type.select();
-	}
-	
-	/**
 	 * callback method
 	 */
 	 function onApply(e) {
 		e.preventDefault();
 		
-		top.setIcon(form.elements.type.value, {
+		top.databases.icon.data[form.elements.type.value] = {
 			group: form.elements.group.value,
 			src: form.elements.url.value
-		});
+		};
 		
 		top.closeDialog();
 	}
 	
 	function onReset(e) {
-		top.resetIcon(form.elements.type.value);
+		delete top.databases.icon.data[form.elements.type.value];
 		
 		top.closeDialog();
 	}
 	 
 	function onCancel(e) {
-		top.closeDialog();
+		top.closeDialog(true);
 	}
 	
-	window.initialize = function (type, icon) {
+	window.initialize = function (type) {
 		if (type) {
+			var icon = top.databases.icon.data[type] || top.databases.icon.origin[type];
+			
 			image.src = icon.src;
 			
 			form.elements.type.value = type;
@@ -161,14 +141,16 @@ if (top === window) {
 			form.elements.url.value = icon.src;
 		}
 		
-		initialize();
+		form.onsubmit = onApply;
+		form.onreset = onCancel;
+		
+		form.elements.reset.onclick = onReset;
+		
+		form.elements.type.select();
 	};
 	
 }) (window);
 
-function f() {
-	
-}
 		</script>
 	
 	</body>

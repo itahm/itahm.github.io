@@ -1,0 +1,35 @@
+body  {
+	font-family: arial, tahoma, "맑은 고딕";
+	font-size: 14px;
+}
+
+.content_width {
+	width: 800px;
+	margin: auto;
+	box-sizing: border-box;
+}
+
+.content_width.small {
+	width: 360px;
+}
+
+.rounded {
+	border-radius: 5px 5px 5px 5px;
+}
+
+body:not(.loading) .bg_loading {
+	display: none;
+}
+
+.bg_loading {
+	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
+	background: #fafafa url("/img/waiting.gif") no-repeat center;
+}
+
+.r_button {
+	padding: .5em 1em;
+	border-radius: 1em 1em 1em 1em;
+	color: #fff;
+	border: 1px solid #07f;
+	background: linear-gradient(#7af, #0084ff);
+}

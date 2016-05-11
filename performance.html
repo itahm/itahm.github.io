@@ -7,31 +7,7 @@
 		<title>ITAhM</title>
 		
 		<style>
-body,
-li,
-select,
-input,
-div,
-span,
-label,
-a,
-h3,
-button,
-svg text {
-	font-family: arial, tahoma, "맑은 고딕"
-}
-
-li,
-select,
-input,
-div,
-span,
-label,
-a,
-button,
-svg text {
-	font-size: 14px;
-}
+@import "css/itahm.css";
 
 body {
 	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
@@ -327,6 +303,10 @@ var svgNS = "http://www.w3.org/2000/svg",
 	// agent timeout 값과 맞춰줘야함.
 	RESPONSE_TIMEOUT = 5000;
 
+var elements = {
+		
+	};
+	
 // 공통
 (function (window, undefined) {
 	
@@ -340,23 +320,40 @@ var svgNS = "http://www.w3.org/2000/svg",
 		enterprise = document.getElementById("enterprise"),
 		chart = document.getElementById("chart"),
 		mode = document.getElementById("mode"),
-		device,
+		ip,
 		chartData;
 	
-	function initialize() {
-		document.getElementById("close").onclick = function () {
-			top.closeChart();
-		};
+	document.getElementById("close").onclick = function () {
+		location.href = "map.html";
+	};
+	
+	mode.onchange = function () {
+		chart.contentWindow.mode(this.value);
+	};
+	
+	(function () {
+		var database = top.databases.device,
+			device = database.data[database.selected];
 		
-		mode.onchange = function () {
-			chart.contentWindow.mode(this.value);
-		};
-	}
+		ip = device.ip;
+		
+		top.sendRequest({
+			command: "select",
+			ip: ip
+		}, function (response) {
+			if (response) {
+				initialize(device, response);
+			}
+			else {
+				
+			}
+		});
+	}) ();
 	
 	function sendRequest(database, index, start, end, callback, summary) {
 		var request = {
 				command: "query",
-				ip: device.ip,
+				ip: ip,
 				summary: summary,
 				database: database,
 				index: index,
@@ -367,12 +364,7 @@ var svgNS = "http://www.w3.org/2000/svg",
 		top.sendRequest(request, callback);
 	}
 	
-	// public. 페이지의 시작, map으로부터 호출됨. 
-	window.initialize = function (d, snmp) {
-		initialize();
-		
-		device = d;
-		
+	function initialize (device, snmp) {		
 		name.textContent = device.name;
 		ip.textContent = device.ip;
 		type.textContent = device.type;
@@ -429,15 +421,13 @@ var svgNS = "http://www.w3.org/2000/svg",
 	var legend = document.getElementById("legend"),
 		summary, start, end;
 	
-	function initialize() {
-		document.getElementById("select_response").onchange = function () {
-			document.body.classList.add("loading");
-			
-			disableThroughput();
-			
-			onSelectResponseTime();
-		};
-	}
+	document.getElementById("select_response").onchange = function () {
+		document.body.classList.add("loading");
+		
+		disableThroughput();
+		
+		onSelectResponseTime();
+	};
 	
 	function valueToString(value) {
 		return value.toFixed(2) + "ms";
@@ -480,8 +470,6 @@ var svgNS = "http://www.w3.org/2000/svg",
 		getDetailData("responseTime", 0, start, end, onResponse);
 	}
 	
-	initialize();
-	
 }) (window);
 
 // processor
@@ -492,15 +480,13 @@ var svgNS = "http://www.w3.org/2000/svg",
 		indexArray = [], indexPos,
 		origin = {}, detail = {};
 	
-	function initialize() {
-		document.getElementById("select_processor").onchange = function () {
-			document.body.classList.add("loading");
-			
-			disableThroughput();
-			
-			onSelectProcessorLoad();
-		};
-	}
+	document.getElementById("select_processor").onchange = function () {
+		document.body.classList.add("loading");
+		
+		disableThroughput();
+		
+		onSelectProcessorLoad();
+	};
 	
 	function valueToString(value) {
 		return value.toFixed(2) + "%";
@@ -570,8 +556,6 @@ var svgNS = "http://www.w3.org/2000/svg",
 		}
 	};
 	
-	initialize();
-	
 }) (window);
 
 // storage
@@ -583,15 +567,13 @@ var svgNS = "http://www.w3.org/2000/svg",
 		origin = {}, detail = {},
 		capacity;
 	
-	function initialize() {
-		document.getElementById("select_storage").onchange = function () {
-			document.body.classList.add("loading");
-				
-			disableThroughput();
+	document.getElementById("select_storage").onchange = function () {
+		document.body.classList.add("loading");
 			
-			onSelectStorageUsage();
-		};
-	}
+		disableThroughput();
+		
+		onSelectStorageUsage();
+	};
 	
 	function valueToString(value) {
 		return ITAhM.util.toBytesString(value).replace("ytes", "");
@@ -614,8 +596,8 @@ var svgNS = "http://www.w3.org/2000/svg",
 		tryRequest();
 	}
 	
-	function tryRequest() {
-		if (indexPos < indexArray.length) {
+	function tryRequest() {console.log(indexArray.length);
+		if (indexPos < indexArray.length) {console.log("shoot! more");
 			if (summary) {
 				getSummaryData("hrStorageUsed", indexArray[indexPos], onResponse);
 			}
@@ -623,7 +605,7 @@ var svgNS = "http://www.w3.org/2000/svg",
 				getDetailData("hrStorageUsed", indexArray[indexPos], start, end, onResponse);
 			}
 		}
-		else {
+		else {console.log("done");
 			if (summary) {
 				window.drawDetailGraph = sendDetailRequest;
 				
@@ -680,8 +662,6 @@ var svgNS = "http://www.w3.org/2000/svg",
 		//capacity = Math.max.apply(undefined, capacityArray);
 	};
 	
-	initialize();
-	
 }) (window);
 
 // memory
@@ -691,17 +671,16 @@ var svgNS = "http://www.w3.org/2000/svg",
 		summary, start, end,
 		indexArray = [], indexPos,	
 		origin = {}, detail = {},
-		capacity;
-	
-	function initialize() {
-		document.getElementById("select_memory").onchange = function () {
-			document.body.classList.add("loading");
-				
-			disableThroughput();
+		capacity;	
+
+	document.getElementById("select_memory").onchange = function () {
+		document.body.classList.add("loading");
 			
-			onSelectMemoryUsage();
-		};
-	}
+		disableThroughput();
+		
+		onSelectMemoryUsage();
+	};
+
 	
 	function valueToString(value) {
 		return ITAhM.util.toBytesString(value).replace("ytes", "");
@@ -773,8 +752,6 @@ var svgNS = "http://www.w3.org/2000/svg",
 		document.getElementById("memory").textContent = ITAhM.util.toBytesString(capacity);
 	};
 	
-	initialize();
-	
 }) (window);
 
 // throughput
@@ -788,17 +765,15 @@ var svgNS = "http://www.w3.org/2000/svg",
 		databaseArray = [], indexPos,
 		origin = {}, detail = {};
 	
-	function initialize() {
-		document.getElementById("select_throughput").onchange = function () {
-			list.disabled = false;
-		};
+	document.getElementById("select_throughput").onchange = function () {
+		list.disabled = false;
+	};
 		
-		list.onchange = function () {
-			document.body.classList.add("loading");
-			
-			onSelectThroughput();
-		};
-	}
+	list.onchange = function () {
+		document.body.classList.add("loading");
+		
+		onSelectThroughput();
+	};
 	
 	function valueToString(value) {
 		return ITAhM.util.toBPSString(value);
@@ -895,8 +870,6 @@ var svgNS = "http://www.w3.org/2000/svg",
 		
 		disableThroughput();
 	};
-	
-	initialize();
 	
 }) (window);
 

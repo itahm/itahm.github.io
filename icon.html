@@ -4,14 +4,10 @@
 		<meta charset="UTF-8">
 		<meta http-equiv="Content-Script-Type" content="text/javascript">
 		<meta http-equiv="Content-Style-Type" content="text/css">
-		<title>Account @ ITAhM</title>
+		<title>ITAhM</title>
 		
 		<style>
 @import "css/itahm.css";
-
-body {
-	padding: 20px;
-}
 
 body {
 	padding: 20px;
@@ -29,9 +25,9 @@ header {
 
 #list span {
 	display: inline-block;
-	padding: .5em .5em .5em 1.5em;
-	background: url(img/user.png) no-repeat left center;
-	background-size: 1em;
+	padding: .5em .5em .5em 2.5em;
+	background: none no-repeat left center;
+	background-size: 2em;
 }
 
 #list span:hover {
@@ -44,7 +40,7 @@ header {
 	</head>
 	
 	<body class="loading content_width">
-		
+	
 		<header>
 			<button id="sync" class="r_button">Sync</button>
 		</header>
@@ -54,6 +50,7 @@ header {
 		<div class="bg_loading"></div>
 		
 		<script>
+
 if (top === window) {
 	location.href = "http://itahm.com";
 }
@@ -67,18 +64,18 @@ if (top === window) {
 	initialize();
 	
 	function onSync() {
-		if (!confirm("Synchronize account database with agent now?")) {
+		if (!confirm("Synchronize icon database with agent now?")) {
 			return;
 		}
 		
 		top.sendRequest({
 			command: "push",
-			database: "account",
-			sequence: top.databases.account.sequence,
-			data: top.databases.account.data
+			database: "icon",
+			sequence: top.databases.icon.sequence,
+			data: top.databases.icon.data
 		}, function (response) {
 			if (response) {
-				top.databases.account.sequence = response.sequence;
+				top.databases.icon.sequence = response.sequence;
 			}
 			else {
 				alert("synchronization failed.");
@@ -86,10 +83,10 @@ if (top === window) {
 		});
 	}
 	
-	function onSelectAccount(username) {
-		top.showDialog("account_dialog.html",
+	function onSelectIcon(type) {
+		top.showDialog("icon_dialog.html",
 			function (dialog) {
-				dialog.initialize(username);
+				dialog.initialize(type);
 			},
 			function () {
 				location.reload();
@@ -97,16 +94,50 @@ if (top === window) {
 	}
 	
 	function initialize() {
-		var accountData = top.databases.account.data,
-			df = document.createDocumentFragment(),
-			span;
+		var iconData = {},
+			data, type;
 		
-		for (var username in accountData) {
-			span = document.createElement("span");
-			span.textContent = username;
-			span.onclick = onSelectAccount.bind(undefined, username);
+		data = top.databases.icon.origin;
+		for (type in data) {
+			iconData[type] = data[type];
+		}
+		
+		data = top.databases.icon.data;
+		for (type in data) {
+			iconData[type] = data[type];
+		}
+		
+		var df = document.createDocumentFragment(),
+			icon, groupName, groupElement, labelElement,
+			map = {}, span;
+		
+		
+		for (type in iconData) {
+			icon = iconData[type];
 			
-			df.appendChild(document.createElement("li"))
+			groupName = icon.group;
+			
+			groupElement = map[groupName];
+			
+			if (!groupElement) {
+				groupElement = document.createElement("ul");
+				
+				labelElement = document.createElement("li");
+				labelElement.textContent = groupName;
+				
+				df.appendChild(labelElement)
+				labelElement.appendChild(groupElement);
+				
+				map[groupName] = groupElement;
+			}
+			
+			span = document.createElement("span");
+			span.textContent = type;
+			span.onclick = onSelectIcon.bind(undefined, type);
+			span.style.backgroundImage = "url("+ icon.src +")";
+			
+			groupElement
+				.appendChild(document.createElement("li"))
 				.appendChild(span);
 		}
 		
@@ -118,6 +149,7 @@ if (top === window) {
 	};
 	
 }) (window);
+
 		</script>
 	
 	</body>

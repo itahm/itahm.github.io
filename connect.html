@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>Connect @ ITAhM</title>
+		
+		<style>
+@import "css/itahm.css";
+
+body {
+	background-color: #f9f9f9;
+}
+
+p, input {
+	font-size: 13px;
+}
+
+h1 {
+	text-align: center;
+}
+
+h1 img {
+	vertical-align: middle;
+}
+
+form {
+	padding: 20px;
+	border: 1px solid #ddd;
+	background-color: #fff;
+}
+
+p {
+	/*margin: 0;*/
+}
+
+input {
+	width: 100%;
+	box-sizing: border-box;
+	padding: 10px;
+	border: 1px solid #ddd;
+	border-radius: 3px 3px 3px 3px;
+}
+
+input[type="submit"] {
+	margin-top: 20px;
+	background-image: linear-gradient(#7af, #0084ff);
+	border: 1px solid #07f;
+	font-weight: bold;
+	color: #fff;
+}
+
+#comment {
+	color: #911;
+}
+
+body> #comment {
+	display: none;
+}
+
+.flex {
+	display: flex;
+}
+
+.flex input:first-child {
+	flex: 2;
+}
+
+.flex input:last-child {
+	flex: 1;
+}
+
+input[name="host"] {
+	background: url("img/home.png") no-repeat 10px center;
+	padding-left: 36px;
+}
+
+input[name="port"] {
+	background: transparent url("img/port.png") no-repeat 10px center;
+	padding-left: 36px;
+}
+
+input[name="username"] {
+	background: transparent url("img/user.png") no-repeat 10px center;
+	padding-left: 36px;
+}
+
+input[name="password"] {
+	background: transparent url("img/lock.png") no-repeat 10px center;
+	padding-left: 36px;
+}
+
+		</style>
+		
+	</head>
+	
+	<body>
+	
+		<div class="content_width small">
+			<h1>Connect to agent</h1>
+			<form id="form" class="rounded">
+				<div id="agent">
+					<p>Agent address</p>
+					<div class="flex">
+						<input type="text" name="host" placeholder="IP address" required>
+						<input type="text" name="port" placeholder="TCP port" required>
+					</div>
+				</div>
+				<div id="account">
+					<p>Username</p>
+					<input type="text" name="username" required>
+				</div>
+				<div>
+					<p>Password</p>
+					<input type="password" name="password" required>
+				</div>
+				<input type="submit" value="Connect">
+			</form>
+			<h1>
+				<a href="http://itahm.com">
+					<img width="64" height="64" src="img/favicon.png">
+				</a>
+			</h1>
+		</div>
+		
+		<p id="comment">comment</p>
+		
+		<script src="js/ITAhM.js"></script>
+		<script src="js/object.js"></script>
+		<script>
+
+(function (window, undefined){
+	
+	var form = document.getElementById("form"),
+		comment = document.getElementById("comment"),
+		agent = document.getElementById("agent"),
+		account = document.getElementById("account");
+	
+	function initialize() {
+		var value;
+		
+		if (value = sessionStorage.host) {
+			form.elements.host.value = value;
+		}
+		
+		if (value = sessionStorage.port) {
+			form.elements.port.value = value;
+		}
+		
+		form.addEventListener("submit", onConnect);
+	}
+	
+	function onConnect(e) {
+		e.preventDefault();
+		
+		var xhr = new ITAhM.Communicator(form.elements.host.value, form.elements.port.value, 3000),
+			request = {
+				command: "signin",
+				username: form.elements.username.value,
+				password: form.elements.password.value
+			};
+		
+		xhr.sendRequest(request, function (status, response) {
+			if (status === 200) {				
+				sessionStorage.host = form.elements.host.value;
+				sessionStorage.port = form.elements.port.value;
+				sessionStorage.user = form.elements.username.value;
+				sessionStorage.level = response.level;
+				
+				location.href = "itahm.html";
+			}
+			else if (status === 401) {
+				comment.textContent = "Incorrect username or password.";
+				
+				account.appendChild(comment);
+				
+				form.elements.username.select();
+			}
+			else {
+				comment.textContent = "Server is not responding.";
+				
+				agent.appendChild(comment);
+				
+				form.elements.host.select();
+			}
+		});
+	}
+	
+	initialize();
+		
+}) (window);
+		</script>
+	
+	</body>
+	
+</html>

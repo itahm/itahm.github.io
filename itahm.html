@@ -4,16 +4,10 @@
 		<meta charset="UTF-8">
 		<meta http-equiv="Content-Script-Type" content="text/javascript">
 		<meta http-equiv="Content-Style-Type" content="text/css">
-		<title>ITAhM</title>
+		<title>Main @ ITAhM</title>
 		
 		<style>
-body, header, li, input, button, legend {
-	font-family: tahoma, arial, "맑은 고딕";
-}
-
-li, input, button, legend {
-	font-size: 14px;
-}
+@import "css/itahm.css";
 
 header {
 	position: fixed; top: 0; right: 0; left: 0;
@@ -52,158 +46,26 @@ nav {
 	align-items: flex-end;
 }
 
-div.body {
+section {
 	position: fixed; top: 100px; right: 0; bottom: 0; left: 0;
+	display: flex;
+}
+
+iframe[name="main"] {
+	flex: 1;
+	width: 100%; height: 100%;
+	border: none;
 	overflow: auto;
 }
 
 #dialog {
 	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
+	padding: 0;
+	margin: 0;
 	width: 100%;
 	height: 100%;
 }
 
-.fixed_width {
-	margin: auto;
-	width: 800px;
-	padding: 10px;
-	box-sizing: border-box;
-}
-
-h2 {
-	color: #0084ff;
-}
-
-input, button {
-	padding: .5em;
-}
-
-input[name="ip"] {
-	background: transparent url("img/home.png") no-repeat 10px center;
-	padding-left: 36px;
-}
-
-input[name="tcp"] {
-	background: transparent url("img/port.png") no-repeat 10px center;
-	width: 80px;
-	padding-left: 36px;
-}
-
-input[name="username"] {
-	background: transparent url("img/user.png") no-repeat 10px center;
-	padding-left: 36px;
-}
-
-input[name="password"] {
-	background: transparent url("img/lock.png") no-repeat 10px center;
-	padding-left: 36px;
-}
-
-ul.inline {
-	list-style: none;
-	margin: 0;
-	padding: 0;
-	display: flex;
-}
-
-#agent {
-	margin: 1em;
-}
-
-#loading {
-	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
-	background: rgba(255, 255, 255, .8) url("img/waiting.gif") no-repeat center;
-}
-
-#popup {
-	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
-	background-color: rgba(255, 255, 255, .8);
-}
-
-#popup div {
-	margin: 0 auto;
-	width: 800px;
-	height: 100%;
-	position: relative;
-	border: 1px solid #0084ff;
-	box-sizing: border-box;
-}
-
-#document {
-	position: absolute; top: 0; right: 0; bottom: 0; left: 0;
-	width: 100%; height: 100%;
-	border: none;
-	padding: 0;
-	margin: 0;
-}
-
-#popup img {
-	position: absolute; top: 2px; right: 2px;
-	cursor: pointer;
-}
-
-fieldset {
-	border: none;
-	padding: 20px;
-	border-top: 2px solid #0084ff;
-	position: relative;
-}
-
-legend {
-	padding: .5em;
-	background-color: #0084ff;
-	color: #fff;
-	font-weight: bold;
-	border-radius: 5px;
-	width: 100px;
-}
-
-fieldset img {
-	position: absolute; top: 0; right: 0;
-	cursor: pointer;
-}
-/*
-iframe[src="about:blank"] {
-	display: none;
-}
-*/
-.list,
-.list2 {
-	margin: 0;
-}
-
-.list2 {
-	list-style: none;
-	padding: 0;
-}
-
-.list li,
-.list2 li {
-	padding: 3px;
-}
-
-.list li:hover,
-.list2 ul>li:hover {
-	color: #0084ff;
-	cursor: pointer;
-}
-
-#type_list {
-	max-height: 200px;
-	overflow: auto;
-}
-
-.center {
-	text-align: center;
-}
-
-body:not(.connected) #signin,
-body:not(.connected) .agent,
-body:not(.authorized) .authorized, 
-body.connected #connect,
-body.authorized #signin,
-body:not(.loading) #loading,
-body:not(.popup) #popup,
 body:not(.dialog) #dialog {
 	display: none;
 }
@@ -212,738 +74,126 @@ body:not(.dialog) #dialog {
 		
 	</head>
 	
-	<body>
+	<body class="map">
 		
 		<header>
-			<nav class="fixed_width">
+			<nav class="content_width">
 				<ul>
-					<li class="authorized"><a id="start">ITAhM</a>
-					<li class="authorized"><a id="signout">sign out</a>
-					<li><a id="help">help</a>
-					<li><a href="https://dl.dropbox.com/s/jkeew8p10xocjq0/ITAhM.1.0.2.2.jar" download="ITAhM.1.0.2.2.jar">download</a>
-					<li class="authorized"><a id="shutdown" title="shutdown agent service">shutdown</a>
+					<li><a href="list.html" target="main">ITAhM</a>
+					<li><a href="account.html" target="main">account</a>
+					<li><a href="profile.html" target="main">profile</a>
+					<li><a href="icon.html" target="main">icon</a>
+					<li><a id="message">message</a>
+					<li><a id="signout">sign out</a>
 				</ul>
 			</nav>
 		</header>
 		
-		<div class="body">
-			<section class="fixed_width">
-				<h2>Infrastructure Topology Administration Module</h2>
-				<form id="connect">
-					<div>
-						<input type="text" name="ip" value="127.0.0.1" placeholder="agent ip address" required>
-						<input type="text" name="tcp" value="2014" placeholder="tcp port"  required>
-						<input type="submit" value="connect">
-					</div>
-				</form>
-				
-				<h3 class="agent"><span id="agent"></span><button id="disconnect">disconnect</button></h3>
-				
-				<form id="signin">
-					<input type="text" name="username" placeholder="username" autofocus>
-					<input type="password" name="password" placeholder="password">
-					<input type="submit" value="sign in">
-				</form>
-				
-				<fieldset class="authorized">
-					<legend>device</legend>
-					<img src="img/synchronize.png" width="16px" height="16px" title="synchronize device data" id="device_sync">
-					<ul class="inline">
-						<li>number of devices : </li>
-						<li id="num_device"></li>
-					</ul>
-				</fieldset>
-				
-				<fieldset class="authorized">
-					<legend>user account</legend>
-					<img src="img/synchronize.png" title="synchronize user account data" id="account_sync">
-					<ul id="account_list" class="list"></ul>
-				</fieldset>
-				
-				<fieldset class="authorized">
-					<legend>snmp profile</legend>
-					<img src="img/synchronize.png" title="synchronize snmp profile data" id="profile_sync">
-					<ul id="profile_list" class="list"></ul>
-				</fieldset>
-				
-				<fieldset class="authorized">
-					<legend>icon</legend>
-					<img src="img/synchronize.png" title="synchronize custom icon data" id="icon_sync">
-					<ul id="type_list" class="list2"></ul>
-				</fieldset>
-				
-			</section>
-		</div>
+		<section>
+			<iframe name="main"></iframe>
+		</section>		
 		
 		<iframe id="dialog"></iframe>
-		
-		<section id="loading"></section>
-		
-		<section id="popup">
-			<div>
-				<iframe id="document" src="about:blank"></iframe>
-			</div>
-		</section>
 		
 		<script src="js/ITAhM.js"></script>
 		<script src="js/object.js"></script>
 		<script src="js/icon.js"></script>
-		<script src="js/Communicator.js"></script>
 		<script>
-
-var specs = "toolbar=0, location=0, resizable=1, menubar=0, titlebar=0";
-
-// common
+		
 (function (window, undefined){
-
-	var doc = document.getElementById("document"),
-		mapData = {
-			ratio: 1
-		};
 	
-	function initialize() {
-		document.getElementById("shutdown").onclick = shutDown;
+	if (sessionStorage.host && sessionStorage.port) {
+		var xhr = new ITAhM.Communicator(sessionStorage.host, sessionStorage.port, 12000);
 		
-		document.getElementById("help").onclick = function () {
-			openDocument("help.html");
-			
-		};
-		
-		document.getElementById("popup").onclick = closeDocument;
-	}
-	
-	function shutDown() {
-		if (confirm("are you sure you want to shutdown agent?")) {
-			sendRequest({
-				command: "shutdown"
-			}, function (data, status) {
-				location.href = location.href.replace(location.search, "");
+		window.sendRequest = function (request, onResponse) {
+			xhr.sendRequest(request, function (status, response) {				
+				if (status === 200) {
+					onResponse(response);
+				}
+				else {
+					if (status === 401) {
+						alert("Invalid session.");
+					}
+					else if (status === 409) { // conflict
+						alert("Database is being modified by another user");
+					}
+					else {
+						alert("Agent is not responding.");
+					}
+					
+					location.href = "http://itahm.com";
+				}
 			});
 		}
-	}
-	
-	function openDocument(url) {
-		document.body.classList.add("popup");
 		
-		doc.src=url;
-	}
-	
-	function closeDocument() {
-		document.body.classList.remove("popup");
+		var thread = new Worker("initialize.js");
 		
-		doc.src="about:black";
-	}
-	
-	window.getMapData = function () {
-		return mapData;
-	};
-	
-	initialize();
-	
-
-}) (window);
-
-// connect
-(function (window, undefined){
-	
-	var itahm,
-		form = document.getElementById("connect"),
-		agent = document.getElementById("agent");
-	
-	function initialize() {
-		window.addEventListener("beforeunload", onUnload);
-		
-		document.getElementById("start").onclick = function () {
-			if (itahm && !itahm.closed) {
-				itahm.focus();
+		thread.onmessage = function (e) {
+			var message = e.data;
+			
+			if (message) {
+				switch (message.type) {
+				case "initialize":
+					var databases = message.value;
+					
+					window.databases = databases;
+					window.log = {};
+					
+					databases.device.scale = 1;
+					databases.device.tmpID = -1;
+					
+					databases.icon.origin = ITAhM.iconData;
+					// TODO ITAhM의 시작.
+					
+					initialize();
+					
+					break;
+					
+				case "event":
+					log[new Date().getTime()] = message.value;
+					
+					console.log(log);
+					
+					break;
+				}
 			}
 			else {
-				startITAhM();
+				location.href = "http://itahm.com";
 			}
 		};
 		
-		document.getElementById("disconnect").onclick = function () {
-			closeITAhM();
-			
-			location.href = location.origin + location.pathname;
-		}
+		thread.postMessage("http://"+sessionStorage.host +":"+ sessionStorage.port);
+	}
+	else {
+		location.href = "http://itahm.com";
 	}
 	
-	function onUnload() {
-		closeITAhM();
-	}
-	
-	
-	// main response
-	function onResponse(callback, data, status) {
-		if (status === 200) {
-		}
-		else {
-			if (status === 0) {
-				alert("request timed out.");
-			}
-			else if (status === 401) {
-				alert("no session.");
-				
-				closeITAhM();
-				
-				location.reload();
-			}
-			else if (status === 400) {
-				console.log(data.error);
-			}
-			
-			data = undefined;
-			
+	function initialize() {
+		document.title = sessionStorage.user +" @ ITAhM";
+		
+		window.onbeforeunload = function () {
+			return "Are you sure you wnat to exit ITAhM?";
 		}
 		
-		callback(data, status);
-	}
-	
-	function onEcho(data, status) {
-		var ip = form.elements["ip"].value,
-			tcp = form.elements["tcp"].value;
-		
-		document.body.classList.remove("loading");
-		
-		// agent에 연결 가능하나 session 없음
-		if (status === 401) {
-			document.body.classList.add("connected");
-		
-			setAgent(ip +" : "+ tcp);
-			
-			onConnected();
-		}
-		// agent에 연결 가능하고 이미 session 있음
-		else if (status === 200) {
-			document.body.classList.add("connected");
-			
-			setAgent(ip +" : "+ tcp);
-			
-			onAuthorized(data.level);
-		}
-		else {
-			alert("can not connect to server");
-			
-			form.elements["ip"].select();
-		}
-	}
-	
-	function closeITAhM() {
-		if (itahm && !itahm.closed) {
-			itahm.close();
-		}
-	}
-	
-	window.tryConnect = function (ip, tcp) {
-		var communicator = Communicator.getInstance(); 
-		
-		document.body.classList.add("loading");
-		
-		form.elements["ip"].value = ip;
-		form.elements["tcp"].value = tcp;
-		
-		window.sendRequest = function (request, callback) {
-			communicator.send(request, onResponse.bind(undefined, callback));
-		}
-		
-		communicator.connect(ip, tcp);
-		
-		communicator.send({
-			command: "echo"
-		}, onEcho);
-	}
-	
-	window.startITAhM = function () {
-		document.body.classList.remove("loading");
-		
-		itahm = window.open("map.html", "ITAhM", specs);
-	};
-	
-	window.getAddress = function () {
-		return form.elements["ip"].value +":"+ form.elements["tcp"].value;
-	};
-	
-	initialize();
-	
-}) (window);
-
-// signin
-(function (window, undefined){
-	
-	var form = document.getElementById("signin"),
-		agentElement = document.getElementById("agent");
-	
-	function initEvent() {
-		form.addEventListener("submit", onSignin, false);
-		
+		document.getElementById("message").onclick = onSendMessage;
 		document.getElementById("signout").onclick = onSignout;
+		
+		document.querySelector("iframe[name=main]").src = "list.html";
 	}
 	
-	function onSignin(e) {
-		e.preventDefault();
-		
-		sendRequest({
-			command: "signin",
-			username: form.elements["username"].value,
-			password: form.elements["password"].value
-		}, function (data, status) {
-			document.body.classList.remove("loading");
-			
-			if (data) {
-				onAuthorized(data.level);
-			}
-			else {
-				alert("Incorrect username or password");
-				
-				form.elements["username"].select();
-			}
-		});
-		
-		document.body.classList.add("loading");
+	function onSendMessage() {
+		showDialog("message.html");
 	}
 	
 	function onSignout(e) {
-		sendRequest({command: "signout"}, function (data, status) {console.log("!");
-			//closeITAhM();
-			
-			location.reload();
+		var request = {
+				command: "signout"
+			};
+		
+		sendRequest(request, function (status, response) {
+			location.href = "http://itahm.com";
 		});
 	}
-	
-	window.setAgent = function (agent) {
-		agentElement.textContent = agent;
-	};
-	
-	window.onAuthorized = function (level) {
-		window.level = level;
-		
-		document.title = "ITAhM("+ agentElement.textContent +")";
-		
-		document.body.classList.add("authorized");
-		
-		initDevice();
-	};
-	
-	window.onConnected = function () {
-		document.title = "ITAhM(connected)";
-		document.body.classList.add("connected");
-		
-		form.reset();
-		
-		form.elements["username"].focus();
-	};
-	
-	initEvent();
-	
-}) (window);
-
-// device
-(function (window, undefined) {
-	
-	var deviceData,
-		tmpID = -1,
-		sequence,
-		numOfDevice = document.getElementById("num_device");
-	
-	function initialize() {
-		document.getElementById("device_sync").onclick = onSync;
-	}
-
-	function onSync() {
-		/*
-		if (Object.keys(deviceData).length > 10) {			
-			return;
-		}
-		*/
-		if (confirmSync()) {
-			sendRequest({
-				command: "push",
-				database: "device",
-				sequence: sequence,
-				data: deviceData
-			}, function (response) {
-				if (response) {
-				}
-				else {
-					alert("synchronization failed.");
-				}
-				
-				location.reload();
-			});
-		}
-	}
-	
-	function setDevice() {
-		numOfDevice.textContent = Object.keys(deviceData).length;
-	}
-	
-	window.initDevice = function () {
-		document.body.classList.add("loading");
-		
-		sendRequest({
-			command: "pull",
-			database: "device"
-		}, function (response) {
-			if (response) {
-				deviceData = response.data;
-				sequence = response.sequence;
-				
-				setDevice();
-				
-				initIcon();
-			}
-		});
-	};
-	
-	window.createDevice = function (data) {
-		var id = tmpID--;
-		
-		deviceData[id] = data;
-		
-		data.id = id;
-		data.x = 0;
-		data.y = 0;
-		data.ifEntry = {};
-		
-		setDevice();
-	};
-	
-	window.getDeviceData = function  () {
-		return deviceData;
-	};
-	
-	initialize();
-	
-}) (window);
-
-//icon
-(function (window, undefined) {
-	
-	var originData = ITAhM.iconData,
-		iconData = {},
-		customData,
-		sequence,
-		list = document.getElementById("type_list");
-	
-	if (!iconData) {
-		throw "icon.js is required";
-	}
-	
-	function initialize() {
-		document.getElementById("icon_sync").onclick = onSync;
-		
-		for (var type in originData) {
-			iconData[type] = originData[type];
-		}
-	}
-	
-	function onResponse(response) {
-		if (response) {
-			customData = response.data;
-			sequence = response.sequence;
-		
-			for (var type in customData) {
-				iconData[type] = customData[type];
-			}
-			
-			resetIconList();
-			
-			initAccount();
-		}
-		else {
-			// 오류
-		}
-		
-		document.body.classList.remove("loading");
-	}
-	
-	function onSync() {
-		if (confirmSync()) {
-			sendRequest({
-				command: "push",
-				database: "icon",
-				sequence: sequence,
-				data: iconData
-			}, function (response) {
-				if (response) {
-					location.reload();
-				}
-				else {
-					alert("synchronization failed.");
-				}
-			});
-		}
-	}
-	
-	function onSelectIcon(type) {
-		showDialog("icon.html", function (dialog) {
-			dialog.initialize(type, iconData[type]);
-		});
-	}
-	
-	function resetIconList() {
-		var df = document.createDocumentFragment(),
-			icon, groupName, groupElement, labelElement,
-			map = {},
-			li;
-		
-		while (li = list.firstChild) {
-			list.removeChild(li);
-		}
-		
-		for (var type in iconData) {
-			icon = iconData[type];
-			
-			groupName = icon.group;
-			
-			groupElement = map[groupName];
-			
-			if (!groupElement) {
-				groupElement = document.createElement("ul");
-				
-				labelElement = document.createElement("li");
-				labelElement.textContent = groupName;
-				
-				df.appendChild(labelElement)
-				labelElement.appendChild(groupElement);
-				
-				map[groupName] = groupElement;
-			}
-			
-			li = document.createElement("li");
-			
-			li.textContent = type;
-			li.onclick = onSelectIcon.bind(undefined, type);
-			
-			groupElement.appendChild(li);
-		}
-		
-		list.appendChild(df);
-	}
-	
-	window.initIcon = function () {
-		sendRequest({
-			command: "pull",
-			database: "icon"
-		}, onResponse);
-	};
-	
-	window.setIcon = function (type, data) {
-		iconData[type] = customData[type] = data;
-		
-		resetIconList();
-	};
-	
-	window.resetIcon = function (type) {
-		var icon = originData[type];
-		
-		delete customData[type];
-		
-		if (icon) {
-			iconData[type] = icon;
-		}
-		else {
-			delete iconData[type];
-		}
-		
-		resetIconList();
-	};
-	
-	window.getIcon = function  (type) {
-		return iconData[type];
-	};
-	
-	window.getIconData = function  () {
-		return iconData;
-	};
-	
-	initialize();
-	
-}) (window);
-
-// account
-(function (window, undefined) {
-	
-	var accountData,
-		sequence,
-		list = document.getElementById("account_list");
-	
-	function initialize() {
-		document.getElementById("account_sync").onclick = onSync;
-	}
-
-	function onSync() {
-		if (confirmSync()) {
-			sendRequest({
-				command: "push",
-				database: "account",
-				sequence: sequence,
-				data: accountData
-			}, function (response) {
-				if (response) {
-					location.reload();
-				}
-				else {
-					alert("synchronization failed.");
-				}
-			});
-		}
-	}
-	
-	function onSelectAccount(name) {
-		showDialog("account.html", function (dialog) {
-			dialog.initialize(name, accountData[name]);
-		});
-	}
-	
-	window.initAccount = function () {
-		sendRequest({
-			command: "pull",
-			database: "account"
-		}, function (response) {
-			if (response) {
-				accountData = response.data;
-				sequence = response.sequence;
-				
-				resetAccountList();
-				
-				initProfile();
-			}
-			else {
-				throw "";
-			}
-		});
-	};
-	
-	window.resetAccountList = function () {
-		var df = document.createDocumentFragment(),
-			li;
-		
-		while (li = list.firstChild) {
-			list.removeChild(li);
-		}
-		
-		for (var name in accountData) {
-			li = document.createElement("li");
-			
-			li.textContent = name;
-			li.onclick = onSelectAccount.bind(undefined, name);
-			
-			df.appendChild(li);
-		}
-		
-		list.appendChild(df);
-	};
-	
-	window.setAccount = function (name, account) {
-		accountData[name] = account;
-		
-		resetAccountList();
-	};
-	
-	window.removeAccount = function (name) {
-		delete accountData[name];
-		
-		resetAccountList();
-	};
-	
-	initialize();
-	
-}) (window);
-
-// profile
-(function (window, undefined) {
-	
-	var profileData,
-		sequence,
-		list = document.getElementById("profile_list");
-	
-	function initialize() {
-		document.getElementById("profile_sync").onclick = onSync;
-	}
-	
-	function onResponse(response) {
-		if (response) {
-			profileData = response.data;
-			sequence = response.sequence;
-			
-			resetProfileList();
-			
-			startITAhM();
-		}
-		else {
-			// 오류
-		}
-		
-		document.body.classList.remove("loading");
-	}
-	
-	function onSync() {
-		if (confirmSync()) {
-			sendRequest({
-				command: "push",
-				database: "profile",
-				sequence: sequence,
-				data: profileData
-			}, function (response) {
-				if (response) {
-					location.reload();
-				}
-				else {
-					alert("synchronization failed.");
-				}
-			});
-		}
-	}
-	
-	function onSelectProfile(name) {
-		showDialog("profile.html", function (dialog) {
-			dialog.initialize(name, profileData[name]);
-		})
-		
-	}
-	
-	window.initProfile = function () {
-		sendRequest({
-			command: "pull",
-			database: "profile"
-		}, onResponse);
-	};
-	
-	window.resetProfileList = function () {
-		var df = document.createDocumentFragment(),
-			li;
-		
-		while (li = list.firstChild) {
-			list.removeChild(li);
-		}
-		
-		for (var name in profileData) {
-			li = document.createElement("li");
-			
-			li.textContent = name;
-			li.onclick = onSelectProfile.bind(undefined, name);
-			
-			df.appendChild(li);
-		}
-		
-		list.appendChild(df);
-	};
-	
-	window.setProfile = function (name, profile) {
-		profileData[name] = profile;
-		
-		resetProfileList();
-	};
-	
-	window.removeProfile = function (name) {
-		delete profileData[name];
-		
-		resetProfileList();
-	};
-	
-	initialize();
 	
 }) (window);
 
@@ -952,47 +202,35 @@ var specs = "toolbar=0, location=0, resizable=1, menubar=0, titlebar=0";
 	
 	var dialog = document.getElementById("dialog");
 	
-	function initialize() {
-		dialog.onload = onLoad;
-	}
-	
-	function onLoad(callback) {
-		callback(dialog.contentWindow);
-		
+	function onLoad(handler) {
 		document.body.classList.add("dialog");
+		
+		handler(dialog.contentWindow);
 	}
 	
-	window.showDialog = function (url, callback) {
-		dialog.onload = onLoad.bind(undefined, callback);
+	function onUnLoad(handler) {
+		handler();
+		
+		document.body.classList.remove("dialog");
+	}
+	
+	window.showDialog = function (url, load, unload) {
+		dialog.onload = onLoad.bind(dialog, load || function () {});
+		dialog.onunload = onUnLoad.bind(dialog, unload || function () {});
 		
 		dialog.src = url; 
 	};
 	
-	window.closeDialog = function () {
-		document.body.classList.remove("dialog");
+	window.closeDialog = function (cancel) {
+		if (cancel) {
+			document.body.classList.remove("dialog");
+		}
+		else {
+			dialog.onunload();
+		}
 	};
 	
-	initialize();
-	
 }) (window);
-
-// QueryParser object
-var query = new ITAhM.QueryParser(),
-	ip = query.get("ip"),
-	tcp = query.get("tcp");
-
-function confirmSync() {
-	if (level !== 0) {
-		alert("no permission");
-	}
-	else {
-		return confirm("reload ITAhM after synchronization.\n\ncontinue?");
-	}
-}
-
-if (ip && tcp) {
-	tryConnect(ip, tcp);
-}
 
 		</script>
 	

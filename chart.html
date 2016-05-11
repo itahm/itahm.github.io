@@ -713,13 +713,8 @@ function createSvgTextSpan(x, y, text) {
 //grid
 (function (window, undefined) {
 	
-	var grid, translate;
-	
-	function initialize() {
-		grid = document.getElementById("grid");
-		offset = grid.transform.baseVal.getItem(0);
-	}
-	
+	var grid = document.getElementById("grid");
+		
 	window.drawGrid = function (count, space) {
 		var rect = getRect(),
 			count = Math.min(MAX_AXIS_VAL_CNT, Math.round(rect.height / MIN_AXIS_VSPACE)),
@@ -741,8 +736,6 @@ function createSvgTextSpan(x, y, text) {
 		
 		setDateAxis(rect.width, rect.height);
 	};
-	
-	initialize();
 	
 }) (window);
 

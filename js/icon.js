@@ -57,7 +57,7 @@ ITAhM.iconData = {
     },
     "accesspoint": {
         "group": "network",
-        "src": "img/accesspoint.svg"
+        "src": "img/svg/accesspoint.svg"
     },
     "office": {
         "group": "etc",

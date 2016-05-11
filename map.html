@@ -7,52 +7,32 @@
 		<title>ITAhM</title>
 		
 		<style>
+@import "css/itahm.css";
+
 body, input, button {
-	font-family: tahoma, arial, "맑은 고딕";
 	margin: 0;
 	padding: 0; 
 }
 
-body, input, button {
+input, button, label {
 	font-size: 12px;
 }
 
-aside {
-	position: fixed; top: 0; left: 0;
-	height: 0;
-	width: 400px;
-	background-color: #fff;
-	transition: height .2s ease-in;
-}
-
-iframe {
+#map {
+	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
 	width: 100%; height: 100%;
-	border: 0;
-	margin: 0;
-	padding: 0;
-}
-
-body.list aside {
-	bottom: 0;
-	height: 100%;
-}
-
-#frame_list {
-	width: 500px;
-}
-
-#show_list {
-	position: fixed; top: 10px; left: 10px;
-	cursor: pointer;
-}
-
-#hide_list {
-	position: absolute; top: 10px; right: 0;
-	cursor: pointer;
 }
 
 nav {
-	position: fixed; top: 10px; right: 10px;
+	position: fixed; top: 10px;
+}
+
+nav.rt {
+	right: 10px;
+}
+
+nav.lt {
+	left: 10px;
 }
 
 nav input,
@@ -84,16 +64,11 @@ nav img {
 }
 
 body:not(.address) tspan:last-child,
-body:not(.name) tspan:first-child,
-body:not(.list) #hide_list {
+body:not(.name) tspan:first-child {
 	display: none;
 }
 
 /* svg*/
-svg {
-	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
-	width: 100%; height: 100%;
-}
 
 text {
 	font-family: tahoma, arial, "맑은 고딕";
@@ -186,7 +161,8 @@ body:not(.ifname) #line text {
 	</head>
 	
 	<body class="loading name ifname">
-		<svg id="stage">
+
+		<svg id="map">
 			<defs>
 				<circle r="35" id="circle"></circle>
 			</defs>
@@ -217,18 +193,14 @@ body:not(.ifname) #line text {
 			</g>
 		</svg>
 		
-		<img src="img/list.png" id="show_list" title="show device list">
-		
-		<aside>
-			<img src="img/close.png" id="hide_list" title="hide device list">
-			<iframe id="device_list"></iframe>
-		</aside>
-		
-		<nav>
+		<nav class="lt">
 			<img src="img/synchronize.png" width="16px" height="16px" title="synchronize device data" id="device_sync">
 			<img src="img/add_device.png" width="16px" height="16px" title="add new device" id="add_device">
 			<img src="img/zoomin.png" width="16px" height="16px" title="zoom in" id="zoom_in">
 			<img src="img/zoomout.png" width="16px" height="16px" title="zoom out" id="zoom_out">
+		</nav>
+		
+		<nav class="rt">
 			<label><input type="checkbox" id="option_interface" checked>interface</label>
  			<label title="show name"><input type="radio" name="option" id="option_name" checked>name</label>
 			<label title="show ip address"><input type="radio" name="option" id="option_addr">ip address</label>
@@ -236,114 +208,25 @@ body:not(.ifname) #line text {
 		
 		<div id="history"></div>
 		
-		<iframe id="dialog" class="fullscreen"></iframe>
-		
-		<iframe id="chart" class="fullscreen"></iframe>
-		
 		<script src="js/ITAhM.js"></script>
 		<script src="js/Draggable.js"></script>
 		<script src="js/Communicator.js"></script>
 		<script>
 
-if (!opener) throw "";
+if (top === window) {
+	location.href = "http://itahm.com";
+}
 
 var svgNS = "http://www.w3.org/2000/svg",
 	xlinkNS = "http://www.w3.org/1999/xlink";
 
-//device list
-(function (window, undefined){
-	
-	var frame = document.getElementById("device_list");
-	
-	function initialize() {
-		document.getElementById("show_list").onclick = function () {
-			document.body.classList.add("list");
-			
-			frame.onload = onLoad;
-			
-			frame.src = "list.html";
-		};
-		
-		document.getElementById("hide_list").onclick = function () {
-			document.body.classList.remove("list");
-			
-			frame.src = "about:blank";
-		};
-	}
-	
-	function onLoad() {
-		
-	}
-	
-	window.hideDeviceList = function () {
-		document.body.classList.remove("list");
-	};
-	
-	initialize();
-	
-}) (window);
-
-//navigation
+// map
 (function (window, undefined) {
-	
-	function initialize() {
-		document.getElementById("option_name").onchange =
-		document.getElementById("option_addr").onchange = function () {
-			document.body.classList.toggle("name");
-			document.body.classList.toggle("address");
-		};
-		
-		document.getElementById("device_sync").onclick = onSync;
-		
-		document.getElementById("add_device").onclick = onAddDevice;
-		
-		document.getElementById("option_interface").onchange = function () {
-			document.body.classList[this.checked? "add": "remove"]("ifname");
-		};
-	}
-	
-	function onSync() {
-		/*
-		if (Object.keys(deviceData).length > 10) {			
-			return;
-		}
-		*/
-		if (confirmSync()) {
-			sendRequest({
-				command: "push",
-				database: "device",
-				sequence: sequence,
-				data: deviceData
-			}, function (response) {
-				if (response) {
-				}
-				else {
-					alert("synchronization failed.");
-				}
-				
-				location.reload();
-			});
-		}
-	}
-	
-	function onAddDevice() {
-		showDialog("device.html", function (dialog) {
-			dialog.initialize();
-		});
-	}
-	
-	initialize();
-	
-}) (window);
-
-// stage
-(function (window, undefined) {
-	var canvas = document.getElementById("stage"),
+	var canvas = document.getElementById("map"),
 		linkAnchor = document.getElementById("link_anchor"),
 		eventData = {},
 		event = ITAhM.util.createCustomEvent("link", eventData),
 		base, translate, drag, scale, link,
-		mapData = opener.getMapData(),
 		selectedDevice,
 		selectedSvgDevice,
 		cancelSelect = false,
@@ -354,7 +237,7 @@ var svgNS = "http://www.w3.org/2000/svg",
 		
 		initTransform();
 		
-		scale.setScale(mapData.ratio, mapData.ratio);
+		scale.setScale(getScale(), getScale());
 		
 		window.addEventListener("resize", function (e) {
 			resetStage();
@@ -412,8 +295,8 @@ var svgNS = "http://www.w3.org/2000/svg",
 			target = data.target;
 		
 		if (selectedDevice) {
-			var x = dragOrigin.x + Math.round(data.dragX / mapData.ratio),
-				y = dragOrigin.y + Math.round(data.dragY / mapData.ratio);
+			var x = dragOrigin.x + Math.round(data.dragX / getScale()),
+				y = dragOrigin.y + Math.round(data.dragY / getScale());
 		
 			// selectedDevice 인 경우 move
 			if (target === selectedSvgDevice) {
@@ -462,8 +345,8 @@ var svgNS = "http://www.w3.org/2000/svg",
 			}
 		}
 		else {
-			var x = drag.matrix.e / mapData.ratio,
-				y = drag.matrix.f / mapData.ratio;
+			var x = drag.matrix.e / getScale(),
+				y = drag.matrix.f / getScale();
 			
 			moveStage(x, y);
 			
@@ -471,7 +354,7 @@ var svgNS = "http://www.w3.org/2000/svg",
 		}
 	}
 	
-	function moveStage(x, y) {
+	window.moveStage = function (x, y) {
 		if (selectedDevice) {
 			moveSelectionMark(selectedDevice.x + x, selectedDevice.y + y);
 		}
@@ -511,16 +394,17 @@ var svgNS = "http://www.w3.org/2000/svg",
 	}
 	
 	window.zoom = function (zoomin) {
+		var scale;
 		if (zoomin) {
 			//확대
-			mapData.ratio *= 1.1;
+			scale = setScale(1.1);
 		}
 		else {
 			//축소
-			mapData.ratio /= 1.1;
+			scale = setScale(1/1.1);
 		}
 		
-		scale.setScale(mapData.ratio, mapData.ratio);
+		scale.setScale(scale, scale);
 	};
 	
 	window.getSelectedDevice = function () {
@@ -532,12 +416,6 @@ var svgNS = "http://www.w3.org/2000/svg",
 		
 		base.setTranslate(rect.width /2, rect.height /2);
 	};
-	
-	window.centerDevice = function (id) {
-		var device = getDevice(id);
-		
-		moveStage(- device.x, - device.y);
-	}
 	
 	window.editDevice = function () {
 	
@@ -761,15 +639,22 @@ var svgNS = "http://www.w3.org/2000/svg",
 		
 	function initialize() {
 		chartAnchor.onclick = function (e) {
-			showChart();
+			top.databases.device.selected = getSelectedDevice().id;
+			
+			location.href = "performance.html";
 			
 			e.stopPropagation();
 		};
 		
 		editAnchor.onclick = function (e) {
-			showDialog("device.html", function (dialog) {
-				dialog.initialize(getSelectedDevice());
-			});
+			top.showDialog("device_dialog.html",
+				function (dialog) {
+					dialog.initialize(getSelectedDevice());
+				},
+				function () {
+					location.reload();
+				}
+			);
 			
 			e.stopPropagation();
 		};
@@ -938,158 +823,125 @@ var svgNS = "http://www.w3.org/2000/svg",
 	
 }) (window);
 
-// dialog
-(function (window, undefined) {
-	
-	var dialog = document.getElementById("dialog");
-	
-	window.showDialog = function (url, onload) {
-		document.body.classList.add("dialog");
-		
-		dialog.onload = onload.bind(undefined, dialog.contentWindow);
-		
-		dialog.src = url;
-	};
-	
-	window.closeDialog = function () {
-		document.body.classList.remove("dialog");
-		
-		dialog.onload = undefined;
-		
-		dialog.src = "about:blank";
-	};
-	
-}) (window);
+function initDevice() {
+	forEachDevice(function (device) {
+		addDevice(device, getIcon(device.type).src);
+		addLine(device);
+	});
+}
 
-//chart
-(function (window, undefined) {
+function getDevice(id) {
+	return top.databases.device.data[id];
+};
+
+function getIcon(type) {
+	var iconData = top.databases.icon;
 	
-	var chart = document.getElementById("chart");
+	return iconData.data[type] || iconData.origin[type];
+};
+
+function forEachDevice(f) {
+	var deviceData = top.databases.device.data;
 	
-	function onResponse(device, data, status) {
-		if (data) {
-			chart.onload = function () {
-				chart.contentWindow.initialize(device, data);
-			};
-			
-			chart.src = "performance.html";
-			
-			document.body.classList.add("chart");
-		}
-		else {
-			// 오류
-			//window.close();
-		}
+	for (var id in deviceData) {
+		f(deviceData[id]);
+	}
+}
+
+function setScale(ratio) {
+	return top.databases.device.scale *= ratio;
+}
+
+function getScale() {
+	return top.databases.device.scale;
+}
+
+function onSync() {
+	if (!confirm("Synchronize device database with agent now?")) {
+		return;
 	}
 	
-	window.showChart = function () {
-		var device = getSelectedDevice();
-		
-		sendRequest({
-			command: "select",
-			ip: device.ip
-		}, onResponse.bind(undefined, device));
-		
-	};
-	
-	window.closeChart = function () {
-		document.body.classList.remove("chart");
-		
-		chart.onload = undefined;
-		
-		dialog.src = "about:blank";
-	};
-	
-}) (window);
+	top.sendRequest({
+		command: "push",
+		database: "device",
+		sequence: top.databases.device.sequence,
+		data: top.databases.device.data
+	}, function (response) {
+		if (response) {
+			top.databases.device.sequence = response.sequence;
+		}
+		else {
+			alert("synchronization failed.");
+		}
+	});
+}
 
-//data
-(function (window, undefined) {
-	
+function onAddDevice() {
+	top.showDialog("device_dialog.html",
+		function (dialog) {
+			dialog.initialize();
+		},
+		function () {
+			location.reload();
+		}
+	);
+}
+
+function initHistory() {
 	var history = document.getElementById("history"),
-		deviceData, iconData, mapData;
+		log = top.log,
+		dateArray = Object.keys(log),
+		length = dateArray.length,
+		log, date;
 	
-	function initialize() {
-		var thread = new Worker("event.js"),
-			device;
-		
-		deviceData = opener.getDeviceData();
-		iconData = opener.getIconData();
-		mapData = opener.getMapData();
-		
-		window.sendRequest = opener.sendRequest;
-		
-		for (var id in deviceData) {
-			device = deviceData[id];
-			
-			addDevice(device, iconData[device.type].src);
-			addLine(device);
-		}
-		
-		initStage();
-		
-		thread.addEventListener("message", onEvent);
-
-		thread.postMessage("http://"+ opener.getAddress());
-	}
+	dateArray.sort(function (a, b) {
+		return parseInt(a) - parseInt(b);
+	});
 	
-	function onEvent(e) {
-		var event = e.data,
-			device = deviceData[event.id],
-			log = document.createElement("p");
+	for (var i=0; i<length; i++) {
+		date = dateArray[i];
 		
-		log.appendChild(document.createElement("span")).textContent = new Date().toLocaleString();
-		log.appendChild(document.createElement("span")).textContent = device.name +"("+ device.ip +")";
-		
+		log = document.createElement("p");
+		log.appendChild(document.createElement("span")).textContent = new Date(date).toLocaleString();
+		log.appendChild(document.createElement("span")).textContent = log[date];
 		log.onclick = function () {
-			this.parentNode.removeChild(this);
-		}
-		
-		if ("shutdown" in event) {
-			log.appendChild(document.createElement("span")).textContent = event.shutdown? "down": "up";
-			
-			device.shutdown = event.shutdown;
-			
-			setAlert(device);
-		}
-		else if ("ifAdminStatus" in event) {
-			log.appendChild(document.createElement("span")).textContent = event.ifAdminStatus;
-		}
-		else {
-			return;
+			history.removeChild(this);
 		}
 		
 		history.appendChild(log);
-	}
-	
-	window.createDevice = function (data) {
-		opener.createDevice(data);
-	};
-	
-	window.getDevice = function (id) {
-		return deviceData[id];
-	};
-
-	window.forEachDevice = function (f) {
-		for (var id in deviceData) {
-			f(deviceData[id]);
-		}
-	};
-	
-	window.forEachIcon = function (f) {
-		for (var type in iconData) {
-			f(type, iconData[type]);
-		}
-	};
-	
-	// 페이지의 시작	
-	initialize();
-	
-}) (window);
-
-// dialog 에서 호출.
-function reload() {
-	location.reload();
+	}		
 }
+
+function initEvent() {
+	document.getElementById("option_name").onchange =
+		
+	document.getElementById("option_addr").onchange = function () {
+		document.body.classList.toggle("name");
+		document.body.classList.toggle("address");
+	};
+	
+	document.getElementById("device_sync").onclick = onSync;
+	
+	document.getElementById("add_device").onclick = onAddDevice;
+	
+	document.getElementById("option_interface").onchange = function () {
+		document.body.classList[this.checked? "add": "remove"]("ifname");
+	};
+}
+
+function onSelectDevice(id) {
+	var device = getDevice(id);
+	
+	moveStage(- device.x, - device.y);
+}
+
+initEvent();
+
+initDevice();
+
+initStage();
+
+initHistory();
 		</script>
 	
 	</body>

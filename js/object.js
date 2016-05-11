@@ -27,6 +27,10 @@ var ITAhM = ITAhM || {};
 		this.initialize(calendar, handler);
 	};
 	
+	ITAhM.Communicator = function (host, port, timeout) {
+		this.initialize(host, port, timeout);
+	};
+	
 	ITAhM.QueryParser.prototype = {
 		map: {},
 		
@@ -330,4 +334,42 @@ var ITAhM = ITAhM || {};
 		}
 	};
 
+	ITAhM.Communicator.prototype = {
+		
+		initialize: function (host, port, timeout) {
+			this.url = "http://"+ host +":"+ port;
+			this.timeout = timeout;
+		},
+		
+		sendRequest: function (request, onResponse) {
+			var xhr = new XMLHttpRequest();
+			
+			xhr.open("POST", this.url, true);
+			if (this.timeout > 0) {
+				xhr.timeout = this.timeout;
+			}
+			
+			xhr.withCredentials = true;
+			
+			xhr.onloadend = this.onComplete.bind(xhr, onResponse);
+			
+			this.status = 0;
+			
+			xhr.send(JSON.stringify(request));
+		},
+		
+		onComplete: function (onResponse) {
+			var response;
+			
+			try {
+				response = JSON.parse(this.responseText);
+			}
+			catch(e) {
+			}
+			
+			onResponse(this.status, response);
+		}
+		
+	};
+	
 }) (window);

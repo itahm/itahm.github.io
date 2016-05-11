@@ -1,0 +1,80 @@
+"use strict" ;
+
+var url,
+	requestQ = ["icon", "profile", "account", "device"],
+	event = {
+		command: "listen"
+	},
+	databases = {};
+
+onmessage = function (e) {
+	url = e.data;
+
+	sendRequest(requestQ.pop());
+};
+
+function sendRequest(database) {
+	var xhr = new XMLHttpRequest(),
+		request = {
+			command: "pull",
+			database: database
+		};
+	
+	xhr.open("POST", url, true);
+	xhr.withCredentials = true;
+	xhr.timeout = 12000;
+	xhr.onloadend = onComplete.bind(xhr, database);
+	xhr.send(JSON.stringify(request));
+}
+
+function onComplete(database) {
+	if (this.status == 200) {
+		databases[database] = JSON.parse(this.responseText);
+		
+		database = requestQ.pop();
+		if (database) {
+			sendRequest(database);
+		}
+		else {
+			postMessage({
+				type: "initialize",
+				value: databases
+			});
+			
+			listen();
+		}
+	}
+	else {
+		postMessage(null);
+		
+		close();
+	}
+}
+
+function listen() {
+	var xhr = new XMLHttpRequest();
+
+	xhr.open("POST", url, true);
+	xhr.withCredentials = true;
+	xhr.timeout = 60000;
+	xhr.onload = onEvent;
+	xhr.ontimeout = listen;
+	xhr.send(JSON.stringify(event));
+}
+
+function onEvent() {
+	var response;
+	
+	if (this.status === 200) {
+		response = JSON.parse(this.responseText);
+		
+		postMessage({
+			type: "event",
+			value: response.message
+		});
+		
+		event.index = response.index +1;
+		
+		listen();
+	}
+}

@@ -19,7 +19,7 @@ function Communicator() {
 		xhr.onload = onSuccess;
 		xhr.ontimeout = onTimeout;
 		xhr.onloadend = onLoad;
-		xhr.timeout = 8000;
+		xhr.timeout = 10000;
 		xhr.withCredentials = true;
 		xhr.send(JSON.stringify(data));
 	}
@@ -74,6 +74,16 @@ Communicator.getInstance = function () {
 	return new Communicator();
 }
 
-Communicator.xhr = function () {
-	return new XMLHttpRequest();
+Communicator.xhr = function (host, port, timeout) {
+	var xhr = new XMLHttpRequest();
+	
+	xhr.open("POST", "http://"+ host +":"+ port, true);
+	
+	if (timeout > 0) {
+		xhr.timeout = timeout;
+	}
+	
+	xhr.withCredentials = true;
+	
+	return new xhr;
 }

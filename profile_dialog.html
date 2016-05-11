@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>dialog</title>
+		
+		<style>
+@import "css/itahm.css";
+
+body {
+	margin: 0; padding: 0;
+	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	background-color: rgba(0, 0, 0, .8);
+}
+
+.dialog {
+	width: 300px;
+	padding: 20px;
+	background-color: #fff;
+}
+
+input[type="text"],
+input[type="password"],
+input[type="number"],
+input[type="submit"],
+input[type="reset"],
+select {
+	width: 100%;
+	box-sizing: border-box;
+	padding: .5em;
+}
+
+input[type="checkbox"] {
+	vertical-align: middle;
+}
+
+.table {
+	margin-bottom: 10px;
+}
+
+.table ul {
+	display: flex;
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+
+.table li:first-child {
+	text-align: right;
+	padding: .5em;
+	flex: 2;
+}
+
+.table li:last-child {
+	flex: 3;
+}
+footer{
+	display: flex;
+}
+
+footer input {
+	flex: 1;
+}
+
+		</style>
+		
+	</head>
+	
+	<body>
+	
+		<div class="dialog rounded">
+			<form autocomplete="off">
+				<h2>snmp profile</h2>
+				<div class="table">
+					<ul>
+						<li>profile name: 
+						<li>
+							<input type="text" name="name" class="table text"
+								placeholder="snmp profile name" required autofocus>
+						
+					</ul>
+					<ul>
+						<li>udp port: 
+						<li>
+							<input type="number" min="1" step="1" value="161" name="udp" class="table text"
+								placeholder="snmp udp port" pattern="\d*" required>
+					</ul>
+					<ul>
+						<li>snmp version: 
+						<li>
+							<label><input type="radio" value="v1" name="version" disabled>v1</label>
+							<label><input type="radio" value="v2c" name="version" checked>v2c</label>
+							<label><input type="radio" value="v3" name="version" disabled>v3</label>
+					</ul>
+					<ul>
+						<li>community: 
+						<li>
+							<input type="text" name="community" value="public" class="table text"
+								placeholder="snmp community string" required>
+					</ul>
+				</div>
+				<label><input type="checkbox" name="remove">remove</label>
+				<footer>
+					<input type="reset" value="cancel">
+					<input type="submit" value="apply">
+				</footer>
+			</form>
+		</div>
+		
+		<script>
+	
+if (top === window) {
+	throw "";
+}
+
+(function (window, undefined) {
+	var form = document.querySelector("form");
+	
+	/**
+	 * callback method
+	 */
+	 function onApply(e) {
+		e.preventDefault();
+		
+		var name = form.elements.name.value;
+		
+		top.databases.profile.data[name] = {
+			name: name,
+			udp: form.elements.udp.value,
+			version: form.elements.version.value,
+			community: form.elements.community.value
+		};
+		
+		top.closeDialog();
+	}
+	
+	function onRemove(e) {
+		if (!confirm("remove profile?")) {
+			return;
+		}
+		
+		delete top.databases.profile.data[form.elements.name.value];
+		
+		top.closeDialog();
+	}
+	
+	function onCancel(e) {
+		top.closeDialog(true);
+	}
+	
+	window.initialize = function (name) {
+		if (name) {
+			var profile = top.databases.profile.data[name];
+			
+			form.elements.name.value = name,
+			form.elements.udp.value = profile.udp;
+			form.elements.version.value = profile.version;
+			form.elements.community.value = profile.community;
+			
+			form.elements.remove.onclick = onRemove;
+		}
+		else {
+			form.elements.remove.disabled = true;
+		}
+		
+		form.onsubmit = onApply;
+		form.onreset = onCancel;
+		
+		form.elements.name.select();
+	};
+	
+}) (window);
+
+		</script>
+	
+	</body>
+	
+</html>

@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>dialog</title>
+		
+		<style>
+@import "css/itahm.css";
+		
+body {
+	margin: 0; padding: 0;
+	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	background-color: rgba(0, 0, 0, .8);
+}
+
+.dialog {
+	width: 300px;
+	padding: 20px;
+	background-color: #fff;
+}
+
+input[type="text"],
+input[type="password"],
+input[type="submit"],
+input[type="reset"],
+select {
+	width: 100%;
+	box-sizing: border-box;
+	padding: .5em;
+}
+
+input[type="checkbox"] {
+	vertical-align: middle;
+}
+
+.table {
+	margin-bottom: 10px;
+}
+
+.table ul {
+	display: flex;
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+
+.table li:first-child {
+	text-align: right;
+	padding: .5em;
+	flex: 2;
+}
+
+.table li:last-child {
+	flex: 3;
+}
+
+footer{
+	display: flex;
+}
+
+footer input {
+	flex: 1;
+}
+
+		</style>
+		
+	</head>
+	
+	<body>
+		
+		<div class="dialog rounded">
+			<form autocomplete="off">
+				<h2>account</h2>
+				<div class="table">
+					<ul>
+						<li>username
+						<li>
+							<input type="text" name="username" class="table text" required>
+					</ul>
+					<ul>
+						<li>password
+						<li>
+							<input type="password" name="password"
+								class="table text"
+								placeholder="new password"
+								pattern="[a-zA-Z0-9]{4,}"
+								title="at least 6 alphanumeric characters"
+								required>
+					</ul>
+					<ul>
+						<li>confirm password
+						<li>
+							<input type="password" name="password2"
+								class="table text"
+								placeholder="confirm password"
+								required>
+					</ul>
+					<ul>
+						<li>level
+						<li>
+							<select name="level">
+								<option value="0">root
+								<option value="2" selected>user
+							</select>
+					</ul>
+				</div>
+				<label><input type="checkbox" name="remove">remove</label>
+				<footer>
+					<input type="reset" value="cancel">
+					<input type="submit" value="apply">
+				</footer>
+			</form>
+		</div>
+		
+		<script>
+
+if (top === window) {
+	throw "";
+}
+		
+//account 관리
+(function (window, undefined) {
+	var form = document.querySelector("form");
+	
+	/**
+	 * callback method
+	 */
+	function onApply(e) {
+		e.preventDefault();
+		
+		var password = form.elements.password,
+			password2 = form.elements.password2;
+			
+		if (password.value === password2.value) {
+			var username = form.elements.username.value;
+			
+			top.databases.account.data[username] = {
+				username: username,
+				password: password.value,
+				level: form.elements.level.value
+			};
+			
+			top.closeDialog();
+		}
+		else {
+			alert("password does not match the confirmation");
+			
+			password2.select();
+		}
+	};
+	
+	function onRemove(e) {
+		if (!confirm("remove account?")) {
+			return;
+		}
+		
+		delete top.databases.account.data[form.elements.username.value];
+		
+		top.closeDialog();
+	}
+	
+	function onCancel(e) {
+		top.closeDialog(true);
+	};
+	
+	window.initialize = function (username) {
+		if (username) {
+			var account = top.databases.account.data[username];
+			
+			form.elements.username.value = username,
+			form.elements.password.value = account.password;
+			form.elements.level.value = account.level;
+			
+			form.elements.remove.onclick = onRemove;
+		}
+		else {
+			form.elements.remove.disabled = true;
+		}
+		
+		form.onsubmit = onApply;
+		form.onreset = onCancel;
+		
+		form.elements.username.select();
+	};
+	
+}) (window);
+
+		</script>
+	
+	</body>
+	
+</html>
