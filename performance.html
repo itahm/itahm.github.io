@@ -20,11 +20,6 @@ header img {
 	cursor: pointer;
 }
 
-section {
-	border: 1px solid #0084ff;
-	margin: 10px;
-}
-
 ul {
 	margin: 0;
 	padding: 0;
@@ -63,17 +58,20 @@ section.select {
 	padding: 10px;
 }
 
-section.select ul {
-	display: flex;
-}
-	
-section.select li {
-	flex: 1;
+section.select label,
+section.select select {
+	margin: 0 5px;
+	display: inline-block;
+	padding: .3em 1em;
+	border-radius: 1em;
+	border: 1px solid #07f;
+	/*background: linear-gradient(#7af, #0084ff);
+	color: #fff;*/
 }
 
-section.select select {
-	box-sizing: border-box;
-	width: 100%;
+label input {
+	vertical-align: middle;
+	margin: 0;
 }
 
 nav {
@@ -82,18 +80,12 @@ nav {
 	justify-content: space-between;
 }
 
-#loading {
-	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
-	background: #fff url("img/waiting.gif") no-repeat center;
-	opacity: .8;
-}
-
-body:not(.loading) #loading,
 #legend:not(.responsetime) .responsetime,
 #legend:not(.processor) .processor,
 #legend:not(.memory) .memory,
 #legend:not(.storage) .storage,
-#legend:not(.throughput) .throughput {
+#legend:not(.throughput) .throughput,
+body:not(.initialized) #mode {
 	display: none;
 }
 
@@ -180,9 +172,57 @@ option[value="ifInOctets"] {
 	
 	<body>
 		
-		<header>
-			<img src="img/close.png" id="close">
-		</header>
+		<section class="select">
+			<label>
+				<a href="map.html">Map</a>
+			</label>
+			<label>
+				<input type="radio" id="select_response" name="resource">Response time
+			</label>
+
+			<label>
+				<input type="radio" id="select_processor" name="resource">Processor load
+			</label>
+
+			<label>
+				<input type="radio" id="select_memory" name="resource">physical memory
+			</label>
+
+			<label>
+				<input type="radio" id="select_storage" name="resource">Storage usage
+			</label>
+
+			<select id="select_iface">
+				<option value="-1" selected>Interface throughput
+			</select>
+		</section>
+		
+		<nav>
+			<select id="mode">
+				<option selected>max
+				<option>avg
+				<option>min
+			</select>
+			<div id="legend">
+				<div class="processor">
+					<span id="processor">100%</span>
+				</div>
+				<div class="memory">
+					<span id="memory">memory</span>
+				</div>
+				<div class="throughput">
+					<span id="bandwidth">bandwidth</span>
+					<span class="ifInOctets legend"></span>
+					<span>in</span>
+					<span class="ifOutOctets legend"></span>
+					<span>out</span>
+				</div>
+			</div>
+		</nav>
+		
+		<section class="chart">
+			<iframe id="chart"></iframe>
+		</section>
 		
 		<section class="information">
 			<ul>
@@ -239,57 +279,7 @@ option[value="ifInOctets"] {
 			</ul>
 		</section>
 		
-		<section class="select">
-			<ul>
-				<li>
-					<label>
-						<input type="radio" id="select_response" name="resource">response time
-					</label>
-				<li>
-					<label>
-						<input type="radio" id="select_processor" name="resource">processor load
-					</label>
-				<li>
-					<label>
-						<input type="radio" id="select_memory" name="resource">physical memory
-					</label>
-				<li>
-					<label>
-						<input type="radio" id="select_storage" name="resource">storage usage
-					</label>
-				<li>
-					<label title="select interface from dropdown list below">
-						<input type="radio" id="select_throughput" name="resource">interface throughput
-					</label>
-					<select id="select_iface" disabled></select>
-			</ul>
-		</section>
-		
-		<nav>
-			<select id="mode" disabled>
-				<option selected>max
-				<option>avg
-				<option>min
-			</select>
-			<div id="legend">
-				<div class="memory">
-					<span id="memory">memory</span>
-				</div>
-				<div class="throughput">
-					<span id="bandwidth">bandwidth</span>
-					<span class="ifInOctets legend"></span>
-					<span>in</span>
-					<span class="ifOutOctets legend"></span>
-					<span>out</span>
-				</div>
-			</div>
-		</nav>
-		
-		<section class="chart">
-			<iframe id="chart"></iframe>
-		</section>
-		
-		<section id="loading"></section>
+		<div class="bg_loading"></div>
 		
 		<script src="js/ITAhM.js"></script>
 		<script src="js/object.js"></script>
@@ -320,12 +310,8 @@ var elements = {
 		enterprise = document.getElementById("enterprise"),
 		chart = document.getElementById("chart"),
 		mode = document.getElementById("mode"),
-		ip,
+		deviceIP,
 		chartData;
-	
-	document.getElementById("close").onclick = function () {
-		location.href = "map.html";
-	};
 	
 	mode.onchange = function () {
 		chart.contentWindow.mode(this.value);
@@ -335,11 +321,11 @@ var elements = {
 		var database = top.databases.device,
 			device = database.data[database.selected];
 		
-		ip = device.ip;
+		deviceIP = device.ip;
 		
 		top.sendRequest({
 			command: "select",
-			ip: ip
+			ip: deviceIP
 		}, function (response) {
 			if (response) {
 				initialize(device, response);
@@ -353,7 +339,7 @@ var elements = {
 	function sendRequest(database, index, start, end, callback, summary) {
 		var request = {
 				command: "query",
-				ip: ip,
+				ip: deviceIP,
 				summary: summary,
 				database: database,
 				index: index,
@@ -382,10 +368,6 @@ var elements = {
 		initStorage(snmp);
 		initThroughput(snmp);
 		
-		chart.onload = function () {
-			document.body.classList.remove("loading");
-		}
-		
 		chart.src = "chart.html";
 	};
 	
@@ -401,12 +383,11 @@ var elements = {
 		sendRequest(database, index, start, end, callback, true);
 	};
 	
-	window.initChart = function (origin, capacity, valueToString) {
-		mode.disabled = false;
-		
+	window.initChart = function (origin, capacity, valueToString) {		
 		chart.contentWindow.initChart(origin, mode.value, capacity, valueToString);
 		
 		document.body.classList.remove("loading");
+		document.body.classList.add("initialized");
 	};
 	
 	window.updateChart = function (data) {
@@ -433,13 +414,7 @@ var elements = {
 		return value.toFixed(2) + "ms";
 	}
 	
-	function onResponse(data, status) {
-		if (!data) {
-			document.body.classList.remove("loading");
-			
-			return;
-		}
-		
+	function onResponse(data) {		
 		if (summary) {
 			window.drawDetailGraph = sendDetailRequest;
 			
@@ -492,13 +467,7 @@ var elements = {
 		return value.toFixed(2) + "%";
 	}
 	
-	function onResponse(data, status) {
-		if (!data) {
-			document.body.classList.remove("loading");
-			
-			return;
-		}
-		
+	function onResponse(data) {
 		if (summary) {
 			origin[indexArray[indexPos++]] = new ITAhM.ChartSummaryData(data);
 		}
@@ -579,13 +548,7 @@ var elements = {
 		return ITAhM.util.toBytesString(value).replace("ytes", "");
 	}
 	
-	function onResponse(data, status) {
-		if (!data) {
-			document.body.classList.remove("loading");
-			
-			return;
-		}
-		
+	function onResponse(data) {
 		if (summary) {
 			origin[indexArray[indexPos++]] = new ITAhM.ChartSummaryData(data);
 		}
@@ -596,8 +559,8 @@ var elements = {
 		tryRequest();
 	}
 	
-	function tryRequest() {console.log(indexArray.length);
-		if (indexPos < indexArray.length) {console.log("shoot! more");
+	function tryRequest() {
+		if (indexPos < indexArray.length) {
 			if (summary) {
 				getSummaryData("hrStorageUsed", indexArray[indexPos], onResponse);
 			}
@@ -605,7 +568,7 @@ var elements = {
 				getDetailData("hrStorageUsed", indexArray[indexPos], start, end, onResponse);
 			}
 		}
-		else {console.log("done");
+		else {
 			if (summary) {
 				window.drawDetailGraph = sendDetailRequest;
 				
@@ -686,13 +649,7 @@ var elements = {
 		return ITAhM.util.toBytesString(value).replace("ytes", "");
 	}
 	
-	function onResponse(data, status) {
-		if (!data) {
-			document.body.classList.remove("loading");
-			
-			return;
-		}
-		
+	function onResponse(data) {
 		if (summary) {
 			origin[indexArray[indexPos++]] = new ITAhM.ChartSummaryData(data);
 		}
@@ -764,10 +721,6 @@ var elements = {
 		bandwidth = document.getElementById("bandwidth"),
 		databaseArray = [], indexPos,
 		origin = {}, detail = {};
-	
-	document.getElementById("select_throughput").onchange = function () {
-		list.disabled = false;
-	};
 		
 	list.onchange = function () {
 		document.body.classList.add("loading");
@@ -779,13 +732,7 @@ var elements = {
 		return ITAhM.util.toBPSString(value);
 	}
 	
-	function onResponse(data, status) {
-		if (!data) {
-			document.body.classList.remove("loading");
-			
-			return;
-		}
-		
+	function onResponse(data) {
 		if (summary) {
 			origin[databaseArray[indexPos++]] = new ITAhM.ChartSummaryData(data);
 		}
@@ -841,8 +788,8 @@ var elements = {
 	}
 	
 	window.disableThroughput = function () {
-		list.disabled = true;
-		list.selectedIndex = -1;
+		//list.disabled = true;
+		list.value = "-1";
 	};
 	
 	window.initThroughput = function (snmp) {
@@ -868,7 +815,7 @@ var elements = {
 		
 		databaseArray = ["ifInOctets", "ifOutOctets"];
 		
-		disableThroughput();
+		//disableThroughput();
 	};
 	
 }) (window);
