@@ -69,10 +69,7 @@ iframe {
 		
 		<div class="map">
 			<iframe id="map" src="map_base.html"></iframe>
-			
 			<nav class="lt">
-				<img src="img/synchronize.png" width="16px" height="16px" title="synchronize device data" id="device_sync">
-				<img src="img/add_device.png" width="16px" height="16px" title="add new device" id="add_device">
 				<img src="img/zoomin.png" width="16px" height="16px" title="zoom in" id="zoom_in">
 				<img src="img/zoomout.png" width="16px" height="16px" title="zoom out" id="zoom_out">
 			</nav>
@@ -82,12 +79,12 @@ iframe {
  				<label title="show name"><input type="radio" name="display" id="name" value="false" checked>name</label>
 				<label title="show ip address"><input type="radio" name="display" id="address" value="true">ip address</label>
 			</nav>
-			
-			<div id="history"></div>
+
 		</div>
 		
 	</body>
 	
+	<script src="databases.js"></script>
 	<script>
 	
 	var map = document.getElementById("map").contentWindow,
@@ -100,22 +97,15 @@ iframe {
 	document.getElementById("map").addEventListener("wheel", function (e) {
 		map.zoom(e.deltaY < 0? scale *= 1.1: scale /= 1.1);
 		
-		top.databases.device.scale = scale;
+		e.preventDefault();
 	});
 	
 	document.getElementById("zoom_in").onclick = function () {
 		map.zoom(scale *= 1.1);
-		
-		top.databases.device.scale = scale;
 	}
 	document.getElementById("zoom_out").onclick = function () {
 		map.zoom(scale /= 1.1);
-		
-		top.databases.device.scale = scale;
 	}
-
-	document.getElementById("device_sync").onclick = onSync;
-	document.getElementById("add_device").onclick = onAddDevice;
 	
 	document.getElementById("name").onchange = function () {
 		map.displayIPAddress(false);
@@ -129,104 +119,57 @@ iframe {
 		map.displayIFName(this.checked);
 	};
 	
+	var once = false;
+	
 	document.getElementById("map").onload = function () {
-		map.onEditDevice = function (device) {
-			top.showDialog("device_dialog.html",
-				function (dialog) {
-					dialog.initialize(device);
-				},
-				function () {
-					location.reload();
-				}
-			);
+		var animation = [.8, .7, .6, .5, .6, .7, .8, .9, 1, 1.1, 1.2, 1.3, 1.2, 1.1];
+		
+		if (!once) {
+			doAnimation();
+			
+			once = true;
 		}
 		
-		map.onShowChart = function (device){
-			top.databases.device.selected = device.id;
+		function doAnimation() {
+			var scale = animation.pop();
 			
-			location.href = "performance.html";
+			if (scale) {
+				map.zoom(scale);
+				
+				setTimeout(doAnimation, 100);
+			}
 		}
+		
+		map.onEditDevice = function (device) {
+			alert("ITAhM will show you a device information dialog with real service.");
+		};
+		
+		map.onShowChart = function () {
+			alert("ITAhM will show you a performance chart with real service.");
+		};
 		
 		map.getDevice = function (id) {
-			return top.databases.device.data[id];
+			return databases.device.data[id];
 		};
 		
 		map.getIcon = function (type) {
-			var iconData = top.databases.icon;
+			var iconData = databases.icon;
 			
 			return iconData.data[type] || iconData.origin[type];
 		};
 		
 		map.forEachDevice = function(func) {
-			var deviceData = top.databases.device.data;
+			var deviceData = databases.device.data;
 			
 			for (var id in deviceData) {
 				func(deviceData[id]);
 			}
 		}
 		
-		map.zoom(top.databases.device.scale);
+		map.zoom(scale);
 		
 		map.initialize();
 	}
 	
-	function onAddDevice() {
-		top.showDialog("device_dialog.html",
-			function (dialog) {
-				dialog.initialize();
-			},
-			function () {
-				location.reload();
-			}
-		);
-	}
-	
-	function onSync() {
-		if (!confirm("Synchronize device database with agent now?")) {
-			return;
-		}
-		
-		top.sendRequest({
-			command: "push",
-			database: "device",
-			sequence: top.databases.device.sequence,
-			data: top.databases.device.data
-		}, function (response) {
-			if (response) {
-				top.databases.device.sequence = response.sequence;
-				
-				location.reload();
-			}
-			else {
-				alert("synchronization failed.");
-			}
-		});
-	}
-
-	function initHistory() {
-		var history = document.getElementById("history"),
-			log = top.log,
-			dateArray = Object.keys(log),
-			length = dateArray.length,
-			log, date;
-		
-		dateArray.sort(function (a, b) {
-			return parseInt(a) - parseInt(b);
-		});
-		
-		for (var i=0; i<length; i++) {
-			date = dateArray[i];
-			
-			log = document.createElement("p");
-			log.appendChild(document.createElement("span")).textContent = new Date(date).toLocaleString();
-			log.appendChild(document.createElement("span")).textContent = log[date];
-			log.onclick = function () {
-				history.removeChild(this);
-			}
-			
-			history.appendChild(log);
-		}		
-	}
-
 	</script>
 </html>

@@ -14,6 +14,7 @@ header {
 	height: 100px;
 	background-color: #0084ff;
 	color: #fff;
+	font-size: 12pt;
 }
 
 header a:visited,
@@ -52,19 +53,36 @@ nav img {
 
 div.body {
 	position: fixed; top: 100px; right: 0; bottom: 0; left: 0;
+	padding: 10px;
 	overflow: auto;
 }
 
-#dialog {
-	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
-	width: 100%;
-	height: 100%;
+iframe {
+	border: 1px solid #0084ff;
+	display: inline-block;
 }
 
-.nav {
-	padding: 10px;
+div.comment {
+	display: inline-block;
+	padding: 20px;
+	vertical-align: top;
 }
 
+div.right {
+	text-align: right;
+}
+
+div.center {
+	text-align: center;
+}
+
+.comment img {
+	vertical-align: middle;
+}
+
+ul.install {
+	font-size: 1.5em;
+}
 		</style>
 		
 	</head>
@@ -73,8 +91,9 @@ div.body {
 		
 		<header>
 			<nav class="content_width">
-				<img src="img/favicon.png" width="64" height="64">
+				<img src="img/favicon.png" width="32" height="32">
 				<ul>
+					<li><a href="document.html">아이탐은?</a>
 					<li><a href="https://dl.dropbox.com/s/ji8h38nldgoevfr/ITAhM.1.1.3.6.jar" download="ITAhM.1.1.3.6.jar">download</a>
 					<li><a href="connect.html" title="connect to agent">connect</a>
 				</ul>
@@ -82,708 +101,74 @@ div.body {
 		</header>
 		
 		<div class="body">
-			<section class="content_width">				
-			</section>
+			<div class="content_width">
+				<h1>Map @ ITAhM</h1>
+			</div>
+			<div>
+				<iframe src="demo_map.html" width="1024" height="500"></iframe>
+				<div class="comment">
+					<h3>Scroll to zoom in/out.</h3>
+					<h3>Drag to move map or device.</h3>
+					<h3>Click device for something.</h3>
+				</div>
+			</div>
+			
+			<div class="content_width">
+				<h1>Chart @ ITAhM</h1>
+			</div>
+			<div class="right">
+				<div class="comment">
+					<h3>Drag to move before or later.</h3>
+					<h3>Click a lock <img src="img/unlock.png"> button to fix a date.</h3>
+				</div>
+				<iframe src="demo_chart.html" width="1024" height="500"></iframe>
+			</div>
+			
+			<div class="content_width">
+				<h1>Mobile @ ITAhM</h1>
+				<ul>
+					<li><h3>ITAhM send a event message to your android application.</h3>
+					<li><h3>you can also send a custom message to your all party.</h3>
+				</ul>
+			</div>
+			<div class="center">
+				<img src="img/android_log.png" width="270" height="480">
+				<img src="img/android_list.png" width="270" height="480">
+				<img src="img/android_agent.png" width="270" height="480">
+				
+				<iframe src="message.html" width="100%" height="200"></iframe>
+			</div>
+			
+			<div class="content_width">
+				<h1>Installation</h1>
+				<ul class="install">
+					<li>
+						<p>Create directory for ITAhM agent</p>
+						e.g. "c:\Users\ABC\itahm" (windows)
+					<li>
+						<p>Download latest
+						<a href="https://dl.dropbox.com/s/ji8h38nldgoevfr/ITAhM.1.1.3.6.jar" download="ITAhM.1.1.3.6.jar">ITAhM.jar</a>
+						into above directory</p>
+					<li>
+						<p>execute ITAhM.jar</p>
+						java -jar ITAhM.jar (windows)<br>
+						nohup java -jar ITAhM.jar & (linux)<br>
+					<li>
+						<p>Connect!</p>
+				</ul>
+			</div>
 		</div>
 		
-		<script src="js/ITAhM.js"></script>
-		<script src="js/object.js"></script>
-		<script src="js/icon.js"></script>
-		<script src="js/Communicator.js"></script>
 		<script>
 
-var specs = "toolbar=0, location=0, resizable=1, menubar=0, titlebar=0";
-
-// common
-(function (window, undefined){
-
-	var doc = document.getElementById("document"),
-		mapData = {
-			ratio: 1
-		};
+function closeDialog() {
 	
-	function initialize() {
-		document.getElementById("shutdown").onclick = shutDown;
-		
-		document.getElementById("help").onclick = function () {
-			openDocument("help.html");
-			
-		};
-		
-		document.getElementById("popup").onclick = closeDocument;
-	}
-	
-	function shutDown() {
-		if (confirm("are you sure you want to shutdown agent?")) {
-			sendRequest({
-				command: "shutdown"
-			}, function (data, status) {
-				location.href = location.href.replace(location.search, "");
-			});
-		}
-	}
-	
-	function openDocument(url) {
-		document.body.classList.add("popup");
-		
-		doc.src=url;
-	}
-	
-	function closeDocument() {
-		document.body.classList.remove("popup");
-		
-		doc.src="about:black";
-	}
-	
-	window.getMapData = function () {
-		return mapData;
-	};
-	
-	initialize();
-
-}) (window);
-
-// gcm
-(function (window, undefined){
-	
-	var form = document.getElementById("gcm");
-	
-	function initialize() {
-		form.addEventListener("submit", onSendMessage);
-	}
-	
-	function onSendMessage(e) {
-		e.preventDefault();
-		
-		sendRequest({
-			command: "message",
-			message: form.elements.message.value
-		}, function (data, status) {
-		});
-	}
-	
-	initialize();
-	
-}) (window);
-
-// connect
-(function (window, undefined){
-	
-	var itahm,
-		form = document.getElementById("connect"),
-		agent = document.getElementById("agent");
-	
-	function initialize() {
-		window.addEventListener("beforeunload", onUnload);
-		
-		document.getElementById("start").onclick = function () {
-			if (itahm && !itahm.closed) {
-				itahm.focus();
-			}
-			else {
-				startITAhM();
-			}
-		};
-		
-		document.getElementById("disconnect").onclick = function () {
-			closeITAhM();
-			
-			location.href = location.origin + location.pathname;
-		}
-	}
-	
-	function onUnload() {
-		closeITAhM();
-	}
-	
-	
-	// main response
-	function onResponse(callback, data, status) {
-		if (status === 200) {
-		}
-		else {
-			if (status === 0) {
-				alert("request timed out.");
-			}
-			else if (status === 401) {
-				alert("no session.");
-				
-				closeITAhM();
-				
-				location.reload();
-			}
-			else if (status === 400) {
-				console.log(data.error);
-			}
-			
-			data = undefined;
-			
-			console.log("status "+ status);
-		}
-		
-		callback(data, status);
-	}
-	
-	function onEcho(data, status) {
-		var ip = form.elements["ip"].value,
-			tcp = form.elements["tcp"].value;
-		
-		document.body.classList.remove("loading");
-		
-		// agent에 연결 가능하나 session 없음
-		if (status === 401) {
-			document.body.classList.add("connected");
-		
-			setAgent(ip +" : "+ tcp);
-			
-			onConnected();
-		}
-		// agent에 연결 가능하고 이미 session 있음
-		else if (status === 200) {
-			document.body.classList.add("connected");
-			
-			setAgent(ip +" : "+ tcp);
-			
-			onAuthorized(data.level);
-		}
-		else {
-			alert("can not connect to server");
-			
-			form.elements["ip"].select();
-		}
-	}
-	
-	function closeITAhM() {
-		if (itahm && !itahm.closed) {
-			itahm.close();
-		}
-	}
-	
-	window.tryConnect = function (ip, tcp) {
-		var communicator = Communicator.getInstance(); 
-		
-		document.body.classList.add("loading");
-		
-		form.elements["ip"].value = ip;
-		form.elements["tcp"].value = tcp;
-		
-		window.sendRequest = function (request, callback) {
-			communicator.send(request, onResponse.bind(undefined, callback));
-		}
-		
-		communicator.connect(ip, tcp);
-		
-		communicator.send({
-			command: "echo"
-		}, onEcho);
-	}
-	
-	window.startITAhM = function () {
-		document.body.classList.remove("loading");
-		
-		itahm = window.open("map.html", "ITAhM", specs);
-	};
-	
-	window.getAddress = function () {
-		return form.elements["ip"].value +":"+ form.elements["tcp"].value;
-	};
-	
-	initialize();
-	
-}) (window);
-
-// signin
-(function (window, undefined){
-	
-	var form = document.getElementById("signin"),
-		agentElement = document.getElementById("agent");
-	
-	function initEvent() {
-		form.addEventListener("submit", onSignin, false);
-		
-		document.getElementById("signout").onclick = onSignout;
-	}
-	
-	function onSignin(e) {
-		e.preventDefault();
-		
-		sendRequest({
-			command: "signin",
-			username: form.elements["username"].value,
-			password: form.elements["password"].value
-		}, function (data, status) {
-			document.body.classList.remove("loading");
-			console.log(data, status)
-			if (data) {
-				onAuthorized(data.level);
-			}
-			else {
-				alert("Incorrect username or password");
-				
-				form.elements["username"].select();
-			}
-		});
-		
-		document.body.classList.add("loading");
-	}
-	
-	function onSignout(e) {
-		sendRequest({command: "signout"}, function (data, status) {console.log("!");
-			//closeITAhM();
-			
-			location.reload();
-		});
-	}
-	
-	window.setAgent = function (agent) {
-		agentElement.textContent = agent;
-	};
-	
-	window.onAuthorized = function (level) {
-		window.level = level;
-		
-		document.title = "ITAhM("+ agentElement.textContent +")";
-		
-		document.body.classList.add("authorized");
-		
-		initDevice();
-	};
-	
-	window.onConnected = function () {
-		document.title = "ITAhM(connected)";
-		document.body.classList.add("connected");
-		
-		form.reset();
-		
-		form.elements["username"].focus();
-	};
-	
-	initEvent();
-	
-}) (window);
-
-// device
-(function (window, undefined) {
-	
-	var deviceData,
-		tmpID = -1,
-		sequence;
-	
-	function initialize() {
-	}
-	
-	window.initDevice = function () {
-		document.body.classList.add("loading");
-		
-		sendRequest({
-			command: "pull",
-			database: "device"
-		}, function (response) {
-			if (response) {
-				deviceData = response.data;
-				sequence = response.sequence;
-				
-				initIcon();
-			}
-		});
-	};
-	
-	window.createDevice = function (data) {
-		var id = tmpID--;
-		
-		deviceData[id] = data;
-		
-		data.id = id;
-		data.x = 0;
-		data.y = 0;
-		data.ifEntry = {};
-	};
-	
-	window.getDeviceData = function  () {
-		return deviceData;
-	};
-	
-	initialize();
-	
-}) (window);
-
-//icon
-(function (window, undefined) {
-	
-	var originData = ITAhM.iconData,
-		iconData = {},
-		customData,
-		sequence,
-		list = document.getElementById("type_list");
-	
-	if (!iconData) {
-		throw "icon.js is required";
-	}
-	
-	function initialize() {
-		document.getElementById("icon_sync").onclick = onSync;
-		
-		for (var type in originData) {
-			iconData[type] = originData[type];
-		}
-	}
-	
-	function onResponse(response) {
-		if (response) {
-			customData = response.data;
-			sequence = response.sequence;
-		
-			for (var type in customData) {
-				iconData[type] = customData[type];
-			}
-			
-			resetIconList();
-			
-			initAccount();
-		}
-		else {
-			// 오류
-		}
-		
-		document.body.classList.remove("loading");
-	}
-	
-	function onSync() {
-		if (confirmSync()) {
-			sendRequest({
-				command: "push",
-				database: "icon",
-				sequence: sequence,
-				data: iconData
-			}, function (response) {
-				if (response) {
-					location.reload();
-				}
-				else {
-					alert("synchronization failed.");
-				}
-			});
-		}
-	}
-	
-	function onSelectIcon(type) {
-		showDialog("icon.html", function (dialog) {
-			dialog.initialize(type, iconData[type]);
-		});
-	}
-	
-	function resetIconList() {
-		var df = document.createDocumentFragment(),
-			icon, groupName, groupElement, labelElement,
-			map = {},
-			li;
-		
-		while (li = list.firstChild) {
-			list.removeChild(li);
-		}
-		
-		for (var type in iconData) {
-			icon = iconData[type];
-			
-			groupName = icon.group;
-			
-			groupElement = map[groupName];
-			
-			if (!groupElement) {
-				groupElement = document.createElement("ul");
-				
-				labelElement = document.createElement("li");
-				labelElement.textContent = groupName;
-				
-				df.appendChild(labelElement)
-				labelElement.appendChild(groupElement);
-				
-				map[groupName] = groupElement;
-			}
-			
-			li = document.createElement("li");
-			
-			li.textContent = type;
-			li.onclick = onSelectIcon.bind(undefined, type);
-			
-			groupElement.appendChild(li);
-		}
-		
-		list.appendChild(df);
-	}
-	
-	window.initIcon = function () {
-		sendRequest({
-			command: "pull",
-			database: "icon"
-		}, onResponse);
-	};
-	
-	window.setIcon = function (type, data) {
-		iconData[type] = customData[type] = data;
-		
-		resetIconList();
-	};
-	
-	window.resetIcon = function (type) {
-		var icon = originData[type];
-		
-		delete customData[type];
-		
-		if (icon) {
-			iconData[type] = icon;
-		}
-		else {
-			delete iconData[type];
-		}
-		
-		resetIconList();
-	};
-	
-	window.getIcon = function  (type) {
-		return iconData[type];
-	};
-	
-	window.getIconData = function  () {
-		return iconData;
-	};
-	
-	initialize();
-	
-}) (window);
-
-// account
-(function (window, undefined) {
-	
-	var accountData,
-		sequence,
-		list = document.getElementById("account_list");
-	
-	function initialize() {
-		document.getElementById("account_sync").onclick = onSync;
-	}
-
-	function onSync() {
-		if (confirmSync()) {
-			sendRequest({
-				command: "push",
-				database: "account",
-				sequence: sequence,
-				data: accountData
-			}, function (response) {
-				if (response) {
-					location.reload();
-				}
-				else {
-					alert("synchronization failed.");
-				}
-			});
-		}
-	}
-	
-	function onSelectAccount(name) {
-		showDialog("account.html", function (dialog) {
-			dialog.initialize(name, accountData[name]);
-		});
-	}
-	
-	window.initAccount = function () {
-		sendRequest({
-			command: "pull",
-			database: "account"
-		}, function (response) {
-			if (response) {
-				accountData = response.data;
-				sequence = response.sequence;
-				
-				resetAccountList();
-				
-				initProfile();
-			}
-			else {
-				throw "";
-			}
-		});
-	};
-	
-	window.resetAccountList = function () {
-		var df = document.createDocumentFragment(),
-			li;
-		
-		while (li = list.firstChild) {
-			list.removeChild(li);
-		}
-		
-		for (var name in accountData) {
-			li = document.createElement("li");
-			
-			li.textContent = name;
-			li.onclick = onSelectAccount.bind(undefined, name);
-			
-			df.appendChild(li);
-		}
-		
-		list.appendChild(df);
-	};
-	
-	window.setAccount = function (name, account) {
-		accountData[name] = account;
-		
-		resetAccountList();
-	};
-	
-	window.removeAccount = function (name) {
-		delete accountData[name];
-		
-		resetAccountList();
-	};
-	
-	initialize();
-	
-}) (window);
-
-// profile
-(function (window, undefined) {
-	
-	var profileData,
-		sequence,
-		list = document.getElementById("profile_list");
-	
-	function initialize() {
-		document.getElementById("profile_sync").onclick = onSync;
-	}
-	
-	function onResponse(response) {
-		if (response) {
-			profileData = response.data;
-			sequence = response.sequence;
-			
-			resetProfileList();
-			
-			startITAhM();
-		}
-		else {
-			// 오류
-		}
-		
-		document.body.classList.remove("loading");
-	}
-	
-	function onSync() {
-		if (confirmSync()) {
-			sendRequest({
-				command: "push",
-				database: "profile",
-				sequence: sequence,
-				data: profileData
-			}, function (response) {
-				if (response) {
-					location.reload();
-				}
-				else {
-					alert("synchronization failed.");
-				}
-			});
-		}
-	}
-	
-	function onSelectProfile(name) {
-		showDialog("profile.html", function (dialog) {
-			dialog.initialize(name, profileData[name]);
-		})
-		
-	}
-	
-	window.initProfile = function () {
-		sendRequest({
-			command: "pull",
-			database: "profile"
-		}, onResponse);
-	};
-	
-	window.resetProfileList = function () {
-		var df = document.createDocumentFragment(),
-			li;
-		
-		while (li = list.firstChild) {
-			list.removeChild(li);
-		}
-		
-		for (var name in profileData) {
-			li = document.createElement("li");
-			
-			li.textContent = name;
-			li.onclick = onSelectProfile.bind(undefined, name);
-			
-			df.appendChild(li);
-		}
-		
-		list.appendChild(df);
-	};
-	
-	window.setProfile = function (name, profile) {
-		profileData[name] = profile;
-		
-		resetProfileList();
-	};
-	
-	window.removeProfile = function (name) {
-		delete profileData[name];
-		
-		resetProfileList();
-	};
-	
-	initialize();
-	
-}) (window);
-
-// dialog
-(function (window, undefined) {
-	
-	var dialog = document.getElementById("dialog");
-	
-	function initialize() {
-		dialog.onload = onLoad;
-	}
-	
-	function onLoad(callback) {
-		callback(dialog.contentWindow);
-		
-		document.body.classList.add("dialog");
-	}
-	
-	window.showDialog = function (url, callback) {
-		dialog.onload = onLoad.bind(undefined, callback);
-		
-		dialog.src = url; 
-	};
-	
-	window.closeDialog = function () {
-		document.body.classList.remove("dialog");
-	};
-	
-	initialize();
-	
-}) (window);
-
-// QueryParser object
-var query = new ITAhM.QueryParser(),
-	ip = query.get("ip"),
-	tcp = query.get("tcp");
-
-function confirmSync() {
-	if (level !== 0) {
-		alert("no permission");
-	}
-	else {
-		return confirm("reload ITAhM after synchronization.\n\ncontinue?");
-	}
 }
 
-if (ip && tcp) {
-	tryConnect(ip, tcp);
+function sendRequest(request) {
+	alert("ITAhM will send a broadcast message to your android application in real service.\n\n"+request.message);
 }
-
+		
 		</script>
 	
 	</body>
