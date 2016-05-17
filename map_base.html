@@ -303,7 +303,6 @@ var svgNS = "http://www.w3.org/2000/svg",
 		}
 	}
 	
-	// public
 	window.selectDevice = function (id) {
 		if (cancelSelect) {
 			cancelSelect = false;
@@ -460,9 +459,19 @@ var svgNS = "http://www.w3.org/2000/svg",
 		return node.parentNode === canvas && node.tagName === "image";
 	};
 	
-	window.moveDevice = function (id, x, y) {
-		var device = getDevice(id),
-			svgDevice = iconMap[id],
+	window.moveDevice = function (id, x, y) {console.log(x %5, y %5);
+		if (x %5 !== 0 || y %5 !== 0) {
+			return;
+		}
+		
+		var device = getDevice(id);
+		
+		device.x = x;
+		device.y = y;
+		
+		
+		
+		var svgDevice = iconMap[id],
 			svgLabel = labelMap[id],
 			svgAlert = alertMap[id];
 		
@@ -477,8 +486,7 @@ var svgNS = "http://www.w3.org/2000/svg",
 			svgAlert.setAttributeNS(null, "y", y);
 		}
 		
-		device.x = x;
-		device.y = y;
+		
 		
 		forEachLine(id, moveLine.bind(undefined, x, y));
 	};
@@ -708,12 +716,6 @@ function initialize() {
 		addDevice(device, getIcon(device.type).src);
 		addLine(device);
 	});
-}
-
-function onSelectDevice(id) {
-	var device = getDevice(id);
-	
-	moveAllDevice(- device.x, - device.y);
 }
 
 function displayIPAddress(show) {

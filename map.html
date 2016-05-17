@@ -147,9 +147,7 @@ iframe {
 			location.href = "performance.html";
 		}
 		
-		map.getDevice = function (id) {
-			return top.databases.device.data[id];
-		};
+		map.getDevice = getDevice;
 		
 		map.getIcon = function (type) {
 			var iconData = top.databases.icon;
@@ -228,5 +226,15 @@ iframe {
 		}		
 	}
 
+	function onSelectDevice(id) {
+		var device = getDevice(id);
+		
+		map.moveAllDevice(- device.x, - device.y);
+	}
+	
+	function getDevice(id) {
+		return top.databases.device.data[id];
+	}
+	
 	</script>
 </html>
