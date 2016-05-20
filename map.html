@@ -42,26 +42,6 @@ iframe {
 	height: 100%;
 	padding: 0; margin: 0;
 }
-
-#history {
-	position: fixed; right: 0; bottom: 0;
-	text-align: right;
-}
-
-#history p {
-	cursor: default;
-	padding-left: 20px;
-}
-
-#history p:hover {
-	background: transparent url(img/check.png) no-repeat 0 center;
-}
-
-#history span {
-	margin: 5px 10px;
-	color: #f00;
-}
-
 		</style>
 	</head>
 
@@ -83,7 +63,6 @@ iframe {
 				<label title="show ip address"><input type="radio" name="display" id="address" value="true">ip address</label>
 			</nav>
 			
-			<div id="history"></div>
 		</div>
 		
 	</body>
@@ -91,7 +70,7 @@ iframe {
 	<script>
 	
 	var map = document.getElementById("map").contentWindow,
-		scale = 1;
+		scale;
 	
 	window.addEventListener("resize", function (e) {
 		map.resize();
@@ -163,7 +142,7 @@ iframe {
 			}
 		}
 		
-		map.zoom(top.databases.device.scale);
+		map.zoom(scale = top.databases.device.scale);
 		
 		map.initialize();
 	}
@@ -192,6 +171,7 @@ iframe {
 		}, function (response) {
 			if (response) {
 				top.databases.device.sequence = response.sequence;
+				top.databases.device.data = response.data;
 				
 				location.reload();
 			}
@@ -199,31 +179,6 @@ iframe {
 				alert("synchronization failed.");
 			}
 		});
-	}
-
-	function initHistory() {
-		var history = document.getElementById("history"),
-			log = top.log,
-			dateArray = Object.keys(log),
-			length = dateArray.length,
-			log, date;
-		
-		dateArray.sort(function (a, b) {
-			return parseInt(a) - parseInt(b);
-		});
-		
-		for (var i=0; i<length; i++) {
-			date = dateArray[i];
-			
-			log = document.createElement("p");
-			log.appendChild(document.createElement("span")).textContent = new Date(date).toLocaleString();
-			log.appendChild(document.createElement("span")).textContent = log[date];
-			log.onclick = function () {
-				history.removeChild(this);
-			}
-			
-			history.appendChild(log);
-		}		
 	}
 
 	function onSelectDevice(id) {

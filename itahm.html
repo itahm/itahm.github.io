@@ -66,6 +66,25 @@ iframe[name="main"] {
 	height: 100%;
 }
 
+#history {
+	position: fixed; right: 0; bottom: 0;
+	text-align: right;
+}
+
+#history p {
+	cursor: default;
+	padding-left: 20px;
+}
+
+#history p:hover {
+	background: transparent url(img/check.png) no-repeat 0 center;
+}
+
+#history span {
+	margin: 5px 10px;
+	color: #f00;
+}
+
 body:not(.dialog) #dialog {
 	display: none;
 }
@@ -79,21 +98,24 @@ body:not(.dialog) #dialog {
 		<header>
 			<nav class="content_width">
 				<ul>
-					<li><a href="list.html" target="main">ITAhM</a>
+					<li><a id="reload">ITAhM</a>
 					<li><a href="account.html" target="main">account</a>
 					<li><a href="profile.html" target="main">profile</a>
 					<li><a href="icon.html" target="main">icon</a>
 					<li><a id="message">message</a>
 					<li><a id="signout">sign out</a>
+					<li><a id="shutdown" title="shutdown agent service">shutdown</a>
 				</ul>
 			</nav>
 		</header>
 		
 		<section>
-			<iframe name="main"></iframe>
+			<iframe id="frame" name="main"></iframe>
 		</section>		
 		
 		<iframe id="dialog"></iframe>
+		
+		<div id="history"></div>
 		
 		<script src="js/ITAhM.js"></script>
 		<script src="js/object.js"></script>
@@ -137,7 +159,6 @@ body:not(.dialog) #dialog {
 					var databases = message.value;
 					
 					window.databases = databases;
-					window.log = {};
 					
 					databases.device.scale = 1;
 					databases.device.tmpID = -1;
@@ -145,14 +166,23 @@ body:not(.dialog) #dialog {
 					databases.icon.origin = ITAhM.iconData;
 					// TODO ITAhM의 시작.
 					
-					initialize();
+					document.title = sessionStorage.user +" @ ITAhM";
+		
+					window.onbeforeunload = function () {
+						return "Are you sure you wnat to exit ITAhM?";
+					}
+					
+					document.getElementById("message").onclick = onSendMessage;
+					document.getElementById("signout").onclick = onSignout;
+					document.getElementById("shutdown").onclick = onShutDown;
+					document.getElementById("reload").onclick = onReLoad;
+					
+					document.getElementById("frame").src = "main.html";
 					
 					break;
 					
 				case "event":
-					log[new Date().getTime()] = message.value;
-					
-					console.log(log);
+					refreshHistory(message.value);
 					
 					break;
 				}
@@ -168,17 +198,14 @@ body:not(.dialog) #dialog {
 		location.href = "http://itahm.com";
 	}
 	
-	function initialize() {
-		document.title = sessionStorage.user +" @ ITAhM";
-		
-		window.onbeforeunload = function () {
-			return "Are you sure you wnat to exit ITAhM?";
+	function onShutDown() {
+		if (confirm("are you sure you want to shutdown agent?")) {
+			var request = {
+				command: "shutdown"
+			};
+			
+			sendRequest(request, home);
 		}
-		
-		document.getElementById("message").onclick = onSendMessage;
-		document.getElementById("signout").onclick = onSignout;
-		
-		document.querySelector("iframe[name=main]").src = "list.html";
 	}
 	
 	function onSendMessage() {
@@ -190,10 +217,44 @@ body:not(.dialog) #dialog {
 				command: "signout"
 			};
 		
-		sendRequest(request, function (status, response) {
-			location.href = "http://itahm.com";
-		});
+		sendRequest(request, home);
 	}
+	
+	function home() {
+		window.onbeforeunload = undefined;
+		
+		location.href = "http://itahm.com";
+	}
+	
+	function onReLoad() {
+		window.onbeforeunload = undefined;
+		
+		location.reload();
+	}
+	
+}) (window);
+
+// log
+(function (window, undefined) {
+	var history = document.getElementById("history"),
+		logs = {};
+	
+	window.refreshHistory = function (message) {
+		var date = new Date(),
+			log = document.createElement("p");
+		
+		logs[date.getTime()] = message;
+			
+		log.appendChild(document.createElement("span")).textContent = date.toLocaleString();
+		log.appendChild(document.createElement("span")).textContent = message;
+		log.onclick = function (date) {
+			delete logs[date];
+				
+			history.removeChild(this);
+		}.bind(log, date.getTime());
+			
+		history.appendChild(log);
+	};
 	
 }) (window);
 

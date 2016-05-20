@@ -128,7 +128,7 @@ body:not(.ifname) #line text {
 				transform="translate(-50, -50)" cursor="pointer"
 				x="100%" y="100%" width="50" height="50" />
 			</g>
-			<g id="transform" transform="translate(0, 0) translate(0, 0) scale(1, 1) translate(0, 0)">
+			<g id="transform" transform="translate(0, 0) scale(1, 1) translate(0, 0)">
 				<g id="line"></g>
 				<g id="link"></g>
 				<g id="device">
@@ -178,11 +178,15 @@ var svgNS = "http://www.w3.org/2000/svg",
 	canvas.addEventListener("dragmove", onDragMove);
 	canvas.addEventListener("dragend", onDragEnd);
 	
+	document.onselectstart = function () {
+		return false;
+	}
+	
 	window.zoom = function (ratio) {
 		scale = ratio;
 		
 		this.setScale(ratio, ratio);
-	}.bind(transform.getItem(2));
+	}.bind(transform.getItem(1));
 	
 	window.resize = function () {
 		rect = canvas.getBoundingClientRect();
@@ -192,16 +196,16 @@ var svgNS = "http://www.w3.org/2000/svg",
 	
 	window.moveMap = function(x, y) {
 		this.setTranslate(x, y);
-	}.bind(transform.getItem(1));
+	}.bind(transform.getItem(2));
 	
 	window.restoreMap = function() {
-		var x = this.matrix.e / scale,
-			y = this.matrix.f / scale;
+		var x = this.matrix.e,
+			y = this.matrix.f;
 	
 		moveAllDevice(x, y);
 	
 		moveMap(0, 0);
-	}.bind(transform.getItem(1));
+	}.bind(transform.getItem(2));
 	
 	function onDragStart(e) {
 		var data = e.detail,
@@ -227,36 +231,33 @@ var svgNS = "http://www.w3.org/2000/svg",
 		var data = e.detail,
 			target = data.target;
 		
-		if (selectedDevice) {
-			var x = dragOrigin.x + Math.round(data.dragX / scale),
+		// selectedDevice 인 경우 move
+		if (target === selectedSvgDevice) {
+			var x = dragOrigin.x + Math.round(data.dragX / scale /10) *10,
+				y = dragOrigin.y + Math.round(data.dragY / scale /10) *10;
+			
+			moveSelectionMark(x, y);
+			
+			moveDevice(selectedDevice.id, x, y);
+		}
+		else if (target === linkAnchor) {
+			var destination = data.destination,
+				x = dragOrigin.x + Math.round(data.dragX / scale),
 				y = dragOrigin.y + Math.round(data.dragY / scale);
-		
-			// selectedDevice 인 경우 move
-			if (target === selectedSvgDevice) {
-				moveSelectionMark(x, y);
-				
-				moveDevice(selectedDevice.id, x, y);
-			}
-			else if (target === linkAnchor) {
-				var destination = data.destination;
-				
-				if (isDevice(destination) &&  destination !== selectedSvgDevice) {
-					moveLinkAnchor(Number(destination.getAttributeNS(null, "x")), Number(destination.getAttributeNS(null, "y")));
-				}
-				else {
-					moveLinkAnchor(x, y - 34);
-				}
+			
+			if (isDevice(destination) &&  destination !== selectedSvgDevice) {
+				moveLinkAnchor(Number(destination.getAttributeNS(null, "x")), Number(destination.getAttributeNS(null, "y")));
 			}
 			else {
-				// 아닌경우 map 이동
-				moveMap(data.dragX, data.dragY);
+				moveLinkAnchor(x, y - 34);
 			}
-			// 코드가 좀 지저분함. 고칠것.
-			return;
 		}
-		
-		// 아닌경우 map 이동
-		moveMap(data.dragX, data.dragY);
+		else {
+			var x = Math.round(data.dragX / scale /10) *10,
+				y = Math.round(data.dragY / scale /10) *10;
+			
+			moveMap(x, y);
+		}
 	}
 	
 	function onDragEnd(e) {
@@ -459,17 +460,11 @@ var svgNS = "http://www.w3.org/2000/svg",
 		return node.parentNode === canvas && node.tagName === "image";
 	};
 	
-	window.moveDevice = function (id, x, y) {console.log(x %5, y %5);
-		if (x %5 !== 0 || y %5 !== 0) {
-			return;
-		}
-		
+	window.moveDevice = function (id, x, y) {
 		var device = getDevice(id);
 		
 		device.x = x;
-		device.y = y;
-		
-		
+		device.y = y;		
 		
 		var svgDevice = iconMap[id],
 			svgLabel = labelMap[id],
@@ -485,8 +480,6 @@ var svgNS = "http://www.w3.org/2000/svg",
 			svgAlert.setAttributeNS(null, "x", x);
 			svgAlert.setAttributeNS(null, "y", y);
 		}
-		
-		
 		
 		forEachLine(id, moveLine.bind(undefined, x, y));
 	};
@@ -638,14 +631,14 @@ var svgNS = "http://www.w3.org/2000/svg",
 		}
 		
 		if (peerID in ifEntry) {
+			/*
 			if (ifEntry[peerID]) {
-				// 이미 링크가 존재하고, 시스템에 의해 생성된 것이므로 지울수도 없음
+				// 이미 링크가 존재하고, 시스템에 의해 생성된 것은 지울수 없게 할 수도 있음.
 				return;
-			}
-			else {
-				delete ifEntry[peerID];
-				delete peer.ifEntry[id];
-			}
+			}*/
+			
+			delete ifEntry[peerID];
+			delete peer.ifEntry[id];
 		}
 		else {
 			ifEntry[peerID] = "";

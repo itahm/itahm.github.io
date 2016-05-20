@@ -84,8 +84,7 @@ nav {
 #legend:not(.processor) .processor,
 #legend:not(.memory) .memory,
 #legend:not(.storage) .storage,
-#legend:not(.throughput) .throughput,
-body:not(.initialized) #mode {
+#legend:not(.throughput) .throughput {
 	display: none;
 }
 
@@ -177,7 +176,7 @@ option[value="ifInOctets"] {
 				<a href="map.html">Map</a>
 			</label>
 			<label>
-				<input type="radio" id="select_response" name="resource">Response time
+				<input type="radio" id="select_response" name="resource" checked>Response time
 			</label>
 
 			<label>
@@ -368,6 +367,10 @@ var elements = {
 		initStorage(snmp);
 		initThroughput(snmp);
 		
+		chart.onload = function () {
+			onSelectResponseTime();
+		};
+		
 		chart.src = "chart.html";
 	};
 	
@@ -387,7 +390,6 @@ var elements = {
 		chart.contentWindow.initChart(origin, mode.value, capacity, valueToString);
 		
 		document.body.classList.remove("loading");
-		document.body.classList.add("initialized");
 	};
 	
 	window.updateChart = function (data) {
@@ -402,13 +404,17 @@ var elements = {
 	var legend = document.getElementById("legend"),
 		summary, start, end;
 	
-	document.getElementById("select_response").onchange = function () {
+	document.getElementById("select_response").onchange = onSelectResponseTime;
+	
+	window.onSelectResponseTime = onSelectResponseTime;
+	
+	function onSelectResponseTime() {
 		document.body.classList.add("loading");
 		
 		disableThroughput();
 		
-		onSelectResponseTime();
-	};
+		selectResponseTime();
+	}
 	
 	function valueToString(value) {
 		return value.toFixed(2) + "ms";
@@ -429,7 +435,7 @@ var elements = {
 		}
 	}
 	
-	function onSelectResponseTime() {
+	function selectResponseTime() {
 		legend.className = "responsetime";
 		
 		summary = true;
@@ -460,7 +466,7 @@ var elements = {
 		
 		disableThroughput();
 		
-		onSelectProcessorLoad();
+		selectProcessorLoad();
 	};
 	
 	function valueToString(value) {
@@ -499,7 +505,7 @@ var elements = {
 		}
 	}
 	
-	function onSelectProcessorLoad() {
+	function selectProcessorLoad() {
 		legend.className = "processor";
 		
 		summary = true;
@@ -520,7 +526,7 @@ var elements = {
 	}
 	
 	window.initProcessor = function (snmp) {
-		for (var index in snmp.hrProcessorIndex) {
+		for (var index in snmp.hrProcessorEntry) {
 			indexArray[indexArray.length] = index;
 		}
 	};
@@ -541,7 +547,7 @@ var elements = {
 			
 		disableThroughput();
 		
-		onSelectStorageUsage();
+		selectStorageUsage();
 	};
 	
 	function valueToString(value) {
@@ -580,7 +586,7 @@ var elements = {
 		}
 	}
 	
-	function onSelectStorageUsage() {
+	function selectStorageUsage() {
 		legend.className = "storage";
 		
 		summary = true;
@@ -604,7 +610,7 @@ var elements = {
 		var storage,
 			capacityArray = [];
 		
-		for (var index in snmp.hrStorageIndex) {
+		for (var index in snmp.hrStorageEntry) {
 			storage = snmp.hrStorageEntry[index];
 			
 			// size가 0인 것 제외.
@@ -641,7 +647,7 @@ var elements = {
 			
 		disableThroughput();
 		
-		onSelectMemoryUsage();
+		selectMemoryUsage();
 	};
 
 	
@@ -681,7 +687,7 @@ var elements = {
 		}
 	}
 	
-	function onSelectMemoryUsage() {
+	function selectMemoryUsage() {
 		legend.className = "memory";
 		
 		summary = true;
@@ -725,7 +731,7 @@ var elements = {
 	list.onchange = function () {
 		document.body.classList.add("loading");
 		
-		onSelectThroughput();
+		selectThroughput();
 	};
 	
 	function valueToString(value) {
@@ -764,7 +770,7 @@ var elements = {
 		}
 	}
 	
-	function onSelectThroughput() {
+	function selectThroughput() {
 		legend.className = "throughput";
 		
 		summary = true;
@@ -788,7 +794,6 @@ var elements = {
 	}
 	
 	window.disableThroughput = function () {
-		//list.disabled = true;
 		list.value = "-1";
 	};
 	
@@ -820,7 +825,11 @@ var elements = {
 	
 }) (window);
 
-(function (window, undefined) {}) (window);
+function onSelectDevice(id) {
+	top.databases.device.selected = id;
+	
+	location.reload();
+}
 
 		</script>
 	

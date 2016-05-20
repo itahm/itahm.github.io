@@ -9,7 +9,10 @@ var ITAhM = ITAhM || {};
 	
 	ITAhM.snmp = {
 		enterprise: {
-			311: "Microsoft"
+			2: "IBM",
+			9: "ciscoSystems",
+			311: "Microsoft",
+			8072: "net-snmp"
 		},
 		ifAdminStatus: {
 			1: "up",
