@@ -51,7 +51,8 @@ iframe {
 			<iframe id="map" src="map_base.html"></iframe>
 			
 			<nav class="lt">
-				<img src="img/synchronize.png" width="16px" height="16px" title="synchronize device data" id="device_sync">
+				<img src="img/realtime.png" width="16px" height="16px" title="reload device data" id="reload">
+				<img src="img/synchronize.png" width="16px" height="16px" title="synchronize device data" id="sync">
 				<img src="img/add_device.png" width="16px" height="16px" title="add new device" id="add_device">
 				<img src="img/zoomin.png" width="16px" height="16px" title="zoom in" id="zoom_in">
 				<img src="img/zoomout.png" width="16px" height="16px" title="zoom out" id="zoom_out">
@@ -93,7 +94,10 @@ iframe {
 		top.databases.device.scale = scale;
 	}
 
-	document.getElementById("device_sync").onclick = onSync;
+	document.getElementById("reload").onclick = onReLoad;
+	
+	document.getElementById("sync").onclick = onSync;
+	
 	document.getElementById("add_device").onclick = onAddDevice;
 	
 	document.getElementById("name").onchange = function () {
@@ -158,6 +162,18 @@ iframe {
 		);
 	}
 	
+	function onReLoad() {
+		top.sendRequest({
+			command: "pull",
+			database: "device",
+		}, function (response) {
+			top.databases.device.sequence = response.sequence;
+			top.databases.device.data = response.data;
+			
+			location.reload();
+		});
+	}
+	
 	function onSync() {
 		if (!confirm("Synchronize device database with agent now?")) {
 			return;
@@ -169,15 +185,10 @@ iframe {
 			sequence: top.databases.device.sequence,
 			data: top.databases.device.data
 		}, function (response) {
-			if (response) {
-				top.databases.device.sequence = response.sequence;
-				top.databases.device.data = response.data;
-				
-				location.reload();
-			}
-			else {
-				alert("synchronization failed.");
-			}
+			top.databases.device.sequence = response.sequence;
+			top.databases.device.data = response.data;
+			
+			location.reload();
 		});
 	}
 

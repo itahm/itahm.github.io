@@ -802,7 +802,7 @@ var elements = {
 		
 		ifEntry = snmp.ifEntry;
 		
-		for (index in snmp.ifIndex) {
+		for (index in snmp.ifEntry) {
 			t = ifEntry[index];
 			
 			if (t.ifSpeed === 0) {
