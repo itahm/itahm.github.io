@@ -203,21 +203,20 @@ if (window === top) throw "";
 	function onApply(e) {
 		e.preventDefault();
 		
+		var ip = [form.elements.ip1.value, form.elements.ip2.value, form.elements.ip3.value, form.elements.ip4.value].join(".");
+		
 		if (!device) {
-			var id = top.databases.device.tmpID--;
-			
 			device = {
-				id: id,
 				x: 0,
 				y: 0,
 				ifEntry: {}
 			};
 			
-			top.databases.device.data[id] = device;
+			top.databases.device.data[ip] = device;
 		}
 		
 		device.name = form.elements.name.value;
-		device.ip = [form.elements.ip1.value, form.elements.ip2.value, form.elements.ip3.value, form.elements.ip4.value].join(".");
+		device.ip = ip;
 		device.type = form.elements.type.value;
 		device.label = form.elements.label.value.split(",").map(function (value) {
 			return value.trim();
@@ -235,7 +234,7 @@ if (window === top) throw "";
 			}
 		}
 		//else 등록 전 장비이면 snmp 없음
-		
+		console.log(top.databases.device.data);
 		top.closeDialog();
 	}
 	

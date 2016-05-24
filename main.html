@@ -13,16 +13,19 @@ aside {
 	position: fixed; top: 0; bottom: 0; left: 0;
 	width: 299px;
 	border-right: 1px solid #0084ff;
-}
-
-aside form {
-	position: absolute; top: 0; right: 0; left: 0;
+	display: flex;
 	padding: 5px;
 	box-sizing: border-box;
-	height: 49px;
-	border-bottom: 1px;
-	white-space: nowrap;
+	flex-direction: column;
+}
+
+form {
 	display: flex;
+	margin: 10px 0;
+}
+
+form> * {
+	padding: .5em;
 }
 
 aside input[type="text"] {
@@ -31,8 +34,7 @@ aside input[type="text"] {
 }
 
 #list {
-	position: absolute; top: 50px; right: 0; left: 0; bottom: 0;
-	padding: 5px;
+	flex: 1;
 	overflow: auto;
 }
 
@@ -65,11 +67,6 @@ aside input[type="text"] {
 	padding: 3px;
 }
 
-#list input,
-#list select {
-	padding: .5em;
-}
-
 section {
 	position: fixed; top: 0; right: 0; bottom: 0; left: 300px;
 }
@@ -86,12 +83,17 @@ iframe {
 	
 	<body class="loading">
 		<aside>
-			<form id="form">
-				<select name="label"></select>
-				<input type="text" name="keyword">
-				<input type="submit" value="search">
-			</form>
-			
+			<nav>
+				<div class="function">
+					<button class="r_button" id="add">Add</button>
+					<button class="r_button" id="sync">Sync</button>
+				</div>
+				<form id="form">
+					<select name="label"></select>
+					<input type="text" name="keyword">
+					<input type="submit" value="search">
+				</form>
+			</nav>
 			<div id="list"></div>
 		</aside>
 		
@@ -113,6 +115,9 @@ iframe {
 	form.elements.label.addEventListener("change", onChangeLabel);
 	form.addEventListener("submit", onSearch);
 	
+	document.getElementById("sync").onclick = onSync;
+	document.getElementById("add").onclick = onAddDevice;
+	
 	initList();
 	
 	initLabel();
@@ -122,8 +127,8 @@ iframe {
 		
 		var deviceData = top.databases.device.data;
 		
-		for (var id in deviceData) {
-			df.appendChild(createRow(deviceData[id]));
+		for (var ip in deviceData) {
+			df.appendChild(createRow(deviceData[ip]));
 		}
 		
 		list.appendChild(df);
@@ -137,9 +142,9 @@ iframe {
 		row.appendChild(document.createElement("li")).textContent = device.type;
 		row.appendChild(document.createElement("li")).textContent = device.ip;
 		
-		row.onclick = onSelectDevice.bind(undefined, device.id);
+		row.onclick = onSelectDevice.bind(undefined, device.ip);
 		
-		rowMap[device.id] = row;
+		rowMap[device.ip] = row;
 		
 		if (device.label) {
 			label = device.label.split(",");
@@ -181,14 +186,43 @@ iframe {
 		}
 	}
 	
+	function onSync() {
+		if (!confirm("Synchronize device database with agent now?")) {
+			return;
+		}
+		
+		top.sendRequest({
+			command: "push",
+			database: "device",
+			sequence: top.databases.device.sequence,
+			data: top.databases.device.data
+		}, function (response) {
+			top.databases.device.sequence = response.sequence;
+			top.databases.device.data = response.data;
+			
+			location.reload();
+		});
+	}
+	
+	function onAddDevice() {
+		top.showDialog("device_dialog.html",
+			function (dialog) {
+				dialog.initialize();
+			},
+			function () {
+				location.reload();
+			}
+		);
+	}
+	
 	function onLoadFrame(e) {
 		document.body.classList.remove("loading");
 	}
 	
-	function onSelectDevice(id) {
-		top.databases.device.selected = id;
+	function onSelectDevice(ip) {
+		top.databases.device.selected = ip;
 		
-		frame.contentWindow.onSelectDevice(id);
+		frame.contentWindow.onSelectDevice(ip);
 	}
 	
 	function onStopPropagation(e) {
@@ -250,8 +284,8 @@ iframe {
 		var df = document.createDocumentFragment(),
 			rows;
 		
-		for (var id in rowMap) {
-			df.appendChild(rowMap[id]);
+		for (var ip in rowMap) {
+			df.appendChild(rowMap[ip]);
 		}
 		
 		if (label) {

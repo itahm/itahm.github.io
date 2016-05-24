@@ -52,8 +52,6 @@ iframe {
 			
 			<nav class="lt">
 				<img src="img/realtime.png" width="16px" height="16px" title="reload device data" id="reload">
-				<img src="img/synchronize.png" width="16px" height="16px" title="synchronize device data" id="sync">
-				<img src="img/add_device.png" width="16px" height="16px" title="add new device" id="add_device">
 				<img src="img/zoomin.png" width="16px" height="16px" title="zoom in" id="zoom_in">
 				<img src="img/zoomout.png" width="16px" height="16px" title="zoom out" id="zoom_out">
 			</nav>
@@ -96,10 +94,6 @@ iframe {
 
 	document.getElementById("reload").onclick = onReLoad;
 	
-	document.getElementById("sync").onclick = onSync;
-	
-	document.getElementById("add_device").onclick = onAddDevice;
-	
 	document.getElementById("name").onchange = function () {
 		map.displayIPAddress(false);
 	};
@@ -125,7 +119,7 @@ iframe {
 		}
 		
 		map.onShowChart = function (device){
-			top.databases.device.selected = device.id;
+			top.databases.device.selected = device.ip;
 			
 			location.href = "performance.html";
 		}
@@ -141,25 +135,14 @@ iframe {
 		map.forEachDevice = function(func) {
 			var deviceData = top.databases.device.data;
 			
-			for (var id in deviceData) {
-				func(deviceData[id]);
+			for (var ip in deviceData) {
+				func(deviceData[ip]);
 			}
 		}
 		
 		map.zoom(scale = top.databases.device.scale);
 		
 		map.initialize();
-	}
-	
-	function onAddDevice() {
-		top.showDialog("device_dialog.html",
-			function (dialog) {
-				dialog.initialize();
-			},
-			function () {
-				location.reload();
-			}
-		);
 	}
 	
 	function onReLoad() {
@@ -173,33 +156,15 @@ iframe {
 			location.reload();
 		});
 	}
-	
-	function onSync() {
-		if (!confirm("Synchronize device database with agent now?")) {
-			return;
-		}
-		
-		top.sendRequest({
-			command: "push",
-			database: "device",
-			sequence: top.databases.device.sequence,
-			data: top.databases.device.data
-		}, function (response) {
-			top.databases.device.sequence = response.sequence;
-			top.databases.device.data = response.data;
-			
-			location.reload();
-		});
-	}
 
-	function onSelectDevice(id) {
-		var device = getDevice(id);
+	function onSelectDevice(ip) {
+		var device = getDevice(ip);
 		
 		map.moveAllDevice(- device.x, - device.y);
 	}
 	
-	function getDevice(id) {
-		return top.databases.device.data[id];
+	function getDevice(ip) {
+		return top.databases.device.data[ip];
 	}
 	
 	</script>

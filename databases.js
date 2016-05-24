@@ -19,76 +19,93 @@ var databases = {
 }
 
 databases.icon.data = {
-    "server": {
-        "group": "server",
-        "src": "img/svg/server.svg"
-    },
-    "mainframe": {
-        "group": "server",
-        "alt": "mainframe",
-        "src": "img/svg/mainframe.svg"
-    },
-    "database": {
-        "group": "server",
-        "alt": "database",
-        "src": "img/svg/database.svg"
-    },
-    "storage": {
-        "group": "server",
-        "src": "img/svg/storage.svg"
-    },
-    "network": {
-        "group": "network",
-        "src": "img/svg/network.svg"
-    },
-    "workgroup switch": {
-        "group": "network",
-        "src": "img/svg/workgroup.svg"
-    },
-    "layer4 switch": {
-        "group": "network",
-        "src": "img/svg/l4switch.svg"
-    },
-    "layer3 switch": {
-        "group": "network",
-        "src": "img/svg/l3switch.svg"
-    },
-    "router": {
-        "group": "network",
-        "src": "img/svg/router.svg"
-    },
-    "firewall": {
-        "group": "network",
-        "src": "img/svg/firewall.svg"
-    },
-    "vpn gateway": {
-        "group": "network",
-        "src": "img/svg/vpn.svg"
-    },
-    "vpn concentrator": {
-        "group": "network",
-        "src": "img/svg/concentrator.svg"
-    },
-    "wireless": {
-        "group": "network",
-        "src": "img/svg/wireless.svg"
-    },
-    "accesspoint": {
-        "group": "network",
-        "src": "img/svg/accesspoint.svg"
-    },
-    "office": {
-        "group": "etc",
-        "src": "img/svg/office.svg"
-    },
-    "cloud": {
-        "group": "etc",
-        "src": "img/svg/cloud.svg"
-    },
-    "unknown": {
-        "group": "etc",
-        "src": "img/svg/unknown.svg"
-    }
+		"server": {
+	        "group": "server",
+	        "src": "img/svg/server.svg",
+	        "disabled": "img/svg/disabled/server.svg"
+	    },
+	    "mainframe": {
+	        "group": "server",
+	        "alt": "mainframe",
+	        "src": "img/svg/mainframe.svg",
+	        "disabled": "img/svg/disabled/mainframe.svg"
+	    },
+	    "database": {
+	        "group": "server",
+	        "alt": "database",
+	        "src": "img/svg/database.svg",
+	        "disabled": "img/svg/disabled/database.svg"
+	    },
+	    "storage": {
+	        "group": "server",
+	        "src": "img/svg/storage.svg",
+	        "disabled": "img/svg/disabled/storage.svg"
+	    },
+	    "network": {
+	        "group": "network",
+	        "src": "img/svg/network.svg",
+	        "disabled": "img/svg/disabled/network.svg"
+	    },
+	    "workgroup switch": {
+	        "group": "network",
+	        "src": "img/svg/workgroup.svg",
+	        "disabled": "img/svg/disabled/workgroup.svg"
+	    },
+	    "layer4 switch": {
+	        "group": "network",
+	        "src": "img/svg/l4switch.svg",
+	        "disabled": "img/svg/disabled/l4switch.svg"
+	    },
+	    "layer3 switch": {
+	        "group": "network",
+	        "src": "img/svg/l3switch.svg",
+	        "disabled": "img/svg/disabled/l3switch.svg"
+	    },
+	    "router": {
+	        "group": "network",
+	        "src": "img/svg/router.svg",
+	        "disabled": "img/svg/disabled/router.svg"
+	    },
+	    "firewall": {
+	        "group": "network",
+	        "src": "img/svg/firewall.svg",
+	        "disabled": "img/svg/disabled/firewall.svg"
+	    },
+	    "vpn gateway": {
+	        "group": "network",
+	        "src": "img/svg/vpn.svg",
+	        "disabled": "img/svg/disabled/vpn.svg"
+	    },
+	    "vpn concentrator": {
+	        "group": "network",
+	        "src": "img/svg/concentrator.svg",
+	        "disabled": "img/svg/disabled/concentrator.svg"
+	    },
+	    "wireless": {
+	        "group": "network",
+	        "src": "img/svg/wireless.svg",
+	        "disabled": "img/svg/disabled/wireless.svg"
+	    },
+	    "accesspoint": {
+	        "group": "network",
+	        "src": "img/svg/accesspoint.svg",
+	        "disabled": "img/svg/disabled/accesspoint.svg"
+	    },
+	    "office": {
+	        "group": "etc",
+	        "src": "img/svg/office.svg",
+	        "disabled": "img/svg/disabled/office.svg"
+	    },
+	    "cloud": {
+	        "group": "etc",
+	        "src": "img/svg/cloud.svg",
+	        "disabled": "img/svg/disabled/cloud.svg"
+	    },
+	    "unknown": {
+	        "group": "etc",
+	        "src": "img/svg/unknown.svg",
+	        "disabled": "img/svg/disabled/unknown.svg"
+	    }
 };
 
 databases.device.data = {
@@ -114,7 +131,7 @@ databases.device.data = {
             "40": "g2/21",
             "76": "g0/8"
         },
-        "snmp": false,
+        "snmp": true,
         "id": "46",
         "label": "idc,public",
         "type": "router",
@@ -129,7 +146,7 @@ databases.device.data = {
             "40": "g2/47",
             "41": "g2/48"
         },
-        "snmp": false,
+        "snmp": true,
         "id": "68",
         "label": "idc,dmz",
         "type": "layer3 switch",
@@ -145,7 +162,7 @@ databases.device.data = {
             "15": "g1/11",
             "41": "g2/21"
         },
-        "snmp": false,
+        "snmp": true,
         "id": "47",
         "label": "public,idc",
         "type": "router",
@@ -160,7 +177,7 @@ databases.device.data = {
             "40": "g2/47",
             "41": "g2/48"
         },
-        "snmp": false,
+        "snmp": true,
         "id": "69",
         "type": "layer3 switch",
         "shutdown": false
@@ -177,7 +194,7 @@ databases.device.data = {
             "52": "g3/2",
             "53": "g3/1"
         },
-        "snmp": false,
+        "snmp": true,
         "id": "73",
         "type": "layer3 switch",
         "shutdown": false
@@ -193,7 +210,7 @@ databases.device.data = {
             "41": "g0/1",
             "74": "g0/4"
         },
-        "snmp": false,
+        "snmp": true,
         "id": "52",
         "type": "layer3 switch",
         "shutdown": false
@@ -208,7 +225,7 @@ databases.device.data = {
             "52": "g2/2",
             "53": "g2/1"
         },
-        "snmp": false,
+        "snmp": true,
         "id": "74",
         "type": "layer3 switch",
         "shutdown": false
@@ -225,7 +242,7 @@ databases.device.data = {
             "73": "g0/3",
             "74": "g0/4"
         },
-        "snmp": false,
+        "snmp": true,
         "id": "53",
         "type": "layer3 switch",
         "shutdown": false
@@ -238,7 +255,7 @@ databases.device.data = {
         "ifEntry": {
             "62": "eth2"
         },
-        "snmp": false,
+        "snmp": true,
         "id": "10",
         "type": "storage",
         "community": "",
@@ -252,7 +269,7 @@ databases.device.data = {
         "ifEntry": {
             "46": "kt"
         },
-        "snmp": false,
+        "snmp": true,
         "id": "76",
         "type": "cloud",
         "shutdown": false
@@ -265,7 +282,7 @@ databases.device.data = {
         "ifEntry": {
             "62": "eth0"
         },
-        "snmp": false,
+        "snmp": true,
         "id": "11",
         "label": "",
         "type": "server",
@@ -280,7 +297,7 @@ databases.device.data = {
         "ifEntry": {
             "19": "f0/1"
         },
-        "snmp": false,
+        "snmp": true,
         "id": "77",
         "type": "workgroup switch",
         "community": "",
@@ -294,7 +311,7 @@ databases.device.data = {
         "ifEntry": {
             "19": "f0/1"
         },
-        "snmp": false,
+        "snmp": true,
         "id": "78",
         "type": "workgroup switch",
         "community": "",
@@ -321,7 +338,7 @@ databases.device.data = {
         "ifEntry": {
             "19": "f0/1"
         },
-        "snmp": false,
+        "snmp": true,
         "id": "79",
         "type": "workgroup switch",
         "community": "",
@@ -336,7 +353,7 @@ databases.device.data = {
             "52": "f0/3",
             "53": "f0/2"
         },
-        "snmp": false,
+        "snmp": true,
         "id": "58",
         "type": "layer3 switch",
         "shutdown": false
@@ -350,7 +367,7 @@ databases.device.data = {
             "46": "eth8",
             "47": "eth7"
         },
-        "snmp": false,
+        "snmp": true,
         "id": "15",
         "type": "vpn concentrator",
         "shutdown": false
@@ -376,7 +393,7 @@ databases.device.data = {
         },
         "id": "19",
         "label": "office",
-        "snmp": false,
+        "snmp": true,
         "type": "layer3 switch",
         "shutdown": false
     },
@@ -390,7 +407,7 @@ databases.device.data = {
             "5": "eth2",
             "73": "eth1"
         },
-        "snmp": false,
+        "snmp": true,
         "id": "4",
         "label": "",
         "community": "",
@@ -405,7 +422,7 @@ databases.device.data = {
         "ifEntry": {
             "4": "e1/0"
         },
-        "snmp": false,
+        "snmp": true,
         "id": "5",
         "community": "",
         "type": "router",
@@ -419,7 +436,7 @@ databases.device.data = {
         "ifEntry": {
             "19": "f0/1"
         },
-        "snmp": false,
+        "snmp": true,
         "id": "80",
         "type": "workgroup switch",
         "community": "",
@@ -433,7 +450,7 @@ databases.device.data = {
         "ifEntry": {
             "19": "f0/1"
         },
-        "snmp": false,
+        "snmp": true,
         "id": "81",
         "type": "workgroup switch",
         "community": "",
@@ -447,7 +464,7 @@ databases.device.data = {
         "ifEntry": {
             "19": "f0/1"
         },
-        "snmp": false,
+        "snmp": true,
         "id": "82",
         "type": "workgroup switch",
         "community": "",
@@ -461,7 +478,7 @@ databases.device.data = {
         "ifEntry": {
             "19": "f0/1"
         },
-        "snmp": false,
+        "snmp": true,
         "id": "83",
         "type": "workgroup switch",
         "community": "",
@@ -478,7 +495,7 @@ databases.device.data = {
             "69": "eth4",
             "53": "eth1"
         },
-        "snmp": false,
+        "snmp": true,
         "id": "40",
         "type": "firewall",
         "shutdown": false
@@ -493,7 +510,7 @@ databases.device.data = {
             "73": "fe24",
             "10": "fe23"
         },
-        "snmp": false,
+        "snmp": true,
         "id": "62",
         "type": "workgroup switch",
         "shutdown": false
@@ -506,7 +523,7 @@ databases.device.data = {
         "ifEntry": {
             "19": "f0/1"
         },
-        "snmp": false,
+        "snmp": true,
         "id": "84",
         "type": "workgroup switch",
         "community": "",
@@ -523,7 +540,7 @@ databases.device.data = {
             "69": "eth4",
             "52": "eth1"
         },
-        "snmp": false,
+        "snmp": true,
         "id": "41",
         "type": "firewall",
         "shutdown": false
@@ -536,7 +553,7 @@ databases.device.data = {
         "ifEntry": {
             "19": "f0/1"
         },
-        "snmp": false,
+        "snmp": true,
         "id": "85",
         "type": "workgroup switch",
         "community": "",
@@ -550,7 +567,7 @@ databases.device.data = {
         "ifEntry": {
             "19": "f0/1"
         },
-        "snmp": false,
+        "snmp": true,
         "id": "86",
         "type": "workgroup switch",
         "community": "",

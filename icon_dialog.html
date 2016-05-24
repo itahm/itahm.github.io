@@ -24,7 +24,7 @@ form {
 	position: relative;
 }
 
-#image {
+.preview {
 	position: absolute; top: 20px; right: 20px;
 }
 
@@ -41,6 +41,8 @@ div.table ul {
 
 div.table li:first-child {
 	flex: 1;
+	padding: .5em;
+	text-align: right;
 }
 
 div.table li:last-child {
@@ -73,7 +75,10 @@ input[type="checkbox"] {
 	<body>
 	
 		<form class="rounded" autocomplete="off">
-			<img id="image" width="40px" height="40px">
+			<div class="preview">
+				<img id="image" width="40px" height="40px">
+				<img id="disabled" width="40px" height="40px">
+			</div>
 			<h2>icon</h2>
 			<div class="table">
 				<ul>
@@ -87,6 +92,10 @@ input[type="checkbox"] {
 				<ul>
 					<li>image
 					<li><input type="text" name="url" placeholder="http://my.image.com/image.svg">
+				</ul>
+				<ul>
+					<li>disabled
+					<li><input type="text" name="disabled" placeholder="http://my.image.com/image.svg">
 				</ul>
 				<label><input type="checkbox" name="reset">reset</label>
 			</div>
@@ -103,8 +112,7 @@ if (top === window) {
 }
 
 (function (window, undefined) {
-	var form = document.querySelector("form"),
-		image = document.getElementById("image");
+	var form = document.querySelector("form");
 	
 	/**
 	 * callback method
@@ -114,7 +122,8 @@ if (top === window) {
 		
 		top.databases.icon.data[form.elements.type.value] = {
 			group: form.elements.group.value,
-			src: form.elements.url.value
+			src: form.elements.url.value,
+			disabled: form.elements.disabled.value,
 		};
 		
 		top.closeDialog();
@@ -134,11 +143,13 @@ if (top === window) {
 		if (type) {
 			var icon = top.databases.icon.data[type] || top.databases.icon.origin[type];
 			
-			image.src = icon.src;
+			document.getElementById("image").src = icon.src;
+			document.getElementById("disabled").src = icon.disabled;
 			
 			form.elements.type.value = type;
 			form.elements.group.value = icon.group;
 			form.elements.url.value = icon.src;
+			form.elements.disabled.value = icon.disabled;
 		}
 		
 		form.onsubmit = onApply;

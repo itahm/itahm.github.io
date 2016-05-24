@@ -108,13 +108,8 @@ body:not(.chart) #chart {
 
 body.name tspan:last-child,
 body:not(.name) tspan:first-child,
-body:not(.alert) #alert,
 body:not(.ifname) #line text {
 	display: none;
-}
-
-image.disabled {
-	opacity: .6;
 }
 
 		</style>
@@ -127,11 +122,6 @@ image.disabled {
 			<defs>
 				<circle r="35" id="circle"></circle>
 			</defs>
-			<g>
-				<image id="alert" xlink:href="img/svg/alert.svg"
-				transform="translate(-50, -50)" cursor="pointer"
-				x="100%" y="100%" width="50" height="50" />
-			</g>
 			<g id="transform" transform="translate(0, 0) scale(1, 1) translate(0, 0)">
 				<g id="line"></g>
 				<g id="link"></g>
@@ -242,7 +232,7 @@ var svgNS = "http://www.w3.org/2000/svg",
 			
 			moveSelectionMark(x, y);
 			
-			moveDevice(selectedDevice.id, x, y);
+			moveDevice(selectedDevice.ip, x, y);
 		}
 		else if (target === linkAnchor) {
 			var destination = data.destination,
@@ -293,7 +283,7 @@ var svgNS = "http://www.w3.org/2000/svg",
 		}
 		
 		forEachDevice(function (device) {
-			moveDevice(device.id, device.x + x, device.y + y);
+			moveDevice(device.ip, device.x + x, device.y + y);
 		});
 	}
 	
@@ -308,13 +298,13 @@ var svgNS = "http://www.w3.org/2000/svg",
 		}
 	}
 	
-	window.selectDevice = function (id) {
+	window.selectDevice = function (ip) {
 		if (cancelSelect) {
 			cancelSelect = false;
 		}
 		else {
-			selectedDevice = getDevice(id);
-			selectedSvgDevice = getSvgDevice(id);
+			selectedDevice = getDevice(ip);
+			selectedSvgDevice = getSvgDevice(ip);
 			
 			x = selectedDevice.x;
 			y = selectedDevice.y;
@@ -340,19 +330,11 @@ var svgNS = "http://www.w3.org/2000/svg",
 		iconMap = {},
 		labelMap = {},
 		alertMap = {};
-
-	function initialize() {
-		document.getElementById("alert").onclick = function () {
-			for (var id in alertMap) {
-				setTimeout(centerDevice.bind(undefined, id), 500);
-			}
-		};
-	}
 	
-	function onSelect(id, e) {
+	function onSelect(ip, e) {
 		e.stopPropagation();
 		
-		selectDevice(id);
+		selectDevice(ip);
 	}
 	
 	function moveLine(x, y, data, direct) {
@@ -397,20 +379,15 @@ var svgNS = "http://www.w3.org/2000/svg",
 			svgAddr = document.createElementNS(svgNS, "tspan"),
 			svgName = document.createElementNS(svgNS, "tspan");
 		
-		svgDevice.setAttributeNS(null, "id", device.id);
 		svgDevice.setAttributeNS(null, "x", device.x);
 		svgDevice.setAttributeNS(null, "y", device.y);
-		svgDevice.setAttributeNS(xlinkNS, "xlink:href",  icon);
 		svgDevice.setAttributeNS(null, "width", "40px");
 		svgDevice.setAttributeNS(null, "height", "40px");
 		svgDevice.setAttributeNS(null, "transform", "translate(-20, -20)");
+		svgDevice.setAttributeNS(xlinkNS, "xlink:href",  device.snmp? icon.src: icon.disabled);
 		
-		if (!device.snmp) {
-			svgDevice.setAttributeNS(null, "class", "disabled");
-		}
-		
-		svgDevice.onclick = onSelect.bind(undefined, device.id);
-		svgDevice.addEventListener("link", onLink.bind(undefined, device.id));
+		svgDevice.onclick = onSelect.bind(undefined, device.ip);
+		svgDevice.addEventListener("link", onLink.bind(undefined, device.ip));
 		
 		canvas.appendChild(svgDevice);
 		
@@ -428,8 +405,8 @@ var svgNS = "http://www.w3.org/2000/svg",
 		
 		canvas.appendChild(svgLabel);
 		
-		iconMap[device.id] = svgDevice;
-		labelMap[device.id] = svgLabel;
+		iconMap[device.ip] = svgDevice;
+		labelMap[device.ip] = svgLabel;
 		
 		if (device.snmp && device.shutdown) {
 			setAlert(device);
@@ -437,7 +414,7 @@ var svgNS = "http://www.w3.org/2000/svg",
 	};
 	
 	window.setAlert = function (device) {
-		var svgAlert = alertMap[device.id];
+		var svgAlert = alertMap[device.ip];
 		
 		if (device.shutdown) {
 			if (!svgAlert) {
@@ -450,33 +427,33 @@ var svgNS = "http://www.w3.org/2000/svg",
 				
 				canvas.appendChild(svgAlert);
 				
-				alertMap[device.id] = svgAlert;
+				alertMap[device.ip] = svgAlert;
 			}
 		}
 		else {
 			if (svgAlert) {
-				delete alertMap[device.id];
+				delete alertMap[device.ip];
 				
 				canvas.removeChild(svgAlert);
 			}
 		}
 		
-		document.body.classList[Object.keys(alertMap).length === 0? "remove": "add"]("alert");
+		//document.body.classList[Object.keys(alertMap).length === 0? "remove": "add"]("alert");
 	};
 	
 	window.isDevice = function (node) {
 		return node.parentNode === canvas && node.tagName === "image";
 	};
 	
-	window.moveDevice = function (id, x, y) {
-		var device = getDevice(id);
+	window.moveDevice = function (ip, x, y) {
+		var device = getDevice(ip);
 		
 		device.x = x;
 		device.y = y;		
 		
-		var svgDevice = iconMap[id],
-			svgLabel = labelMap[id],
-			svgAlert = alertMap[id];
+		var svgDevice = iconMap[ip],
+			svgLabel = labelMap[ip],
+			svgAlert = alertMap[ip];
 		
 		svgDevice.setAttributeNS(null, "x", x);
 		svgDevice.setAttributeNS(null, "y", y);
@@ -489,7 +466,7 @@ var svgNS = "http://www.w3.org/2000/svg",
 			svgAlert.setAttributeNS(null, "y", y);
 		}
 		
-		forEachLine(id, moveLine.bind(undefined, x, y));
+		forEachLine(ip, moveLine.bind(undefined, x, y));
 	};
 	
 	window.topDevice = function (svgDevice) {
@@ -517,11 +494,9 @@ var svgNS = "http://www.w3.org/2000/svg",
 		hideAnchor();
 	};
 	
-	window.getSvgDevice= function (id) {
-		return iconMap[id];
+	window.getSvgDevice= function (ip) {
+		return iconMap[ip];
 	};
-	
-	initialize();
 	
 }) (window);
 
@@ -626,31 +601,25 @@ var svgNS = "http://www.w3.org/2000/svg",
 	};
 	
 	// TODO 자세히 다뤄볼것. 링크는 언제든 변할수 있는것이니... 언제 갱신해 줘야 할지.
-	window.onLink = function (id, e) {
-		var device = getDevice(id),
+	window.onLink = function (ip, e) {
+		var device = getDevice(ip),
 			peer = e.detail.peer,
-			peerID = peer.id,
+			peerIP = peer.ip,
 			ifEntry = device.ifEntry;
 		
-		if (id < 0 || peerID < 0) {
-			alert("synchronize device data first.");
-			
-			return;
-		}
-		
-		if (peerID in ifEntry) {
+		if (peerIP in ifEntry) {
 			/*
 			if (ifEntry[peerID]) {
 				// 이미 링크가 존재하고, 시스템에 의해 생성된 것은 지울수 없게 할 수도 있음.
 				return;
 			}*/
 			
-			delete ifEntry[peerID];
-			delete peer.ifEntry[id];
+			delete ifEntry[peerIP];
+			delete peer.ifEntry[ip];
 		}
 		else {
-			ifEntry[peerID] = "";
-			peer.ifEntry[id] = "";
+			ifEntry[peerIP] = "";
+			peer.ifEntry[ip] = "";
 		}
 		
 		location.reload();
@@ -659,20 +628,26 @@ var svgNS = "http://www.w3.org/2000/svg",
 	window.addLine = function (device) {
 		var ifEntry = device.ifEntry,
 			peerList = {},
-			id = device.id,
-			peer, peerID, linkData, lineSvg,
+			ip = device.ip,
+			peer, peerIP, linkData, lineSvg,
 			labelSvg;
 		
-		database[id] = peerList;
+		database[ip] = peerList;
 		
-		for (var peerID in ifEntry) {
-			peer = getDevice(peerID);
+		for (var peerIP in ifEntry) {
+			peer = getDevice(peerIP);
 			
-			labelSvg = createLabel(ifEntry[peerID], device.x, device.y, peer.x, peer.y);
+			if (!peer) {
+				delete ifEntry[peerIP];
+				
+				continue;
+			}
+			
+			labelSvg = createLabel(ifEntry[peerIP], device.x, device.y, peer.x, peer.y);
 			
 			// peer가 먼저 svg 만들었다면 공유
-			if (database[peerID]) {
-				linkData = database[peerID][id];
+			if (database[peerIP]) {
+				linkData = database[peerIP][ip];
 				
 				linkData.name2 = labelSvg;
 			}
@@ -685,9 +660,9 @@ var svgNS = "http://www.w3.org/2000/svg",
 				lineSvg.setAttributeNS(null, "y2", peer.y);
 				
 				linkData = {
-					peer1: id,
+					peer1: ip,
 					name1: labelSvg,
-					peer2: peerID,
+					peer2: peerIP,
 					svg: canvas.appendChild(lineSvg)
 				};
 			}
@@ -695,18 +670,18 @@ var svgNS = "http://www.w3.org/2000/svg",
 			// label이 선보다 위에 그려지도록 나중에 붙여줌
 			canvas.appendChild(labelSvg);
 			
-			peerList[peerID] = linkData;
+			peerList[peerIP] = linkData;
 		}
 	};
 	
-	window.forEachLine = function (id, f) {
-		var linkData = database[id],
+	window.forEachLine = function (ip, f) {
+		var linkData = database[ip],
 			data;
 		
-		for (var peerID in linkData) {
-			data = linkData[peerID];
+		for (var peerIP in linkData) {
+			data = linkData[peerIP];
 			
-			f(data, data.peer1 === id);
+			f(data, data.peer1 === ip);
 		}
 	};
 	
@@ -714,7 +689,9 @@ var svgNS = "http://www.w3.org/2000/svg",
 
 function initialize() {
 	forEachDevice(function (device) {
-		addDevice(device, getIcon(device.type).src);
+		var icon = getIcon(device.type);
+		
+		addDevice(device, icon);
 		addLine(device);
 	});
 }
@@ -727,10 +704,10 @@ function displayIFName(show) {
 	document.body.classList[show? "add": "remove"]("ifname");
 }
 
-function onEditDevice(id) {	
+function onEditDevice(ip) {	
 }
 
-function onShowChart(id) {
+function onShowChart(ip) {
 }
 
 resize();
