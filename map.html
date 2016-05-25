@@ -51,7 +51,6 @@ iframe {
 			<iframe id="map" src="map_base.html"></iframe>
 			
 			<nav class="lt">
-				<img src="img/realtime.png" width="16px" height="16px" title="reload device data" id="reload">
 				<img src="img/zoomin.png" width="16px" height="16px" title="zoom in" id="zoom_in">
 				<img src="img/zoomout.png" width="16px" height="16px" title="zoom out" id="zoom_out">
 			</nav>
@@ -91,8 +90,6 @@ iframe {
 		
 		top.databases.device.scale = scale;
 	}
-
-	document.getElementById("reload").onclick = onReLoad;
 	
 	document.getElementById("name").onchange = function () {
 		map.displayIPAddress(false);
@@ -143,18 +140,6 @@ iframe {
 		map.zoom(scale = top.databases.device.scale);
 		
 		map.initialize();
-	}
-	
-	function onReLoad() {
-		top.sendRequest({
-			command: "pull",
-			database: "device",
-		}, function (response) {
-			top.databases.device.sequence = response.sequence;
-			top.databases.device.data = response.data;
-			
-			location.reload();
-		});
 	}
 
 	function onSelectDevice(ip) {

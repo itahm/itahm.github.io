@@ -98,6 +98,7 @@ body:not(.dialog) #dialog {
 		<header>
 			<nav class="content_width">
 				<ul>
+					<li><a href="test.html" target="main">test</a>
 					<li><a id="reload">ITAhM</a>
 					<li><a href="account.html" target="main">account</a>
 					<li><a href="profile.html" target="main">profile</a>
@@ -165,7 +166,7 @@ body:not(.dialog) #dialog {
 					databases.icon.origin = ITAhM.iconData;
 					// TODO ITAhM의 시작.
 					
-					document.title = sessionStorage.user +" @ ITAhM";
+					document.title = sessionStorage.host +" @ ITAhM";
 		
 					window.onbeforeunload = function () {
 						return "Are you sure you wnat to exit ITAhM?";

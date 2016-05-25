@@ -67,6 +67,15 @@ aside input[type="text"] {
 	padding: 3px;
 }
 
+.function {
+	display: flex;
+}
+
+.function> * {
+	flex: 1;
+	margin: 0 3px;
+}
+
 section {
 	position: fixed; top: 0; right: 0; bottom: 0; left: 300px;
 }
@@ -75,7 +84,6 @@ iframe {
 	border: none;
 	width: 100%; height: 100%;
 }
-
 
 		</style>
 		
@@ -86,6 +94,7 @@ iframe {
 			<nav>
 				<div class="function">
 					<button class="r_button" id="add">Add</button>
+					<button class="r_button" id="reload">Reload</button>
 					<button class="r_button" id="sync">Sync</button>
 				</div>
 				<form id="form">
@@ -116,6 +125,7 @@ iframe {
 	form.addEventListener("submit", onSearch);
 	
 	document.getElementById("sync").onclick = onSync;
+	document.getElementById("reload").onclick = onReLoad;
 	document.getElementById("add").onclick = onAddDevice;
 	
 	initList();
@@ -197,10 +207,7 @@ iframe {
 			sequence: top.databases.device.sequence,
 			data: top.databases.device.data
 		}, function (response) {
-			top.databases.device.sequence = response.sequence;
-			top.databases.device.data = response.data;
-			
-			location.reload();
+			reload(response);
 		});
 	}
 	
@@ -213,6 +220,15 @@ iframe {
 				location.reload();
 			}
 		);
+	}
+	
+	function onReLoad() {
+		top.sendRequest({
+			command: "pull",
+			database: "device",
+		}, function (response) {
+			reload(response);
+		});
 	}
 	
 	function onLoadFrame(e) {
@@ -242,6 +258,13 @@ iframe {
 		form.elements.keyword.value = "";
 		
 		selectLabel(form.elements.label.value);
+	}
+	
+	function reload(response) {
+		top.databases.device.sequence = response.sequence;
+		top.databases.device.data = response.data;
+		
+		location.reload();
 	}
 	
 	function clearDeviceList() {

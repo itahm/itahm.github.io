@@ -206,6 +206,14 @@ if (window === top) throw "";
 		var ip = [form.elements.ip1.value, form.elements.ip2.value, form.elements.ip3.value, form.elements.ip4.value].join(".");
 		
 		if (!device) {
+			if (ip in top.databases.device.data) {
+				alert("IP address already exists.");
+				
+				form.elements.ip1.select();
+				
+				return;
+			}
+			
 			device = {
 				x: 0,
 				y: 0,

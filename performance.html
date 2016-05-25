@@ -326,12 +326,7 @@ var elements = {
 			command: "select",
 			ip: deviceIP
 		}, function (response) {
-			if (response) {
-				initialize(device, response);
-			}
-			else {
-				
-			}
+			initialize(device, response);
 		});
 	}) ();
 	

@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>@ ITAhM</title>
+
+		<style>
+@import "css/itahm.css";
+
+section {
+	display: flex;
+	flex-wrap: wrap;
+}
+
+.gauge {
+	display: flex;
+	width: 60px;
+	height: 100px;
+	justify-content: center;
+	align-items: center;
+	border: 1px solid #999;
+	border-radius: 10px;
+	position: relative;
+	overflow: hidden;
+}
+
+.gauge> div {
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	width: 100%;
+	background-color: #7d7;
+	z-index: -1;
+}
+
+.i_face .gauge:nth-child(even)> div {
+	background-color: #f60;
+}
+
+.processor {
+	margin: 1em;
+}
+
+.storage,
+.i_face {
+	display: flex;
+	margin: 1em;
+}
+
+.storage ul ,
+.i_face ul {
+	list-style: none;
+	padding: 0;
+	margin: 3px;
+}
+
+.storage span,
+.i_face span {
+	margin: 3px;
+	box-sizing: border-box;
+	display: inline-block;
+	max-width: 120px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.clone {
+	display: none;
+}
+		</style>
+	</head>
+
+	<body>
+		<h2>Processor load</h2>
+		<section id="processor"></section>
+		
+		<h2>Physical memory</h2>
+		<section id="memory"></section>
+		
+		<h2>Storage usage</h2>
+		<section id="disk"></section>
+		
+		<h2>Interface throughput</h2>
+		<section id="iFace"></section>
+		
+		<div class="clone">
+			<div class="processor">
+			</div>
+			
+			<div class="storage">
+				<div>
+					<ul>
+						<li>capacity
+						<li>value
+					</ul>
+					<ul>
+						<li>used
+						<li>value
+					</ul>
+					<span></span>
+				</div>
+			</div>
+			
+			<div class="i_face">
+				<div>
+					<ul>
+						<li>bandwidth
+						<li>value
+					</ul>
+					<ul>
+						<li>input
+						<li>value
+					</ul>
+					<ul>
+						<li>output
+						<li>value
+					</ul>
+					<span></span>
+				</div>
+			</div>
+			
+			<div class="gauge">
+				<div></div>
+				<span>50%</span>
+			</div>
+		</div>
+		
+	</body>
+	
+	<script src="js/ITAhM.js"></script>
+	<script>
+
+	var processorArea = document.getElementById("processor"),
+		diskArea = document.getElementById("disk"),
+		memoryArea = document.getElementById("memory"),
+		interfaceArea = document.getElementById("iFace"),
+		gauge = document.querySelector(".gauge"),
+		processorGauge = document.querySelector(".processor"),
+		storageGauge = document.querySelector(".storage"),
+		iFaceGauge = document.querySelector(".i_face");
+	
+	(function () {
+		var database = top.databases.device,
+			device = database.data[database.selected];
+		
+		top.sendRequest({
+			command: "select",
+			ip: device.ip
+		}, function (response) {
+			initialize(device, response);
+		});
+	}) ();
+	
+	function createGauge(value) {
+		var clone = gauge.cloneNode(true);
+		
+		clone.children[0].style.height = value;
+		clone.children[1].textContent = value;
+		
+		return clone;
+	}
+	
+	function createProcGauge(value) {
+		var clone = processorGauge.cloneNode(true),
+			gauge = createGauge(value);
+		
+		clone.appendChild(gauge);
+		
+		return clone;
+	}
+	
+	function createStrgGuage(value, used, size, label) {
+		var clone = storageGauge.cloneNode(true),
+			gauge = createGauge(value),
+			div = clone.children[0];
+		
+		div.children[0].children[1].textContent = ITAhM.util.toBytesString(size);
+		div.children[1].children[1].textContent = ITAhM.util.toBytesString(used);
+		div.children[2].textContent = label;
+		
+		clone.insertBefore(gauge, div);
+		
+		return clone;
+	}
+	
+	function createIFaceGuage(inValue, outValue, inBPS, outBPS, bandwidth, name) {
+		var clone = iFaceGauge.cloneNode(true),
+			inGauge = createGauge(inValue),
+			outGauge = createGauge(outValue),
+			div = clone.children[0];
+		
+		div.children[0].children[1].textContent = ITAhM.util.toBPSString(bandwidth);
+		div.children[1].children[1].textContent = ITAhM.util.toBPSString(inBPS);
+		div.children[2].children[1].textContent = ITAhM.util.toBPSString(outBPS);
+		div.children[3].textContent = name;
+		
+		clone.insertBefore(inGauge, div);
+		clone.insertBefore(outGauge, div);
+		
+		return clone;
+	}
+	
+	function initialize(device, snmp) {
+		var entry;
+		
+		entry = snmp.hrProcessorEntry;
+		for (var index in entry) {
+			initProcessor(entry[index]);
+		}
+		
+		entry = snmp.hrStorageEntry;
+		for (var index in entry) {
+			initStorage(entry[index]);
+		}
+		
+		entry = snmp.ifEntry;
+		for (var index in entry) {
+			if (index == 11) {
+				entry[index].ifInBPS = 20000000;
+				entry[index].ifOutBPS = 40000000;
+			}
+			initIFace(entry[index]);
+		}
+	}
+	
+	function initProcessor(load) {
+		processorArea.appendChild(createProcGauge(load +"%"));
+	}
+	
+	function initStorage(storage) {
+		switch(storage.hrStorageType) {
+		case 4:
+			if (storage.hrStorageSize > 0) {
+				initDisk(storage);
+			}
+			
+			break;
+		case 2:
+			initMemory(storage);
+			
+			break;
+		}
+	}
+	
+	function initDisk(disk) {
+		var used = disk.hrStorageUsed * disk.hrStorageAllocationUnits,
+			size = disk.hrStorageSize * disk.hrStorageAllocationUnits,
+			percentage = Math.round(100* used / size);
+		
+		diskArea.appendChild(createStrgGuage(percentage +"%", used, size, disk.hrStorageDescr));
+	}
+	
+	function initMemory(memory) {
+		var used = memory.hrStorageUsed * memory.hrStorageAllocationUnits,
+			size = memory.hrStorageSize * memory.hrStorageAllocationUnits,
+			percentage = Math.round(100* used / size);
+		
+		memoryArea.appendChild(createStrgGuage(percentage +"%", used, size, ""));
+	}
+	
+	function initIFace(iFace) {
+		var bandwidth = iFace.ifSpeed;
+		
+		if (bandwidth > 0) {
+			var inBPS = iFace.ifInBPS,
+				outBPS = iFace.ifOutBPS;
+			
+			interfaceArea.appendChild(createIFaceGuage(
+					(100* inBPS / bandwidth).toFixed(2) +"%",
+					(100* outBPS / bandwidth).toFixed(2)+"%",
+					inBPS, outBPS, bandwidth, iFace.ifName));
+		}
+	}
+	
+	</script>
+</html>
