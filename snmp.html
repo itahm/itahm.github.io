@@ -15,7 +15,7 @@ section {
 .gauge {
 	display: flex;
 	width: 60px;
-	height: 100px;
+	height: 120px;
 	justify-content: center;
 	align-items: center;
 	border: 1px solid #999;
@@ -55,11 +55,11 @@ section {
 }
 
 .storage span,
-.i_face span {
-	margin: 3px;
+.label {
+	margin: 3px 0 0 3px;
 	box-sizing: border-box;
 	display: inline-block;
-	max-width: 120px;
+	width: 120px;
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
@@ -68,10 +68,26 @@ section {
 .clone {
 	display: none;
 }
+
+#status {
+	color: #0084ff;
+}
+
+#status.down {
+	color: #f00;
+}
+
 		</style>
 	</head>
 
-	<body>
+	<body class="loading">
+		
+		<a href="map.html">Map</a>
+		<a href="performance.html">Chart</a>
+		
+		<h1 id="node"></h1>
+		<h3 id="status"></h3>
+		
 		<h2>Processor load</h2>
 		<section id="processor"></section>
 		
@@ -90,6 +106,7 @@ section {
 			
 			<div class="storage">
 				<div>
+					<h4 class="label"></h4>
 					<ul>
 						<li>capacity
 						<li>value
@@ -98,12 +115,12 @@ section {
 						<li>used
 						<li>value
 					</ul>
-					<span></span>
 				</div>
 			</div>
 			
 			<div class="i_face">
 				<div>
+					<h4 class="label"></h4>
 					<ul>
 						<li>bandwidth
 						<li>value
@@ -116,7 +133,6 @@ section {
 						<li>output
 						<li>value
 					</ul>
-					<span></span>
 				</div>
 			</div>
 			
@@ -126,6 +142,7 @@ section {
 			</div>
 		</div>
 		
+		<div class="bg_loading"></div>
 	</body>
 	
 	<script src="js/ITAhM.js"></script>
@@ -147,7 +164,7 @@ section {
 		top.sendRequest({
 			command: "select",
 			ip: device.ip
-		}, function (response) {
+		}, function (response) {			
 			initialize(device, response);
 		});
 	}) ();
@@ -175,9 +192,9 @@ section {
 			gauge = createGauge(value),
 			div = clone.children[0];
 		
-		div.children[0].children[1].textContent = ITAhM.util.toBytesString(size);
-		div.children[1].children[1].textContent = ITAhM.util.toBytesString(used);
-		div.children[2].textContent = label;
+		div.children[0].textContent = label;
+		div.children[1].children[1].textContent = ITAhM.util.toBytesString(size);
+		div.children[2].children[1].textContent = ITAhM.util.toBytesString(used);
 		
 		clone.insertBefore(gauge, div);
 		
@@ -190,10 +207,10 @@ section {
 			outGauge = createGauge(outValue),
 			div = clone.children[0];
 		
-		div.children[0].children[1].textContent = ITAhM.util.toBPSString(bandwidth);
-		div.children[1].children[1].textContent = ITAhM.util.toBPSString(inBPS);
-		div.children[2].children[1].textContent = ITAhM.util.toBPSString(outBPS);
-		div.children[3].textContent = name;
+		div.children[0].textContent = name;
+		div.children[1].children[1].textContent = ITAhM.util.toBPSString(bandwidth);
+		div.children[2].children[1].textContent = ITAhM.util.toBPSString(inBPS);
+		div.children[3].children[1].textContent = ITAhM.util.toBPSString(outBPS);
 		
 		clone.insertBefore(inGauge, div);
 		clone.insertBefore(outGauge, div);
@@ -216,12 +233,23 @@ section {
 		
 		entry = snmp.ifEntry;
 		for (var index in entry) {
-			if (index == 11) {
-				entry[index].ifInBPS = 20000000;
-				entry[index].ifOutBPS = 40000000;
-			}
 			initIFace(entry[index]);
 		}
+		
+		document.getElementById("node").textContent = device.ip;
+		if (device.shutdown) {
+			var status = document.getElementById("status");
+			
+			status.textContent
+				= "Down. Last response "+ new Date(snmp.lastResponse).toLocaleString();
+			status.className = "down";
+		}
+		else {
+			document.getElementById("status").textContent
+				= "Running. Response time "+ snmp.responseTime +"ms.";
+		}
+		
+		document.body.classList.remove("loading");
 	}
 	
 	function initProcessor(load) {
@@ -256,7 +284,7 @@ section {
 			size = memory.hrStorageSize * memory.hrStorageAllocationUnits,
 			percentage = Math.round(100* used / size);
 		
-		memoryArea.appendChild(createStrgGuage(percentage +"%", used, size, ""));
+		memoryArea.appendChild(createStrgGuage(percentage +"%", used, size, "Physical memory"));
 	}
 	
 	function initIFace(iFace) {
@@ -271,6 +299,12 @@ section {
 					(100* outBPS / bandwidth).toFixed(2)+"%",
 					inBPS, outBPS, bandwidth, iFace.ifName));
 		}
+	}
+	
+	function onSelectDevice(ip) {
+		top.databases.device.selected = ip;
+		
+		location.reload();
 	}
 	
 	</script>

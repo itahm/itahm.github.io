@@ -146,6 +146,8 @@ iframe {
 		var device = getDevice(ip);
 		
 		map.moveAllDevice(- device.x, - device.y);
+		
+		map.selectDevice(ip);
 	}
 	
 	function getDevice(ip) {
