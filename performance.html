@@ -223,61 +223,6 @@ option[value="ifInOctets"] {
 			<iframe id="chart"></iframe>
 		</section>
 		
-		<section class="information">
-			<ul>
-				<li>
-					<span id="description">nameⓘ</span>
-				</li>
-				<li>
-					<span>ip address</span>
-				</li>
-				<li>
-					<span>type</span>
-				</li>
-				<li>
-					<span>label</span>
-				</li>
-				<li>
-					<span>profile</span>
-				</li>
-				<li>
-					<span>status</span>
-				</li>
-				<li>
-					<span>uptime</span>
-				</li>
-				<li>
-					<span>enterprise</span>
-				</li>
-			</ul>
-			
-			<ul>
-				<li>
-					<span id="name">name</span>
-				</li>
-				<li>
-					<span id="ip">ip</span>
-				</li>
-				<li>
-					<span id="type">type</span>
-				<li>
-					<span id="label">label</span>
-				</li>
-				<li>
-					<span id="profile">profile</span>
-				</li>
-				<li>
-					<span id="status"></span>
-				</li>
-				<li>
-					<span id="uptime">uptime</span>
-				</li>
-				<li>
-					<span id="enterprise">enterprise</span>
-				</li>
-			</ul>
-		</section>
-		
 		<div class="bg_loading"></div>
 		
 		<script src="js/ITAhM.js"></script>
@@ -300,13 +245,6 @@ var elements = {
 (function (window, undefined) {
 	
 	var name = document.getElementById("name"),
-		ip = document.getElementById("ip"),
-		type = document.getElementById("type"),
-		label = document.getElementById("label"),
-		profile = document.getElementById("profile"),
-		status = document.getElementById("status"),
-		uptime = document.getElementById("uptime"),
-		enterprise = document.getElementById("enterprise"),
 		chart = document.getElementById("chart"),
 		mode = document.getElementById("mode"),
 		deviceIP,
@@ -344,20 +282,7 @@ var elements = {
 		top.sendRequest(request, callback);
 	}
 	
-	function initialize (device, snmp) {		
-		name.textContent = device.name;
-		ip.textContent = device.ip;
-		type.textContent = device.type;
-		label.textContent = device.label && (device.label.split(",")).join(", ") || "";
-		profile.textContent = device.profile;
-		//status.textContent = snmp.shutdown? "down": "up";
-		if (device.shutdown) {
-			status.className = "shutdown";
-		}
-		//status.className = snmp.shutdown? "down": "up";
-		uptime.textContent = ITAhM.util.toUptimeString(snmp.hrSystemUptime);
-		enterprise.textContent = ITAhM.util.enterpriseFromOID(snmp.sysObjectID);
-		
+	function initialize (device, snmp) {				
 		initProcessor(snmp);
 		initStorage(snmp);
 		initThroughput(snmp);

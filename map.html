@@ -118,7 +118,7 @@ iframe {
 		map.onShowChart = function (device){
 			top.databases.device.selected = device.ip;
 			
-			location.href = "performance.html";
+			location.href = "snmp.html";
 		}
 		
 		map.getDevice = getDevice;
@@ -151,6 +151,7 @@ iframe {
 	}
 	
 	function getDevice(ip) {
+	
 		return top.databases.device.data[ip];
 	}
 	

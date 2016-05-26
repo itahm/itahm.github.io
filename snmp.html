@@ -7,9 +7,21 @@
 		<style>
 @import "css/itahm.css";
 
-section {
+article,
+.resource {
 	display: flex;
 	flex-wrap: wrap;
+}
+
+body.view_mode article {
+	justify-content: space-around;
+}
+
+section {
+	padding: 10px;
+	margin: 10px;
+	border: 1px solid #0084ff;
+	border-radius: 5px;
 }
 
 .gauge {
@@ -54,7 +66,6 @@ section {
 	margin: 3px;
 }
 
-.storage span,
 .label {
 	margin: 3px 0 0 3px;
 	box-sizing: border-box;
@@ -65,7 +76,7 @@ section {
 	text-overflow: ellipsis;
 }
 
-.clone {
+.layout {
 	display: none;
 }
 
@@ -82,25 +93,40 @@ section {
 
 	<body class="loading">
 		
-		<a href="map.html">Map</a>
-		<a href="performance.html">Chart</a>
+		<nav>
+			<a href="map.html">Map</a>
+			<a href="performance.html">Chart</a>
+			<button id="view">view</button>
+		</nav>
 		
-		<h1 id="node"></h1>
-		<h3 id="status"></h3>
+		<header>
+			<h1 id="node"></h1>
+			<h3 id="status"></h3>
+		</header>
 		
-		<h2>Processor load</h2>
-		<section id="processor"></section>
+		<article>
+			<section>
+				<h2>Processor load</h2>
+				<div class="resource" id="processor"></div>
+			</section>
+			
+			<section>
+				<h2>Physical memory</h2>
+				<div class="resource" id="memory"></div>
+			</section>
+			
+			<section>
+				<h2>Storage usage</h2>
+				<div class="resource" id="disk"></div>
+			</section>
+			
+			<section>
+				<h2>Interface throughput</h2>
+				<div class="resource" id="iFace"></div>
+			</section>
+		</article>
 		
-		<h2>Physical memory</h2>
-		<section id="memory"></section>
-		
-		<h2>Storage usage</h2>
-		<section id="disk"></section>
-		
-		<h2>Interface throughput</h2>
-		<section id="iFace"></section>
-		
-		<div class="clone">
+		<div class="layout">
 			<div class="processor">
 			</div>
 			
@@ -156,6 +182,10 @@ section {
 		processorGauge = document.querySelector(".processor"),
 		storageGauge = document.querySelector(".storage"),
 		iFaceGauge = document.querySelector(".i_face");
+	
+	document.getElementById("view").onclick = function () {
+		document.body.classList.toggle("view_mode");
+	};
 	
 	(function () {
 		var database = top.databases.device,

@@ -27,18 +27,29 @@ header {
 	margin: 0;
 }
 
-#list span {
-	display: inline-block;
-	padding: .5em .5em .5em 1.5em;
-	background: url(img/list.png) no-repeat left center;
-	background-size: 1em;
+.icon {
+	display: flex;
+	align-items: center;
+	padding: 10px;
+	border: 1px solid transparent;
 }
 
-#list span:hover {
+.icon:hover {
 	text-decoration: underline;
 	cursor: pointer;
+	border-color: #0084ff;
+	border-radius: 5px;
+	background-color: #fafaff;
 }
 
+.icon span {
+	font-size: 32px;
+	margin-left: 1em;
+}
+
+.layout {
+	display: none;
+}
 		</style>
 		
 	</head>
@@ -53,6 +64,14 @@ header {
 		
 		<div class="bg_loading"></div>
 		
+		<div class="layout">
+			<ul>
+				<li class="icon">
+					<img width="64" height="64">
+					<span></span>
+			</ul>
+		</div>
+		
 		<script>
 if (top === window) {
 	location.href = "http://itahm.com";
@@ -60,7 +79,8 @@ if (top === window) {
 
 (function (window, undefined) {
 	
-	var list = document.getElementById("list");
+	var list = document.getElementById("list"),
+		icon = document.querySelector(".icon");
 	
 	document.getElementById("sync").onclick = onSync;
 	
@@ -96,25 +116,26 @@ if (top === window) {
 			});
 	}
 	
+	function createIcon(src, label) {
+		var clone = icon.cloneNode(true);
+		
+		clone.children[0].src = src;
+		clone.children[1].textContent = label;
+		
+		return clone;
+	}
+	
 	function initialize() {
 		var profileData = top.databases.profile.data,
-			df = document.createDocumentFragment(),
-			span;
+			df = document.createDocumentFragment();
 		
 		for (var name in profileData) {
-			span = document.createElement("span");
-			span.textContent = name;
-			span.onclick = onSelectProfile.bind(undefined, name);
-			
-			df.appendChild(document.createElement("li"))
-				.appendChild(span);
+			df.appendChild(createIcon("img/svg/list.svg", name)).onclick = onSelectProfile.bind(undefined, name);
 		}
 		
 		list.appendChild(df);
 		
-		setTimeout(function () {
-			document.body.classList.remove("loading");
-		}, 500);
+		document.body.classList.remove("loading");
 	};
 	
 }) (window);

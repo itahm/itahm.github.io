@@ -305,13 +305,19 @@ var svgNS = "http://www.w3.org/2000/svg",
 		else {
 			selectedDevice = getDevice(ip);
 			selectedSvgDevice = getSvgDevice(ip);
-			
+// 있으면 안돼는 일이지만 데이터 잘못 들어갔을때 삭제라도 할수있게 임시. 
+try {
 			x = selectedDevice.x;
 			y = selectedDevice.y;
 			
 			showSelectionMark(x, y, selectedDevice.snmp);
 			
 			topDevice(selectedSvgDevice);
+}
+catch(e) {
+	onEditDevice(selectedDevice);
+}
+
 		}
 	}
 	
@@ -704,7 +710,7 @@ function displayIFName(show) {
 	document.body.classList[show? "add": "remove"]("ifname");
 }
 
-function onEditDevice(ip) {	
+function onEditDevice(device) {	
 }
 
 function onShowChart(ip) {

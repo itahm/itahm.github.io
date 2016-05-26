@@ -139,6 +139,10 @@ footer input {
 						</label>
 					
 				</ul>
+				<label>
+					<input type="checkbox" id="remove" disabled>
+					remove
+				</label>
 			</div>
 			
 			<footer>
@@ -154,12 +158,19 @@ if (window === top) throw "";
 (function (window, undefined){
 	
 	var form = document.querySelector("form"),
+		remove = document.getElementById("remove"),
 		device;
 	
 	form.elements.type.appendChild(buildType());
 	
 	form.addEventListener("submit", onApply, false);
 	form.addEventListener("reset", onCancel, false);
+	
+	remove.onclick = function () {
+		delete top.databases.device.data[device.ip];
+		
+		top.closeDialog();
+	};
 	
 	function buildType() {
 		var df = document.createDocumentFragment(),
@@ -242,7 +253,7 @@ if (window === top) throw "";
 			}
 		}
 		//else 등록 전 장비이면 snmp 없음
-		console.log(top.databases.device.data);
+		
 		top.closeDialog();
 	}
 	
@@ -250,7 +261,7 @@ if (window === top) throw "";
 		top.closeDialog(true);
 	}
 	
-	window.initialize = function (d) {		
+	window.initialize = function (d) {	
 		if (d) {
 			device = d;
 			
@@ -259,9 +270,15 @@ if (window === top) throw "";
 			var ipArray = device.ip.split(".");
 			
 			form.elements.ip1.value = ipArray[0];
+			form.elements.ip1.disabled = true;
 			form.elements.ip2.value = ipArray[1];
+			form.elements.ip2.disabled = true;
 			form.elements.ip3.value = ipArray[2];
+			form.elements.ip3.disabled = true;
 			form.elements.ip4.value = ipArray[3];
+			form.elements.ip4.disabled = true;
+			
+			remove.disabled = false;
 			
 			form.elements.type.value = device.type;
 			// 저장할때는 trim으로 다 붙여서 넣지만 보여줄때는 보기 좋게 한칸씩 띈다.

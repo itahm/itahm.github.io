@@ -27,16 +27,28 @@ header {
 	margin: 0;
 }
 
-#list span {
-	display: inline-block;
-	padding: .5em .5em .5em 1.5em;
-	background: url(img/user.png) no-repeat left center;
-	background-size: 1em;
+.icon {
+	display: flex;
+	align-items: center;
+	padding: 10px;
+	border: 1px solid transparent;
 }
 
-#list span:hover {
+.icon:hover {
 	text-decoration: underline;
 	cursor: pointer;
+	border-color: #0084ff;
+	border-radius: 5px;
+	background-color: #fafaff;
+}
+
+.icon span {
+	font-size: 32px;
+	margin-left: 1em;
+}
+
+.layout {
+	display: none;
 }
 
 		</style>
@@ -53,6 +65,14 @@ header {
 		
 		<div class="bg_loading"></div>
 		
+		<div class="layout">
+			<ul>
+				<li class="icon">
+					<img width="64" height="64">
+					<span></span>
+			</ul>
+		</div>
+		
 		<script>
 if (top === window) {
 	location.href = "http://itahm.com";
@@ -60,7 +80,8 @@ if (top === window) {
 
 (function (window, undefined) {
 	
-	var list = document.getElementById("list");
+	var list = document.getElementById("list"),
+		icon = document.querySelector(".icon");
 	
 	document.getElementById("sync").onclick = onSync;
 	
@@ -96,25 +117,27 @@ if (top === window) {
 			});
 	}
 	
+	function createIcon(src, label) {
+		var clone = icon.cloneNode(true);
+		
+		clone.children[0].src = src;
+		clone.children[1].textContent = label;
+		
+		return clone;
+	}
+	
 	function initialize() {
 		var accountData = top.databases.account.data,
 			df = document.createDocumentFragment(),
 			span;
 		
 		for (var username in accountData) {
-			span = document.createElement("span");
-			span.textContent = username;
-			span.onclick = onSelectAccount.bind(undefined, username);
-			
-			df.appendChild(document.createElement("li"))
-				.appendChild(span);
+			df.appendChild(createIcon("img/svg/user.svg", username)).onclick = onSelectAccount.bind(undefined, username);
 		}
 		
 		list.appendChild(df);
 		
-		setTimeout(function () {
-			document.body.classList.remove("loading");
-		}, 500);
+		document.body.classList.remove("loading");
 	};
 	
 }) (window);
