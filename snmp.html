@@ -321,8 +321,8 @@ section {
 		var bandwidth = iFace.ifSpeed;
 		
 		if (bandwidth > 0) {
-			var inBPS = iFace.ifInBPS,
-				outBPS = iFace.ifOutBPS;
+			var inBPS = iFace.ifInBPS || 0,
+				outBPS = iFace.ifOutBPS || 0;
 			
 			interfaceArea.appendChild(createIFaceGuage(
 					(100* inBPS / bandwidth).toFixed(2) +"%",
