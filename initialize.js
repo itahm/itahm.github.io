@@ -58,8 +58,17 @@ function listen() {
 	xhr.withCredentials = true;
 	xhr.timeout = 60000;
 	xhr.onload = onEvent;
+	xhr.onerror = onError;
 	xhr.ontimeout = listen;
 	xhr.send(JSON.stringify(event));
+}
+
+function onError(e) {
+	// 아마 reset
+
+	postMessage({
+		type: "error",
+	});
 }
 
 function onEvent() {
