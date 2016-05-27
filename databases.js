@@ -109,466 +109,435 @@ databases.icon.data = {
 };
 
 databases.device.data = {
-    "0": {
+	"127.0.0.1": {
         "ip": "127.0.0.1",
         "x": 30,
         "name": "itahm",
         "snmp": true,
         "profile": "public",
         "y": 330,
-        "id": "0",
         "type": "server",
         "ifEntry": {}
     },
-    "46": {
+    "172.16.0.10": {
         "ip": "172.16.0.10",
         "x": -360,
         "name": "internet router 1",
         "y": -280,
         "ifEntry": {
-            "47": "g1/1",
-            "15": "g1/11",
-            "40": "g2/21",
-            "76": "g0/8"
+            "172.16.0.20": "g1/1",
+            "192.168.100.100": "g1/11",
+            "1.0.0.100": "g2/21",
+            "99.99.99.99": "g0/8"
         },
         "snmp": true,
-        "id": "46",
         "label": "idc,public",
         "type": "router",
         "shutdown": false
     },
-    "68": {
+    "10.6.188.7": {
         "ip": "10.6.188.7",
         "x": -10,
         "name": "dmz (A)",
         "y": -20,
         "ifEntry": {
-            "40": "g2/47",
-            "41": "g2/48"
+            "1.0.0.100": "g2/47",
+            "10.0.0.200": "g2/48"
         },
         "snmp": true,
-        "id": "68",
         "label": "idc,dmz",
         "type": "layer3 switch",
         "shutdown": false
     },
-    "47": {
+    "172.16.0.20": {
         "ip": "172.16.0.20",
         "x": -160,
         "name": "internet router 2",
         "y": -280,
         "ifEntry": {
-            "46": "g1/2",
-            "15": "g1/11",
-            "41": "g2/21"
+            "172.16.0.10": "g1/2",
+            "192.168.100.100": "g1/11",
+            "10.0.0.200": "g2/21"
         },
         "snmp": true,
-        "id": "47",
         "label": "public,idc",
         "type": "router",
         "shutdown": false
     },
-    "69": {
+    "10.50.50.5": {
         "ip": "10.50.50.5",
         "x": -550,
         "name": "dmz (S)",
         "y": 0,
         "ifEntry": {
-            "40": "g2/47",
-            "41": "g2/48"
+            "1.0.0.100": "g2/47",
+            "10.0.0.200": "g2/48"
         },
         "snmp": true,
-        "id": "69",
         "type": "layer3 switch",
         "shutdown": false
     },
-    "73": {
+    "100.3.64.78": {
         "ip": "100.3.64.78",
         "x": -160,
         "name": "user (A)",
         "y": 150,
         "ifEntry": {
-            "4": "f1/2",
-            "19": "f0/1",
-            "62": "f1/1",
-            "52": "g3/2",
-            "53": "g3/1"
+            "10.5.100.99": "f1/2",
+            "10.0.1.1": "f0/1",
+            "172.16.30.200": "f1/1",
+            "172.16.0.30": "g3/2",
+            "10.10.99.8": "g3/1"
         },
         "snmp": true,
-        "id": "73",
         "type": "layer3 switch",
         "shutdown": false
     },
-    "52": {
+    "172.16.0.30": {
         "ip": "172.16.0.30",
         "x": -160,
         "name": "backbone switch",
         "y": -30,
         "ifEntry": {
-            "58": "g0/2",
-            "73": "g0/3",
-            "41": "g0/1",
-            "74": "g0/4"
+            "192.168.254.10": "g0/2",
+            "100.3.64.78": "g0/3",
+            "10.0.0.200": "g0/1",
+            "1.1.1.1": "g0/4"
         },
         "snmp": true,
-        "id": "52",
         "type": "layer3 switch",
         "shutdown": false
     },
-    "74": {
+    "1.1.1.1": {
         "ip": "1.1.1.1",
         "x": 0,
         "name": "user (S)",
         "y": 180,
         "ifEntry": {
-            "19": "f0/1",
-            "52": "g2/2",
-            "53": "g2/1"
+            "10.0.1.1": "f0/1",
+            "172.16.0.30": "g2/2",
+            "10.10.99.8": "g2/1"
         },
         "snmp": true,
-        "id": "74",
         "type": "layer3 switch",
         "shutdown": false
     },
-    "53": {
+    "10.10.99.8": {
         "ip": "10.10.99.8",
         "x": -360,
         "name": "backbone switch",
         "y": -30,
         "ifEntry": {
-            "57": "g0/5",
-            "58": "g0/2",
-            "40": "g0/1",
-            "73": "g0/3",
-            "74": "g0/4"
+            "10.20.20.254": "g0/5",
+            "192.168.254.10": "g0/2",
+            "1.0.0.100": "g0/1",
+            "100.3.64.78": "g0/3",
+            "1.1.1.1": "g0/4"
         },
         "snmp": true,
-        "id": "53",
         "type": "layer3 switch",
         "shutdown": false
     },
-    "10": {
+    "192.168.0.250": {
         "ip": "192.168.0.250",
         "x": -290,
         "name": "server",
         "y": 350,
         "ifEntry": {
-            "62": "eth2"
+            "172.16.30.200": "eth2"
         },
         "snmp": true,
-        "id": "10",
         "type": "storage",
         "community": "",
         "shutdown": false
     },
-    "76": {
+    "99.99.99.99": {
         "ip": "99.99.99.99",
         "x": -360,
         "name": "isp KT",
         "y": -400,
         "ifEntry": {
-            "46": "kt"
+            "172.16.0.10": "kt"
         },
         "snmp": true,
-        "id": "76",
         "type": "cloud",
         "shutdown": false
     },
-    "11": {
+    "8.8.8.88": {
         "ip": "8.8.8.88",
         "x": -400,
         "name": "web server",
         "y": 290,
         "ifEntry": {
-            "62": "eth0"
+            "172.16.30.200": "eth0"
         },
         "snmp": true,
-        "id": "11",
         "label": "",
         "type": "server",
         "community": "",
         "shutdown": false
     },
-    "77": {
+    "10.0.11.1": {
         "ip": "10.0.11.1",
         "x": 200,
         "name": "marketing1",
         "y": 290,
         "ifEntry": {
-            "19": "f0/1"
+            "10.0.1.1": "f0/1"
         },
         "snmp": true,
-        "id": "77",
         "type": "workgroup switch",
         "community": "",
         "shutdown": false
     },
-    "78": {
+    "10.0.11.2": {
         "ip": "10.0.11.2",
         "x": 490,
         "name": "marketing2",
         "y": 130,
         "ifEntry": {
-            "19": "f0/1"
+            "10.0.1.1": "f0/1"
         },
         "snmp": true,
-        "id": "78",
         "type": "workgroup switch",
         "community": "",
         "shutdown": false
     },
-    "57": {
+    "10.20.20.254": {
         "ip": "10.20.20.254",
         "x": -470,
         "name": "server farm (A)",
         "y": 130,
         "ifEntry": {
-            "53": "ge3"
+            "10.10.99.8": "ge3"
         },
         "snmp": true,
-        "id": "57",
         "type": "layer3 switch",
         "shutdown": true
     },
-    "79": {
+    "10.0.11.3": {
         "ip": "10.0.11.3",
         "x": 300,
         "name": "infra1",
         "y": 310,
         "ifEntry": {
-            "19": "f0/1"
+            "10.0.1.1": "f0/1"
         },
         "snmp": true,
-        "id": "79",
         "type": "workgroup switch",
         "community": "",
         "shutdown": false
     },
-    "58": {
+    "192.168.254.10": {
         "ip": "192.168.254.10",
         "x": -300,
         "name": "server farm (S)",
         "y": 130,
         "ifEntry": {
-            "52": "f0/3",
-            "53": "f0/2"
+            "172.16.0.30": "f0/3",
+            "10.10.99.8": "f0/2"
         },
         "snmp": true,
-        "id": "58",
         "type": "layer3 switch",
         "shutdown": false
     },
-    "15": {
+    "192.168.100.100": {
         "ip": "192.168.100.100",
         "name": "vpn main(A)",
         "x": -50,
         "y": -370,
         "ifEntry": {
-            "46": "eth8",
-            "47": "eth7"
+            "172.16.0.10": "eth8",
+            "172.16.0.20": "eth7"
         },
         "snmp": true,
-        "id": "15",
         "type": "vpn concentrator",
         "shutdown": false
     },
-    "19": {
+    "10.0.1.1": {
         "ip": "10.0.1.1",
         "x": 290,
         "name": "office main",
         "y": 90,
         "ifEntry": {
-            "77": "f1/1",
-            "78": "f1/2",
-            "79": "f1/3",
-            "80": "f1/4",
-            "81": "f1/5",
-            "82": "f1/6",
-            "83": "f1/7",
-            "73": "f1/8",
-            "84": "f1/9",
-            "74": "f1/10",
-            "85": "f1/11",
-            "86": "f1/12"
+            "10.0.11.1": "f1/1",
+            "10.0.11.2": "f1/2",
+            "10.0.11.3": "f1/3",
+            "10.0.11.4": "f1/4",
+            "10.0.11.5": "f1/5",
+            "10.0.11.6": "f1/6",
+            "10.0.11.7": "f1/7",
+            "100.3.64.78": "f1/8",
+            "10.0.11.8": "f1/9",
+            "1.1.1.1": "f1/10",
+            "10.0.11.9": "f1/11",
+            "10.0.11.10": "f1/12"
         },
-        "id": "19",
         "label": "office",
         "snmp": true,
         "type": "layer3 switch",
         "shutdown": false
     },
     
-    "4": {
+    "10.5.100.99": {
         "ip": "10.5.100.99",
         "name": "2nd floor",
         "x": -140,
         "y": 280,
         "ifEntry": {
-            "5": "eth2",
-            "73": "eth1"
+            "1.2.3.47": "eth2",
+            "100.3.64.78": "eth1"
         },
         "snmp": true,
-        "id": "4",
         "label": "",
         "community": "",
         "type": "layer4 switch",
         "shutdown": false
     },
-    "5": {
+    "1.2.3.47": {
         "ip": "1.2.3.47",
         "name": "router",
         "x": -30,
         "y": 280,
         "ifEntry": {
-            "4": "e1/0"
+            "10.5.100.99": "e1/0"
         },
         "snmp": true,
-        "id": "5",
         "community": "",
         "type": "router",
         "shutdown": false
     },
-    "80": {
+    "10.0.11.4": {
         "ip": "10.0.11.4",
         "x": 400,
         "name": "infra2",
         "y": -100,
         "ifEntry": {
-            "19": "f0/1"
+            "10.0.1.1": "f0/1"
         },
         "snmp": true,
-        "id": "80",
         "type": "workgroup switch",
         "community": "",
         "shutdown": false
     },
-    "81": {
+    "10.0.11.5": {
         "ip": "10.0.11.5",
         "x": 490,
         "name": "administration",
         "y": 60,
         "ifEntry": {
-            "19": "f0/1"
+            "10.0.1.1": "f0/1"
         },
         "snmp": true,
-        "id": "81",
         "type": "workgroup switch",
         "community": "",
         "shutdown": false
     },
-    "82": {
+    "10.0.11.6": {
         "ip": "10.0.11.6",
         "x": 450,
         "name": "chairman",
         "y": -20,
         "ifEntry": {
-            "19": "f0/1"
+            "10.0.1.1": "f0/1"
         },
         "snmp": true,
-        "id": "82",
         "type": "workgroup switch",
         "community": "",
         "shutdown": false
     },
-    "83": {
+    "10.0.11.7": {
         "ip": "10.0.11.7",
         "x": 390,
         "name": "design",
         "y": 270,
         "ifEntry": {
-            "19": "f0/1"
+            "10.0.1.1": "f0/1"
         },
         "snmp": true,
-        "id": "83",
         "type": "workgroup switch",
         "community": "",
         "shutdown": false
     },
-    "40": {
+    "1.0.0.100": {
         "ip": "1.0.0.100",
         "x": -360,
         "name": "firewall(active)",
         "y": -160,
         "ifEntry": {
-            "46": "eth2",
-            "68": "eth3",
-            "69": "eth4",
-            "53": "eth1"
+            "172.16.0.10": "eth2",
+            "10.6.188.7": "eth3",
+            "10.50.50.5": "eth4",
+            "10.10.99.8": "eth1"
         },
         "snmp": true,
-        "id": "40",
         "type": "firewall",
         "shutdown": false
     },
-    "62": {
+    "172.16.30.200": {
         "ip": "172.16.30.200",
         "x": -290,
         "name": "workgroup 1",
         "y": 220,
         "ifEntry": {
-            "11": "fe1",
-            "73": "fe24",
-            "10": "fe23"
+            "8.8.8.88": "fe1",
+            "100.3.64.78": "fe24",
+            "192.168.0.250": "fe23"
         },
         "snmp": true,
-        "id": "62",
         "type": "workgroup switch",
         "shutdown": false
     },
-    "84": {
+    "10.0.11.8": {
         "ip": "10.0.11.8",
         "x": 470,
         "name": "account",
         "y": 210,
         "ifEntry": {
-            "19": "f0/1"
+            "10.0.1.1": "f0/1"
         },
         "snmp": true,
-        "id": "84",
         "type": "workgroup switch",
         "community": "",
         "shutdown": false
     },
-    "41": {
+    "10.0.0.200": {
         "ip": "10.0.0.200",
         "x": -160,
         "name": "firewall(standby)",
         "y": -160,
         "ifEntry": {
-            "68": "eth3",
-            "47": "eth2",
-            "69": "eth4",
-            "52": "eth1"
+            "10.6.188.7": "eth3",
+            "172.16.0.20": "eth2",
+            "10.50.50.5": "eth4",
+            "172.16.0.30": "eth1"
         },
         "snmp": true,
-        "id": "41",
         "type": "firewall",
         "shutdown": false
     },
-    "85": {
+    "10.0.11.9": {
         "ip": "10.0.11.9",
         "x": 310,
         "name": "audit",
         "y": -130,
         "ifEntry": {
-            "19": "f0/1"
+            "10.0.1.1": "f0/1"
         },
         "snmp": true,
-        "id": "85",
         "type": "workgroup switch",
         "community": "",
         "shutdown": false
     },
-    "86": {
+    "10.0.11.10": {
         "ip": "10.0.11.10",
         "x": 220,
         "name": "manager",
         "y": -120,
         "ifEntry": {
-            "19": "f0/1"
+            "10.0.1.1": "f0/1"
         },
         "snmp": true,
-        "id": "86",
         "type": "workgroup switch",
         "community": "",
         "shutdown": false

@@ -453,10 +453,10 @@ catch(e) {
 	
 	window.moveDevice = function (ip, x, y) {
 		var device = getDevice(ip);
-		
+				
 		device.x = x;
 		device.y = y;		
-		
+
 		var svgDevice = iconMap[ip],
 			svgLabel = labelMap[ip],
 			svgAlert = alertMap[ip];

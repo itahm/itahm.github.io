@@ -148,8 +148,8 @@ iframe {
 			alert("ITAhM will show you a performance chart with real service.");
 		};
 		
-		map.getDevice = function (id) {
-			return databases.device.data[id];
+		map.getDevice = function (ip) {
+			return databases.device.data[ip];
 		};
 		
 		map.getIcon = function (type) {
