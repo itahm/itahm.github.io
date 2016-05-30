@@ -26,11 +26,15 @@ section {
 .proc_mem section:last-child {
 	flex: 1;
 }
-	
-.gauge {
+
+.processor {
+	margin: 10px;
+}
+
+.memory .bar {
 	display: flex;
-	width: 60px;
-	height: 120px;
+	width: 80px;
+	height: 100px;
 	justify-content: center;
 	align-items: center;
 	border: 1px solid #999;
@@ -39,38 +43,27 @@ section {
 	overflow: hidden;
 }
 
-.gauge> div {
+.memory .bar  .color {
 	position: absolute;
 	bottom: 0;
 	left: 0;
 	width: 100%;
-	background-color: #7d7;
+	background-color: #b8860b;
 	z-index: -1;
-}
-
-.processor {
-	margin: 1em;
 }
 
 .memory {
 	display: flex;
-	margin: 1em;
 }
 
+.memory,
 .memory ul {
 	list-style: none;
 	padding: 0;
-	margin: 3px;
 }
 
-.label {
-	margin: 3px 0 0 3px;
-	box-sizing: border-box;
-	display: inline-block;
-	width: 120px;
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
+.memory ul li {
+	margin: .5em;
 }
 
 /* storage 영역 css */
@@ -242,19 +235,18 @@ section {
 		<div class="layout">
 			<canvas width="100" height="100" class="processor"></canvas>
 			
-			<div class="memory">
-				<div>
-					<h4 class="label"></h4>
+			<ul class="memory">
+				<li class="bar">
+					<span class="label"></span>
+					<div class="color"></div>
+				<li>
 					<ul>
 						<li>capacity
 						<li>value
-					</ul>
-					<ul>
 						<li>used
 						<li>value
 					</ul>
-				</div>
-			</div>
+			</ul>
 			
 			<ul>
 				<li class="storage">
@@ -283,11 +275,6 @@ section {
 							<div class="color output"></div>
 					</ul>
 			</ul>
-			
-			<div class="gauge">
-				<div></div>
-				<span>50%</span>
-			</div>
 		</div>
 		
 		<div class="bg_loading"></div>
@@ -322,15 +309,6 @@ section {
 		print();
 	};
 	
-	function createGauge(value) {
-		var clone = gauge.cloneNode(true);
-		
-		clone.children[0].style.height = value;
-		clone.children[1].textContent = value;
-		
-		return clone;
-	}
-	
 	function createProcGauge(value) {
 		var clone = processorGauge.cloneNode(true),
 			ctx = clone.getContext("2d"),
@@ -359,21 +337,20 @@ section {
 		ctx.textBaseline = "middle"; 
 		ctx.fillText(value +"%", x, y);
 		
-		clone.appendChild(gauge);
-		
 		return clone;
 	}
 	
-	function createMemoryGuage(value, used, size, label) {
+	function createMemoryGuage(used, size) {
 		var clone = memoryGauge.cloneNode(true),
-			gauge = createGauge(value),
-			div = clone.children[0];
+			bar = clone.children[0],
+			info = clone.children[1].children[0];
+
+		bar.children[0].textContent
+		= bar.children[1].style.height
+		= Math.round(100* used / size) +"%";
 		
-		div.children[0].textContent = label;
-		div.children[1].children[1].textContent = ITAhM.util.toBytesString(size);
-		div.children[2].children[1].textContent = ITAhM.util.toBytesString(used);
-		
-		clone.insertBefore(gauge, div);
+		info.children[1].textContent = ITAhM.util.toBytesString(size);
+		info.children[3].textContent = ITAhM.util.toBytesString(used);
 		
 		return clone;
 	}
@@ -475,10 +452,9 @@ section {
 	
 	function initMemory(memory) {
 		var used = memory.hrStorageUsed * memory.hrStorageAllocationUnits,
-			size = memory.hrStorageSize * memory.hrStorageAllocationUnits,
-			percentage = Math.round(100* used / size);
+			size = memory.hrStorageSize * memory.hrStorageAllocationUnits;
 		
-		memoryArea.appendChild(createMemoryGuage(percentage +"%", used, size, "Physical memory"));
+		memoryArea.appendChild(createMemoryGuage(used, size));
 	}
 	
 	function initIFace(iFace, index) {
