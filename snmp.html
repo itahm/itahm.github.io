@@ -7,14 +7,9 @@
 		<style>
 @import "css/itahm.css";
 
-article,
 .resource {
 	display: flex;
 	flex-wrap: wrap;
-}
-
-body.view_mode article {
-	justify-content: space-around;
 }
 
 section {
@@ -24,6 +19,14 @@ section {
 	border-radius: 5px;
 }
 
+.proc_mem {
+	display: flex;
+}
+
+.proc_mem section:last-child {
+	flex: 1;
+}
+	
 .gauge {
 	display: flex;
 	width: 60px;
@@ -45,22 +48,16 @@ section {
 	z-index: -1;
 }
 
-.i_face .gauge:nth-child(even)> div {
-	background-color: #f60;
-}
-
 .processor {
 	margin: 1em;
 }
 
-.storage,
-.i_face {
+.memory {
 	display: flex;
 	margin: 1em;
 }
 
-.storage ul ,
-.i_face ul {
+.memory ul {
 	list-style: none;
 	padding: 0;
 	margin: 3px;
@@ -75,6 +72,107 @@ section {
 	overflow: hidden;
 	text-overflow: ellipsis;
 }
+
+/* storage 영역 css */
+#storage,
+#storage ul {
+	list-style: none;
+	padding: 0;
+}
+
+#storage ul {
+	display: flex;
+}
+
+#storage ul> li {
+	text-align: center;
+	padding: .5em;
+	flex: 1;
+}
+
+#storage .title {
+	border-bottom: 1px solid #ddd;
+	margin-bottom: 3px;
+}
+
+#storage .title .usage {
+	flex: 2;
+}
+
+#storage .title li {
+	font-weight: bold;
+}
+
+#storage .bar {
+	position: relative;
+	border: 1px solid #999;
+	box-sizing: border-box;
+}
+
+#storage .color {
+	position: absolute; top: 0; left: 0;
+	height: 100%;
+	z-index: -1;
+	background-color: #0084ff;
+}
+/**/
+
+/* interface 영역 css */
+#iFace {
+	width: 100%;
+}
+
+#iFace,
+#iFace ul {
+	list-style: none;
+	padding: 0;
+}
+
+#iFace ul {
+	display: flex;
+}
+
+#iFace ul> li {
+	text-align: center;
+	padding: .5em;
+	flex: 1;
+}
+
+#iFace .title {
+	border-bottom: 1px solid #ddd;
+	margin-bottom: 3px;
+}
+
+#iFace .title .input,
+#iFace .title .output {
+	flex: 2;
+}
+
+#iFace .title li {
+	font-weight: bold;
+}
+
+#iFace .bar {
+	position: relative;
+	border: 1px solid #999;
+	box-sizing: border-box;
+}
+
+#iFace .color {
+	position: absolute; top: 0; left: 0;
+	height: 100%;
+	z-index: -1;
+}
+
+#iFace .color.input {
+	background-color: #7d7;
+}
+
+#iFace .color.output {
+	background-color: #f60;
+}
+
+/**/
 
 .layout {
 	display: none;
@@ -96,7 +194,7 @@ section {
 		<nav>
 			<a href="map.html">Map</a>
 			<a href="performance.html">Chart</a>
-			<button id="view">view</button>
+			<button id="print">Print</button>
 		</nav>
 		
 		<header>
@@ -104,33 +202,47 @@ section {
 			<h3 id="status"></h3>
 		</header>
 		
-		<article>
+		
+		<div class="proc_mem">
 			<section>
 				<h2>Processor load</h2>
 				<div class="resource" id="processor"></div>
 			</section>
-			
 			<section>
 				<h2>Physical memory</h2>
 				<div class="resource" id="memory"></div>
 			</section>
-			
-			<section>
-				<h2>Storage usage</h2>
-				<div class="resource" id="disk"></div>
-			</section>
-			
-			<section>
-				<h2>Interface throughput</h2>
-				<div class="resource" id="iFace"></div>
-			</section>
-		</article>
+		</div>
+		
+		<section>
+			<h2>Storage usage</h2>
+			<ul id="storage">
+				<li class="title">
+					<ul>
+						<li>storage label
+						<li>size
+						<li class="usage">used
+					</ul>
+			</ul>
+		</section>
+	
+		<section>
+			<h2>Interface throughput</h2>
+			<ul id="iFace">
+				<li class="title">
+					<ul>
+						<li>interface name
+						<li>bandwidth
+						<li class="input">input
+						<li class="output">output
+					</ul>
+			</ul>
+		</section>
 		
 		<div class="layout">
-			<div class="processor">
-			</div>
+			<canvas width="100" height="100" class="processor"></canvas>
 			
-			<div class="storage">
+			<div class="memory">
 				<div>
 					<h4 class="label"></h4>
 					<ul>
@@ -144,23 +256,33 @@ section {
 				</div>
 			</div>
 			
-			<div class="i_face">
-				<div>
-					<h4 class="label"></h4>
+			<ul>
+				<li class="storage">
 					<ul>
-						<li>bandwidth
-						<li>value
+						<li>
+						<li>
+						<li>
+						<li class="bar">
+							<span class="label"></span>
+							<div class="color"></div>
 					</ul>
+			</ul>
+			
+			<ul>
+				<li class="i_face">
 					<ul>
-						<li>input
-						<li>value
+						<li>
+						<li>
+						<li>
+						<li class="bar">
+							<span class="label"></span>
+							<div class="color input"></div>
+						<li>
+						<li class="bar">
+							<span class="label"></span>
+							<div class="color output"></div>
 					</ul>
-					<ul>
-						<li>output
-						<li>value
-					</ul>
-				</div>
-			</div>
+			</ul>
 			
 			<div class="gauge">
 				<div></div>
@@ -175,17 +297,14 @@ section {
 	<script>
 
 	var processorArea = document.getElementById("processor"),
-		diskArea = document.getElementById("disk"),
+		storageArea = document.getElementById("storage"),
 		memoryArea = document.getElementById("memory"),
 		interfaceArea = document.getElementById("iFace"),
 		gauge = document.querySelector(".gauge"),
 		processorGauge = document.querySelector(".processor"),
+		memoryGauge = document.querySelector(".memory"),
 		storageGauge = document.querySelector(".storage"),
 		iFaceGauge = document.querySelector(".i_face");
-	
-	document.getElementById("view").onclick = function () {
-		document.body.classList.toggle("view_mode");
-	};
 	
 	(function () {
 		var database = top.databases.device,
@@ -199,6 +318,10 @@ section {
 		});
 	}) ();
 	
+	document.getElementById("print").onclick = function () {
+		print();
+	};
+	
 	function createGauge(value) {
 		var clone = gauge.cloneNode(true);
 		
@@ -210,15 +333,39 @@ section {
 	
 	function createProcGauge(value) {
 		var clone = processorGauge.cloneNode(true),
-			gauge = createGauge(value);
+			ctx = clone.getContext("2d"),
+			origin = Math.PI *1.5,
+			x = clone.width /2,
+			y = clone.height /2,
+			r = Math.min(x, y);
+
+		ctx.beginPath();
+		ctx.arc(x, y, r, 0, 2* Math.PI);
+		ctx.fillStyle = "#ffe63b";
+		ctx.fill();
+		
+		ctx.beginPath();
+		ctx.moveTo(x, y);
+		ctx.lineTo(x, 0);
+		ctx.arc(x, y, r, origin, origin + 2* Math.PI * value /100);
+		ctx.closePath();
+
+		ctx.fillStyle = "#e60000";
+		ctx.fill();
+		
+		ctx.fillStyle = "#000";
+		ctx.font = "10pt arial";
+		ctx.textAlign = "center";
+		ctx.textBaseline = "middle"; 
+		ctx.fillText(value +"%", x, y);
 		
 		clone.appendChild(gauge);
 		
 		return clone;
 	}
 	
-	function createStrgGuage(value, used, size, label) {
-		var clone = storageGauge.cloneNode(true),
+	function createMemoryGuage(value, used, size, label) {
+		var clone = memoryGauge.cloneNode(true),
 			gauge = createGauge(value),
 			div = clone.children[0];
 		
@@ -231,19 +378,38 @@ section {
 		return clone;
 	}
 	
-	function createIFaceGuage(inValue, outValue, inBPS, outBPS, bandwidth, name) {
+	function createStorageGuage(used, size, label) {
+		var clone = storageGauge.cloneNode(true),
+			ul = clone.children[0];
+		
+		ul.children[0].textContent = label;
+		ul.children[1].textContent = ITAhM.util.toBytesString(size);
+		ul.children[2].textContent = ITAhM.util.toBytesString(used);
+		
+		ul.children[3].children[0].textContent
+		= ul.children[3].children[1].style.width
+		= (100* used / size).toFixed(2) +"%";
+		
+		return clone;
+	}
+	
+	function createIFaceGuage(name, bandwidth, inBPS, outBPS) {
 		var clone = iFaceGauge.cloneNode(true),
-			inGauge = createGauge(inValue),
-			outGauge = createGauge(outValue),
-			div = clone.children[0];
+			ul = clone.children[0];
 		
-		div.children[0].textContent = name;
-		div.children[1].children[1].textContent = ITAhM.util.toBPSString(bandwidth);
-		div.children[2].children[1].textContent = ITAhM.util.toBPSString(inBPS);
-		div.children[3].children[1].textContent = ITAhM.util.toBPSString(outBPS);
+		ul.children[0].textContent = name;
+		ul.children[1].textContent = ITAhM.util.toBPSString(bandwidth);
+		ul.children[2].textContent = ITAhM.util.toBPSString(inBPS);
+		ul.children[4].textContent = ITAhM.util.toBPSString(outBPS);
 		
-		clone.insertBefore(inGauge, div);
-		clone.insertBefore(outGauge, div);
+		ul.children[3].children[0].textContent
+		= ul.children[3].children[1].style.width
+		= (100* inBPS / bandwidth).toFixed(2) +"%";
+		
+		
+		ul.children[5].children[0].textContent
+		= ul.children[5].children[1].style.width
+		= (100* outBPS / bandwidth).toFixed(2) +"%";
 		
 		return clone;
 	}
@@ -258,12 +424,12 @@ section {
 		
 		entry = snmp.hrStorageEntry;
 		for (var index in entry) {
-			initStorage(entry[index]);
+			parseStorage(entry[index]);
 		}
 		
 		entry = snmp.ifEntry;
 		for (var index in entry) {
-			initIFace(entry[index]);
+			initIFace(entry[index], index);
 		}
 		
 		document.getElementById("node").textContent = device.ip;
@@ -283,14 +449,14 @@ section {
 	}
 	
 	function initProcessor(load) {
-		processorArea.appendChild(createProcGauge(load +"%"));
+		processorArea.appendChild(createProcGauge(load));
 	}
 	
-	function initStorage(storage) {
+	function parseStorage(storage) {
 		switch(storage.hrStorageType) {
 		case 4:
 			if (storage.hrStorageSize > 0) {
-				initDisk(storage);
+				initStorage(storage);
 			}
 			
 			break;
@@ -301,12 +467,10 @@ section {
 		}
 	}
 	
-	function initDisk(disk) {
-		var used = disk.hrStorageUsed * disk.hrStorageAllocationUnits,
-			size = disk.hrStorageSize * disk.hrStorageAllocationUnits,
-			percentage = Math.round(100* used / size);
-		
-		diskArea.appendChild(createStrgGuage(percentage +"%", used, size, disk.hrStorageDescr));
+	function initStorage(storage) {
+		storageArea.appendChild(
+			createStorageGuage(storage.hrStorageUsed * storage.hrStorageAllocationUnits
+				, storage.hrStorageSize * storage.hrStorageAllocationUnits, storage.hrStorageDescr));
 	}
 	
 	function initMemory(memory) {
@@ -314,20 +478,19 @@ section {
 			size = memory.hrStorageSize * memory.hrStorageAllocationUnits,
 			percentage = Math.round(100* used / size);
 		
-		memoryArea.appendChild(createStrgGuage(percentage +"%", used, size, "Physical memory"));
+		memoryArea.appendChild(createMemoryGuage(percentage +"%", used, size, "Physical memory"));
 	}
 	
-	function initIFace(iFace) {
+	function initIFace(iFace, index) {
 		var bandwidth = iFace.ifSpeed;
 		
 		if (bandwidth > 0) {
 			var inBPS = iFace.ifInBPS || 0,
 				outBPS = iFace.ifOutBPS || 0;
 			
-			interfaceArea.appendChild(createIFaceGuage(
-					(100* inBPS / bandwidth).toFixed(2) +"%",
-					(100* outBPS / bandwidth).toFixed(2)+"%",
-					inBPS, outBPS, bandwidth, iFace.ifName));
+			if (index === "11") {inBPS = 60000000; outBPS = 30000000;};
+			
+			interfaceArea.appendChild(createIFaceGuage(iFace.ifName, bandwidth, inBPS, outBPS));
 		}
 	}
 	
