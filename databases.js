@@ -546,6 +546,162 @@ databases.device.data = {
 
 var demoData = demoData || {};
 
+demoData.status = {
+	    "sysDescr": "Linux ITAhM2014 3.19.0-49-generic #55~14.04.1-Ubuntu SMP Fri Jan 22 11:24:31 UTC 2016 x86_64",
+	    "responseTime": 19,
+	    "sysObjectID": "1.3.6.1.4.1.8072.3.2.10",
+	    "sysName": "ITAhM2014",
+	    "hrProcessorEntry": {
+	        "196608": 10,
+	        "196609": 26,
+	        "196610": 5,
+	        "196611": 19
+	    },
+	    "ifEntry": {
+	        "1": {
+	            "ifAdminStatus": 1,
+	            "ifType": 24,
+	            "ifPhysAddress": "",
+	            "ifName": "lo",
+	            "ifSpeed": 10000000,
+	            "ifHCInOctets": 4600249788,
+	            "ifDescr": "lo",
+	            "ifAlias": "",
+	            "ifOutOctets": 305282492,
+	            "ifInBPS": 0,
+	            "ifOutBPS": 0,
+	            "ifInOctets": 305282492,
+	            "ifHCOutOctets": 4600249788,
+	            "ifOperStatus": 1
+	        },
+	        "2": {
+	            "ifAdminStatus": 1,
+	            "ifType": 6,
+	            "ifPhysAddress": "擴\u0014�5�",
+	            "ifName": "p3p1",
+	            "ifSpeed": 100000000,
+	            "ifHCInOctets": 5752894264,
+	            "ifDescr": "p3p1",
+	            "ifAlias": "",
+	            "ifOutOctets": 1345621529,
+	            "ifInBPS": 28141425,
+	            "ifOutBPS": 29868402,
+	            "ifInOctets": 1457926968,
+	            "ifHCOutOctets": 5640588825,
+	            "ifOperStatus": 1
+	        },
+	        "3": {
+	            "ifAdminStatus": 2,
+	            "ifType": 6,
+	            "ifPhysAddress": "@�0�E�",
+	            "ifName": "wlan0",
+	            "ifSpeed": 0,
+	            "ifHCInOctets": 76120367,
+	            "ifDescr": "wlan0",
+	            "ifAlias": "",
+	            "ifOutOctets": 32246,
+	            "ifInBPS": 0,
+	            "ifOutBPS": 0,
+	            "ifInOctets": 76120367,
+	            "ifHCOutOctets": 32246,
+	            "ifOperStatus": 2
+	        }
+	    },
+	    "hrStorageEntry": {
+	        "1": {
+	            "hrStorageUsed": 970504,
+	            "hrStorageAllocationUnits": 1024,
+	            "hrStorageType": 2,
+	            "hrStorageDescr": "Physical memory",
+	            "hrStorageSize": 3964988
+	        },
+	        "3": {
+	            "hrStorageUsed": 970504,
+	            "hrStorageAllocationUnits": 1024,
+	            "hrStorageType": 3,
+	            "hrStorageDescr": "Virtual memory",
+	            "hrStorageSize": 8075320
+	        },
+	        "6": {
+	            "hrStorageUsed": 183896,
+	            "hrStorageAllocationUnits": 1024,
+	            "hrStorageType": 1,
+	            "hrStorageDescr": "Memory buffers",
+	            "hrStorageSize": 3964988
+	        },
+	        "7": {
+	            "hrStorageUsed": 588664,
+	            "hrStorageAllocationUnits": 1024,
+	            "hrStorageType": 1,
+	            "hrStorageDescr": "Cached memory",
+	            "hrStorageSize": 588664
+	        },
+	        "8": {
+	            "hrStorageUsed": 1420,
+	            "hrStorageAllocationUnits": 1024,
+	            "hrStorageType": 1,
+	            "hrStorageDescr": "Shared memory",
+	            "hrStorageSize": 1420
+	        },
+	        "10": {
+	            "hrStorageUsed": 0,
+	            "hrStorageAllocationUnits": 1024,
+	            "hrStorageType": 3,
+	            "hrStorageDescr": "Swap space",
+	            "hrStorageSize": 4110332
+	        },
+	        "31": {
+	            "hrStorageUsed": 4878903,
+	            "hrStorageAllocationUnits": 4096,
+	            "hrStorageType": 4,
+	            "hrStorageDescr": "/",
+	            "hrStorageSize": 27800522
+	        },
+	        "35": {
+	            "hrStorageUsed": 0,
+	            "hrStorageAllocationUnits": 4096,
+	            "hrStorageType": 4,
+	            "hrStorageDescr": "/sys/fs/cgroup",
+	            "hrStorageSize": 1
+	        },
+	        "41": {
+	            "hrStorageUsed": 202,
+	            "hrStorageAllocationUnits": 4096,
+	            "hrStorageType": 4,
+	            "hrStorageDescr": "/run",
+	            "hrStorageSize": 99125
+	        },
+	        "42": {
+	            "hrStorageUsed": 0,
+	            "hrStorageAllocationUnits": 4096,
+	            "hrStorageType": 4,
+	            "hrStorageDescr": "/run/lock",
+	            "hrStorageSize": 1280
+	        },
+	        "43": {
+	            "hrStorageUsed": 0,
+	            "hrStorageAllocationUnits": 4096,
+	            "hrStorageType": 4,
+	            "hrStorageDescr": "/run/shm",
+	            "hrStorageSize": 495623
+	        },
+	        "44": {
+	            "hrStorageUsed": 0,
+	            "hrStorageAllocationUnits": 4096,
+	            "hrStorageType": 4,
+	            "hrStorageDescr": "/run/user",
+	            "hrStorageSize": 25600
+	        }
+	    },
+	    "arpTable": {
+	        "� 쨰�\u001b": 2,
+	        "맅3�,B": 2,
+	        "�i뷻q�": 2
+	    },
+	    "lastResponse": 1464666193841,
+	    "hrSystemUptime": 6475281650
+	};
+
 (function () {
 	var date = new Date(),
 		index = 0,

@@ -173,7 +173,7 @@ option[value="ifInOctets"] {
 		
 		<section class="select">
 			<a href="map.html">Map</a>
-			<a href="snmp.html">Status</a>
+			<a href="status.html">Status</a>
 			
 			<label>
 				<input type="radio" id="select_response" name="resource" checked>Response time
@@ -288,6 +288,10 @@ var elements = {
 		initThroughput(snmp);
 		
 		chart.onload = function () {
+			chart.contentWindow.onDrawDetailGraph = function (start, end) {
+				drawDetailGraph(start, end);
+			}
+			
 			onSelectResponseTime();
 		};
 		

@@ -62,6 +62,18 @@ iframe {
 	display: inline-block;
 }
 
+section {
+	display: flex;
+}
+
+section> div {
+	flex: 1;
+}
+
+section img {
+	margin: 1em;
+}
+
 div.comment {
 	display: inline-block;
 	padding: 20px;
@@ -83,11 +95,15 @@ div.center {
 ul.install {
 	font-size: 1.5em;
 }
+
+body.ko .comment.en {
+	display: none;
+}
 		</style>
 		
 	</head>
 	
-	<body>
+	<body class="ko">
 		
 		<header>
 			<nav class="content_width">
@@ -101,47 +117,78 @@ ul.install {
 		</header>
 		
 		<div class="body">
+		
 			<div class="content_width">
 				<h1>Map @ ITAhM</h1>
 			</div>
-			<div>
+			<section>
 				<iframe src="demo_map.html" width="1024" height="500"></iframe>
-				<div class="comment">
-					<h3>Scroll to zoom in/out.</h3>
-					<h3>Drag to move map or device.</h3>
-					<h3>Click device for something.</h3>
+				<div>
+					<div class="comment en">
+						<h3>Scroll to zoom in/out.</h3>
+						<h3>Drag to move map or device.</h3>
+						<h3>Click device for something.</h3>
+					</div>
+					<div class="comment ko">
+						<h3>맵을 확대하거나 축소하기 위하여 마우스를 스크롤하세요.</h3>
+						<h3>장치를 선택한 후 장치를 이동할 수 있고 맵 전체를 이동할 수도 있습니다.</h3>
+						<h3>장치를 선택하면 다른 장치와의 링크, 장치 정보, 성능 및 상태 정보를 얻을 수 있습니다.</h3>
+					</div>
 				</div>
-			</div>
+			</section>
 			
 			<div class="content_width">
 				<h1>Chart @ ITAhM</h1>
 			</div>
-			<div class="right">
-				<div class="comment">
-					<h3>Drag to move before or later.</h3>
-					<h3>Click a lock <img src="img/unlock.png"> button to fix a date.</h3>
+			<section>
+				<div class="right">
+					<div class="comment en">
+						<h3>Drag to move before or later.</h3>
+						<h3>Click a lock <img src="img/unlock.png"> button to fix a date.</h3>
+					</div>
+					<div class="comment ko">
+						<h3>차트 하단 커서를 드래그하여 다른 날짜를 검색할 수 있습니다.</h3>
+						<h3>두 커서는 검색 시작날짜와 검색 종료날짜를 의미 합니다.</h3>
+						<h3>총 한달 간의 자료를 1시간 최대/평균/최소값으로 보여줍니다.</h3>
+						<h3>충분히 좁은 구간의 자료를 검색할때는 1분 최대값을 기준으로 더 상세하게 보여줍니다.</h3>
+					</div>
 				</div>
 				<iframe src="demo_chart.html" width="1024" height="500"></iframe>
+			</section>
+			
+			<div class="content_width">
+				<h1>Status @ ITAhM</h1>
 			</div>
+			<section>
+				<iframe src="demo_status.html" width="1024" height="500"></iframe>
+				<div>
+					<div class="comment ko">
+						<h3>응답시간, CPU 사용률, 디스크 및 메모리 사용량, interface 송수신량 등 장치의 모든 상태를 한번에 확인할 수 있습니다.</h3>
+					</div>
+				</div>
+			</section>
 			
 			<div class="content_width">
 				<h1>Mobile @ ITAhM</h1>
-				<ul>
-					<li><h3>ITAhM send a event message to your android application.</h3>
-					<li><h3>you can also send a custom message to your all party.</h3>
-				</ul>
 			</div>
-			<div class="center">
+			<section>
+				<div class="comment ko">
+					<h3>아이탐에서 발생하는 이벤트는 안드로이드 앱으로 전송됩니다.</h3>
+					<h3>또한 구성원들이 직접 원하는 메세지를 앱으로 전송할 수도 있습니다.</h3>
+				</div>
+				<div class="comment en">
+					<h3>ITAhM send a event message to your android application.</h3>
+					<h3>you can also send a custom message to your all party.</h3>
+				</div>
 				<img src="img/android_log.png" width="270" height="480">
 				<img src="img/android_list.png" width="270" height="480">
 				<img src="img/android_agent.png" width="270" height="480">
-				
-				<iframe src="message.html" width="100%" height="200"></iframe>
-			</div>
+			</section>
+			<iframe src="message.html" width="100%" height="200"></iframe>
 			
 			<div class="content_width">
 				<h1>Installation</h1>
-				<ul class="install">
+				<ul class="install comment en">
 					<li>
 						<p>Create directory for ITAhM agent</p>
 						e.g. "c:\Users\ABC\itahm" (windows)
@@ -159,6 +206,25 @@ ul.install {
 						nohup java -jar ITAhM.jar & (linux)<br>
 					<li>
 						<p>Connect!</p>
+				</ul>
+				<ul class="install comment ko">
+					<li>
+						<p>ITAhM agent를 설치할 폴더를 준비(생성) 합니다.</p>
+						예) "c:\Users\홍길동\itahm" (windows)
+					<li>
+						<p>
+							최신의 아이탐 에이전트(
+							<a href="https://dl.dropboxusercontent.com/s/uwj2nb7ah3i610q/ITAhM.1.1.3.13.jar" download="ITAhM.1.1.3.13.jar">
+								ITAhM.1.1.3.13.jar
+							</a>
+							)를 다운로드 하여 위에서 준비한 폴더에 위치합니다.
+						</p>
+					<li>
+						<p>ITAhM.jar 파일을 실행시킵니다. 윈도우즈의 경우 command 콘솔에서, 리눅스의 경우 백그라운드로 실행합니다.</p>
+						java -jar ITAhM.jar (windows)<br>
+						nohup java -jar ITAhM.jar & (linux)<br>
+					<li>
+						<p>홈페이지 상단의 Connect 버튼을 눌러 접속합니다.</p>
 				</ul>
 			</div>
 		</div>

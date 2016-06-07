@@ -10,10 +10,6 @@
 @import url("css/itahm.css");
 @import url("css/calendar.css");
 
-text {
-	font-size: 10pt;
-}
-
 #cal_box {
 	text-align: right;
 	position: absolute; bottom: 0;
@@ -46,7 +42,8 @@ svg {
 }
 
 text {
-	fill: #777;
+	fill: #456;
+	font-size: 10pt;
 }
 
 #grid path {
@@ -173,7 +170,7 @@ if (parent === window) throw "";
 // 공통
 var svgNS = "http://www.w3.org/2000/svg",
 	xlinkNS = "http://www.w3.org/1999/xlink",
-	MIN_AXIS_VSPACE = 50,
+	MIN_AXIS_VSPACE = 40,
 	MIN_AXIS_HSPACE = 160,
 	MAX_AXIS_VAL_CNT = 10,
 	DATE_AXIS_HEIGHT = 80,
@@ -395,7 +392,7 @@ function createSvgTextSpan(x, y, text) {
 	
 	window.drawDetailGraph = function () {
 		if (tpp < 60000) {
-			parent.drawDetailGraph(start, end);
+			onDrawDetailGraph(start, end);
 		}
 	};
 	
@@ -573,7 +570,7 @@ function createSvgTextSpan(x, y, text) {
 	function drawEachGraph(source, blocks, index) {
 		var path,
 			unit = rect.height / (high - low),
-			x, lastX, value,
+			x, y, lastX, value,
 			dateArray, date, coords,
 			result = {};
 		
@@ -581,7 +578,7 @@ function createSvgTextSpan(x, y, text) {
 		
 		path.beginPath();
 		path.set("class", isNaN(index)? index: index % 10);
-		var tmp;
+		
 		for (var i=0, _i=blocks.length; i<_i; i++) {
 			dateArray = blocks[i];
 			
@@ -593,14 +590,15 @@ function createSvgTextSpan(x, y, text) {
 			
 			result[date] = value;
 			
-			tmp = (value - low) * unit;
-			if (isNaN(tmp)) {
+			y = (value - low) * unit;
+			if (isNaN(y)) {
 				throw "!"
 			}
 			
-			path.moveTo(lastX = coords.x, (value - low) * unit);
+			path.moveTo(lastX = coords.x, 0);
+			path.lineTo(lastX, y);
 			
-			for (var j=1,_j=dateArray.length; j<_j; j++) {
+			for (var j=1,_j=dateArray.length; j<_j; j++) {				
 				date = dateArray[j];
 				
 				coords = getCoordinates(source, date, index);
@@ -614,14 +612,18 @@ function createSvgTextSpan(x, y, text) {
 					//continue;
 				}
 				
-				tmp = (value - low) * unit;
-				if (isNaN(tmp)) {
+				path.lineTo(x, y);
+				
+				y = (value - low) * unit;
+				if (isNaN(y)) {
 					throw "!"
 				}
 				
-				path.lineTo(lastX = x, (value - low) * unit);					
+				path.lineTo(lastX = x, y);
 			}
 
+			path.lineTo(lastX, 0);
+			
 			path.draw();
 		}
 		
@@ -696,6 +698,9 @@ function createSvgTextSpan(x, y, text) {
 	
 }) (window);
 
+function onDrawDetailGraph(start, end) {
+	
+}
 		</script>
 	
 	</body>

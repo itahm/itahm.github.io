@@ -31,6 +31,10 @@ var ITAhM = ITAhM || {};
 		this.initialize(host, port, timeout);
 	};
 	
+	ITAhM.Color = function (r, g, b) {
+		this.initialize(r, g, b);
+	};
+	
 	ITAhM.QueryParser.prototype = {
 		map: {},
 		
@@ -117,6 +121,8 @@ var ITAhM = ITAhM || {};
 		}
 	};
 	
+	ITAhM.ChartSummaryData.prototype.parseData = ITAhM.ChartSummaryData.prototype.buildData;
+		
 	ITAhM.ChartData.prototype = {
 		initialize: function (data) {
 			this.data = data;
@@ -368,6 +374,23 @@ var ITAhM = ITAhM || {};
 			}
 			
 			onResponse(this.status, response);
+		}
+		
+	};
+	
+	ITAhM.Color.prototype = {
+		initialize: function (r, g, b) {
+			this.r = r;
+			this.g = g;
+			this.b = b;
+		},
+		
+		toString: function () {
+			return "#"+ this.r.toString(16) + this.g.toString(16) + this.b.toString(16);
+		},
+		
+		alpha: function (alpha) {
+			return "rgba("+ this.r +"," + this.g +","+ this.b +","+ alpha + ")";
 		}
 		
 	};

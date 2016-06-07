@@ -79,7 +79,7 @@ section {
 
 #storage ul> li {
 	text-align: center;
-	padding: .5em;
+	padding: .5em; margin: 1px;
 	flex: 1;
 }
 
@@ -127,7 +127,7 @@ section {
 
 #iFace ul> li {
 	text-align: center;
-	padding: .5em;
+	padding: .5em; margin: 1px;
 	flex: 1;
 }
 
@@ -183,12 +183,6 @@ section {
 	</head>
 
 	<body class="loading">
-		
-		<nav>
-			<a href="map.html">Map</a>
-			<a href="performance.html">Chart</a>
-			<button id="print">Print</button>
-		</nav>
 		
 		<header>
 			<h1 id="node"></h1>
@@ -292,22 +286,6 @@ section {
 		memoryGauge = document.querySelector(".memory"),
 		storageGauge = document.querySelector(".storage"),
 		iFaceGauge = document.querySelector(".i_face");
-	
-	(function () {
-		var database = top.databases.device,
-			device = database.data[database.selected];
-		
-		top.sendRequest({
-			command: "select",
-			ip: device.ip
-		}, function (response) {			
-			initialize(device, response);
-		});
-	}) ();
-	
-	document.getElementById("print").onclick = function () {
-		print();
-	};
 	
 	function createProcGauge(value) {
 		var clone = processorGauge.cloneNode(true),
@@ -468,12 +446,6 @@ section {
 			
 			interfaceArea.appendChild(createIFaceGuage(iFace.ifName, bandwidth, inBPS, outBPS));
 		}
-	}
-	
-	function onSelectDevice(ip) {
-		top.databases.device.selected = ip;
-		
-		location.reload();
 	}
 	
 	</script>

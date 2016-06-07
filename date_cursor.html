@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta http-equiv="Content-Script-Type" content="text/javascript">
+		<meta http-equiv="Content-Style-Type" content="text/css">
+		<title>ITAhM</title>
+		
+		<style>
+@import "css/itahm.css";
+
+body {
+	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
+	margin: 0; padding: 0;
+}
+
+svg {
+	display: flex;
+	justify-content: center;
+}
+
+line {
+	stroke: #0084ff;
+	stroke-width: 2;
+}
+
+image:hover,
+body.move image{
+	cursor: e-resize;
+}
+
+#top_text {
+	alignment-baseline: text-after-edge;
+}
+
+#bottom_text {
+	alignment-baseline: text-before-edge;
+}
+
+#top_text,
+#bottom_text {
+	text-anchor: start;
+}
+
+body.top_reverse #top_text,
+body.bottom_reverse #bottom_text {
+	text-anchor: end;
+}
+
+body:not(.initialized) {
+	/*display: none;*/
+}
+
+		</style>
+		
+	</head>
+	
+	<body>
+
+		<svg width="100%" height="100%">
+			<g id="base" transform="translate(0, 0)">
+				<g>
+					<text id="top_text" transform="translate(0, -12)" />
+					<image id="top_cursor" xlink:href="img/cursor_top.png" transform="translate(-10, -12)" x="0" y="0" width="20" height="10" />
+				</g>
+				<line x1="0" y1="0" y2="0"/>
+				<g>
+					<text id="bottom_text" transform="translate(0, 12)" />
+					<image id="bottom_cursor" xlink:href="img/cursor_bottom.png" transform="translate(-10, 2)" x="0" y="0" width="20" height="10" />
+				</g>
+			</g>
+		</svg>
+		
+		<script src="js/Draggable.js"></script>		
+		<script>
+
+var MARGIN = 16,
+	MONTH = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+var svg = document.querySelector("svg"),
+	base = document.getElementById("base"),
+	line = document.querySelector("line"),
+	topCursor = document.getElementById("top_cursor"),
+	topText = document.getElementById("top_text"),
+	bottomCursor = document.getElementById("bottom_cursor"),
+	bottomText = document.getElementById("bottom_text");
+	
+document.onselectstart = function () {
+	return false;
+}
+
+new Draggable(document.body);
+
+(function (window, undefined) {
+	window.addEventListener("resize", function () {
+		if (window.resizeTimer) {
+			clearTimeout(window.resizeTimer);
+		}
+		
+		window.resizeTimer = setTimeout(resize, 300);
+	});
+	
+	resize();
+	
+	function resize() {
+		var rect = svg.getBoundingClientRect(),
+			max = rect.width - MARGIN *2,
+			ratio = (window.max || max) / max,
+			topX, bottomX;
+		
+		base.transform.baseVal.getItem(0).setTranslate(MARGIN, rect.height /2);
+		
+		topX = Math.round(parseInt(topCursor.getAttributeNS(null, "x")) / ratio);
+		topCursor.setAttributeNS(null, "x", topX);
+		topText.setAttributeNS(null, "x", topX);
+		
+		bottomX = Math.round(parseInt(bottomCursor.getAttributeNS(null, "x")) / ratio);
+		bottomCursor.setAttributeNS(null, "x", bottomX);
+		bottomText.setAttributeNS(null, "x", bottomX);
+		
+		line.setAttributeNS(null, "x2", window.max = max);
+	}
+	
+	document.body.addEventListener("dragstart", function (e) {
+		var event = e.detail;
+		
+		window.target = event.target;
+		
+		window.origin = parseInt(target.getAttributeNS(null, "x"));
+		
+		document.body.classList.add("move");
+	});
+	
+	document.body.addEventListener("dragmove", function (e) {
+		var event = e.detail,
+			x = origin + event.dragX;
+		
+		if (x < 0) {
+			x = 0;
+		}
+		else if (x > max) {
+			x = max;
+		}
+		
+		if (target === topCursor) {
+			var topDate = window.topDate;
+			
+			moveTopCursor(x);
+			
+			if (topDate == window.topDate) {
+				return;
+			}
+		}
+		else if (target === bottomCursor) {
+			var bottomDate = window.bottomDate;
+			
+			moveBottomCursor(x);
+			
+			if (bottomDate == window.bottomDate) {
+				return;
+			}
+		}
+		else {
+			return;
+		}
+		
+		onResetDate();
+	});
+	
+	document.body.addEventListener("dragend", function (e) {
+		document.body.classList.remove("move");
+	});
+	
+	function onResetDate() {
+		if (window.topDate === window.bottomDate) {
+			return;
+		}
+
+		var handler = window.onResetDate || function () {};
+		
+		if (window.topDate > window.bottomDate) {
+			handler(window.bottomDate, window.topDate);
+		}
+		else {
+			handler(window.topDate, window.bottomDate);
+		}
+	}
+	
+}) (window);
+
+function setDate(text, x) {
+	var date = new Date(start + (x / max) * period),
+		dateText = MONTH[date.getMonth()] +" "+ date.getDate();
+	
+	text.textContent = dateText;
+	
+	return date.setHours(0, 0, 0, 0);
+}
+
+function getPosition(mills) {
+	return Math.ceil(window.max * (mills - window.start) / window.period);
+}
+
+function moveTopCursor(x) {
+	window.topText.setAttributeNS(null, "x", x);
+	window.topCursor.setAttributeNS(null, "x", x);
+	window.topDate = setDate(window.topText, x);
+	
+	document.body.classList[x > window.max /2? "add": "remove"]("top_reverse");
+}
+
+function moveBottomCursor(x) {
+	window.bottomText.setAttributeNS(null, "x", x);
+	window.bottomCursor.setAttributeNS(null, "x", x);
+	window.bottomDate = setDate(bottomText, x);
+	
+	document.body.classList[x > window.max /2? "add": "remove"]("bottom_reverse");
+}
+
+function initialize(start, end, top, bottom) {
+	window.start = start;
+	window.period = end - start;
+	
+	moveTopCursor(getPosition(top));
+	moveBottomCursor(getPosition(bottom));
+	
+	document.body.classList.add("initialized");
+}
+		</script>
+	
+	</body>
+	
+</html>

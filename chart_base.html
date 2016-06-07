@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta http-equiv="Content-Script-Type" content="text/javascript">
+		<meta http-equiv="Content-Style-Type" content="text/css">
+		<title>ITAhM</title>
+		
+		<style>
+@import url("css/itahm.css");
+@import url("css/calendar.css");
+
+text {
+	font-size: 10pt;
+}
+
+.calendar {
+	background-color: #fff;
+	border: 1px solid #0084ff;
+	padding: 3px;
+}
+
+svg {
+	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
+	width: 100%;
+	height: 100%;
+	min-width: 600px;
+	min-height: 100px;
+	background-color: #fff;
+}
+
+text {
+	fill: #777;
+}
+
+#grid path {
+	stroke: rgba(0, 0, 0, .2);
+	stroke-width: .5;
+	fill: none;
+}
+
+#graph path:hover {
+	cursor: pointer;
+}
+
+#graph path.fill_min {
+	fill: #fff;
+}
+
+#axis_left text {
+	text-anchor: end;
+}
+
+#axis_date text {
+	text-anchor: middle;
+	alignment-baseline: text-after-edge;
+}
+
+#date_text tspan:first-child,
+#date_text tspan:last-child {
+	font-weight: bold;
+	fill: #0084ff;
+	cursor: pointer;
+}
+
+#date_text tspan:first-child:hover {
+	cursor: pointer;
+}
+
+nav {
+	position: fixed; right: 0; bottom: 0; left: 0;
+	display: flex;
+	justify-content: space-between;
+}
+
+nav img {
+	background-color: #fff;
+}
+
+nav label {
+	position:relative;
+}
+
+nav input[type="checkbox"] {
+	position:absolute;
+	visibility: hidden;
+}
+	
+nav input[type="checkbox"]:not(:checked) ~img:not(.lock),
+nav input[type="checkbox"]:checked ~img.lock {
+	display: none;
+}
+
+		</style>
+		
+	</head>
+	
+	<body>
+		
+		<svg id="chart">
+			<g transform="translate(20, 20)">
+		        <g transform="translate(0, 0)" id="axis_date"></g>
+		        <g transform="translate(0, 0) scale(1 -1)" id="graph" />
+		        <g transform="translate(0, 0)" id="axis_left" />
+				<g transform="translate(0, 0)" id="axis_right" />
+		        <g transform="translate(0, 0)" id="grid" />
+		    </g>
+		</svg>
+		
+		<script src="js/ITAhM.js"></script>
+		<script src="js/object.js"></script>
+		<script src="js/Draggable.js"></script>
+		<script>
+
+var svgNS = "http://www.w3.org/2000/svg",
+	xlinkNS = "http://www.w3.org/1999/xlink",
+	MONTH_NAME = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+	MIN_AXIS_VSPACE = 50,
+	MIN_AXIS_HSPACE = 60,
+	DATE_AXIS_HEIGHT = 0,
+	MARGIN = 20;
+
+var chart = document.getElementById("chart"),
+	leftAxis = document.getElementById("axis_left"),
+	rightAxis = document.getElementById("axis_right"),
+	dateAxis = document.getElementById("axis_date"),
+	graph = document.getElementById("graph"),
+	grid = document.getElementById("grid");
+
+(function (window, undefined){
+	
+	window.addEventListener("resize", function () {
+		if (!window.summaryData) {
+			return;
+		}
+		
+		if (window.resizeTimer) {
+			clearTimeout(window.resizeTimer);
+		}
+		
+		window.resizeTimer = setTimeout(resize, 300);
+	});
+
+	(function (){
+		var rect = window.chart.getBoundingClientRect();
+		
+		window.rect = {
+			width: rect.width - MARGIN *2,
+			height: rect.height - MARGIN *2 - DATE_AXIS_HEIGHT
+		};
+		
+		window.blockHeight = window.rect.height / Math.round(window.rect.height / MIN_AXIS_VSPACE);
+		
+		graph.transform.baseVal.getItem(0).setTranslate(0, window.rect.height);
+		
+		drawGrid();
+	}) ();
+
+	function resize() {
+		var rect = window.chart.getBoundingClientRect(),
+			width = rect.width - MARGIN *2,
+			height = rect.height - MARGIN *2 - DATE_AXIS_HEIGHT,
+			reset = false;
+		
+		if (height !== window.rect.height) {
+			graph.transform.baseVal.getItem(0).setTranslate(0, height);
+			
+			window.rect.height = height;
+			
+			reset = true;
+		}
+		
+		if (width !== window.rect.width) {
+			window.rect.width = width;
+			
+			reset = true;
+		}
+		
+		if (!reset) {
+			throw "!";
+		}
+		
+		drawGrid();
+		
+		(function (){
+			var result = window.summaryData.parseData(window.start, window.end);
+		
+			draw(window.start, window.end, result.high, result.low, result.keys, window.summaryData, window.max);
+		}) ();
+	}
+})(window);
+
+function drawGrid() {
+	var path = new ITAhM.Path(window.grid),
+		height = window.rect.height,
+		width = window.rect.width;
+
+	clear(window.grid);
+	
+	window.blockWidth = width / 24;
+	
+	while (blockWidth < MIN_AXIS_HSPACE) {
+		blockWidth *= 2;
+	}
+	
+	window.blockHeight = height / Math.round(height / MIN_AXIS_VSPACE);
+	
+	for (var x = 0, roundedX ; x <= width; x += blockWidth) {
+		roundedX = Math.round(x) -.5;
+		
+		path.moveTo(x, 0).lineTo(roundedX, height);
+	}
+	
+	for (var y = 0, roundedY ; y <= height; y += blockHeight) {
+		roundedY = Math.round(y) -.5;
+		
+		path.moveTo(0, roundedY).lineTo(width, roundedY);
+	}
+	
+	path.draw();
+}
+
+function clear(svgElement) {
+	var element;
+	
+	while(element = svgElement.firstChild) {
+		svgElement.removeChild(element);
+	}
+}
+
+function createText(x, y, text) {
+	var svgText = document.createElementNS(svgNS, "text");
+	
+	svgText.setAttributeNS(null, "x", x);
+	svgText.setAttributeNS(null, "y", y);
+	svgText.textContent = text;
+	
+	return svgText;
+}
+
+function createDateText(x, y, mills) {
+	var date = new Date(mills),
+		d = date.getDate(),
+		h = date.getHours(),
+		svgText;
+	
+	if (h > 0) {
+		svgText = createText(x, y, d + "일"+ (h<9? "0": "") + h +"시");
+	}
+	else {
+		svgText = createText(x, y, d +"일");
+		svgText.setAttributeNS(null, "font-weight", "bold");
+	}
+	
+	return svgText;
+}
+
+function onValueToString(value) {
+	return value;
+}
+
+function draw(start, end, high, low, blocks, summaryData, max, color) {
+	var rect = window.rect,
+		tpp = (end - start) / rect.width,
+		fillMax = new ITAhM.Path(window.graph),
+		fillMin = new ITAhM.Path(window.graph),
+		strokeMax = new ITAhM.Path(window.graph),
+		strokeAvg = new ITAhM.Path(window.graph),
+		strokeMin = new ITAhM.Path(window.graph),
+		yRatio = rect.height / (high - low),
+		x, y, dateArray, date;
+
+	color = color || window.color;
+	
+	clear(graph);
+
+	strokeMax.set("stroke", color);
+	strokeMax.set("stroke-opacity", .5);
+	strokeMax.set("fill", "none");
+	strokeAvg.set("stroke", color);
+	strokeAvg.set("stroke-width", 2);
+	strokeAvg.set("fill", "none");
+	strokeMin.set("stroke", color);
+	strokeMin.set("stroke-opacity", .5);
+	strokeMin.set("fill", "none");
+	
+	fillMax.set("fill", color);
+	fillMax.set("fill-opacity", .1);
+	fillMin.set("class", "fill_min");
+	
+	strokeMax.beginPath();
+	fillMax.beginPath();
+	strokeAvg.beginPath();
+	strokeMin.beginPath();
+	fillMin.beginPath();
+
+	for (var i=0, _i=blocks.length; i<_i; i++) {
+		dateArray = blocks[i];
+	
+		date = dateArray[0];
+		
+		x = (date - start) / tpp;
+		y = summaryData.get(date);
+	
+		fillMax.moveTo(x, 0);
+		fillMin.moveTo(x, 0);
+		
+		strokeAvg.moveTo(x, (y.avg - low) * yRatio);
+		strokeMax.moveTo(x, (y.max - low) * yRatio);
+		strokeMin.moveTo(x, (y.min - low) * yRatio);
+		
+		fillMax.lineTo(x, (y.max - low) * yRatio);
+		fillMin.lineTo(x, (y.min - low) * yRatio);
+	
+		for (var j=1,_j=dateArray.length; j<_j; j++) {				
+			date = dateArray[j];
+			
+			x = (date - start) / tpp;
+			y = summaryData.get(date);
+			
+			strokeMax.lineTo(x, (y.max - low) * yRatio);
+			strokeAvg.lineTo(x, (y.avg - low) * yRatio);
+			strokeMin.lineTo(x, (y.min - low) * yRatio);
+			
+			fillMax.lineTo(x, (y.max - low) * yRatio);
+			fillMin.lineTo(x, (y.min - low) * yRatio);
+		}
+	
+		fillMax.lineTo(x, 0);
+		fillMin.lineTo(x, 0);
+		
+		fillMax.closePath();
+		fillMin.closePath();
+		
+		fillMax.draw();
+		fillMin.draw();
+		
+		strokeMax.draw();
+		strokeAvg.draw();
+		strokeMin.draw();
+	}
+	
+	(function() {
+		var diff = (high - low) * window.blockHeight / rect.height,
+			value;
+		
+		clear(leftAxis);
+		clear(rightAxis);
+		
+		for (var y = 0, grow = 0; y <= rect.height; y += window.blockHeight, grow += diff) {
+			value = high - grow;
+			
+			leftAxis.appendChild(createText(0, y, onValueToString(value)));
+			rightAxis.appendChild(createText(0, y, (value *100 / max).toFixed(2) + "%"));
+		}
+		
+		leftAxis.transform.baseVal.getItem(0).setTranslate(leftAxis.getBBox().width, 0);
+		rightAxis.transform.baseVal.getItem(0).setTranslate(rect.width - rightAxis.getBBox().width, 0);
+	}) ();
+	
+	(function() {
+		var width = rect.width,
+			text, date, h;
+		
+		clear(dateAxis);
+		
+		for (var x = 0, grow = 0; x <= width; x += window.blockWidth ) {
+			dateAxis.appendChild(createDateText(x, 0, start + x * tpp));
+		}
+		
+		dateAxis.transform.baseVal.getItem(0).setTranslate(0, rect.height + MARGIN);
+	}) ();
+	
+	window.start = start;
+	window.end = end;
+	window.summaryData = summaryData;
+	window.max = max;
+	window.color = color;
+}
+
+		</script>
+	
+	</body>
+	
+</html>

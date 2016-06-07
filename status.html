@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>@ ITAhM</title>
+
+		<style>
+@import "css/itahm.css";
+
+body {
+	display: flex;
+	flex-direction: column;
+	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
+}
+
+iframe {
+	flex: 1;
+	border: none;
+	width: 100%; height: 100%;
+}
+
+		</style>
+	</head>
+
+	<body class="loading">
+		
+		<nav>
+			<a href="map.html">Map</a>
+			<a href="performance.html">Chart</a>
+			<button id="print">Print</button>
+		</nav>
+		
+		<iframe src="status_base.html" id="status"></iframe>
+		
+		<div class="bg_loading"></div>
+	</body>
+	
+	<script>
+
+(function (window, undefined) {
+	var frame = document.getElementById("status"),
+		status = frame.contentWindow;
+	
+	document.getElementById("print").onclick = function () {
+		status.print();
+	};
+
+	frame.onload = function () {
+		var database = top.databases.device,
+			device = database.data[database.selected];
+		
+		top.sendRequest({
+			command: "select",
+			ip: device.ip
+		}, function (response) {			
+			status.initialize(device, response);
+			
+			document.body.classList.remove("loading");
+		});
+	};
+
+})(window);	
+
+function onSelectDevice(ip) {
+	top.databases.device.selected = ip;
+	
+	location.reload();
+}
+
+	</script>
+</html>

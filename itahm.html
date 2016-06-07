@@ -108,6 +108,7 @@ body:not(.dialog) #dialog,
 			<nav class="content_width">
 				<ul>
 					<li><a id="reload">ITAhM</a>
+					<li><a href="test.html" target="main">test</a>
 					<li><a href="account.html" target="main">account</a>
 					<li><a href="profile.html" target="main">profile</a>
 					<li><a href="icon.html" target="main">icon</a>
@@ -152,7 +153,9 @@ body:not(.dialog) #dialog,
 						alert("Agent is not responding.");
 					}
 					
-					location.href = "http://itahm.com";
+					window.onbeforeunload = undefined;
+					
+					location.href = "connect.html";
 				}
 			});
 		}
