@@ -377,6 +377,10 @@ section {
 			initProcessor(entry[index]);
 		}
 		
+		window.processorArea.onclick = function () {
+			location.href = "chart_processor.html";
+		}
+		
 		entry = snmp.hrStorageEntry;
 		for (var index in entry) {
 			parseStorage(entry[index]);

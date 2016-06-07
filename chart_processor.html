@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta http-equiv="Content-Script-Type" content="text/javascript">
+		<meta http-equiv="Content-Style-Type" content="text/css">
+		<title>ITAhM</title>
+		
+		<style>
+@import "css/itahm.css";
+
+body {
+	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
+	margin: 0; padding: 0;
+	display: flex;
+	flex-direction: column;
+}
+
+iframe {
+	border: none;
+	padding: 0; margin: 0;
+}
+
+iframe.chart {
+	flex: 1;
+}
+
+#cursor {
+	width: 100%; height: 60px;
+}
+		</style>
+		
+	</head>
+	
+	<body>
+		<iframe id="cursor" src="date_cursor.html"></iframe>
+		
+		<script src="js/ITAhM.js"></script>	
+		<script src="js/object.js"></script>
+		<script>
+
+var chart = document.getElementById("chart"),
+	cursor = document.getElementById("cursor"),
+	deviceIP = top.databases.device.selected,
+	snmp = top.databases.snmp,
+	chartList = [],
+	max = 100;
+
+if(!deviceIP || !snmp) {
+	throw "!";
+}
+
+(function (date) {
+	date.setHours(0, 0, 0, 0);
+	
+	window.today = date.getTime();
+	window.end = date.setDate(date.getDate() +1);
+	window.start = date.setMonth(date.getMonth() -1)
+})(new Date());
+	
+(function (database) {
+	var device = top.databases.device[deviceIP];
+	var x=0;
+	for (var index in window.snmp.hrProcessorEntry) {
+		top.sendRequest({
+			command: "query",
+			ip: window.deviceIP,
+			summary: true,
+			database: "hrProcessorLoad",
+			index: index,
+			start: window.start,
+			end: window.end
+		}, onResponse);
+	}
+}) ();
+
+function onResponse(data) {
+	var chart = document.createElement("iframe");
+	
+	document.body.insertBefore(chart, window.cursor)
+	
+	chart.className = "chart";
+	
+	chart.onload = function () {
+		var chartWindow = this.contentWindow;
+		
+		chartWindow.onValueToString = onValueToString;
+		
+		chartWindow.initialize(new ITAhM.ChartSummaryData(data), window.max, "#77dd77");
+		chartWindow.draw(window.today, window.end);
+		
+		window.chartList[window.chartList.length] = chartWindow;
+	}
+	
+	chart.src = "chart_base.html";
+}
+
+cursor.onload = function () {
+	var cursorWindow = cursor.contentWindow;
+	
+	cursorWindow.onResetDate = onResetDate;
+	
+	cursorWindow.initialize(window.start, window.end, window.end, window.today);
+}
+
+function onValueToString(value) {
+	return value.toFixed(2) +"%";
+}
+
+function onResetDate(start, end) {
+	for (var i = 0, _i = window.chartList.length; i <  _i; i++) {
+		window.chartList[i].draw(start, end);
+	}
+}
+
+		</script>
+	
+	</body>
+	
+</html>

@@ -30,6 +30,7 @@ iframe {
 	</head>
 	
 	<body>
+		<h1>refresh</h1>
 		<iframe id="chart" src="chart_base.html"></iframe>
 		<iframe id="cursor" src="date_cursor.html"></iframe>
 		
@@ -39,7 +40,7 @@ iframe {
 
 var chart = document.getElementById("chart"),
 	cursor = document.getElementById("cursor"),
-	max = 100;
+	max = 5000;
 
 var data = {
 		"1462543200000":{"avg":240,"min":117,"max":468},"1462536000000":{"avg":210,"min":108,"max":542},"1462532400000":{"avg":255,"min":115,"max":471},"1462500000000":{"avg":206,"min":104,"max":558},"1462471200000":{"avg":184,"min":84,"max":365},"1462478400000":{"avg":200,"min":91,"max":374},"1462514400000":{"avg":221,"min":110,"max":409},"1462525200000":{"avg":229,"min":116,"max":533},"1462460400000":{"avg":245,"min":105,"max":1271},"1462482000000":{"avg":257,"min":116,"max":429},"1462489200000":{"avg":206,"min":114,"max":531},"1462467600000":{"avg":174,"min":103,"max":500},"1462492800000":{"avg":243,"min":115,"max":429},"1462503600000":{"avg":245,"min":119,"max":443},"1462510800000":{"avg":185,"min":94,"max":520},"1462521600000":{"avg":234,"min":118,"max":527},"1462528800000":{"avg":207,"min":102,"max":460},"1462518000000":{"avg":206,"min":112,"max":414},"1462507200000":{"avg":202,"min":88,"max":413},"1462539600000":{"avg":208,"min":115,"max":456},"1462464000000":{"avg":217,"min":112,"max":513},"1462485600000":{"avg":226,"min":111,"max":612},"1462496400000":{"avg":211,"min":109,"max":409},"1462474800000":{"avg":169,"min":83,"max":455},
@@ -77,12 +78,10 @@ var data = {
 	};
 
 (function (date) {
-	var yesterday, today;
-	
 	date.setHours(0, 0, 0, 0);
 	
-	window.yesterday = date.getTime();
-	window.today = date.setDate(date.getDate() +1);
+	window.today = date.getTime();
+	window.end = date.setDate(date.getDate() +1);
 	window.start = date.setMonth(date.getMonth() -1)
 })(new Date(2016, 5, 6, 0, 0, 0, 0));
 	
@@ -91,7 +90,8 @@ chart.onload = function () {
 
 	chart.contentWindow.onValueToString = onValueToString;
 	
-	draw(window.yesterday, window.today);
+	chart.contentWindow.initialize(window.chartData, max, "#0084ff");
+	chart.contentWindow.draw(window.today, window.end);
 }
 
 cursor.onload = function () {
@@ -99,7 +99,7 @@ cursor.onload = function () {
 	
 	cursorWindow.onResetDate = onResetDate;
 	
-	cursorWindow.initialize(start, today, today, yesterday);
+	cursorWindow.initialize(window.start, window.end, window.end, window.today);
 }
 
 function onValueToString(value) {
@@ -107,14 +107,9 @@ function onValueToString(value) {
 }
 
 function onResetDate(start, end) {
-	draw(start, end);
+	chart.contentWindow.draw(start, end);
 }
 
-function draw(start, end) {
-	var result = window.chartData.parseData(start, end);
-	
-	chart.contentWindow.draw(start, end, result.high, result.low, result.keys, window.chartData, max, "#0084ff");
-}
 
 		</script>
 	

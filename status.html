@@ -55,6 +55,8 @@ iframe {
 		}, function (response) {			
 			status.initialize(device, response);
 			
+			top.databases.snmp = response;
+			
 			document.body.classList.remove("loading");
 		});
 	};

@@ -185,7 +185,7 @@ var chart = document.getElementById("chart"),
 		(function (){
 			var result = window.summaryData.parseData(window.start, window.end);
 		
-			draw(window.start, window.end, result.high, result.low, result.keys, window.summaryData, window.max);
+			draw(window.start, window.end);
 		}) ();
 	}
 })(window);
@@ -257,9 +257,9 @@ function createDateText(x, y, mills) {
 
 function onValueToString(value) {
 	return value;
-}
+} 
 
-function draw(start, end, high, low, blocks, summaryData, max, color) {
+function draw(start, end) {
 	var rect = window.rect,
 		tpp = (end - start) / rect.width,
 		fillMax = new ITAhM.Path(window.graph),
@@ -267,24 +267,40 @@ function draw(start, end, high, low, blocks, summaryData, max, color) {
 		strokeMax = new ITAhM.Path(window.graph),
 		strokeAvg = new ITAhM.Path(window.graph),
 		strokeMin = new ITAhM.Path(window.graph),
-		yRatio = rect.height / (high - low),
+		yRatio, blocks, high, low,
 		x, y, dateArray, date;
 
-	color = color || window.color;
+	if (!((function () {
+		var tmp = window.summaryData.parseData(start, end);
+		
+		if (!tmp) {
+			return false;
+		}
+		
+		high = tmp.high;
+		low = tmp.low;
+		blocks = tmp.keys;
+		
+		yRatio = rect.height / (high - low);
+		
+		return true;
+	}) ())) {
+		return;
+	};
 	
 	clear(graph);
 
-	strokeMax.set("stroke", color);
+	strokeMax.set("stroke", window.color);
 	strokeMax.set("stroke-opacity", .5);
 	strokeMax.set("fill", "none");
-	strokeAvg.set("stroke", color);
+	strokeAvg.set("stroke", window.color);
 	strokeAvg.set("stroke-width", 2);
 	strokeAvg.set("fill", "none");
-	strokeMin.set("stroke", color);
+	strokeMin.set("stroke", window.color);
 	strokeMin.set("stroke-opacity", .5);
 	strokeMin.set("fill", "none");
 	
-	fillMax.set("fill", color);
+	fillMax.set("fill", window.color);
 	fillMax.set("fill-opacity", .1);
 	fillMin.set("class", "fill_min");
 	
@@ -373,6 +389,9 @@ function draw(start, end, high, low, blocks, summaryData, max, color) {
 	
 	window.start = start;
 	window.end = end;
+}
+
+function initialize(summaryData, max, color) {
 	window.summaryData = summaryData;
 	window.max = max;
 	window.color = color;
