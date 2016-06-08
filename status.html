@@ -38,22 +38,23 @@ iframe {
 	<script>
 
 (function (window, undefined) {
-	var frame = document.getElementById("status"),
-		status = frame.contentWindow;
+	var status = document.getElementById("status"),
+		statusWindow = status.contentWindow;
 	
 	document.getElementById("print").onclick = function () {
-		status.print();
+		statusWindow.print();
 	};
 
-	frame.onload = function () {
+	status.onload = function () {
 		var database = top.databases.device,
 			device = database.data[database.selected];
 		
 		top.sendRequest({
 			command: "select",
 			ip: device.ip
-		}, function (response) {			
-			status.initialize(device, response);
+		}, function (response) {
+			statusWindow.onSelectResource = onSelectResource;
+			statusWindow.initialize(device, response);
 			
 			top.databases.snmp = response;
 			
@@ -62,6 +63,15 @@ iframe {
 	};
 
 })(window);	
+
+function onSelectResource(resource, index) {
+	switch(resource) {
+	case "hrProcessorLoad":
+		location.href = "chart_processor.html";
+		
+		break;
+	}
+}
 
 function onSelectDevice(ip) {
 	top.databases.device.selected = ip;

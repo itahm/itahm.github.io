@@ -19,6 +19,8 @@ body {
 iframe {
 	border: none;
 	padding: 0; margin: 0;
+	width: 100%;
+	min-height: 80px;
 }
 
 iframe.chart {
@@ -26,13 +28,14 @@ iframe.chart {
 }
 
 #cursor {
-	width: 100%; height: 60px;
+	height: 60px;
 }
 		</style>
 		
 	</head>
 	
 	<body>
+		<h1>Processor load</h1>
 		<iframe id="cursor" src="date_cursor.html"></iframe>
 		
 		<script src="js/ITAhM.js"></script>	
@@ -111,6 +114,10 @@ function onResetDate(start, end) {
 	for (var i = 0, _i = window.chartList.length; i <  _i; i++) {
 		window.chartList[i].draw(start, end);
 	}
+}
+
+function onSelectDevice() {
+	location.href = "status.html";
 }
 
 		</script>

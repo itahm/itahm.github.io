@@ -59,7 +59,7 @@ section {
 .memory,
 .memory ul {
 	list-style: none;
-	padding: 0;
+	margin: 0; padding: 0;
 }
 
 .memory ul li {
@@ -79,7 +79,7 @@ section {
 
 #storage ul> li {
 	text-align: center;
-	padding: .5em; margin: 1px;
+	padding: .5em; margin: 3px;
 	flex: 1;
 }
 
@@ -106,7 +106,7 @@ section {
 	position: absolute; top: 0; left: 0;
 	height: 100%;
 	z-index: -1;
-	background-color: #0084ff;
+	background-color: #9d9789;
 }
 /**/
 
@@ -127,7 +127,7 @@ section {
 
 #iFace ul> li {
 	text-align: center;
-	padding: .5em; margin: 1px;
+	padding: .5em; margin: 3px;
 	flex: 1;
 }
 
@@ -177,6 +177,19 @@ section {
 
 #status.down {
 	color: #f00;
+}
+
+#processor:hover,
+#memory:hover,
+li.storage:hover,
+li.i_face:hover {
+	outline: solid 3px #0084ff;
+	cursor: pointer;
+}
+
+#memory {
+	display: inline-block;
+	padding: 10px;
 }
 
 		</style>
@@ -378,7 +391,7 @@ section {
 		}
 		
 		window.processorArea.onclick = function () {
-			location.href = "chart_processor.html";
+			onSelectResource("hrProcessorLoad");
 		}
 		
 		entry = snmp.hrStorageEntry;
@@ -450,6 +463,10 @@ section {
 			
 			interfaceArea.appendChild(createIFaceGuage(iFace.ifName, bandwidth, inBPS, outBPS));
 		}
+	}
+	
+	// abstract
+	function onSelectResource(resource, index) {
 	}
 	
 	</script>
