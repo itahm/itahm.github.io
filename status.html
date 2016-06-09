@@ -19,17 +19,20 @@ iframe {
 	width: 100%; height: 100%;
 }
 
+#shutdown {
+	display: none;
+}
+
+body.shutdown #shutdown {
+	color: #e51400;
+	display: inline;
+}
+
 		</style>
 	</head>
 
 	<body class="loading">
-		
-		<nav>
-			<a href="map.html">Map</a>
-			<a href="performance.html">Chart</a>
-			<button id="print">Print</button>
-		</nav>
-		
+		<h1><span id="host"></span><span id="shutdown"> (No response.)</span></h1>
 		<iframe src="status_base.html" id="status"></iframe>
 		
 		<div class="bg_loading"></div>
@@ -37,24 +40,31 @@ iframe {
 	
 	<script>
 
+var deviceIP = top.databases.device.selected;
+
+if (!deviceIP) {
+	throw "!";
+}
+
+window.device = top.databases.device.data[deviceIP];
+
+document.getElementById("host").textContent = deviceIP;
+
+if (window.device.shutdown) {
+	document.body.classList.add("shutdown");
+}
+
 (function (window, undefined) {
 	var status = document.getElementById("status"),
 		statusWindow = status.contentWindow;
-	
-	document.getElementById("print").onclick = function () {
-		statusWindow.print();
-	};
 
 	status.onload = function () {
-		var database = top.databases.device,
-			device = database.data[database.selected];
-		
 		top.sendRequest({
 			command: "select",
-			ip: device.ip
+			ip: window.device.ip
 		}, function (response) {
 			statusWindow.onSelectResource = onSelectResource;
-			statusWindow.initialize(device, response);
+			statusWindow.initialize(window.device, response);
 			
 			top.databases.snmp = response;
 			
@@ -65,17 +75,12 @@ iframe {
 })(window);	
 
 function onSelectResource(resource, index) {
-	switch(resource) {
-	case "hrProcessorLoad":
-		location.href = "chart_processor.html";
-		
-		break;
-	}
+	top.databases.device.resourceIndex = index;
+	
+	location.href = "chart_"+ resource +".html";
 }
 
 function onSelectDevice(ip) {
-	top.databases.device.selected = ip;
-	
 	location.reload();
 }
 

@@ -35,7 +35,7 @@ header a:hover {
 }
 
 nav {
-	font-size: 1.2em;
+	font-size: 1.1em;
 	height: 60px;
 	display: flex;
 	align-items: flex-end;
@@ -107,12 +107,12 @@ body:not(.dialog) #dialog,
 		<header>
 			<nav class="content_width">
 				<ul>
-					<li><a id="reload">ITAhM</a>
-					<li><a href="account.html" target="main">account</a>
-					<li><a href="profile.html" target="main">profile</a>
-					<li><a href="icon.html" target="main">icon</a>
-					<li><a id="message">message</a>
-					<li><a id="signout">sign out</a>
+					<li><a href="main.html" target="main">Map</a>
+					<li><a href="setting.html" target="main">Setting</a>
+					<!--li><a href="profile.html" target="main">Profile</a-->
+					<li><a href="icon.html" target="main">Icon</a>
+					<li><a id="message">Message</a>
+					<li><a id="signout">Sign out</a>
 					<li><a id="shutdown" title="shutdown agent service">shutdown</a>
 				</ul>
 			</nav>
@@ -185,7 +185,6 @@ body:not(.dialog) #dialog,
 					document.getElementById("message").onclick = onSendMessage;
 					document.getElementById("signout").onclick = onSignout;
 					document.getElementById("shutdown").onclick = onShutDown;
-					document.getElementById("reload").onclick = onReLoad;
 					
 					document.getElementById("frame").src = "main.html";
 					
@@ -243,12 +242,6 @@ body:not(.dialog) #dialog,
 		window.onbeforeunload = undefined;
 		
 		location.href = "http://itahm.com";
-	}
-	
-	function onReLoad() {
-		window.onbeforeunload = undefined;
-		
-		location.reload();
 	}
 	
 }) (window);

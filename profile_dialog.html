@@ -134,7 +134,7 @@ if (top === window) {
 			community: form.elements.community.value
 		};
 		
-		top.closeDialog();
+		sync();
 	}
 	
 	function onRemove(e) {
@@ -144,7 +144,7 @@ if (top === window) {
 		
 		delete top.databases.profile.data[form.elements.name.value];
 		
-		top.closeDialog();
+		sync();
 	}
 	
 	function onCancel(e) {
@@ -155,7 +155,9 @@ if (top === window) {
 		if (name) {
 			var profile = top.databases.profile.data[name];
 			
-			form.elements.name.value = name,
+			form.elements.name.value = name;
+			form.elements.name.disabled = true;
+			
 			form.elements.udp.value = profile.udp;
 			form.elements.version.value = profile.version;
 			form.elements.community.value = profile.community;
@@ -163,16 +165,31 @@ if (top === window) {
 			form.elements.remove.onclick = onRemove;
 		}
 		else {
+			form.elements.name.focus();
+			
 			form.elements.remove.disabled = true;
 		}
 		
 		form.onsubmit = onApply;
 		form.onreset = onCancel;
-		
-		form.elements.name.select();
 	};
 	
 }) (window);
+
+function sync() {
+	top.sendRequest({
+		command: "push",
+		database: "profile",
+		sequence: top.databases.profile.sequence,
+		data: top.databases.profile.data
+	}, function (response) {
+		top.databases.profile.sequence = response.sequence;
+		
+		top.closeDialog();
+	});
+	
+	document.body.classList.add("loading");
+}
 
 		</script>
 	

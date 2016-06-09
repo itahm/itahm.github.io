@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta http-equiv="Content-Script-Type" content="text/javascript">
+		<meta http-equiv="Content-Style-Type" content="text/css">
+		<title>ITAhM</title>
+		
+		<style>
+		
+@import "css/itahm.css";
+@import "css/chart.css";
+
+h3 {
+	padding: 0 20px;
+}
+
+h3.input {
+	color: #7d7;
+}
+
+h3.output {
+	color: #f60;
+}
+
+#legend {
+	text-align: right;
+}
+
+		</style>
+		
+	</head>
+	
+	<body>
+		<header>
+			<a href="status.html">Close</a>
+			<h1>Interface throughput [<span id="host"></span>]</h1>
+			<h2 id="if_name"></h2>
+			<div id="legend"></div>
+		</header>
+		<h3 class="input">Input</h3>
+		<iframe id="chart_in" class="chart"></iframe>
+		<h3 class="output">Output</h3>
+		<iframe id="chart_out" class="chart"></iframe>
+		<iframe id="cursor" src="date_cursor.html"></iframe>
+		
+		<script src="js/ITAhM.js"></script>	
+		<script src="js/object.js"></script>
+		<script>
+
+var chartIn = document.getElementById("chart_in"),
+	chartOut = document.getElementById("chart_out"),
+	cursor = document.getElementById("cursor"),
+	deviceIP = top.databases.device.selected,
+	resourceIndex = top.databases.device.resourceIndex,
+	snmp = top.databases.snmp;
+
+if(!deviceIP || !resourceIndex || !snmp) {
+	throw "!";
+}
+
+document.getElementById("host").textContent = deviceIP;
+
+(function (entry) {
+	window.max = entry.ifSpeed;
+	
+	document.getElementById("legend").textContent = "bandwidth : "+ ITAhM.util.toBPSString(max);
+	document.getElementById("if_name").textContent = entry.ifName;
+})(snmp.ifEntry[resourceIndex]);
+
+(function (date) {
+	date.setHours(0, 0, 0, 0);
+	
+	window.today = date.getTime();
+	window.end = date.setDate(date.getDate() +1);
+	window.start = date.setMonth(date.getMonth() -1);
+})(new Date());
+
+(function (entry) {
+	var request = {
+			command: "query",
+			ip: window.deviceIP,
+			summary: true,
+			index: resourceIndex,
+			start: window.start,
+			end: window.end
+		};
+	
+	request.database = "ifInOctets";
+	top.sendRequest(request, onResponse);
+	
+	request.database = "ifOutOctets";
+	top.sendRequest(request, onResponse);
+}) ();
+
+cursor.onload = function () {
+	var cursorWindow = cursor.contentWindow;
+	
+	cursorWindow.onResetDate = onResetDate;
+	
+	cursorWindow.initialize(window.start, window.end, window.end, window.today);
+}
+
+function onResponse(data) {
+	chartIn.onload = function () {
+		var chartWindow = this.contentWindow;
+		
+		chartWindow.onValueToString = onValueToString;
+		
+		chartWindow.initialize(new ITAhM.ChartSummaryData(data), window.max, "#7d7");
+		chartWindow.draw(window.today, window.end);
+	};
+	
+	chartOut.onload = function () {
+		var chartWindow = this.contentWindow;
+		
+		chartWindow.onValueToString = onValueToString;
+		
+		chartWindow.initialize(new ITAhM.ChartSummaryData(data), window.max, "#f60");
+		chartWindow.draw(window.today, window.end);
+	};
+	
+	chartIn.src="chart_base.html";
+	chartOut.src="chart_base.html";
+}
+
+function onValueToString(value) {
+	return ITAhM.util.toBPSString(value);
+}
+
+function onResetDate(start, end) {
+	window.chartIn.contentWindow.draw(start, end);
+	window.chartOut.contentWindow.draw(start, end);
+}
+
+function onSelectDevice() {
+	location.href = "status.html";
+}
+
+		</script>
+	
+	</body>
+	
+</html>

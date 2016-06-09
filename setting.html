@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta http-equiv="Content-Script-Type" content="text/javascript">
+		<meta http-equiv="Content-Style-Type" content="text/css">
+		<title>Account @ ITAhM</title>
+		
+		<style>
+@import "css/itahm.css";
+
+body {
+	padding: 20px;
+}
+
+body {
+	padding: 20px;
+}
+
+header {
+	text-align: right;
+}
+
+#list {
+	list-style: none;
+	padding: 3px;
+	margin: 0;
+}
+
+#item {
+	display: flex;
+	align-items: center;
+	padding: 10px;
+	border: 1px solid transparent;
+}
+
+#item:hover {
+	text-decoration: underline;
+	cursor: pointer;
+	border-color: #0084ff;
+	border-radius: 5px;
+	background-color: #fafaff;
+}
+
+#item span {
+	font-size: 2em;
+	margin-left: 1em;
+}
+
+.layout {
+	display: none;
+}
+
+img[src="img/plus.png"]:hover {
+	cursor: pointer;
+}
+
+		</style>
+		
+	</head>
+	
+	<body class="loading content_width">
+		
+		<h1>Account <img width="16" height="16" src="img/plus.png" title="Add account" id="add_account"></h1>
+		<ul id="account_list"></ul>
+		
+		<h1>Profile <img width="16" height="16" src="img/plus.png" title="Add profile" id="add_profile"></h1>
+		<ul id="profile_list"></ul>
+		
+		<div class="bg_loading"></div>
+		
+		<div class="layout">
+			<ul>
+				<li id="item">
+					<img width="32" height="32">
+					<span></span>
+			</ul>
+		</div>
+		
+		<script>
+if (top === window) {
+	location.href = "http://itahm.com";
+}
+
+var item = document.getElementById("item");
+
+document.getElementById("add_account").onclick = function () {
+	onSelectAccount();
+};
+
+document.getElementById("add_profile").onclick = function () {
+	onSelectProfile();
+};
+
+(function () {
+	var list = document.getElementById("account_list"),
+		accountData = top.databases.account.data,
+		df = document.createDocumentFragment();
+	
+	for (var username in accountData) {
+	df.appendChild(createIcon(accountData[username].level === 0? "img/svg/root.svg": "img/svg/user.svg", username)).onclick
+		= onSelectAccount.bind(undefined, username);
+	}
+	
+	list.appendChild(df);
+}) ();
+
+(function () {
+	var list = document.getElementById("profile_list"),
+		profileData = top.databases.profile.data,
+		df = document.createDocumentFragment();
+	
+	for (var name in profileData) {
+	df.appendChild(createIcon("img/svg/list.svg", name)).onclick
+		= onSelectProfile.bind(undefined, name);
+	}
+	
+	list.appendChild(df);
+}) ();
+
+document.body.classList.remove("loading");
+
+function onSelectAccount(username) {
+	top.showDialog("account_dialog.html",
+		function (dialog) {
+			dialog.initialize(username);
+		},
+		function () {
+			location.reload();
+		});
+}
+
+function onSelectProfile(name) {
+	top.showDialog("profile_dialog.html",
+		function (dialog) {
+			dialog.initialize(name);
+		},
+		function () {
+			location.reload();
+		});
+}
+
+function createIcon(src, label) {
+	var clone = window.item.cloneNode(true);
+	
+	clone.children[0].src = src;
+	clone.children[1].textContent = label;
+	
+	return clone;
+}
+
+		</script>
+	
+	</body>
+	
+</html>

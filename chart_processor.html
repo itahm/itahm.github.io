@@ -7,51 +7,48 @@
 		<title>ITAhM</title>
 		
 		<style>
+
 @import "css/itahm.css";
+@import "css/chart.css";
 
-body {
-	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
-	margin: 0; padding: 0;
-	display: flex;
-	flex-direction: column;
-}
-
-iframe {
-	border: none;
-	padding: 0; margin: 0;
-	width: 100%;
-	min-height: 80px;
-}
-
-iframe.chart {
-	flex: 1;
-}
-
-#cursor {
-	height: 60px;
-}
 		</style>
 		
 	</head>
 	
 	<body>
-		<h1>Processor load</h1>
+		<header>
+			<a href="status.html">Close</a>
+			<h1>Processor load [<span id="host"></span>]</h1>
+		</header>
 		<iframe id="cursor" src="date_cursor.html"></iframe>
 		
 		<script src="js/ITAhM.js"></script>	
 		<script src="js/object.js"></script>
 		<script>
 
-var chart = document.getElementById("chart"),
-	cursor = document.getElementById("cursor"),
+var cursor = document.getElementById("cursor"),
 	deviceIP = top.databases.device.selected,
 	snmp = top.databases.snmp,
 	chartList = [],
+	colorList = [
+		"#6d8764",
+		"#f0a30a",
+		"#6a00ff",
+		"#825a2c",
+		"#a20025",
+		"#1ba1e2",
+		"#008a00",
+		"#1ba1e2",
+	],
+	colorLength = colorList.length,
+	colorIndex = 0,
 	max = 100;
 
 if(!deviceIP || !snmp) {
 	throw "!";
 }
+
+document.getElementById("host").textContent = deviceIP;
 
 (function (date) {
 	date.setHours(0, 0, 0, 0);
@@ -62,8 +59,6 @@ if(!deviceIP || !snmp) {
 })(new Date());
 	
 (function (database) {
-	var device = top.databases.device[deviceIP];
-	var x=0;
 	for (var index in window.snmp.hrProcessorEntry) {
 		top.sendRequest({
 			command: "query",
@@ -89,7 +84,7 @@ function onResponse(data) {
 		
 		chartWindow.onValueToString = onValueToString;
 		
-		chartWindow.initialize(new ITAhM.ChartSummaryData(data), window.max, "#77dd77");
+		chartWindow.initialize(new ITAhM.ChartSummaryData(data), window.max, window.colorList[window.colorIndex++ % window.colorLength]);
 		chartWindow.draw(window.today, window.end);
 		
 		window.chartList[window.chartList.length] = chartWindow;

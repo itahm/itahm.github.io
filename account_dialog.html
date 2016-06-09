@@ -143,7 +143,7 @@ if (top === window) {
 				level: form.elements.level.value
 			};
 			
-			top.closeDialog();
+			sync();
 		}
 		else {
 			alert("password does not match the confirmation");
@@ -159,31 +159,48 @@ if (top === window) {
 		
 		delete top.databases.account.data[form.elements.username.value];
 		
-		top.closeDialog();
+		sync();
 	}
 	
 	function onCancel(e) {
 		top.closeDialog(true);
-	};
+	}
+	
+	function sync() {
+		top.sendRequest({
+			command: "push",
+			database: "account",
+			sequence: top.databases.account.sequence,
+			data: top.databases.account.data
+		}, function (response) {
+			top.databases.account.sequence = response.sequence;
+			
+			top.closeDialog();
+		});
+		
+		document.body.classList.add("loading");
+	}
 	
 	window.initialize = function (username) {
 		if (username) {
 			var account = top.databases.account.data[username];
 			
-			form.elements.username.value = username,
+			form.elements.username.value = username;
+			form.elements.username.disabled = true;
+			
 			form.elements.password.value = account.password;
 			form.elements.level.value = account.level;
 			
 			form.elements.remove.onclick = onRemove;
 		}
 		else {
+			form.elements.username.focus();
+			
 			form.elements.remove.disabled = true;
 		}
 		
 		form.onsubmit = onApply;
 		form.onreset = onCancel;
-		
-		form.elements.username.select();
 	};
 	
 }) (window);

@@ -14,16 +14,25 @@
 
 section {
 	padding: 10px;
-	margin: 10px;
 	border: 1px solid #0084ff;
 	border-radius: 5px;
 }
 
+body> section {
+	margin-top: 10px;
+}
+
+#responseTime {
+	display: inline-block;
+}
+
 .proc_mem {
 	display: flex;
+	margin-top: 10px;
 }
 
 .proc_mem section:last-child {
+	margin-left: 10px;
 	flex: 1;
 }
 
@@ -43,7 +52,7 @@ section {
 	overflow: hidden;
 }
 
-.memory .bar  .color {
+.memory .color {
 	position: absolute;
 	bottom: 0;
 	left: 0;
@@ -181,6 +190,7 @@ section {
 
 #processor:hover,
 #memory:hover,
+#responseTime:hover,
 li.storage:hover,
 li.i_face:hover {
 	outline: solid 3px #0084ff;
@@ -198,11 +208,12 @@ li.i_face:hover {
 	<body class="loading">
 		
 		<header>
-			<h1 id="node"></h1>
 			<h3 id="status"></h3>
 		</header>
 		
-		
+		<section>
+			<h2 id="responseTime">Response time : <span id="response_time"></span></h2>
+		</section>
 		<div class="proc_mem">
 			<section>
 				<h2>Processor load</h2>
@@ -300,6 +311,10 @@ li.i_face:hover {
 		storageGauge = document.querySelector(".storage"),
 		iFaceGauge = document.querySelector(".i_face");
 	
+	document.getElementById("responseTime").onclick = function () {
+		onSelectResource("responseTime");
+	}
+	
 	function createProcGauge(value) {
 		var clone = processorGauge.cloneNode(true),
 			ctx = clone.getContext("2d"),
@@ -391,31 +406,28 @@ li.i_face:hover {
 		}
 		
 		window.processorArea.onclick = function () {
-			onSelectResource("hrProcessorLoad");
-		}
+			onSelectResource("processor");
+		};
 		
 		entry = snmp.hrStorageEntry;
 		for (var index in entry) {
-			parseStorage(entry[index]);
+			parseStorage(entry[index], index);
 		}
 		
 		entry = snmp.ifEntry;
 		for (var index in entry) {
-			initIFace(entry[index], index);
+			initIFace(entry[index]).onclick = onSelectResource.bind(undefined, "throughput", index);
 		}
 		
-		document.getElementById("node").textContent = device.ip;
 		if (device.shutdown) {
 			var status = document.getElementById("status");
 			
 			status.textContent
-				= "Down. Last response "+ new Date(snmp.lastResponse).toLocaleString();
+				= "Last response "+ new Date(snmp.lastResponse).toLocaleString();
 			status.className = "down";
 		}
-		else {
-			document.getElementById("status").textContent
-				= "Running. Response time "+ snmp.responseTime +"ms.";
-		}
+		
+		document.getElementById("response_time").textContent = snmp.responseTime +"ms.";
 		
 		document.body.classList.remove("loading");
 	}
@@ -424,23 +436,30 @@ li.i_face:hover {
 		processorArea.appendChild(createProcGauge(load));
 	}
 	
-	function parseStorage(storage) {
+	function parseStorage(storage, index) {
 		switch(storage.hrStorageType) {
 		case 4:
 			if (storage.hrStorageSize > 0) {
-				initStorage(storage);
+				initStorage(storage).onclick = function () {
+					onSelectResource("storage", index);
+				};
 			}
 			
 			break;
 		case 2:
 			initMemory(storage);
+			window.memoryArea.onclick = function () {
+				onSelectResource("memory", index);
+			};
 			
-			break;
+			return true;
 		}
+		
+		return false;
 	}
 	
 	function initStorage(storage) {
-		storageArea.appendChild(
+		return storageArea.appendChild(
 			createStorageGuage(storage.hrStorageUsed * storage.hrStorageAllocationUnits
 				, storage.hrStorageSize * storage.hrStorageAllocationUnits, storage.hrStorageDescr));
 	}
@@ -452,17 +471,17 @@ li.i_face:hover {
 		memoryArea.appendChild(createMemoryGuage(used, size));
 	}
 	
-	function initIFace(iFace, index) {
+	function initIFace(iFace) {
 		var bandwidth = iFace.ifSpeed;
 		
 		if (bandwidth > 0) {
 			var inBPS = iFace.ifInBPS || 0,
 				outBPS = iFace.ifOutBPS || 0;
 			
-			if (index === "11") {inBPS = 60000000; outBPS = 30000000;};
-			
-			interfaceArea.appendChild(createIFaceGuage(iFace.ifName, bandwidth, inBPS, outBPS));
+			return interfaceArea.appendChild(createIFaceGuage(iFace.ifName, bandwidth, inBPS, outBPS));
 		}
+		
+		return document.createElement("div");
 	}
 	
 	// abstract
