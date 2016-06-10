@@ -34,7 +34,12 @@ body:not(.loading) .bg_loading {
 	background: linear-gradient(#7af, #0084ff);
 }
 
-.r_button:hover {
+.r_button[disabled] {
+	background: #ddd;
+	border: 1px solid #ddd;
+}
+
+.r_button:not([disabled]):hover {
 	cursor: pointer;
 	text-decoration: underline;
 }

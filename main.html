@@ -124,9 +124,17 @@ iframe {
 	form.elements.label.addEventListener("change", onChangeLabel);
 	form.addEventListener("submit", onSearch);
 	
-	document.getElementById("sync").onclick = onSync;
 	document.getElementById("reload").onclick = onReLoad;
 	document.getElementById("add").onclick = onAddDevice;
+	
+	(function (sync) {
+		if (sessionStorage.level == 0) {
+			sync.onclick = onSync;
+		}
+		else {
+			sync.disabled = true;
+		}
+	}) (document.getElementById("sync"));
 	
 	initList();
 	

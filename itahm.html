@@ -93,8 +93,7 @@ iframe[name="main"] {
 	color: #f00;
 }
 
-body:not(.dialog) #dialog,
-#shutdown {
+body:not(.dialog) #dialog {
 	display: none;
 }
 
@@ -113,7 +112,6 @@ body:not(.dialog) #dialog,
 					<li><a href="icon.html" target="main">Icon</a>
 					<li><a id="message">Message</a>
 					<li><a id="signout">Sign out</a>
-					<li><a id="shutdown" title="shutdown agent service">shutdown</a>
 				</ul>
 			</nav>
 		</header>
@@ -184,7 +182,6 @@ body:not(.dialog) #dialog,
 					
 					document.getElementById("message").onclick = onSendMessage;
 					document.getElementById("signout").onclick = onSignout;
-					document.getElementById("shutdown").onclick = onShutDown;
 					
 					document.getElementById("frame").src = "main.html";
 					
@@ -216,32 +213,18 @@ body:not(.dialog) #dialog,
 		location.href = "http://itahm.com";
 	}
 	
-	function onShutDown() {
-		if (confirm("are you sure you want to shutdown agent?")) {
-			var request = {
-				command: "shutdown"
-			};
-			
-			sendRequest(request, home);
-		}
-	}
-	
 	function onSendMessage() {
 		showDialog("message.html");
 	}
 	
 	function onSignout(e) {
-		var request = {
-				command: "signout"
-			};
-		
-		sendRequest(request, home);
-	}
-	
-	function home() {
-		window.onbeforeunload = undefined;
-		
-		location.href = "http://itahm.com";
+		sendRequest({
+			command: "signout"
+		}, function () {
+			window.onbeforeunload = undefined;
+			
+			location.href = "connect.html";
+		});
 	}
 	
 }) (window);

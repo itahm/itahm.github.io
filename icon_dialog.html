@@ -97,11 +97,11 @@ input[type="checkbox"] {
 					<li>disabled
 					<li><input type="text" name="disabled" placeholder="http://my.image.com/image.svg">
 				</ul>
-				<label><input type="checkbox" name="reset">reset</label>
+				<label><input type="checkbox" name="reset" disabled>reset</label>
 			</div>
 			<footer>
-				<input type="reset" value="cancel">
-				<input type="submit" value="apply">
+				<input type="reset" class="r_button" value="Cancel">
+				<input type="submit" class="r_button" value="Apply">
 			</footer>
 		</form>
 		
@@ -111,56 +111,59 @@ if (top === window) {
 	throw "";
 }
 
-(function (window, undefined) {
-	var form = document.querySelector("form");
+var form = document.querySelector("form");
+
+form.addEventListener("reset", onCancel);
+
+if (sessionStorage.level == 0) {
+	form.addEventListener("submit", onApply);
+}
+else {
+	document.querySelector("input[type=submit]").disabled = true;
+}
+
+ function onApply(e) {
+	e.preventDefault();
 	
-	/**
-	 * callback method
-	 */
-	 function onApply(e) {
-		e.preventDefault();
-		
-		top.databases.icon.data[form.elements.type.value] = {
-			group: form.elements.group.value,
-			src: form.elements.url.value,
-			disabled: form.elements.disabled.value,
-		};
-		
-		top.closeDialog();
-	}
-	
-	function onReset(e) {
-		delete top.databases.icon.data[form.elements.type.value];
-		
-		top.closeDialog();
-	}
-	 
-	function onCancel(e) {
-		top.closeDialog(true);
-	}
-	
-	window.initialize = function (type) {
-		if (type) {
-			var icon = top.databases.icon.data[type] || top.databases.icon.origin[type];
-			
-			document.getElementById("image").src = icon.src;
-			document.getElementById("disabled").src = icon.disabled;
-			
-			form.elements.type.value = type;
-			form.elements.group.value = icon.group;
-			form.elements.url.value = icon.src;
-			form.elements.disabled.value = icon.disabled;
-		}
-		
-		form.onsubmit = onApply;
-		form.onreset = onCancel;
-		
-		form.elements.reset.onclick = onReset;
-		
-		form.elements.type.select();
+	top.databases.icon.data[form.elements.type.value] = {
+		group: form.elements.group.value,
+		src: form.elements.url.value,
+		disabled: form.elements.disabled.value,
 	};
 	
-}) (window);
+	top.closeDialog();
+}
+
+function onReset(e) {
+	delete top.databases.icon.data[form.elements.type.value];
+	
+	top.closeDialog();
+}
+ 
+function onCancel(e) {
+	top.closeDialog(true);
+}
+
+window.initialize = function (type) {
+	if (type) {
+		window.icon = top.databases.icon.data[type] || top.databases.icon.origin[type];
+		
+		document.getElementById("image").src = icon.src;
+		document.getElementById("disabled").src = icon.disabled;
+		
+		form.elements.type.value = type;
+		form.elements.group.value = icon.group;
+		form.elements.url.value = icon.src;
+		form.elements.disabled.value = icon.disabled;
+		
+		if (sessionStorage.level == 0) {
+			form.elements.reset.onclick = onReset;
+			form.elements.reset.disabled = false;
+		}
+	}
+	
+	form.elements.type.select();
+};
 
 		</script>
 	

@@ -107,10 +107,10 @@ footer input {
 							</select>
 					</ul>
 				</div>
-				<label><input type="checkbox" name="remove">remove</label>
+				<label><input type="checkbox" name="remove" disabled>remove</label>
 				<footer>
-					<input type="reset" value="cancel">
-					<input type="submit" value="apply">
+					<input type="reset" class="r_button" value="cancel">
+					<input type="submit" class="r_button" value="apply">
 				</footer>
 			</form>
 		</div>
@@ -120,90 +120,94 @@ footer input {
 if (top === window) {
 	throw "";
 }
-		
-//account 관리
-(function (window, undefined) {
-	var form = document.querySelector("form");
+
+var form = document.querySelector("form");
+
+form.addEventListener("reset", onCancel);
+
+if (sessionStorage.level == 0) {
+	form.addEventListener("submit", onApply);
+}
+else {
+	document.querySelector("input[type=submit]").disabled = true;
+}
+
+/**
+ * callback method
+ */
+function onApply(e) {
+	e.preventDefault();
 	
-	/**
-	 * callback method
-	 */
-	function onApply(e) {
-		e.preventDefault();
+	var password = form.elements.password,
+		password2 = form.elements.password2;
 		
-		var password = form.elements.password,
-			password2 = form.elements.password2;
-			
-		if (password.value === password2.value) {
-			var username = form.elements.username.value;
-			
-			top.databases.account.data[username] = {
-				username: username,
-				password: password.value,
-				level: form.elements.level.value
-			};
-			
-			sync();
-		}
-		else {
-			alert("password does not match the confirmation");
-			
-			password2.select();
-		}
-	};
-	
-	function onRemove(e) {
-		if (!confirm("remove account?")) {
-			return;
-		}
+	if (password.value === password2.value) {
+		var username = form.elements.username.value;
 		
-		delete top.databases.account.data[form.elements.username.value];
+		top.databases.account.data[username] = {
+			username: username,
+			password: password.value,
+			level: form.elements.level.value
+		};
 		
 		sync();
 	}
-	
-	function onCancel(e) {
-		top.closeDialog(true);
-	}
-	
-	function sync() {
-		top.sendRequest({
-			command: "push",
-			database: "account",
-			sequence: top.databases.account.sequence,
-			data: top.databases.account.data
-		}, function (response) {
-			top.databases.account.sequence = response.sequence;
-			
-			top.closeDialog();
-		});
+	else {
+		alert("password does not match the confirmation");
 		
-		document.body.classList.add("loading");
+		password2.select();
+	}
+};
+
+function onRemove(e) {
+	if (!confirm("remove account?")) {
+		return;
 	}
 	
-	window.initialize = function (username) {
-		if (username) {
-			var account = top.databases.account.data[username];
-			
-			form.elements.username.value = username;
-			form.elements.username.disabled = true;
-			
-			form.elements.password.value = account.password;
-			form.elements.level.value = account.level;
-			
+	delete top.databases.account.data[form.elements.username.value];
+	
+	sync();
+}
+
+function onCancel(e) {
+	top.closeDialog(true);
+}
+
+function sync() {
+	top.sendRequest({
+		command: "push",
+		database: "account",
+		sequence: top.databases.account.sequence,
+		data: top.databases.account.data
+	}, function (response) {
+		top.databases.account.sequence = response.sequence;
+		
+		top.closeDialog();
+	});
+	
+	document.body.classList.add("loading");
+}
+
+function initialize(username) {
+	if (username) {
+		window.account = top.databases.account.data[username];
+		
+		form.elements.username.value = username;
+		form.elements.username.disabled = true;
+		
+		form.elements.password.value = account.password;
+		form.elements.level.value = account.level;
+		
+		if (sessionStorage.level == 0) {
 			form.elements.remove.onclick = onRemove;
 		}
-		else {
-			form.elements.username.focus();
-			
-			form.elements.remove.disabled = true;
-		}
+	}
+	else {
+		form.elements.username.focus();
 		
-		form.onsubmit = onApply;
-		form.onreset = onCancel;
-	};
-	
-}) (window);
+		form.elements.remove.disabled = true;
+	}
+}
 
 		</script>
 	

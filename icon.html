@@ -52,6 +52,7 @@ header {
 	list-style: none;
 }
 
+body:not(.root) #sync,
 .layout {
 	display: none;
 }
@@ -86,143 +87,141 @@ if (top === window) {
 	location.href = "http://itahm.com";
 }
 
-(function (window, undefined) {
-	
-	var list = document.getElementById("list"),
-		icon = document.querySelector(".icon"),
-		group = document.querySelector(".group");
+var list = document.getElementById("list"),
+	icon = document.querySelector(".icon"),
+	group = document.querySelector(".group");
+
+if (sessionStorage.level == 0) {
+	document.body.classList.add("root");
 	
 	document.getElementById("sync").onclick = onSync;
+}
+
+(function () {
+	var iconData = {},
+		data, type;
 	
-	initialize();
+	data = top.databases.icon.origin;
+	for (type in data) {
+		iconData[type] = data[type];
+	}
 	
-	function onSync() {
-		if (!confirm("Synchronize icon database with agent now?")) {
-			return;
-		}
-		
-		top.sendRequest({
-			command: "push",
-			database: "icon",
-			sequence: top.databases.icon.sequence,
-			data: top.databases.icon.data
-		}, function (response) {
-			top.databases.icon.sequence = response.sequence;
+	data = top.databases.icon.data;
+	for (type in data) {
+		iconData[type] = data[type];
+	}
+	
+	list.appendChild(initIcon(iconData));
+	
+	document.body.classList.remove("loading");
+}) ();
+
+function onSync() {
+	if (!confirm("Synchronize icon database with agent now?")) {
+		return;
+	}
+	
+	top.sendRequest({
+		command: "push",
+		database: "icon",
+		sequence: top.databases.icon.sequence,
+		data: top.databases.icon.data
+	}, function (response) {
+		top.databases.icon.sequence = response.sequence;
+	});
+}
+
+function onSelectIcon(type) {
+	top.showDialog("icon_dialog.html",
+		function (dialog) {
+			dialog.initialize(type);
+		},
+		function () {
+			location.reload();
 		});
-	}
+}
+
+function createGroup(name) {
+	var clone = group.cloneNode(true);
 	
-	function onSelectIcon(type) {
-		top.showDialog("icon_dialog.html",
-			function (dialog) {
-				dialog.initialize(type);
-			},
-			function () {
-				location.reload();
-			});
-	}
+	clone.children[0].textContent = name;
 	
-	function createGroup(name) {
-		var clone = group.cloneNode(true);
-		
-		clone.children[0].textContent = name;
-		
-		return clone;
-	}
+	return clone;
+}
+
+function createIcon(src, label) {
+	var clone = icon.cloneNode(true);
 	
-	function createIcon(src, label) {
-		var clone = icon.cloneNode(true);
-		
-		clone.children[0].src = src;
-		clone.children[1].textContent = label;
-		
-		return clone;
-	}
+	clone.children[0].src = src;
+	clone.children[1].textContent = label;
 	
-	function initIcon(iconData) {
-		var df = document.createDocumentFragment(),
-			icon, groupName, groupElement, labelElement,
-			map = {}, span, clone;
+	return clone;
+}
+
+function initIcon(iconData) {
+	var df = document.createDocumentFragment(),
+		icon, groupName, groupElement, labelElement,
+		map = {}, span, clone;
+	
+	
+	for (type in iconData) {
+		icon = iconData[type];
 		
+		groupName = icon.group;
 		
-		for (type in iconData) {
-			icon = iconData[type];
+		groupElement = map[groupName];
+		
+		if (!groupElement) {
+			groupElement = document.createElement("ul");
 			
-			groupName = icon.group;
+			df.appendChild(createGroup(groupName)).appendChild(groupElement);
 			
-			groupElement = map[groupName];
-			
-			if (!groupElement) {
-				groupElement = document.createElement("ul");
-				
-				df.appendChild(createGroup(groupName)).appendChild(groupElement);
-				
-				map[groupName] = groupElement;
-			}
-			
-			groupElement.appendChild(createIcon(icon.src, type)).onclick = onSelectIcon.bind(undefined, type);
+			map[groupName] = groupElement;
 		}
 		
-		return df;
+		groupElement.appendChild(createIcon(icon.src, type)).onclick = onSelectIcon.bind(undefined, type);
 	}
 	
-	function _initIcon(iconData) {
-		var df = document.createDocumentFragment(),
-			icon, groupName, groupElement, labelElement,
-			map = {}, span;
+	return df;
+}
+
+function _initIcon(iconData) {
+	var df = document.createDocumentFragment(),
+		icon, groupName, groupElement, labelElement,
+		map = {}, span;
+	
+	
+	for (type in iconData) {
+		icon = iconData[type];
 		
+		groupName = icon.group;
 		
-		for (type in iconData) {
-			icon = iconData[type];
+		groupElement = map[groupName];
+		
+		if (!groupElement) {
+			groupElement = document.createElement("ul");
 			
-			groupName = icon.group;
+			labelElement = document.createElement("li");
+			labelElement.textContent = groupName;
 			
-			groupElement = map[groupName];
+			df.appendChild(labelElement)
+			labelElement.appendChild(groupElement);
 			
-			if (!groupElement) {
-				groupElement = document.createElement("ul");
-				
-				labelElement = document.createElement("li");
-				labelElement.textContent = groupName;
-				
-				df.appendChild(labelElement)
-				labelElement.appendChild(groupElement);
-				
-				map[groupName] = groupElement;
-			}
-			
-			span = document.createElement("span");
-			span.textContent = type;
-			span.onclick = onSelectIcon.bind(undefined, type);
-			span.style.backgroundImage = "url("+ icon.src +")";
-			
-			groupElement
-				.appendChild(document.createElement("li"))
-				.appendChild(span);
+			map[groupName] = groupElement;
 		}
 		
-		return df;
+		span = document.createElement("span");
+		span.textContent = type;
+		span.onclick = onSelectIcon.bind(undefined, type);
+		span.style.backgroundImage = "url("+ icon.src +")";
+		
+		groupElement
+			.appendChild(document.createElement("li"))
+			.appendChild(span);
 	}
 	
-	function initialize() {
-		var iconData = {},
-			data, type;
-		
-		data = top.databases.icon.origin;
-		for (type in data) {
-			iconData[type] = data[type];
-		}
-		
-		data = top.databases.icon.data;
-		for (type in data) {
-			iconData[type] = data[type];
-		}
-		
-		list.appendChild(initIcon(iconData));
-		
-		document.body.classList.remove("loading");
-	};
-	
-}) (window);
+	return df;
+}
 
 		</script>
 	

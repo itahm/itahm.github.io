@@ -29,7 +29,7 @@
 var cursor = document.getElementById("cursor"),
 	deviceIP = top.databases.device.selected,
 	snmp = top.databases.snmp,
-	chartList = [],
+	chartList = {},
 	colorList = [
 		"#6d8764",
 		"#f0a30a",
@@ -40,6 +40,7 @@ var cursor = document.getElementById("cursor"),
 		"#008a00",
 		"#1ba1e2",
 	],
+	chartIndex,
 	colorLength = colorList.length,
 	colorIndex = 0,
 	max = 100;
@@ -58,8 +59,19 @@ document.getElementById("host").textContent = deviceIP;
 	window.start = date.setMonth(date.getMonth() -1)
 })(new Date());
 	
-(function (database) {
-	for (var index in window.snmp.hrProcessorEntry) {
+(function (entry) {
+	var chart;
+	
+	for (var index in entry) {
+		chart = document.createElement("iframe");
+		chart.className = "chart";
+		
+		window.chartList[index] = chart;
+		
+		document.body.insertBefore(chart, window.cursor);
+	}
+	
+	for (var index in entry) {
 		top.sendRequest({
 			command: "query",
 			ip: window.deviceIP,
@@ -68,16 +80,12 @@ document.getElementById("host").textContent = deviceIP;
 			index: index,
 			start: window.start,
 			end: window.end
-		}, onResponse);
+		}, onResponse.bind(undefined, index));
 	}
-}) ();
+}) (window.snmp.hrProcessorEntry);
 
-function onResponse(data) {
-	var chart = document.createElement("iframe");
-	
-	document.body.insertBefore(chart, window.cursor)
-	
-	chart.className = "chart";
+function onResponse(index, data) {
+	var chart = window.chartList[index];
 	
 	chart.onload = function () {
 		var chartWindow = this.contentWindow;
@@ -86,8 +94,6 @@ function onResponse(data) {
 		
 		chartWindow.initialize(new ITAhM.ChartSummaryData(data), window.max, window.colorList[window.colorIndex++ % window.colorLength]);
 		chartWindow.draw(window.today, window.end);
-		
-		window.chartList[window.chartList.length] = chartWindow;
 	}
 	
 	chart.src = "chart_base.html";
@@ -106,8 +112,8 @@ function onValueToString(value) {
 }
 
 function onResetDate(start, end) {
-	for (var i = 0, _i = window.chartList.length; i <  _i; i++) {
-		window.chartList[i].draw(start, end);
+	for (var index in window.chartList) {
+		window.chartList[index].contentWindow.draw(start, end);
 	}
 }
 

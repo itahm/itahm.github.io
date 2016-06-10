@@ -102,10 +102,10 @@ footer input {
 								placeholder="snmp community string" required>
 					</ul>
 				</div>
-				<label><input type="checkbox" name="remove">remove</label>
+				<label><input type="checkbox" name="remove" disabled>remove</label>
 				<footer>
-					<input type="reset" value="cancel">
-					<input type="submit" value="apply">
+					<input type="reset" class="r_button" value="cancel">
+					<input type="submit" class="r_button" value="apply">
 				</footer>
 			</form>
 		</div>
@@ -116,65 +116,71 @@ if (top === window) {
 	throw "";
 }
 
-(function (window, undefined) {
-	var form = document.querySelector("form");
+var form = document.querySelector("form");
+
+form.addEventListener("reset", onCancel);
+
+if (sessionStorage.level == 0) {
+	form.addEventListener("submit", onApply);
+}
+else {
+	document.querySelector("input[type=submit]").disabled = true;
+}
+
+/**
+ * callback method
+ */
+ function onApply(e) {
+	e.preventDefault();
 	
-	/**
-	 * callback method
-	 */
-	 function onApply(e) {
-		e.preventDefault();
-		
-		var name = form.elements.name.value;
-		
-		top.databases.profile.data[name] = {
-			name: name,
-			udp: form.elements.udp.value,
-			version: form.elements.version.value,
-			community: form.elements.community.value
-		};
-		
-		sync();
-	}
+	var name = form.elements.name.value;
 	
-	function onRemove(e) {
-		if (!confirm("remove profile?")) {
-			return;
-		}
-		
-		delete top.databases.profile.data[form.elements.name.value];
-		
-		sync();
-	}
-	
-	function onCancel(e) {
-		top.closeDialog(true);
-	}
-	
-	window.initialize = function (name) {
-		if (name) {
-			var profile = top.databases.profile.data[name];
-			
-			form.elements.name.value = name;
-			form.elements.name.disabled = true;
-			
-			form.elements.udp.value = profile.udp;
-			form.elements.version.value = profile.version;
-			form.elements.community.value = profile.community;
-			
-			form.elements.remove.onclick = onRemove;
-		}
-		else {
-			form.elements.name.focus();
-			
-			form.elements.remove.disabled = true;
-		}
-		
-		form.onsubmit = onApply;
-		form.onreset = onCancel;
+	top.databases.profile.data[name] = {
+		name: name,
+		udp: form.elements.udp.value,
+		version: form.elements.version.value,
+		community: form.elements.community.value
 	};
 	
-}) (window);
+	sync();
+}
+
+function onRemove(e) {
+	if (!confirm("remove profile?")) {
+		return;
+	}
+	
+	delete top.databases.profile.data[form.elements.name.value];
+	
+	sync();
+}
+
+function onCancel(e) {
+	top.closeDialog(true);
+}
+
+function initialize(name) {
+	if (name) {
+		window.profile = top.databases.profile.data[name];
+		
+		form.elements.name.value = name;
+		form.elements.name.disabled = true;
+		
+		form.elements.udp.value = profile.udp;
+		form.elements.version.value = profile.version;
+		form.elements.community.value = profile.community;
+		
+		if (sessionStorage.level == 0) {
+			form.elements.remove.onclick = onRemove;
+			form.elements.remove.disabled = false;
+		}
+	}
+	else {
+		form.elements.name.focus();
+		
+		form.elements.remove.disabled = true;
+	}
+}
 
 function sync() {
 	top.sendRequest({
