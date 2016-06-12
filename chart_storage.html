@@ -11,29 +11,23 @@
 @import "css/itahm.css";
 @import "css/chart.css";
 
-#legend {
-	text-align: right;
-}
 		</style>
 		
 	</head>
 	
 	<body>
+		
 		<header>
-			<a href="status.html">Close</a>
-			<h1>Storage Usage [<span id="host"></span>]</h1>
 			<h2 id="storage_name"></h2>
-			<div id="legend"></div>
 		</header>
+		
 		<iframe id="chart" class="chart"></iframe>
-		<iframe id="cursor" src="date_cursor.html"></iframe>
 		
 		<script src="js/ITAhM.js"></script>	
 		<script src="js/object.js"></script>
 		<script>
 
 var chart = document.getElementById("chart"),
-	cursor = document.getElementById("cursor"),
 	deviceIP = top.databases.device.selected,
 	resourceIndex = top.databases.device.resourceIndex,
 	snmp = top.databases.snmp;
@@ -41,15 +35,6 @@ var chart = document.getElementById("chart"),
 if(!deviceIP || !snmp) {
 	throw "!";
 }
-
-document.getElementById("host").textContent = deviceIP;
-
-(function (entry) {
-	window.max = entry.hrStorageSize * entry.hrStorageAllocationUnits;
-	
-	document.getElementById("legend").textContent = "Storage volume : "+ ITAhM.util.toBytesString(max);
-	document.getElementById("storage_name").textContent = entry.hrStorageDescr;
-})(snmp.hrStorageEntry[resourceIndex]);
 
 (function (date) {
 	date.setHours(0, 0, 0, 0);
@@ -59,7 +44,11 @@ document.getElementById("host").textContent = deviceIP;
 	window.start = date.setMonth(date.getMonth() -1);
 })(new Date());
 
-(function (entry) {
+function initialize() {
+	var entry = snmp.hrStorageEntry[resourceIndex];
+	
+	window.max = entry.hrStorageSize * entry.hrStorageAllocationUnits;
+	
 	top.sendRequest({
 		command: "query",
 		ip: window.deviceIP,
@@ -69,14 +58,10 @@ document.getElementById("host").textContent = deviceIP;
 		start: window.start,
 		end: window.end
 	}, onResponse);
-}) ();
-
-cursor.onload = function () {
-	var cursorWindow = cursor.contentWindow;
 	
-	cursorWindow.onResetDate = onResetDate;
+	document.getElementById("storage_name").textContent = entry.hrStorageDescr;
 	
-	cursorWindow.initialize(window.start, window.end, window.end, window.today);
+	setHeader("Storage Usage", "Storage volume : "+ ITAhM.util.toBytesString(max));
 }
 
 function onResponse(data) {
@@ -98,10 +83,6 @@ function onValueToString(value) {
 
 function onResetDate(start, end) {
 	window.chart.contentWindow.draw(start, end);
-}
-
-function onSelectDevice() {
-	location.href = "status.html";
 }
 
 		</script>

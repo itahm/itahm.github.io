@@ -24,6 +24,10 @@ line {
 	stroke-width: 2;
 }
 
+rect {
+	fill: rgba(0, 132, 255, .2);
+}
+
 image:hover,
 body.move image{
 	cursor: e-resize;
@@ -59,6 +63,7 @@ body:not(.initialized) {
 
 		<svg width="100%" height="100%">
 			<g id="base" transform="translate(0, 0)">
+				<rect y="-30" height="60"></rect>
 				<g>
 					<text id="top_text" transform="translate(0, -12)" />
 					<image id="top_cursor" xlink:href="img/cursor_top.png" transform="translate(-10, -12)" x="0" y="0" width="20" height="10" />
@@ -80,9 +85,10 @@ var MARGIN = 16,
 var svg = document.querySelector("svg"),
 	base = document.getElementById("base"),
 	line = document.querySelector("line"),
-	topCursor = document.getElementById("top_cursor"),
+	cursorArea = document.querySelector("rect")
+	cursorTop = document.getElementById("top_cursor"),
 	topText = document.getElementById("top_text"),
-	bottomCursor = document.getElementById("bottom_cursor"),
+	cursorBottom = document.getElementById("bottom_cursor"),
 	bottomText = document.getElementById("bottom_text");
 	
 document.onselectstart = function () {
@@ -110,12 +116,12 @@ new Draggable(document.body);
 		
 		base.transform.baseVal.getItem(0).setTranslate(MARGIN, rect.height /2);
 		
-		topX = Math.round(parseInt(topCursor.getAttributeNS(null, "x")) / ratio);
-		topCursor.setAttributeNS(null, "x", topX);
+		topX = Math.round(parseInt(cursorTop.getAttributeNS(null, "x")) / ratio);
+		cursorTop.setAttributeNS(null, "x", topX);
 		topText.setAttributeNS(null, "x", topX);
 		
-		bottomX = Math.round(parseInt(bottomCursor.getAttributeNS(null, "x")) / ratio);
-		bottomCursor.setAttributeNS(null, "x", bottomX);
+		bottomX = Math.round(parseInt(cursorBottom.getAttributeNS(null, "x")) / ratio);
+		cursorBottom.setAttributeNS(null, "x", bottomX);
 		bottomText.setAttributeNS(null, "x", bottomX);
 		
 		line.setAttributeNS(null, "x2", window.max = max);
@@ -126,45 +132,19 @@ new Draggable(document.body);
 		
 		window.target = event.target;
 		
-		window.origin = parseInt(target.getAttributeNS(null, "x"));
+		window.topOrigin = parseInt(window.cursorTop.getAttributeNS(null, "x"));
+		window.bottomOrigin = parseInt(window.cursorBottom.getAttributeNS(null, "x"));
+		window.areaOrigin = parseInt(window.cursorArea.getAttributeNS(null, "x"));
 		
 		document.body.classList.add("move");
 	});
 	
-	document.body.addEventListener("dragmove", function (e) {
-		var event = e.detail,
-			x = origin + event.dragX;
-		
-		if (x < 0) {
-			x = 0;
-		}
-		else if (x > max) {
-			x = max;
+	document.body.addEventListener("dragmove", function (e) { 
+		if (moveCursor(Math.round(e.detail.dragX / window.days) * window.days)) {
+			onResetDate();
 		}
 		
-		if (target === topCursor) {
-			var topDate = window.topDate;
-			
-			moveTopCursor(x);
-			
-			if (topDate == window.topDate) {
-				return;
-			}
-		}
-		else if (target === bottomCursor) {
-			var bottomDate = window.bottomDate;
-			
-			moveBottomCursor(x);
-			
-			if (bottomDate == window.bottomDate) {
-				return;
-			}
-		}
-		else {
-			return;
-		}
-		
-		onResetDate();
+		moveCursorArea();
 	});
 	
 	document.body.addEventListener("dragend", function (e) {
@@ -188,6 +168,16 @@ new Draggable(document.body);
 	
 }) (window);
 
+function calcDate(x) {
+	var date = new Date(window.start + (x / window.max) * window.period);
+	
+	return date.setHours(0, 0, 0, 0);
+}
+
+function calcPosition(mills) {
+	return window.max * (mills - window.start) / window.period;
+}
+
 function setDate(text, x) {
 	var date = new Date(start + (x / max) * period),
 		dateText = MONTH[date.getMonth()] +" "+ date.getDate();
@@ -201,28 +191,100 @@ function getPosition(mills) {
 	return Math.ceil(window.max * (mills - window.start) / window.period);
 }
 
-function moveTopCursor(x) {
+function moveCursor(dragX) {	
+	if (window.target === window.cursorTop) {
+		var topDate = window.topDate,
+			x = window.topOrigin + dragX;
+		
+		if (dragX < 0) {
+			x = Math.max(0, x);
+		}
+		else if (dragX > 0) {
+			x = Math.min(window.max, x);
+		}
+		
+		moveCursorTop(x);
+		
+		if (topDate != window.topDate) {
+			return true;
+		}
+	}
+	else if (window.target === window.cursorBottom) {
+		var bottomDate = window.bottomDate,
+			x = window.bottomOrigin + dragX;
+		
+		if (dragX < 0) {
+			x = Math.max(0, x);
+		}
+		else if (dragX > 0) {
+			x = Math.min(window.max, x);
+		}
+		
+		moveCursorBottom(x);
+		
+		if (bottomDate != window.bottomDate) {
+			return true;
+		}
+	}
+	else if (window.target === window.cursorArea) {
+		var topDate = window.topDate,
+			bottomDate = window.bottomDate;
+		
+		if (dragX < 0) {
+			dragX = - Math.min(Math.abs(dragX), Math.min(window.topOrigin, window.bottomOrigin))
+		}
+		else if (dragX > 0) {
+			dragX = Math.min(dragX, window.max - Math.max(window.topOrigin, window.bottomOrigin))
+		}
+		
+		moveCursorTop(window.topOrigin + dragX);
+		moveCursorBottom(window.bottomOrigin + dragX);
+		
+		if (topDate != window.topDate || bottomDate != window.bottomDate) {
+			return true;
+		}
+	}
+}
+
+function moveCursorTop(x) {
+	//x = calcPosition(calcDate(x));
+	//console.log(x, calcPosition(calcDate(x)));
 	window.topText.setAttributeNS(null, "x", x);
-	window.topCursor.setAttributeNS(null, "x", x);
+	window.cursorTop.setAttributeNS(null, "x", x);
 	window.topDate = setDate(window.topText, x);
 	
 	document.body.classList[x > window.max /2? "add": "remove"]("top_reverse");
 }
 
-function moveBottomCursor(x) {
+function moveCursorBottom(x) {
+	//x = calcPosition(calcDate(x));
+	
 	window.bottomText.setAttributeNS(null, "x", x);
-	window.bottomCursor.setAttributeNS(null, "x", x);
+	window.cursorBottom.setAttributeNS(null, "x", x);
 	window.bottomDate = setDate(bottomText, x);
 	
 	document.body.classList[x > window.max /2? "add": "remove"]("bottom_reverse");
 }
 
+function moveCursorArea() {
+	var x1 = parseInt(window.cursorTop.getAttributeNS(null, "x")),
+		x2 = parseInt(window.cursorBottom.getAttributeNS(null, "x"));
+	
+	window.cursorArea.setAttributeNS(null, "x", Math.min(x1, x2));
+	window.cursorArea.setAttributeNS(null, "width", Math.abs(x1 - x2));
+}
+
 function initialize(start, end, top, bottom) {
+	var date = new Date();
+	
 	window.start = start;
 	window.period = end - start;
 	
-	moveTopCursor(getPosition(top));
-	moveBottomCursor(getPosition(bottom));
+	window.days = period / (date.getTime() - date.setDate(date.getDate() -1));
+	console.log(days);
+	moveCursorTop(getPosition(top));
+	moveCursorBottom(getPosition(bottom));
+	moveCursorArea();
 	
 	document.body.classList.add("initialized");
 }

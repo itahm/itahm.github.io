@@ -16,18 +16,12 @@
 	</head>
 	
 	<body>
-		<header>
-			<a href="status.html">Close</a>
-			<h1>Processor load [<span id="host"></span>]</h1>
-		</header>
-		<iframe id="cursor" src="date_cursor.html"></iframe>
 		
 		<script src="js/ITAhM.js"></script>	
 		<script src="js/object.js"></script>
 		<script>
 
-var cursor = document.getElementById("cursor"),
-	deviceIP = top.databases.device.selected,
+var deviceIP = top.databases.device.selected,
 	snmp = top.databases.snmp,
 	chartList = {},
 	colorList = [
@@ -49,8 +43,6 @@ if(!deviceIP || !snmp) {
 	throw "!";
 }
 
-document.getElementById("host").textContent = deviceIP;
-
 (function (date) {
 	date.setHours(0, 0, 0, 0);
 	
@@ -58,9 +50,11 @@ document.getElementById("host").textContent = deviceIP;
 	window.end = date.setDate(date.getDate() +1);
 	window.start = date.setMonth(date.getMonth() -1)
 })(new Date());
-	
-(function (entry) {
-	var chart;
+
+function initialize() {
+	var entry = window.snmp.hrProcessorEntry,
+		df = document.createDocumentFragment(),
+		chart;
 	
 	for (var index in entry) {
 		chart = document.createElement("iframe");
@@ -68,8 +62,11 @@ document.getElementById("host").textContent = deviceIP;
 		
 		window.chartList[index] = chart;
 		
-		document.body.insertBefore(chart, window.cursor);
+		df.appendChild(chart);
 	}
+	
+	//document.body.insertBefore(df, document.body.firstChild);
+	document.body.appendChild(df);
 	
 	for (var index in entry) {
 		top.sendRequest({
@@ -82,7 +79,9 @@ document.getElementById("host").textContent = deviceIP;
 			end: window.end
 		}, onResponse.bind(undefined, index));
 	}
-}) (window.snmp.hrProcessorEntry);
+	
+	setHeader("Process load", "");
+}
 
 function onResponse(index, data) {
 	var chart = window.chartList[index];
@@ -99,14 +98,6 @@ function onResponse(index, data) {
 	chart.src = "chart_base.html";
 }
 
-cursor.onload = function () {
-	var cursorWindow = cursor.contentWindow;
-	
-	cursorWindow.onResetDate = onResetDate;
-	
-	cursorWindow.initialize(window.start, window.end, window.end, window.today);
-}
-
 function onValueToString(value) {
 	return value.toFixed(2) +"%";
 }
@@ -117,8 +108,8 @@ function onResetDate(start, end) {
 	}
 }
 
-function onSelectDevice() {
-	location.href = "status.html";
+//abstract
+function setHeader(host, legend) {
 }
 
 		</script>

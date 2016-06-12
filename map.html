@@ -121,8 +121,6 @@ iframe {
 			location.href = "status.html";
 		}
 		
-		map.getDevice = getDevice;
-		
 		map.getIcon = function (type) {
 			var iconData = top.databases.icon;
 			
@@ -143,15 +141,11 @@ iframe {
 	}
 
 	function onSelectDevice(ip) {
-		var device = getDevice(ip);
+		var device = top.databases.device.data[ip];
 		
 		map.moveAllDevice(- device.x, - device.y);
 		
 		map.selectDevice(ip);
-	}
-	
-	function getDevice(ip) {
-		return top.databases.device.data[ip];
 	}
 	
 	</script>

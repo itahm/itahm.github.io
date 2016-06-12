@@ -29,3 +29,7 @@ header a {
 #cursor {
 	height: 60px;
 }
+
+#legend {
+	text-align: right;
+}

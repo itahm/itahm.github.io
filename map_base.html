@@ -160,7 +160,6 @@ var svgNS = "http://www.w3.org/2000/svg",
 		event = ITAhM.util.createCustomEvent("link", eventData),
 		transform = document.getElementById("transform").transform.baseVal,
 		scale = 1,
-		selectedDevice,
 		selectedSvgDevice,
 		cancelSelect = false,
 		dragOrigin;
@@ -205,7 +204,7 @@ var svgNS = "http://www.w3.org/2000/svg",
 		var data = e.detail,
 			target = data.target;
 		
-		if (selectedDevice) {
+		if (window.selectedDevice) {
 			dragOrigin = {
 				x: selectedDevice.x,
 				y: selectedDevice.y
@@ -232,7 +231,7 @@ var svgNS = "http://www.w3.org/2000/svg",
 			
 			moveSelectionMark(x, y);
 			
-			moveDevice(selectedDevice.ip, x, y);
+			moveDevice(window.selectedDevice.ip, x, y);
 		}
 		else if (target === linkAnchor) {
 			var destination = data.destination,
@@ -267,7 +266,7 @@ var svgNS = "http://www.w3.org/2000/svg",
 			restoreLinkAnchor();
 			
 			if (isDevice(destination) &&  destination !== selectedSvgDevice) {
-				eventData.peer = selectedDevice;
+				eventData.peer = window.selectedDevice;
 				
 				destination.dispatchEvent(event);
 			}
@@ -278,7 +277,7 @@ var svgNS = "http://www.w3.org/2000/svg",
 	}
 	
 	window.moveAllDevice = function (x, y) {
-		if (selectedDevice) {
+		if (window.selectedDevice) {
 			moveSelectionMark(selectedDevice.x + x, selectedDevice.y + y);
 		}
 		
@@ -294,7 +293,7 @@ var svgNS = "http://www.w3.org/2000/svg",
 		else {
 			clearSelectionMark();
 			
-			selectedDevice = undefined;
+			window.selectedDevice = undefined;
 		}
 	}
 	
@@ -303,7 +302,7 @@ var svgNS = "http://www.w3.org/2000/svg",
 			cancelSelect = false;
 		}
 		else {
-			selectedDevice = getDevice(ip);
+			window.selectedDevice = getDevice(ip);
 			selectedSvgDevice = getSvgDevice(ip);
 // 있으면 안돼는 일이지만 데이터 잘못 들어갔을때 삭제라도 할수있게 임시. 
 try {
@@ -320,10 +319,6 @@ catch(e) {
 
 		}
 	}
-	
-	window.getSelectedDevice = function () {
-		return selectedDevice;
-	};
 
 }) (window);
 
@@ -521,13 +516,13 @@ catch(e) {
 		fragment = document.createDocumentFragment();
 		
 	chartAnchor.onclick = function (e) {
-		onShowChart(getSelectedDevice());
+		onShowChart(window.selectedDevice);
 		
 		e.stopPropagation();
 	};
 	
 	editAnchor.onclick = function (e) {
-		onEditDevice(getSelectedDevice());
+		onEditDevice(window.selectedDevice);
 		
 		e.stopPropagation();
 	};
@@ -710,10 +705,14 @@ function displayIFName(show) {
 	document.body.classList[show? "add": "remove"]("ifname");
 }
 
+function getDevice(ip) {
+	return top.databases.device.data[ip];
+}
+
 function onEditDevice(device) {	
 }
 
-function onShowChart(ip) {
+function onShowChart(device) {
 }
 
 resize();

@@ -20,20 +20,14 @@
 	</head>
 	
 	<body>
-		<header>
-			<a href="status.html">Close</a>
-			<h1>Physical memory [<span id="host"></span>]</h1>
-			<div id="legend"></div>
-		</header>
+	
 		<iframe id="chart" class="chart"></iframe>
-		<iframe id="cursor" src="date_cursor.html"></iframe>
 		
 		<script src="js/ITAhM.js"></script>	
 		<script src="js/object.js"></script>
 		<script>
 
 var chart = document.getElementById("chart"),
-	cursor = document.getElementById("cursor"),
 	deviceIP = top.databases.device.selected,
 	resourceIndex = top.databases.device.resourceIndex,
 	snmp = top.databases.snmp;
@@ -42,15 +36,7 @@ if(!deviceIP || !snmp) {
 	throw "!";
 }
 
-document.getElementById("host").textContent = deviceIP;
-
-(function (entry) {
-	window.max = entry.hrStorageSize * entry.hrStorageAllocationUnits;
-	
-	document.getElementById("legend").textContent = "Memory capacity : "+ ITAhM.util.toBytesString(max);
-})(snmp.hrStorageEntry[resourceIndex]);
-
-(function (date) {
+(function initDate(date) {
 	date.setHours(0, 0, 0, 0);
 	
 	window.today = date.getTime();
@@ -58,7 +44,13 @@ document.getElementById("host").textContent = deviceIP;
 	window.start = date.setMonth(date.getMonth() -1);
 })(new Date());
 
-(function (entry) {
+function initialize() {
+	var entry = snmp.hrStorageEntry[resourceIndex];
+
+	window.max = entry.hrStorageSize * entry.hrStorageAllocationUnits;
+	
+	setHeader("Physical memory", "Memory capacity : "+ ITAhM.util.toBytesString(max));
+	
 	top.sendRequest({
 		command: "query",
 		ip: window.deviceIP,
@@ -68,18 +60,10 @@ document.getElementById("host").textContent = deviceIP;
 		start: window.start,
 		end: window.end
 	}, onResponse);
-}) ();
-
-cursor.onload = function () {
-	var cursorWindow = cursor.contentWindow;
-	
-	cursorWindow.onResetDate = onResetDate;
-	
-	cursorWindow.initialize(window.start, window.end, window.end, window.today);
 }
 
 function onResponse(data) {
-	chart.onload = function () {
+	window.chart.onload = function () {
 		var chartWindow = this.contentWindow;
 		
 		chartWindow.onValueToString = onValueToString;
@@ -88,7 +72,7 @@ function onResponse(data) {
 		chartWindow.draw(window.today, window.end);
 	};
 	
-	chart.src="chart_base.html";
+	window.chart.src="chart_base.html";
 }
 
 function onValueToString(value) {
@@ -99,10 +83,9 @@ function onResetDate(start, end) {
 	window.chart.contentWindow.draw(start, end);
 }
 
-function onSelectDevice() {
-	location.href = "status.html";
+//abstract
+function setHeader(host, legend) {
 }
-
 		</script>
 	
 	</body>

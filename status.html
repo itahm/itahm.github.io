@@ -54,7 +54,7 @@ if (window.device.shutdown) {
 	document.body.classList.add("shutdown");
 }
 
-(function (window, undefined) {
+(function () {
 	var status = document.getElementById("status"),
 		statusWindow = status.contentWindow;
 
@@ -72,16 +72,26 @@ if (window.device.shutdown) {
 		});
 	};
 
-})(window);	
+})();	
 
 function onSelectResource(resource, index) {
+	top.databases.device.selectedResource = resource;
 	top.databases.device.resourceIndex = index;
 	
-	location.href = "chart_"+ resource +".html";
+	location.href = "chart.html";
 }
 
 function onSelectDevice(ip) {
-	location.reload();
+	var device = top.databases.device.data[ip];
+	
+	if (device.snmp) {
+		top.databases.device.selected = ip;
+		
+		location.reload();
+	}
+	else {
+		alert("SNMP is not enabled for "+ ip);
+	}
 }
 
 	</script>

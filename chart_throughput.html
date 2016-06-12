@@ -33,8 +33,6 @@ h3.output {
 	
 	<body>
 		<header>
-			<a href="status.html">Close</a>
-			<h1>Interface throughput [<span id="host"></span>]</h1>
 			<h2 id="if_name"></h2>
 			<div id="legend"></div>
 		</header>
@@ -50,7 +48,6 @@ h3.output {
 
 var chartIn = document.getElementById("chart_in"),
 	chartOut = document.getElementById("chart_out"),
-	cursor = document.getElementById("cursor"),
 	deviceIP = top.databases.device.selected,
 	resourceIndex = top.databases.device.resourceIndex,
 	snmp = top.databases.snmp;
@@ -59,14 +56,29 @@ if(!deviceIP || !resourceIndex || !snmp) {
 	throw "!";
 }
 
-document.getElementById("host").textContent = deviceIP;
-
-(function (entry) {
+function initialize() {
+	var entry = snmp.ifEntry[resourceIndex],
+		request = {
+				command: "query",
+				ip: window.deviceIP,
+				summary: true,
+				index: resourceIndex,
+				start: window.start,
+				end: window.end
+			};
+	
 	window.max = entry.ifSpeed;
 	
-	document.getElementById("legend").textContent = "bandwidth : "+ ITAhM.util.toBPSString(max);
 	document.getElementById("if_name").textContent = entry.ifName;
-})(snmp.ifEntry[resourceIndex]);
+	
+	request.database = "ifInOctets";
+	top.sendRequest(request, onResponse);
+	
+	request.database = "ifOutOctets";
+	top.sendRequest(request, onResponse);
+	
+	setHeader("Interface throughput", "bandwidth : "+ ITAhM.util.toBPSString(max));
+}
 
 (function (date) {
 	date.setHours(0, 0, 0, 0);
@@ -75,31 +87,6 @@ document.getElementById("host").textContent = deviceIP;
 	window.end = date.setDate(date.getDate() +1);
 	window.start = date.setMonth(date.getMonth() -1);
 })(new Date());
-
-(function (entry) {
-	var request = {
-			command: "query",
-			ip: window.deviceIP,
-			summary: true,
-			index: resourceIndex,
-			start: window.start,
-			end: window.end
-		};
-	
-	request.database = "ifInOctets";
-	top.sendRequest(request, onResponse);
-	
-	request.database = "ifOutOctets";
-	top.sendRequest(request, onResponse);
-}) ();
-
-cursor.onload = function () {
-	var cursorWindow = cursor.contentWindow;
-	
-	cursorWindow.onResetDate = onResetDate;
-	
-	cursorWindow.initialize(window.start, window.end, window.end, window.today);
-}
 
 function onResponse(data) {
 	chartIn.onload = function () {
@@ -133,8 +120,8 @@ function onResetDate(start, end) {
 	window.chartOut.contentWindow.draw(start, end);
 }
 
-function onSelectDevice() {
-	location.href = "status.html";
+//abstract
+function setHeader(host, label) {
 }
 
 		</script>

@@ -7,700 +7,94 @@
 		<title>ITAhM</title>
 		
 		<style>
+
 @import url("css/itahm.css");
-@import url("css/calendar.css");
+@import url("css/chart.css");
 
-#cal_box {
-	text-align: right;
-	position: absolute; bottom: 0;
+#chart {
+	flex: 1;
 }
-
-#cal_box.start  {
-	left: 0;
-}
-
-#cal_box.end  {
-	right: 0;
-}
-
-#cal_box:not(.show) {
-	display: none;
-}
-
-.calendar {
-	background-color: #fff;
-	border: 1px solid #0084ff;
-	padding: 3px;
-}
-
-svg {
-	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
-	width: 100%;
-	height: 100%;
-	min-width: 600px;
-	min-height: 400px;
-}
-
-text {
-	fill: #456;
-	font-size: 10pt;
-}
-
-#grid path {
-	stroke: #ddd;
-	stroke-width: .5;
-	fill: none;
-}
-
-/* graph 기본 및 색상*/
-#graph path {
-	stroke: #fc0;
-	stroke-width: 2;
-	fill: none;
-}
-
-#graph path:hover {
-	cursor: pointer;
-}
-
-#graph path[class="0"] {stroke: #0084ff;}
-#graph path[class="1"] {stroke: #dd3232;}
-#graph path[class="2"] {stroke: #969a52;}
-#graph path[class="3"] {stroke: #0065a9;}
-#graph path[class="4"] {stroke: #805462;}
-#graph path[class="5"] {stroke: #00919c;}
-#graph path[class="6"] {stroke: #ffef6c;}
-#graph path[class="7"] {stroke: #572c29;}
-#graph path[class="8"] {stroke: #b38e50;}
-#graph path[class="9"] {stroke: #ffb6ad;}
-#graph path[class="10"] {stroke: #fbaf5f;}
-#graph path.ifInOctets {stroke: #7d7;}
-#graph path.ifOutOctets {stroke: #ffb347;}
-
-#axis_left text {
-	text-anchor: end;
-}
-
-#axis_date text {
-	writing-mode: tb;
-}
-
-#date_text tspan:first-child,
-#date_text tspan:last-child {
-	font-weight: bold;
-	fill: #0084ff;
-	cursor: pointer;
-}
-
-#date_text tspan:first-child:hover {
-	cursor: pointer;
-}
-
-nav {
-	position: fixed; right: 0; bottom: 0; left: 0;
-	display: flex;
-	justify-content: space-between;
-}
-
-nav img {
-	background-color: #fff;
-}
-
-nav label {
-	position:relative;
-}
-
-nav input[type="checkbox"] {
-	position:absolute;
-	visibility: hidden;
-}
-	
-nav input[type="checkbox"]:not(:checked) ~img:not(.lock),
-nav input[type="checkbox"]:checked ~img.lock {
-	display: none;
-}
-
 		</style>
 		
 	</head>
 	
 	<body>
 		
-		<svg id="chart">
-			<g transform="translate(20, 20)">
-		        <g transform="translate(0, 0)" id="axis_date">
-		        	<text id="date_text"></text>
-		        </g>
-		        <g transform="translate(0, 0) scale(1 -1)" id="graph"></g>
-		        <g transform="translate(0, 0)" id="axis_left"></g>
-				<g transform="translate(0, 0)" id="axis_right"></g>
-		        <g transform="translate(0, 0)" id="grid"></g>
-		    </g>
-		</svg>
+		<header>
+			<a href="status.html">Close</a>
+			<h1 id="host">resource[host]</h1>
+			<div id="legend">legend</div>
+		</header>
 		
-		<nav>
-			<div>
-				<div id="cal_box">
-					<img id="cal_close" src="img/close.png">
-					<div id="calendar" class="calendar"></div>
-				</div>
-				<label style="">
-					<input type="checkbox" id="fix_start" checked>
-					<img src="img/unlock.png">
-					<img src="img/lock_gray.png" class="lock">
-				</label>
-				<img id="cal_start" src="img/calendar.png" title="show date picker">
-			</div>
-			<div>
-				<img id="cal_end" src="img/calendar.png" title="show date picker">
-				<label>
-					<input type="checkbox" id="fix_end" checked>
-					<img src="img/unlock.png">
-					<img src="img/lock_gray.png" class="lock">
-				</label>
-			</div>
-		</nav>
+		<iframe id="chart" class="chart"></iframe>
+		
+		<iframe id="cursor"></iframe>
+		
 		<script src="js/ITAhM.js"></script>
-		<script src="js/object.js"></script>
-		<script src="js/Draggable.js"></script>
 		<script>
 
 if (parent === window) throw "";		
 
-// 공통
-var svgNS = "http://www.w3.org/2000/svg",
-	xlinkNS = "http://www.w3.org/1999/xlink",
-	MIN_AXIS_VSPACE = 40,
-	MIN_AXIS_HSPACE = 160,
-	MAX_AXIS_VAL_CNT = 10,
-	DATE_AXIS_HEIGHT = 80,
-	MARGIN = 20,
-	PADDING = 5,
-	WHEEL_REPEAT = 50,
-	HOUR24 = 24 * 60 * 60 * 1000;
+var deviceIP = top.databases.device.selected,
+	resourceIndex = top.databases.device.resourceIndex,
+	snmp = top.databases.snmp;
 
-function clear(svgElement) {
-	var element;
+(function (date) {
+	date.setHours(0, 0, 0, 0);
 	
-	while(element = svgElement.firstChild) {
-		svgElement.removeChild(element);
+	window.today = date.getTime();
+	window.end = date.setDate(date.getDate() +1);
+	window.start = date.setMonth(date.getMonth() -1);
+})(new Date());
+
+(function () {
+	var chart = document.getElementById("chart");
+	
+	chart.onload = function () {
+		var chartWindow = this.contentWindow;
+		
+		chartWindow.setHeader = function (host, legend) {
+			document.getElementById("host").textContent = host +" ["+ deviceIP +"]";
+			document.getElementById("legend").textContent = legend;
+		};
+		
+		chartWindow.initialize();
+	};
+	
+	chart.src = "chart_"+ top.databases.device.selectedResource +".html";
+}) ();
+
+(function () {
+	var cursor = document.getElementById("cursor");
+
+	cursor.onload = function () {
+		var cursorWindow = cursor.contentWindow;
+		
+		cursorWindow.onResetDate = onResetDate;
+		
+		cursorWindow.initialize(window.start, window.end, window.end, window.today);
+	}
+	
+	cursor.src = "date_cursor.html";
+}) ();
+
+function onResetDate(start, end) {
+	chart.contentWindow.onResetDate(start, end);
+}
+
+function onSelectDevice(ip) {
+	var device = top.databases.device.data[ip];
+	
+	if (device.snmp) {
+		top.databases.device.selected = ip;
+		
+		location.reload();
+	}
+	else {
+		alert("SNMP is not enabled for "+ ip);
 	}
 }
 
-function createSvgText(x, y, text) {
-	var svgText = document.createElementNS(svgNS, "text");
-	
-	svgText.setAttributeNS(null, "x", x);
-	svgText.setAttributeNS(null, "y", y);
-	svgText.textContent = text;
-	
-	return svgText;
-}
-
-function createSvgTextSpan(x, y, text) {
-	var svgText = document.createElementNS(svgNS, "tspan");
-	
-	svgText.setAttributeNS(null, "x", x);
-	svgText.setAttributeNS(null, "y", y);
-	svgText.textContent = text;
-	
-	return svgText;
-}
-
-// core
-(function (window, undefined) {
-	var chart = document.getElementById("chart"),
-		fixStart = document.getElementById("fix_start"),
-		fixEnd = document.getElementById("fix_end"),
-		calendar = document.getElementById("cal_box"),
-		initialized = false,
-		origin, mode, capacity;
-		
-	var rect = {},
-		resizeTimer,
-		start, end, moved, tpp,
-		data;
-	
-	function initialize() {
-		initialized = true;
-		
-		var r = chart.getBoundingClientRect();
-		
-		rect = {
-			width: r.width - MARGIN *2,
-			height: r.height - MARGIN *2 - DATE_AXIS_HEIGHT
-		};
-		
-		window.addEventListener("resize", function () {
-			if (resizeTimer) {
-				clearTimeout(resizeTimer);
-			}
-			
-			resizeTimer = setTimeout(onResize, 300);
-		});
-		
-		document.addEventListener("selectstart", function (e) {
-			e.preventDefault();
-		});
-		
-		new Draggable(chart);
-		
-		chart.addEventListener("dragstart", function (e) {
-			onDragStart(e);
-		});
-		
-		chart.addEventListener("dragmove", function (e) {
-			onDragMove(e);
-		});
-		
-		chart.addEventListener("dragend", function (e) {
-			drawDetailGraph();
-		});
-		
-		document.getElementById("cal_start").onclick = function () {
-			calendar.className = "show start";
-		};
-		
-		document.getElementById("cal_end").onclick = function () {
-			calendar.className = "show end";
-		};
-		
-		document.getElementById("cal_close").onclick = function () {
-			calendar.className = "";
-		};
-		
-		new ITAhM.Calendar("calendar", function (date) {
-			var mills = date.getTime();
-			
-			if (calendar.classList.contains("start")) {
-				if (mills >= end) {
-					alert("invalid date range.");
-					
-					return;
-				}
-				
-				start = mills;
-			}
-			else if (calendar.classList.contains("end")) {
-				if (mills <= start) {
-					alert("retry!");
-					
-					return;
-				}
-				
-				end = mills;
-			}
-			else {
-				return;
-			}
-			
-			tpp = (end - start) / rect.width;
-			
-			writeDateLabel(start, end);
-			
-			drawSummaryGraph(origin, capacity);
-			
-			calendar.className = "";
-		});
-	}
-	
-	function onResize() {
-		var r = chart.getBoundingClientRect(),
-			width = r.width - MARGIN *2,
-			height = r.height - MARGIN *2 - DATE_AXIS_HEIGHT;
-	
-		//window resize 발생 했으나 chart 크기 변화는 없음
-		if (width === rect.width && height === rect.height) {
-			return;
-		}
-		
-		rect = {
-			width: width,
-			height: height
-		};
-		
-		// resize시 start와 end는 변함 없지만 width의 변화로 인해 tpp는 다시 계산되어야 함.
-		tpp = (end - start) / width;
-		
-		writeDateLabel(start, end);
-		
-		drawGrid();
-		
-		drawSummaryGraph(origin, capacity);
-	}
-	
-	function invalidate() {
-		
-	}
-	
-	function onDragStart(e) {
-		moved = 0;
-	}
-	
-	function onDragMove(e) {
-		var drag = tpp * e.detail.dragX,
-			move = Math.abs(moved - drag),
-			direction = moved > drag? -1: 1,
-			restoreStart = start, restoreEnd = end;
-		
-		if (move < 3600000) {
-			return;
-		}
-		
-		move = new Date(move).setMinutes(0, 0, 0) * direction;
-		
-		if (fixStart.checked) {
-			start -= move;
-		}
-		
-		if (fixEnd.checked) {
-			end -= move;
-		}
-		
-		if (end - start === 3600000) {
-			start = restoreStart;
-			end = restoreEnd;
-			
-			return;
-		}
-		
-		moved += move;
-		
-		tpp = (end - start) / rect.width;
-		
-		writeDateLabel(start, end);
-		
-		drawSummaryGraph(origin, capacity, true);
-	}
-	
-	window.buildData = function (source) {
-		var data = {},
-			tmp;
-	
-		for (var index in source) {
-			tmp = source[index].buildData(start, end);
-			
-			if (!tmp) {
-				return;
-			}
-			
-			data[index] = tmp;
-		}
-		
-		return data;
-	};
-	
-	window.drawDetailGraph = function () {
-		if (tpp < 60000) {
-			onDrawDetailGraph(start, end);
-		}
-	};
-	
-	window.getCoordinates = function (source, date, index) {
-		var y = source[index].get(date);
-		
-		return {
-			x: (date - start) / tpp,
-			// summary data 이면 mode 값(max, avg, min) detail data 이면 값 자신
-			y: isNaN(y)? y[mode]: y
-		}
-	};
-	
-	window.getRect = function () {
-		return rect;
-	};
-	
-	// chart 초기화
-	window.initChart = function (o, m, c, f) {
-		var date = new Date(),
-			tmp;
-		
-		if (!initialized) {
-			initialize();
-		}
-		
-		origin = o;
-		mode = m;
-		capacity = c;
-		window.valueToString = f;
-		
-		// data rebuild는 최초, 시간의 변경시 발생함
-		start = date.setHours(0, 0, 0, 0);
-		end = date.setDate(date.getDate() +1);
-		
-		tpp = (end - start) / rect.width;
-		
-		drawGrid();
-		
-		writeDateLabel(start, end);
-		
-		drawSummaryGraph(origin, capacity);
-	};
-	
-	window.mode = function (m) {
-		mode = m;
-		
-		drawSummaryGraph(origin, capacity);
-	};
-	/*
-	window.initialize = function () {
-		var r = chart.getBoundingClientRect();
-		
-		rect = {
-			width: r.width - MARGIN *2,
-			height: r.height - MARGIN *2 - DATE_AXIS_HEIGHT
-		};
-		
-		drawGrid();
-		
-		initialize();
-	};
-	*/
-}) (window);
-
-// axis
-(function (window, undefined) {
-	var leftAxis = document.getElementById("axis_left"),
-		rightAxis = document.getElementById("axis_right"),
-		dateAxis = document.getElementById("axis_date"),
-		leftAxisOffset = leftAxis.transform.baseVal.getItem(0),
-		rightAxisOffset = rightAxis.transform.baseVal.getItem(0),
-		dateAxisOffset = dateAxis.transform.baseVal.getItem(0),
-		dateText = document.getElementById("date_text"),
-		data;
-	
-	function initialize() {
-	}
-	
-	window.setDateAxis = function (width, height) {
-		dateAxisOffset.setTranslate(0, height);
-	};
-	
-	window.writeDateLabel = function (start, end) {
-		var width = getRect().width,
-			space = width,
-			tpp = (end - start) / width,
-			text;
-		
-		clear(dateText);
-		
-		while (space > MIN_AXIS_HSPACE) {
-			space /= 2;
-		}
-		
-		for (var x=0, x; x<=width; x += space ) {
-			text = createSvgTextSpan(x, 0, "▲"+ ITAhM.util.toDateFormatString(new Date(start + x * tpp)));
-			
-			dateText.appendChild(text);
-		}
-	};
-	
-	window.clearAxis = function (high, low, capacity) {
-		clear(leftAxis);
-		clear(rightAxis);
-	};
-	
-	window.drawAxis = function (high, low, capacity) {
-		var	rect = getRect(),
-			count = Math.min(MAX_AXIS_VAL_CNT, Math.round(rect.height / MIN_AXIS_VSPACE)),
-			grow = (high - low) / count,
-			space = rect.height / count,
-			valueArray = [];
-		
-		for (var i=0; i<=count; i++) {
-			leftAxis.appendChild(createSvgText(0, space * i, valueToString(high - i * grow)));
-		}
-		
-		rect.left = leftAxis.getBBox().width;
-		leftAxisOffset.setTranslate(rect.left, 0);
-		
-		if (capacity) {
-			high = high / capacity *100;
-			low = low / capacity *100;
-			grow = (high - low) / count;
-			
-			for (var i=0; i<=count; i++) {
-				rightAxis.appendChild(createSvgText(0, space * i, (high - i * grow).toFixed(2) +"%"));
-			}
-			
-			rect.right = rightAxis.getBBox().width;
-			rightAxisOffset.setTranslate(rect.width - rect.right, 0);
-		}
-	};
-	
-	initialize();
-	
-}) (window);
-	
-//graph
-(function (window, undefined) {
-	var graph = document.getElementById("graph"),
-		offset = graph.transform.baseVal.getItem(0),
-		scale = graph.transform.baseVal.getItem(1),
-		high, low,
-		rect;
-	
-	function draw(origin, capacity) {
-		var data = buildData(origin),
-			max = [], min = [];
-
-		clearAxis();
-		
-		if (!data) {
-			return;
-		}
-		
-		for (var index in data) {
-			max[max.length] = data[index].high;
-			min[min.length] = data[index].low;
-		}
-		
-		high = Math.max.apply(undefined, max);
-		low = Math.min.apply(undefined, min);
-		
-		for (var index in data) {
-			drawEachGraph(origin, data[index].keys, index);
-		}
-		
-		drawAxis(high, low, capacity);
-		
-		return true;
-	}
-	
-	function drawEachGraph(source, blocks, index) {
-		var path,
-			unit = rect.height / (high - low),
-			x, y, lastX, value,
-			dateArray, date, coords,
-			result = {};
-		
-		path = new ITAhM.Path(graph);
-		
-		path.beginPath();
-		path.set("class", isNaN(index)? index: index % 10);
-		
-		for (var i=0, _i=blocks.length; i<_i; i++) {
-			dateArray = blocks[i];
-			
-			date = dateArray[0];
-			
-			coords = getCoordinates(source, date, index);
-			
-			value = coords.y;
-			
-			result[date] = value;
-			
-			y = (value - low) * unit;
-			if (isNaN(y)) {
-				throw "!"
-			}
-			
-			path.moveTo(lastX = coords.x, 0);
-			path.lineTo(lastX, y);
-			
-			for (var j=1,_j=dateArray.length; j<_j; j++) {				
-				date = dateArray[j];
-				
-				coords = getCoordinates(source, date, index);
-				
-				x = coords.x;
-				value = coords.y;
-				
-				result[date] = value;
-				
-				if (x - lastX < 1) {
-					//continue;
-				}
-				
-				path.lineTo(x, y);
-				
-				y = (value - low) * unit;
-				if (isNaN(y)) {
-					throw "!"
-				}
-				
-				path.lineTo(lastX = x, y);
-			}
-
-			path.lineTo(lastX, 0);
-			
-			path.draw();
-		}
-		
-		return result;
-	}
-
-	window.updateChart = function (detail) {
-		var data = buildData(detail),
-			result = {};
-		
-		if (!data) {
-			return;
-		}
-		
-		clear(graph);
-		
-		for (var index in data) {
-			result[index] = drawEachGraph(detail, data[index].keys, index);
-		}
-		
-		return result;
-	}
-	
-	window.isEmptyGraph = function () {
-		return !graph.firstChild;
-	};
-	
-	window.drawSummaryGraph = function (origin, capacity, summaryOnly) {
-		clear(graph);
-		
-		rect = getRect();
-		
-		offset.setTranslate(0, rect.height);
-		
-		scale.setScale(1, -1);
-		
-		draw(origin, capacity);
-		
-		if (!summaryOnly) {
-			drawDetailGraph();
-		}
-	};
-	
-}) (window);
-	
-//grid
-(function (window, undefined) {
-	
-	var grid = document.getElementById("grid");
-		
-	window.drawGrid = function (count, space) {
-		var rect = getRect(),
-			count = Math.min(MAX_AXIS_VAL_CNT, Math.round(rect.height / MIN_AXIS_VSPACE)),
-			space = rect.height / count,
-			path;
-		
-		clear(grid);
-		
-		path = new ITAhM.Path(grid);
-		//offset.setTranslate(rect.left, 0);
-		
-		for (var i=0, y; i<=count; i++) {
-			y = i * space -.5;
-			
-			path.moveTo(0, y).lineTo(rect.width, y);
-		}
-		
-		path.draw();
-		
-		setDateAxis(rect.width, rect.height);
-	};
-	
-}) (window);
-
-function onDrawDetailGraph(start, end) {
-	
-}
 		</script>
 	
 	</body>

@@ -19,13 +19,8 @@
 	</head>
 	
 	<body>
-		<header>
-			<a href="status.html">Close</a>
-			<h1>Response time [<span id="host"></span>]</h1>
-			<div id="legend"></div>
-		</header>
+		
 		<iframe id="chart" class="chart"></iframe>
-		<iframe id="cursor" src="date_cursor.html"></iframe>
 		
 		<script src="js/ITAhM.js"></script>	
 		<script src="js/object.js"></script>
@@ -40,10 +35,6 @@ if(!deviceIP) {
 	throw "!";
 }
 
-document.getElementById("legend").textContent = "Timeout : 5000ms";
-
-document.getElementById("host").textContent = deviceIP;
-
 (function (date) {
 	date.setHours(0, 0, 0, 0);
 	
@@ -52,7 +43,7 @@ document.getElementById("host").textContent = deviceIP;
 	window.start = date.setMonth(date.getMonth() -1);
 })(new Date());
 
-(function (entry) {
+function initialize() {
 	top.sendRequest({
 		command: "query",
 		ip: window.deviceIP,
@@ -62,14 +53,8 @@ document.getElementById("host").textContent = deviceIP;
 		start: window.start,
 		end: window.end
 	}, onResponse);
-}) ();
 
-cursor.onload = function () {
-	var cursorWindow = cursor.contentWindow;
-	
-	cursorWindow.onResetDate = onResetDate;
-	
-	cursorWindow.initialize(window.start, window.end, window.end, window.today);
+	setHeader("Response time", "Timeout : "+ max +"ms");
 }
 
 function onResponse(data) {
@@ -93,8 +78,8 @@ function onResetDate(start, end) {
 	window.chart.contentWindow.draw(start, end);
 }
 
-function onSelectDevice() {
-	location.href = "status.html";
+//abstract
+function setHeader(host, legend) {
 }
 
 		</script>
