@@ -29,7 +29,7 @@ rect {
 }
 
 image:hover,
-body.move image{
+body.move {
 	cursor: e-resize;
 }
 /*
@@ -55,6 +55,10 @@ body:not(.initialized) {
 	/*display: none;*/
 }
 
+circle {
+	fill: red;
+}
+
 		</style>
 		
 	</head>
@@ -62,13 +66,17 @@ body:not(.initialized) {
 	<body>
 
 		<svg width="100%" height="100%">
+			<def>
+				<circle id="dot" cy="0" r="3"/>
+			</def>
 			<g id="base" transform="translate(0, 0)">
+				<line x1="0" y1="0" y2="0"/>
+				<g id="grid" />
 				<rect y="-30" height="60"></rect>
 				<g>
 					<text id="top_text" transform="translate(0, -12)" />
 					<image id="top_cursor" xlink:href="img/cursor_top.png" transform="translate(-10, -12)" x="0" y="0" width="20" height="10" />
 				</g>
-				<line x1="0" y1="0" y2="0"/>
 				<g>
 					<text id="bottom_text" transform="translate(0, 12) translate(0, 10)" />
 					<image id="bottom_cursor" xlink:href="img/cursor_bottom.png" transform="translate(-10, 2)" x="0" y="0" width="20" height="10" />
@@ -78,12 +86,13 @@ body:not(.initialized) {
 		
 		<script src="js/Draggable.js"></script>		
 		<script>
-
 var MARGIN = 16,
 	MONTH = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 var svg = document.querySelector("svg"),
 	base = document.getElementById("base"),
+	grid = document.getElementById("grid"),
+	dot = document.getElementById("dot"),
 	line = document.querySelector("line"),
 	cursorArea = document.querySelector("rect")
 	cursorTop = document.getElementById("top_cursor"),
@@ -106,9 +115,9 @@ new Draggable(document.body);
 		window.resizeTimer = setTimeout(resize, 300);
 	});
 	
-	resize();
+	resize(true);
 	
-	function resize() {
+	function resize(initial) {
 		var rect = svg.getBoundingClientRect(),
 			max = rect.width - MARGIN *2,
 			ratio = (window.max || max) / max,
@@ -125,6 +134,14 @@ new Draggable(document.body);
 		bottomText.setAttributeNS(null, "x", bottomX);
 		
 		line.setAttributeNS(null, "x2", window.max = max);
+		
+		if(!initial) {
+			window.blockWidth =  window.max / window.dayCount;
+			
+			for (var x = 0, i = 0; i <= window.dayCount; x += window.blockWidth, i++) {
+				grid.children[i].setAttributeNS(null, "cx", window.posList[i] = x);
+			}
+		}
 	}
 	
 	document.body.addEventListener("dragstart", function (e) {
@@ -132,39 +149,28 @@ new Draggable(document.body);
 		
 		window.target = event.target;
 		
-		window.topOrigin = parseInt(window.cursorTop.getAttributeNS(null, "x"));
-		window.bottomOrigin = parseInt(window.cursorBottom.getAttributeNS(null, "x"));
-		window.areaOrigin = parseInt(window.cursorArea.getAttributeNS(null, "x"));
+		window.topPos = window.topPosLast;
+		window.bottomPos = window.bottomPosLast;
 		
-		document.body.classList.add("move");
+		if (window.target === window.cursorTop || window.target === window.cursorBottom) {
+			document.body.classList.add("move");
+		}
 	});
 	
-	document.body.addEventListener("dragmove", function (e) { 
-		if (moveCursor(Math.round(e.detail.dragX / window.days) * window.days)) {
-			onResetDate();
+	document.body.addEventListener("dragmove", function (e) {
+		if (moveCursor(Math.round(e.detail.dragX / window.blockWidth))) {
+			moveCursorArea();
+			
+			if (window.topPos !== window.bottomPos) {
+				window.onResetDate(window.dateList[Math.min(window.topPosLast, window.bottomPosLast)]
+					, window.dateList[Math.max(window.topPosLast, window.bottomPosLast)]);
+			}
 		}
-		
-		moveCursorArea();
 	});
 	
 	document.body.addEventListener("dragend", function (e) {
 		document.body.classList.remove("move");
 	});
-	
-	function onResetDate() {
-		if (window.topDate === window.bottomDate) {
-			return;
-		}
-
-		var handler = window.onResetDate || function () {};
-		
-		if (window.topDate > window.bottomDate) {
-			handler(window.bottomDate, window.topDate);
-		}
-		else {
-			handler(window.topDate, window.bottomDate);
-		}
-	}
 	
 }) (window);
 
@@ -178,95 +184,97 @@ function calcPosition(mills) {
 	return window.max * (mills - window.start) / window.period;
 }
 
-function setDate(text, x) {
-	var date = new Date(start + (x / max) * period),
-		dateText = MONTH[date.getMonth()] +" "+ date.getDate();
-	
-	text.textContent = dateText;
-	
-	return date.setHours(0, 0, 0, 0);
-}
-
 function getPosition(mills) {
 	return Math.ceil(window.max * (mills - window.start) / window.period);
 }
 
-function moveCursor(dragX) {	
-	if (window.target === window.cursorTop) {
-		var topDate = window.topDate,
-			x = window.topOrigin + dragX;
-		
-		if (dragX < 0) {
-			x = Math.max(0, x);
-		}
-		else if (dragX > 0) {
-			x = Math.min(window.max, x);
-		}
-		
-		moveCursorTop(x);
-		
-		if (topDate != window.topDate) {
-			return true;
-		}
+function moveCursor(dragPos) {
+	if (window.target === window.cursorTop) {		
+		return moveCursorTop(clipPos(dragPos, window.topPos + dragPos));
 	}
 	else if (window.target === window.cursorBottom) {
-		var bottomDate = window.bottomDate,
-			x = window.bottomOrigin + dragX;
-		
-		if (dragX < 0) {
-			x = Math.max(0, x);
-		}
-		else if (dragX > 0) {
-			x = Math.min(window.max, x);
-		}
-		
-		moveCursorBottom(x);
-		
-		if (bottomDate != window.bottomDate) {
-			return true;
-		}
+		return moveCursorBottom(clipPos(dragPos, window.bottomPos + dragPos));
 	}
 	else if (window.target === window.cursorArea) {
-		var topDate = window.topDate,
-			bottomDate = window.bottomDate;
-		
-		if (dragX < 0) {
-			dragX = - Math.min(Math.abs(dragX), Math.min(window.topOrigin, window.bottomOrigin))
+		if (dragPos < 0) {
+			if (window.topPos < window.bottomPos) {
+				if (moveCursorTop(clipPos(dragPos, window.topPos + dragPos))) {
+					return moveCursorBottom(window.bottomPos + dragPos);
+				}
+			}
+			else {
+				if (moveCursorBottom(clipPos(dragPos, window.bottomPos + dragPos))) {
+					return moveCursorTop(window.topPos + dragPos);
+				}
+			}
 		}
-		else if (dragX > 0) {
-			dragX = Math.min(dragX, window.max - Math.max(window.topOrigin, window.bottomOrigin))
-		}
-		
-		moveCursorTop(window.topOrigin + dragX);
-		moveCursorBottom(window.bottomOrigin + dragX);
-		
-		if (topDate != window.topDate || bottomDate != window.bottomDate) {
-			return true;
+		else if (dragPos > 0) {
+			if (window.topPos < window.bottomPos) {
+				if (moveCursorBottom(clipPos(dragPos, window.bottomPos + dragPos))) {
+					return moveCursorTop(window.topPos + dragPos);
+				}
+			}
+			else {
+				if (moveCursorTop(clipPos(dragPos, window.topPos + dragPos))) {
+					return moveCursorBottom(window.bottomPos + dragPos);
+				}
+			}
 		}
 	}
+	
+	return false;
 }
 
-function moveCursorTop(x) {
-	//x = calcPosition(calcDate(x));
-	//console.log(x, calcPosition(calcDate(x)));
+function clipPos(direction, pos) {
+	if (direction < 0) {
+		return Math.max(0, pos);
+	}
+	else if (direction > 0) {console.log(window.dayCount, pos);
+		return Math.min(window.dayCount, pos);
+	}
+	
+	return pos;
+}
+
+function moveCursorTop(pos) {
+	if (pos == window.topPosLast) {
+		return false;
+	}
+	
+	window.topPosLast = pos;
+	
+	var x = window.posList[pos];
+	
 	window.topText.setAttributeNS(null, "x", x);
+	window.topText.textContent = getDateText(window.dateList[pos]);
+	
 	window.cursorTop.setAttributeNS(null, "x", x);
-	window.topDate = setDate(window.topText, x);
 	
 	document.body.classList[x > window.max /2? "add": "remove"]("top_reverse");
+	
+	return true;
 }
 
-function moveCursorBottom(x) {
-	//x = calcPosition(calcDate(x));
+function moveCursorBottom(pos) {
+	if (pos === window.bottomPosLast) {
+		return false;
+	}
+	
+	window.bottomPosLast = pos;
+	
+	var x = window.posList[pos];
 	
 	window.bottomText.setAttributeNS(null, "x", x);
+	window.bottomText.textContent = getDateText(window.dateList[pos]);
+	
 	window.cursorBottom.setAttributeNS(null, "x", x);
-	window.bottomDate = setDate(bottomText, x);
 	
 	document.body.classList[x > window.max /2? "add": "remove"]("bottom_reverse");
+	
+	return true;
 }
 
-function moveCursorArea() {
+function moveCursorArea() {return; 
 	var x1 = parseInt(window.cursorTop.getAttributeNS(null, "x")),
 		x2 = parseInt(window.cursorBottom.getAttributeNS(null, "x"));
 	
@@ -274,19 +282,44 @@ function moveCursorArea() {
 	window.cursorArea.setAttributeNS(null, "width", Math.abs(x1 - x2));
 }
 
+function getDateText(date) {
+	return MONTH[date.getMonth()] +" "+ date.getDate();
+}
+
 function initialize(start, end, top, bottom) {
 	var date = new Date();
+	
+	window.day = (date.getTime() - date.setDate(date.getDate() -1));
 	
 	window.start = start;
 	window.period = end - start;
 	
-	window.days = period / (date.getTime() - date.setDate(date.getDate() -1));
-	console.log(days);
-	moveCursorTop(getPosition(top));
-	moveCursorBottom(getPosition(bottom));
+	window.dayCount = period / day;
+	window.blockWidth =  window.max / dayCount;
+	
+	window.dateList = [];
+	window.posList = [];
+	
+	for (var x = 0, i = 0, mills = start; i <= window.dayCount; x += window.blockWidth, i++, mills += day) {
+		grid.appendChild(dot.cloneNode(true))
+			.setAttributeNS(null, "cx", window.posList[i] = x);
+		
+		date = new Date(mills);
+		date.setMinutes(date.getMinutes() +30);
+		date.setMinutes(0, 0, 0);
+		
+		window.dateList[i] = date;
+	}
+	
+	moveCursorTop(window.dayCount);
+	moveCursorBottom(window.dayCount -1);
 	moveCursorArea();
 	
 	document.body.classList.add("initialized");
+}
+
+//abstract
+function onResetDate() {
 }
 		</script>
 	

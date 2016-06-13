@@ -79,7 +79,7 @@ var deviceIP = top.databases.device.selected,
 }) ();
 
 function onResetDate(start, end) {
-	chart.contentWindow.onResetDate(start, end);
+	chart.contentWindow.onResetDate(start.getTime(), end.getTime());
 }
 
 function onSelectDevice(ip) {
