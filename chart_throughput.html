@@ -23,10 +23,6 @@ h3.output {
 	color: #f60;
 }
 
-#legend {
-	text-align: right;
-}
-
 		</style>
 		
 	</head>
@@ -36,11 +32,11 @@ h3.output {
 			<h2 id="if_name"></h2>
 			<div id="legend"></div>
 		</header>
+		
 		<h3 class="input">Input</h3>
 		<iframe id="chart_in" class="chart"></iframe>
 		<h3 class="output">Output</h3>
 		<iframe id="chart_out" class="chart"></iframe>
-		<iframe id="cursor" src="date_cursor.html"></iframe>
 		
 		<script src="js/ITAhM.js"></script>	
 		<script src="js/object.js"></script>
@@ -59,13 +55,13 @@ if(!deviceIP || !resourceIndex || !snmp) {
 function initialize() {
 	var entry = snmp.ifEntry[resourceIndex],
 		request = {
-				command: "query",
-				ip: window.deviceIP,
-				summary: true,
-				index: resourceIndex,
-				start: window.start,
-				end: window.end
-			};
+			command: "query",
+			ip: window.deviceIP,
+			summary: true,
+			index: resourceIndex,
+			start: window.start,
+			end: window.end
+		};
 	
 	window.max = entry.ifSpeed;
 	
@@ -77,7 +73,7 @@ function initialize() {
 	request.database = "ifOutOctets";
 	top.sendRequest(request, onResponse);
 	
-	setHeader("Interface throughput", "bandwidth : "+ ITAhM.util.toBPSString(max));
+	document.getElementById("legend").textContent = "bandwidth : "+ ITAhM.util.toBPSString(max);
 }
 
 (function (date) {
@@ -118,10 +114,6 @@ function onValueToString(value) {
 function onResetDate(start, end) {
 	window.chartIn.contentWindow.draw(start, end);
 	window.chartOut.contentWindow.draw(start, end);
-}
-
-//abstract
-function setHeader(host, label) {
 }
 
 		</script>

@@ -65,7 +65,6 @@ function initialize() {
 		df.appendChild(chart);
 	}
 	
-	//document.body.insertBefore(df, document.body.firstChild);
 	document.body.appendChild(df);
 	
 	for (var index in entry) {
@@ -79,8 +78,6 @@ function initialize() {
 			end: window.end
 		}, onResponse.bind(undefined, index));
 	}
-	
-	setHeader("Process load", "");
 }
 
 function onResponse(index, data) {
@@ -106,10 +103,6 @@ function onResetDate(start, end) {
 	for (var index in window.chartList) {
 		window.chartList[index].contentWindow.draw(start, end);
 	}
-}
-
-//abstract
-function setHeader(host, legend) {
 }
 
 		</script>

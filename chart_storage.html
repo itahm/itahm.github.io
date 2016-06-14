@@ -19,6 +19,7 @@
 		
 		<header>
 			<h2 id="storage_name"></h2>
+			<div id="legend"></div>
 		</header>
 		
 		<iframe id="chart" class="chart"></iframe>
@@ -61,7 +62,7 @@ function initialize() {
 	
 	document.getElementById("storage_name").textContent = entry.hrStorageDescr;
 	
-	setHeader("Storage Usage", "Storage volume : "+ ITAhM.util.toBytesString(max));
+	document.getElementById("legend").textContent = "Storage volume : "+ ITAhM.util.toBytesString(max);
 }
 
 function onResponse(data) {

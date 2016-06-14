@@ -23,7 +23,6 @@
 		<header>
 			<a href="status.html">Close</a>
 			<h1 id="host">resource[host]</h1>
-			<div id="legend">legend</div>
 		</header>
 		
 		<iframe id="chart" class="chart"></iframe>
@@ -48,18 +47,35 @@ var deviceIP = top.databases.device.selected,
 })(new Date());
 
 (function () {
-	var chart = document.getElementById("chart");
+	var chart = document.getElementById("chart"),
+		host = " ["+ window.deviceIP +"]";
 	
 	chart.onload = function () {
-		var chartWindow = this.contentWindow;
+		this.contentWindow.initialize();
+	};	
+	
+	switch(top.databases.device.selectedResource) {
+	case "responseTime":
+		document.getElementById("host").textContent = "Response time" + host;
 		
-		chartWindow.setHeader = function (host, legend) {
-			document.getElementById("host").textContent = host +" ["+ deviceIP +"]";
-			document.getElementById("legend").textContent = legend;
-		};
+		break;
+	case "processor":
+		document.getElementById("host").textContent = "Processor load" + host;
 		
-		chartWindow.initialize();
-	};
+		break;
+	case "storage":
+		document.getElementById("host").textContent = "Storage usage" + host;
+		
+		break;
+	case "memory":
+		document.getElementById("host").textContent = "Physical memory" + host;
+		
+		break;
+	case "throughput":
+		document.getElementById("host").textContent = "Interface throughput" + host;
+		
+		break;
+	}
 	
 	chart.src = "chart_"+ top.databases.device.selectedResource +".html";
 }) ();

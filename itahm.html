@@ -108,7 +108,6 @@ body:not(.dialog) #dialog {
 				<ul>
 					<li><a href="main.html" target="main">Map</a>
 					<li><a href="setting.html" target="main">Setting</a>
-					<!--li><a href="profile.html" target="main">Profile</a-->
 					<li><a href="icon.html" target="main">Icon</a>
 					<li><a id="message">Message</a>
 					<li><a id="signout">Sign out</a>
@@ -218,13 +217,15 @@ body:not(.dialog) #dialog {
 	}
 	
 	function onSignout(e) {
-		sendRequest({
-			command: "signout"
-		}, function () {
-			window.onbeforeunload = undefined;
-			
-			location.href = "connect.html";
-		});
+		if (confirm("Are you sure you want to sign out right now?")) {
+			sendRequest({
+				command: "signout"
+			}, function () {
+				window.onbeforeunload = undefined;
+				
+				location.href = "connect.html";
+			});
+		}
 	}
 	
 }) (window);
