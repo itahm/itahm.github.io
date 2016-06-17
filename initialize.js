@@ -60,7 +60,7 @@ function listen() {
 	xhr.onload = onEvent;
 	xhr.onerror = onError;
 	xhr.ontimeout = listen;
-	xhr.send(JSON.stringify(event));
+	xhr.send(JSON.stringify(window.event));
 }
 
 function onError(e) {
@@ -82,7 +82,7 @@ function onEvent() {
 			value: response.message
 		});
 		
-		event.index = response.index +1;
+		window.event.index = response.index +1;
 		
 		listen();
 	}

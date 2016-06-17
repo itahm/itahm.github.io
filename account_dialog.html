@@ -147,7 +147,7 @@ function onApply(e) {
 		top.databases.account.data[username] = {
 			username: username,
 			password: password.value,
-			level: form.elements.level.value
+			level: parseInt(form.elements.level.value)
 		};
 		
 		sync();

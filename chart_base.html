@@ -252,37 +252,18 @@ function onValueToString(value) {
 	return value;
 } 
 
-function draw(start, end) {
-	var rect = window.rect,
-		tpp = (end - start) / rect.width,
+function drawGraph(chartData, tpp) {
+	var tpp = (window.end - window.start) / window.rect.width,
 		fillMax = new ITAhM.Path(window.graph),
 		fillMin = new ITAhM.Path(window.graph),
 		strokeMax = new ITAhM.Path(window.graph),
 		strokeAvg = new ITAhM.Path(window.graph),
 		strokeMin = new ITAhM.Path(window.graph),
-		yRatio, blocks, high, low,
-		x, y, dateArray, date;
-
-	if (!((function () {
-		var tmp = window.summaryData.parseData(start, end);
-		
-		if (!tmp) {
-			return false;
-		}
-		
-		high = tmp.high;
-		low = tmp.low;
-		blocks = tmp.keys;
-		
-		yRatio = rect.height / (high - low);
-		
-		return true;
-	}) ())) {
-		return;
-	};
+		high = chartData.high,
+		low = chartData.low,
+		blocks = chartData.keys,
+		yRatio = window.rect.height / (high - low);
 	
-	clear(graph);
-
 	strokeMax.set("stroke", window.color);
 	strokeMax.set("stroke-opacity", .5);
 	strokeMax.set("fill", "none");
@@ -348,40 +329,59 @@ function draw(start, end) {
 		strokeAvg.draw();
 		strokeMin.draw();
 	}
+}
+
+function drawDateAxis() {
+	var tpp = (window.end - window.start) / window.rect.width,
+		text, date, h;
 	
-	(function() {
-		var diff = (high - low) * window.blockHeight / rect.height,
-			value;
-		
-		clear(leftAxis);
-		clear(rightAxis);
-		
-		for (var y = 0, grow = 0; y <= rect.height; y += window.blockHeight, grow += diff) {
-			value = high - grow;
-			
-			leftAxis.appendChild(createText(0, y, onValueToString(value)));
-			rightAxis.appendChild(createText(0, y, (value *100 / max).toFixed(2) + "%"));
-		}
-		
-		leftAxis.transform.baseVal.getItem(0).setTranslate(leftAxis.getBBox().width, 0);
-		rightAxis.transform.baseVal.getItem(0).setTranslate(rect.width - rightAxis.getBBox().width, 0);
-	}) ();
+	for (var x = 0, grow = 0; x <= window.rect.width; x += window.blockWidth ) {
+		window.dateAxis.appendChild(createDateText(x, 0, window.start + x * tpp));
+	}
 	
-	(function() {
-		var width = rect.width,
-			text, date, h;
-		
-		clear(dateAxis);
-		
-		for (var x = 0, grow = 0; x <= width; x += window.blockWidth ) {
-			dateAxis.appendChild(createDateText(x, 0, start + x * tpp));
-		}
-		
-		dateAxis.transform.baseVal.getItem(0).setTranslate(0, rect.height + MARGIN);
-	}) ();
+	window.dateAxis.transform.baseVal.getItem(0).setTranslate(0, rect.height + MARGIN);
+}
+
+function drawValueAxis(chartData) {
+	var diff = (chartData.high - chartData.low) * window.blockHeight / window.rect.height,
+		value;
 	
+	for (var y = 0, grow = 0; y <= window.rect.height; y += window.blockHeight, grow += diff) {
+		value = chartData.high - grow;
+		
+		leftAxis.appendChild(createText(0, y, onValueToString(value)));
+		rightAxis.appendChild(createText(0, y, (value *100 / max).toFixed(2) + "%"));
+	}
+	
+	leftAxis.transform.baseVal.getItem(0).setTranslate(leftAxis.getBBox().width, 0);
+	rightAxis.transform.baseVal.getItem(0).setTranslate(window.rect.width - rightAxis.getBBox().width, 0);
+}
+
+function draw(start, end) {
+	var chartData,
+		x, y, dateArray, date;
+
 	window.start = start;
 	window.end = end;
+	
+	clear(window.dateAxis);
+	
+	drawDateAxis();
+	
+	chartData = window.summaryData.parseData(start, end);
+	
+	clear(window.graph);
+	
+	if (chartData) {
+		drawGraph(chartData);
+	}
+	
+	clear(window.leftAxis);
+	clear(window.rightAxis);
+	
+	if (chartData) {
+		drawValueAxis(chartData);
+	}
 }
 
 function initialize(summaryData, max, color) {

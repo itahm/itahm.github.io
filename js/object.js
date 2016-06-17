@@ -222,6 +222,8 @@ var ITAhM = ITAhM || {};
 			this.calendar = document.getElementById(id);
 			this.callback = handler;
 			
+			this.calendar.classList.add("calendar");
+			
 			//event
 			this.month.onchange = function () {
 				this.move(new Date(this.year.textContent, this.month.value));
@@ -237,6 +239,8 @@ var ITAhM = ITAhM || {};
 				date.setHours(0, 0, 0, 0);
 				
 				this.callback(date);
+				
+				this.move(date);
 			}.bind(this);
 			
 			this.btnNext.onclick = function () {
@@ -296,11 +300,18 @@ var ITAhM = ITAhM || {};
 			
 			date.setHours(0, 0, 0, 0);
 			
-			this.set(date);
+			this.build(date);
+			
+			if (this.selected) {
+				this.selected.classList.remove("selected");
+				
+				this.selected = undefined;
+			}
 		},
 		
-		set: function (date) {
-			var year = date.getFullYear(),
+		build: function (date) {
+			var today = new Date(),
+				year = date.getFullYear(),
 				month = date.getMonth(),
 				dateArray = new Array(6*7).fill(0),
 				index, lastDate;
@@ -315,15 +326,38 @@ var ITAhM = ITAhM || {};
 				dateArray[index] = i;
 			}
 			
+			today = today.setHours(0, 0, 0, 0);
+			if (this.today) {
+				this.today.classList.remove("today");
+				
+				this.today = undefined;
+			}
+			
 			for (var i=0, _i=dateArray.length, index=0, col, row = this.body.childNodes[1]; i<_i; i++) {
 				col = row.childNodes[index];
 				
 				if (dateArray[i]) {
+					date = new Date(year, month, dateArray[i], 0, 0, 0, 0);
+					
+					if (date.getTime() === today) {
+						this.today = col;
+						
+						col.classList.add("today");
+					}
+					
 					col.textContent = dateArray[i];
-					col.className = "valid";
-					col.onclick = function (y, m, d) {
-						this.callback(new Date(y, m, d, 0, 0, 0, 0));
-					}.bind(this, year, month, dateArray[i]);
+					col.classList.add("valid");
+					col.onclick = function (col, date) {
+						col.classList.add("selected");
+						
+						if (this.selected) {
+							this.selected.classList.remove("selected");
+						}
+						
+						this.selected = col;
+						
+						this.callback(date);
+					}.bind(this, col, date);
 				}
 				else {
 					col.textContent = "";
@@ -338,6 +372,7 @@ var ITAhM = ITAhM || {};
 				}
 			}
 		}
+		
 	};
 
 	ITAhM.Communicator.prototype = {

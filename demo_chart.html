@@ -81,7 +81,7 @@ var data = {
 	
 	window.today = date.getTime();
 	window.end = date.setDate(date.getDate() +1);
-	window.start = date.setMonth(date.getMonth() -1)
+	window.start = date.setMonth(date.getMonth() -1);
 })(new Date(2016, 5, 6, 0, 0, 0, 0));
 	
 chart.onload = function () {
@@ -98,7 +98,7 @@ cursor.onload = function () {
 	
 	cursorWindow.onResetDate = onResetDate;
 	
-	cursorWindow.initialize(window.start, window.end, window.end, window.today);
+	cursorWindow.initialize(window.start, window.end, window.today, window.end);
 }
 
 function onValueToString(value) {
@@ -106,7 +106,9 @@ function onValueToString(value) {
 }
 
 function onResetDate(start, end) {
-	chart.contentWindow.draw(start, end);
+	if (start !== end) {
+		chart.contentWindow.draw(start.getTime(), end.getTime());
+	}
 }
 
 

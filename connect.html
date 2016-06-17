@@ -8,6 +8,7 @@
 @import "css/itahm.css";
 
 body {
+	margin: 0 auto;
 	background-color: #f9f9f9;
 }
 
@@ -53,7 +54,7 @@ input[type="submit"] {
 	color: #911;
 }
 
-body> #comment {
+.hidden {
 	display: none;
 }
 
@@ -93,37 +94,36 @@ input[name="password"] {
 		
 	</head>
 	
-	<body>
+	<body class="content_width small">
 	
-		<div class="content_width small">
-			<h1>Connect to agent</h1>
-			<form id="form" class="rounded">
-				<div id="agent">
-					<p>Agent address</p>
-					<div class="flex">
-						<input type="text" name="host" placeholder="IP address" required>
-						<input type="text" name="port" placeholder="TCP port" required>
-					</div>
+		<h1>Connect to agent</h1>
+		<form id="form" class="rounded">
+			<div id="agent">
+				<p>Agent address</p>
+				<div class="flex">
+					<input type="text" name="host" placeholder="IP address" required>
+					<input type="text" name="port" placeholder="TCP port" required>
 				</div>
-				<div id="account">
-					<p>Username</p>
-					<input type="text" name="username" required>
-				</div>
-				<div>
-					<p>Password</p>
-					<input type="password" name="password" required>
-				</div>
-				<input type="submit" value="Connect">
-			</form>
-			<h1>
-				<a href="http://itahm.com">
-					<img width="64" height="64" src="img/favicon.png">
-				</a>
-			</h1>
+			</div>
+			<div id="account">
+				<p>Username</p>
+				<input type="text" name="username" required>
+			</div>
+			<div>
+				<p>Password</p>
+				<input type="password" name="password" required>
+			</div>
+			<input type="submit" value="Connect">
+		</form>
+		<h1>
+			<a href="http://itahm.com">
+				<img width="64" height="64" src="img/favicon.png">
+			</a>
+		</h1>
+		
+		<div class="hidden">
+			<p id="comment">comment</p>
 		</div>
-		
-		<p id="comment">comment</p>
-		
 		<script src="js/ITAhM.js"></script>
 		<script src="js/object.js"></script>
 		<script>

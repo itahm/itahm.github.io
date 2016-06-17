@@ -4,9 +4,7 @@ body  {
 }
 
 .content_width {
-	width: 800px;
-	margin: auto;
-	box-sizing: border-box;
+	width: 1024px;
 }
 
 .content_width.small {

@@ -6,6 +6,14 @@
 	font-size: 13px;
 }
 
+.calendar .selected {
+	background-color: #aaa;
+}
+
+.calendar .today {
+	background-color: rgba(0, 132, 255, .2);
+}
+
 /*header*/
 .calendar>div:first-child {
 	display: flex;

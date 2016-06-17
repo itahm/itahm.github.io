@@ -10,19 +10,56 @@
 @import "css/itahm.css";
 
 header {
-	position: fixed; top: 0; right: 0; left: 0;
-	height: 100px;
+	position: fixed; top: 0; right: 0; left: 0; height: 60px;
+	display: flex;
+	justify-content: center;
 	background-color: #0084ff;
 	color: #fff;
-	font-size: 12pt;
 }
 
-header a:visited,
-header a:link,
-header a:active,
-header a {
+article {
+	position: fixed; top: 60px; right: 0; bottom: 0; left: 0;
+	display: flex;
+	justify-content: center;
+}
+
+nav {
+	display: flex;
+	padding: 10px;
+	align-items: flex-end;
+	justify-content: space-between;
+}
+
+nav h1 {
+	margin: 0;
+}
+
+section {
+	display: flex;
+}
+
+aside {
+	width: 240px;
+	margin-top: 10px;
+}
+
+div.main {
+	flex: 1;
+	margin-top: 10px;
+	overflow-y: auto;
+	padding: 10px;
+}
+
+a:visited,
+a:link,
+a:active,
+a {
 	color: #fff;
 	text-decoration: none;
+}
+
+content a {
+	color: #000;
 }
 
 header a:hover {
@@ -30,13 +67,7 @@ header a:hover {
 	text-decoration: underline;
 }
 
-nav {
-	height: 100%;
-	position: relative;
-}
-
 nav ul {
-	position: absolute; right: 0; bottom: 20px;
 	list-style: none;
 	padding: 0; margin: 0;
 	display: flex;
@@ -47,27 +78,24 @@ nav li {
 	margin: 0 16px;
 }
 
-nav img {
-	position: absolute; bottom: 20px; left: 0;
+aside ul {
+	list-style: none;
+	padding: 0; margin: 0;
 }
 
-div.body {
-	position: fixed; top: 100px; right: 0; bottom: 0; left: 0;
-	padding: 10px;
-	overflow: auto;
+aside li {
+	padding: 1em;
+	background-color: #0084ff;
+	border-bottom: 1px solid #ddf;
+	text-align: center;
 }
 
 iframe {
-	border: 1px solid #0084ff;
-	display: inline-block;
+	border: none;
 }
 
-section {
-	display: flex;
-}
-
-section> div {
-	flex: 1;
+iframe[src="demo_map.html"] {
+	background-color: #fafafa;
 }
 
 section img {
@@ -80,167 +108,247 @@ div.comment {
 	vertical-align: top;
 }
 
-div.right {
-	text-align: right;
-}
-
-div.center {
-	text-align: center;
-}
-
 .comment img {
 	vertical-align: middle;
-}
-
-ul.comment {
-	font-size: 1.5em;
 }
 
 body.ko .comment.en {
 	display: none;
 }
+
+.content:not(:target) {
+	display: none;
+}
+
+div.main:empty #itahm {
+	display: block;
+}
+
 		</style>
 		
 	</head>
 	
 	<body class="ko">
-		
 		<header>
 			<nav class="content_width">
-				<img src="img/favicon.png" width="32" height="32">
+				<h1>
+					<img src="img/favicon.png" width="32" height="32">
+					Infrastructure Topology Administration Module
+				</h1>
 				<ul>
-					<li><a href="document.html">아이탐은!</a>
-					<li><a href="https://dl.dropboxusercontent.com/s/uwj2nb7ah3i610q/ITAhM.1.1.3.13.jar" download="ITAhM.1.1.3.13.jar">download</a>
+					<li><a href="https://dl.dropboxusercontent.com/s/ck2zu2z4d2w8yao/ITAhM.1.1.3.15.jar" download="ITAhM.1.1.3.15.jar">download</a>
 					<li><a href="connect.html" title="connect to agent">connect</a>
 				</ul>
 			</nav>
 		</header>
-		
-		<div class="body">
-		
-			<div class="content_width">
-				<h1>Map @ ITAhM</h1>
-			</div>
-			<section>
-				<iframe src="demo_map.html" width="1024" height="500"></iframe>
-				<div>
-					<div class="comment en">
-						<h3>Scroll to zoom in/out.</h3>
-						<h3>Drag to move map or device.</h3>
-						<h3>Click device for something.</h3>
+	
+		<article>
+			<section class="content_width">
+				<aside>
+					<ul>
+						<li><a href="#itahm">ITAhM</a>
+						<li><a href="#map">Map</a>
+						<li><a href="#status">Status</a>
+						<li><a href="#chart">Chart</a>
+						<li><a href="#install">Install</a>
+						<li><a href="#browser">Browser</a>
+					</ul>
+				</aside>
+			
+				<div class="main">
+			
+					<div id="itahm" class="content">
+						<h1>ITAhM</h1>
+						<p>ITAhM은 Infrastructure Topology Administration Module (기업 IT 시스템 토폴로지 관리 모듈)의
+							약어이며, high performance를 의미 하는 h가 더해진 서비스의 이름 입니다.
+							한글로는 "아이탐" 입니다.</p>
+						<p>향후 확장 가능한 더 큰 프로젝트의 일부 Module로써 개발되었습니다.</p>
+						
+						<h3>구성</h3>
+						<ul>
+							<li>에이전트: 자바 응용프로그램으로 다음과 같이 구성되어 있습니다.
+								<ul>
+									<li>snmp 서비스
+									<li>database
+									<li>http 서버
+								</ul>
+								<p>에이전트는 하나 이상 설치할 수 있으며 이렇게 함으로써 다수의 그룹을 만들 수 있습니다.</p>
+							<li>사용자 인터페이스: 웹브라우저
+								<p>http://itahm.com</p>
+						</ul>
+						
+						<h3>특징</h3>
+						<ul>
+							<li>High Performance(고성능)
+								<p>불과 500KBytes 크기의 자바 응용프로그램으로,	일반 개인용 desktop 수준으로 충분히 많은 수의 장치들을 관리할 수 있습니다.</p>
+							<li>UX(User Experience)
+								<p>사용자의 최소 조작으로 모든 기능을 사용할 수 있도록 사용자 경험이 최대한 반영되어 있습니다.</p>
+							<li>Compact(최적화)
+								<p>에이전트에는 직접 개발한 웹서버, 데이터베이스, snmp서비스가 모두 포함되어 있으며,<br>
+									각 서비스들은 에이전트를 구성하는 기능만을 포함하고 있어 매우 정밀하고 최적화 되어 있습니다.</p>
+							<li>technologies(기술)
+								<p>직접 개발한 에이전트 서비스 이외에 html5 표준을 따르는 고성능의 graphic 라이브러리등 앞선 기술을 적용하고 있습니다.</p>
+						</ul>
+						
+						<h3>기술</h3>
+						<p>아래 나열하는 모든 기술들은 기존 엔터프라이즈 솔루션이 가지고 있지 않은 기술들입니다.</p>
+						<ul>
+							<li>확장성
+								<p>에이전트는 java 응용프로그램으로 자바를 지원하는 windows나 linux등 모든 os에 설치 가능 합니다.</p>
+								<p>Uer Interface는 웹브라우저를 통해 구현하였고 Internet Explorer, google Chrome, Firefox, Opera등 모든 브라우저에 동작합니다.</p>
+							<li>통신
+								<p>웹브라우저와 웹서버 그리고 3rd party 서비스간 json(JavaScript Object Notation) 통신 기술을 보유하고 있습니다.</p>
+							<li>그래픽
+								<p>Topology는 브라우저의 성능에 비례하여 거의 무한히 많은 장치들을 그려낼 수 있고 확대/축소 이동시 지연현상을 느끼지 못할만큼 빠릅니다.
+								<p>Chart는 1개월간 요약 데이터를 드래그에 의해 간편하게 검색 할 수 있으며 1분단위 세부정보와 실시간 모니터링을 제공합니다. 
+							<li>모바일
+								<p>에이전트에서 발생하는 알림을 모바일 앱으로 수신하도록 하여 기존 sms를 대체합니다.</p>
+						</ul>
+						
+						<h3>장점(요약)</h3>
+						<ul>
+							<li>비용
+								<p>기본기능을 무료로 제공하고 있습니다.</p>
+								<p>알림에 사용되는 sms문자 비용을 절감할 수 있습니다.</p>
+							<li>성능
+								<p>에이전트 서버는 저사양 서버 또는 데스크탑에서 충분히 가동할 수 있을 만큼 자원대비 성능이 탁월하며<br>
+									여러대의 서버를 병렬로 구성하여 그룹화 할수도 있습니다.</p>
+							<li>기능과 편의(UX)
+								<p>기존 엔터프라이즈 솔루션이 제공하는 거의 모든 기능을 아이탐만의 방식으로 편리하고 최적의 서비스를 제공합니다.</p> 
+						</ul>
+				
+						<p>문의사항은 itahm2014@gamil.com 으로 보내주십시오. 감사합니다.</p>
 					</div>
-					<div class="comment ko">
-						<h3>맵을 확대하거나 축소하기 위하여 마우스를 스크롤하세요.</h3>
-						<h3>장치를 선택한 후 장치를 이동할 수 있고 맵 전체를 이동할 수도 있습니다.</h3>
-						<h3>장치를 선택하면 다른 장치와의 링크, 장치 정보, 성능 및 상태 정보를 얻을 수 있습니다.</h3>
+					<div id="map" class="content">
+						<h1>Map</h1>
+						<p  class="comment ko">아이탐은 무한하게 확장 가능한 구성도를 제공합니다.
+							장비의 타입에 따라 아이콘 모양을 달리하며,
+							기본적으로 제공되는 아이콘 이외 사용자 정의 아이콘을 사용할 수도 있습니다.</p>
+						<iframe src="demo_map.html" width="100%" height="500"></iframe>
+						<div>
+							<div class="comment en">
+								<h3>Scroll to zoom in/out.</h3>
+								<h3>Drag to move map or device.</h3>
+								<h3>Click device for something.</h3>
+							</div>
+							<ul class="comment ko">
+								<li>마우스를 스크롤하여 간편하게 맵을 확대하거나 축소합니다.
+								<li>화면을 드래그하여 구성도 전체를 이동하고
+									장비를 선택한 후 드래그 하면 해당 장비를 이동할 수 있습니다.
+								<li>장비를 선택하고
+									<ul>
+										<li>장비의 종류, snmp설정, 이름등 기본 정보를 조회하거나 수정합니다.
+										<li>닻 모양의 앵커를 드래그 하여 다른 장비와 연결을 설정합니다.
+										<li>차트 모양의 아이콘을 클릭하여 장비의 성능을 조회합니다.
+									</ul>
+								<li>장애 상태이거나 임계를 초과한 장비는 붉은 원을 점멸하여 표시해 줍니다.
+							</ul>
+						</div>
+					</div>
+					
+					<div id="status" class="content">
+						<h1>성능</h1>
+						<p class="comment ko">응답시간, CPU 사용률, 디스크 및 메모리 사용량
+							, interface 송수신량 등 장비의 5가지 상태를 한번에 확인할 수 있습니다.</p>
+						<iframe src="demo_status.html" width="100%" height="1020"></iframe>
+						<ul class="comment ko">
+							<li>각각의 정보를 클릭하여 최근 한달간 성능의 추이를 조회할 수 있습니다.
+						</ul>
+					</div>
+					
+					<div id="chart" class="content">
+						<h1>차트</h1>
+						<iframe src="demo_chart.html" width="100%" height="500"></iframe>
+						<div>
+							<div class="comment en">
+								<h3>Drag to move before or later.</h3>
+								<h3>Click a lock <img src="img/unlock.png"> button to fix a date.</h3>
+							</div>
+							<ul class="comment ko">
+								<li>차트 하단 커서를 드래그하여 다른 날짜를 검색할 수 있습니다.
+								<li>두 커서는 검색 시작날짜와 검색 종료날짜를 의미 합니다.
+								<li>총 한달 간의 자료를 1시간 최대/평균/최소값으로 보여줍니다.
+								<li>충분히 좁은 구간의 자료를 검색할때는 1분 최대값을 기준으로 더 상세하게 보여줍니다.
+							</ul>
+						</div>
+					</div>
+					
+					<div id="mobile" class="content">
+						<h1>안드로이드 앱</h1>
+						<ul class="comment ko">
+							<li>아이탐에서 발생하는 이벤트는 안드로이드 앱으로 전송됩니다.
+							<li>또한 구성원들이 직접 원하는 메세지를 앱으로 전송할 수도 있습니다.
+						</ul>
+						<div class="comment en">
+							<h3>ITAhM send a event message to your android application.</h3>
+							<h3>you can also send a custom message to your all party.</h3>
+						</div>
+						<img src="img/android_log.png" width="270" height="480">
+						<img src="img/android_list.png" width="270" height="480">
+						<img src="img/android_agent.png" width="270" height="480">
+						<iframe src="message.html" width="100%" height="200"></iframe>
+					</div>
+					
+					<div id="install" class="content">
+						<h1>Installation</h1>
+						<ul class="install comment en">
+							<li>
+								<p>Create directory for ITAhM agent</p>
+								e.g. "c:\Users\ABC\itahm" (windows)
+							<li>
+								<p>
+									Download latest
+									<a href="https://dl.dropboxusercontent.com/s/uwj2nb7ah3i610q/ITAhM.1.1.3.13.jar" download="ITAhM.1.1.3.13.jar">
+										ITAhM.1.1.3.13.jar
+									</a>
+									into above directory
+								</p>
+							<li>
+								<p>execute ITAhM.jar</p>
+								java -jar ITAhM.jar (windows)<br>
+								nohup java -jar ITAhM.jar & (linux)<br>
+							<li>
+								<p>Connect!</p>
+						</ul>
+						<ul class="install comment ko">
+							<li>
+								<p>ITAhM agent를 설치할 폴더를 준비(생성) 합니다.</p>
+								예) "c:\Users\홍길동\itahm" (windows)
+							<li>
+								<p>
+									최신의 아이탐 에이전트(
+									<a href="https://dl.dropboxusercontent.com/s/ck2zu2z4d2w8yao/ITAhM.1.1.3.15.jar" download="ITAhM.1.1.3.13.jar">
+										ITAhM.1.1.3.13.jar
+									</a>
+									)를 다운로드 하여 위에서 준비한 폴더에 위치합니다.
+								</p>
+							<li>
+								<p>ITAhM.jar 파일을 실행시킵니다. 윈도우즈의 경우 command 콘솔에서, 리눅스의 경우 백그라운드로 실행합니다.</p>
+								java -jar ITAhM.jar (windows)<br>
+								nohup java -jar ITAhM.jar & (linux)<br>
+							<li>
+								<p>홈페이지 상단의 Connect 버튼을 눌러 접속합니다.</p>
+						</ul>
+					</div>
+					
+					<div id="browser" class="content">
+						<h1>Browser compatibility</h1>
+						<ul class="comment ko">
+							<li>Chrome, Firefox, Opera, Internet explorer 11 에서 테스트 되었으며, 현재 Chrome 브라우저에서
+								가장 안정적이고 좋은 성능을 보이고 있습니다.
+							<li>Internet Explorer 10 이하에서는 오작동 할 수 있습니다.
+						</ul>
 					</div>
 				</div>
 			</section>
-			
-			<div class="content_width">
-				<h1>Status @ ITAhM</h1>
-			</div>
-			<section>
-				<div class="right">
-					<div class="comment ko">
-						<h3>응답시간, CPU 사용률, 디스크 및 메모리 사용량, interface 송수신량 등 장치의 모든 상태를 한번에 확인할 수 있습니다.</h3>
-					</div>
-				</div>
-				<iframe src="demo_status.html" width="1024" height="500"></iframe>
-			</section>
-			
-			<div class="content_width">
-				<h1>Chart @ ITAhM</h1>
-			</div>
-			<section>
-				<iframe src="demo_chart.html" width="1024" height="500"></iframe>
-				<div>
-					<div class="comment en">
-						<h3>Drag to move before or later.</h3>
-						<h3>Click a lock <img src="img/unlock.png"> button to fix a date.</h3>
-					</div>
-					<div class="comment ko">
-						<h3>차트 하단 커서를 드래그하여 다른 날짜를 검색할 수 있습니다.</h3>
-						<h3>두 커서는 검색 시작날짜와 검색 종료날짜를 의미 합니다.</h3>
-						<h3>총 한달 간의 자료를 1시간 최대/평균/최소값으로 보여줍니다.</h3>
-						<h3>충분히 좁은 구간의 자료를 검색할때는 1분 최대값을 기준으로 더 상세하게 보여줍니다.</h3>
-					</div>
-				</div>
-			</section>
-			
-			<div class="content_width">
-				<h1>Mobile @ ITAhM</h1>
-			</div>
-			<section>
-				<div class="comment ko">
-					<h3>아이탐에서 발생하는 이벤트는 안드로이드 앱으로 전송됩니다.</h3>
-					<h3>또한 구성원들이 직접 원하는 메세지를 앱으로 전송할 수도 있습니다.</h3>
-				</div>
-				<div class="comment en">
-					<h3>ITAhM send a event message to your android application.</h3>
-					<h3>you can also send a custom message to your all party.</h3>
-				</div>
-				<img src="img/android_log.png" width="270" height="480">
-				<img src="img/android_list.png" width="270" height="480">
-				<img src="img/android_agent.png" width="270" height="480">
-			</section>
-			<iframe src="message.html" width="100%" height="200"></iframe>
-			
-			<div class="content_width">
-				<h1>Installation</h1>
-				<ul class="install comment en">
-					<li>
-						<p>Create directory for ITAhM agent</p>
-						e.g. "c:\Users\ABC\itahm" (windows)
-					<li>
-						<p>
-							Download latest
-							<a href="https://dl.dropboxusercontent.com/s/uwj2nb7ah3i610q/ITAhM.1.1.3.13.jar" download="ITAhM.1.1.3.13.jar">
-								ITAhM.1.1.3.13.jar
-							</a>
-							into above directory
-						</p>
-					<li>
-						<p>execute ITAhM.jar</p>
-						java -jar ITAhM.jar (windows)<br>
-						nohup java -jar ITAhM.jar & (linux)<br>
-					<li>
-						<p>Connect!</p>
-				</ul>
-				<ul class="install comment ko">
-					<li>
-						<p>ITAhM agent를 설치할 폴더를 준비(생성) 합니다.</p>
-						예) "c:\Users\홍길동\itahm" (windows)
-					<li>
-						<p>
-							최신의 아이탐 에이전트(
-							<a href="https://dl.dropboxusercontent.com/s/uwj2nb7ah3i610q/ITAhM.1.1.3.13.jar" download="ITAhM.1.1.3.13.jar">
-								ITAhM.1.1.3.13.jar
-							</a>
-							)를 다운로드 하여 위에서 준비한 폴더에 위치합니다.
-						</p>
-					<li>
-						<p>ITAhM.jar 파일을 실행시킵니다. 윈도우즈의 경우 command 콘솔에서, 리눅스의 경우 백그라운드로 실행합니다.</p>
-						java -jar ITAhM.jar (windows)<br>
-						nohup java -jar ITAhM.jar & (linux)<br>
-					<li>
-						<p>홈페이지 상단의 Connect 버튼을 눌러 접속합니다.</p>
-				</ul>
-			</div>
-			
-			<div class="content_width">
-				<h1>Browser compatibility</h1>
-				<ul class="comment ko">
-					<li>Chrome, Firefox, Opera, Internet explorer 11 에서 테스트 되었으며, 현재 Chrome 브라우저에서
-						가장 안정적이고 좋은 성능을 보이고 있습니다.
-					<li>Internet Explorer 10 이하에서는 오작동 할 수 있습니다.
-				</ul>
-			</div>
+		</article>
 		
 		<script>
+if (location.hash === "") {
+	location.href = "/#itahm";
+}
 
 function closeDialog() {
-	
 }
 
 function sendRequest(request) {

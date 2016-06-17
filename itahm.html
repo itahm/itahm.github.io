@@ -10,8 +10,9 @@
 @import "css/itahm.css";
 
 header {
-	position: fixed; top: 0; right: 0; left: 0;
-	height: 60px;
+	position: fixed; top: 0; right: 0; left: 0; height: 60px;
+	display: flex;
+	justify-content: center;
 	background-color: #0084ff;
 	color: #fff;
 }
@@ -35,10 +36,9 @@ header a:hover {
 }
 
 nav {
-	font-size: 1.1em;
-	height: 60px;
 	display: flex;
 	align-items: flex-end;
+	justify-content: space-between;
 }
 
 nav ul {
@@ -46,7 +46,7 @@ nav ul {
 	list-style: none;
 	padding: 0;
 	display: flex;
-	justify-content: space-between;
+	justify-content: flex-end;
 }
 
 section {
@@ -107,6 +107,7 @@ body:not(.dialog) #dialog {
 			<nav class="content_width">
 				<ul>
 					<li><a href="main.html" target="main">Map</a>
+					<li><a href="log.html" target="main">Log</a>
 					<li><a href="setting.html" target="main">Setting</a>
 					<li><a href="icon.html" target="main">Icon</a>
 					<li><a id="message">Message</a>

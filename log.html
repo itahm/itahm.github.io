@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta http-equiv="Content-Script-Type" content="text/javascript">
+		<meta http-equiv="Content-Style-Type" content="text/css">
+		<title>Account @ ITAhM</title>
+		
+		<style>
+@import "css/itahm.css";
+@import "css/calendar.css";
+
+body {
+	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
+}
+
+.content_width {
+	height: 100%;
+	padding: 10px;
+	margin: 0 auto;
+	display: flex;
+	flex-direction: column;
+}
+
+header {
+	display: flex;
+	justify-content: space-between;
+}
+.head,
+#list {
+	list-style: none;
+	padding: 0; margin: 0;
+}
+
+.head {
+	border-bottom: 1px solid #aaa;
+	font-weight: bold;
+}
+
+.item {
+	margin: 3px;
+}
+
+#calendar {
+	border: 1px solid #0084ff;
+	padding: 5px;
+}
+
+#list {
+	flex: 1;
+	overflow-y: auto;
+}
+
+.item ul {
+	display: flex;
+	align-items: center;
+	list-style: none;
+	padding: 0; margin: 0;
+	border: 1px solid transparent;
+}
+
+.item li {
+	padding: .5em;
+	
+}
+
+.item .date {
+	width: 180px;
+}
+
+.item .ip {
+	width: 120px;
+	text-align: center;
+}
+
+.item .message {
+	flex: 1;
+}
+
+.head .item li {
+	text-align: center;
+}
+
+.item.false {
+	background-color: rgba(255, 0, 0, .2);
+}
+
+.no_log {
+	padding: .5em;
+	text-align: center;
+}
+
+.layout {
+	display: none;
+}
+
+		</style>
+		
+	</head>
+	
+	<body class="loading">
+		<div class="content_width">
+			<header>
+				<h1>Log</h1>
+				<div id="calendar"></div>
+			</header>
+			<ul class="head">
+				<li class="item">
+					<ul>
+						<li class="date">DATE
+						<li class="ip">IP
+						<li class="message">MESSAGE
+					</ul>
+			</ul>
+			<ul id="list"></ul>
+		</div>
+		
+		<div class="layout">
+			<ul>
+				<li class="item">
+					<ul>
+						<li class="date">date
+						<li class="ip">ip
+						<li class="message">message
+					</ul>
+				<li class="no_log">
+					No log.
+			</ul>
+		</div>
+		
+		<script src="js/ITAhM.js"></script>
+		<script src="js/object.js"></script>
+		<script>
+if (top === window) {
+	location.href = "http://itahm.com";
+}
+
+var list = document.getElementById("list"),
+	item = document.querySelector(".item"),
+	noLog = document.querySelector(".no_log");
+
+new ITAhM.Calendar("calendar", function (date) {
+	reLoadList(date.getTime());
+});
+
+reLoadList(new Date().setHours(0, 0, 0, 0));
+
+function clearList() {
+	var item;
+	
+	while(item = window.list.firstChild) {
+		window.list.removeChild(item);
+	}
+}
+
+function reLoadList(mills) {
+	document.body.classList.add("loading");
+	
+	top.sendRequest({
+		command: "log",
+		date: mills
+	}, function (data) {
+		var df = document.createDocumentFragment(),
+			item, log;
+		
+		clearList();
+		
+		for (var index in data) {
+			log = data[index];
+			
+			df.appendChild(createItem(log.date, log.ip, log.message)).classList.add(log.status);
+		}
+		
+		if (df.firstChild) {
+			window.list.appendChild(df);
+		}
+		else {
+			window.list.appendChild(noLog.cloneNode(true));
+		}
+		
+		document.body.classList.remove("loading");
+	});
+}
+
+function createItem(mills, ip, message) {
+	var clone = window.item.cloneNode(true),
+		row = clone.children[0];
+	
+	row.children[0].textContent = new Date(mills).toLocaleString();
+	row.children[1].textContent = ip;
+	row.children[2].textContent = message;
+	
+	return clone;
+}
+
+		</script>
+	
+	</body>
+	
+</html>
