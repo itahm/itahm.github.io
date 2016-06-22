@@ -54,6 +54,14 @@ if(!deviceIP || !snmp) {
 function initialize() {
 	var entry = window.snmp.hrProcessorEntry,
 		df = document.createDocumentFragment(),
+		request = {
+			command: "query",
+			ip: window.deviceIP,
+			summary: true,
+			database: "hrProcessorLoad",
+			start: window.start,
+			end: window.end
+		},
 		chart;
 	
 	for (var index in entry) {
@@ -68,15 +76,9 @@ function initialize() {
 	document.body.appendChild(df);
 	
 	for (var index in entry) {
-		top.sendRequest({
-			command: "query",
-			ip: window.deviceIP,
-			summary: true,
-			database: "hrProcessorLoad",
-			index: index,
-			start: window.start,
-			end: window.end
-		}, onResponse.bind(undefined, index));
+		request.index = index;
+		
+		top.sendRequest(request, onResponse.bind(undefined, index));
 	}
 }
 

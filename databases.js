@@ -326,6 +326,7 @@ databases.device.data = {
         "snmp": true,
         "type": "workgroup switch",
         "community": "",
+        "status": false,
         "shutdown": false
     },
     "192.168.254.10": {

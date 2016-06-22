@@ -40,17 +40,18 @@ input[type="text"] {
 		<form>
 			<input type="text" name="message" required>
 			<input type="reset" value="Cancel" class="r_button">
-			<input type="submit" value="Send message" class="r_button">
+			<input type="submit" value="Send message" class="r_button" disabled>
 		</form>
 	</body>
 	<script>
 
-(function (window, undefined) {
+var form = document.forms[0];
 
-	var form = document.forms[0];
-	
-	form.elements.message.focus();
-	
+form.elements.message.focus();
+
+if (sessionStorage.level == 0) {
+	form.elements.remove.disabled = false;
+
 	form.onsubmit = function (e) {
 		e.preventDefault();
 		
@@ -61,13 +62,11 @@ input[type="text"] {
 			form.reset();
 		});
 	};
-	
-	form.onreset = function (e) {
-		top.closeDialog();
-	};
-	
-	
-}) (window);
+}
+
+form.onreset = function (e) {
+	top.closeDialog();
+};
 
 	</script>
 </html>

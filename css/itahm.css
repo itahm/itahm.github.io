@@ -7,6 +7,10 @@ body  {
 	width: 1024px;
 }
 
+.dialog_width {
+	width: 360px;
+}
+
 .content_width.small {
 	width: 360px;
 }

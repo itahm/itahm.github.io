@@ -128,7 +128,7 @@ body:not(.dialog) #dialog {
 		<script src="js/object.js"></script>
 		<script src="js/icon.js"></script>
 		<script>
-		
+
 (function (window, undefined){
 	
 	if (sessionStorage.host && sessionStorage.port) {
@@ -160,12 +160,12 @@ body:not(.dialog) #dialog {
 		var thread = new Worker("initialize.js");
 		
 		thread.onmessage = function (e) {
-			var message = e.data;
+			var event = e.data;
 			
-			if (message) {
-				switch (message.type) {
+			if (event) {
+				switch (event.type) {
 				case "initialize":
-					var databases = message.value;
+					var databases = event.value;
 					
 					window.databases = databases;
 					
@@ -188,7 +188,21 @@ body:not(.dialog) #dialog {
 					break;
 					
 				case "event":
-					refreshHistory(message.value);
+					var critical = event.value,
+						device = window.databases.device.data[critical.ip];
+					
+					refreshHistory(critical.message);
+					
+					if (critical.custom) {
+						device.status = critical.status;
+					}
+					else {
+						device.shutdown = !critical.status;
+					}
+					
+					if (window.mapWindow) {
+						window.mapWindow.postMessage(device, "http://itahm.com");
+					}
 					
 					break;
 					

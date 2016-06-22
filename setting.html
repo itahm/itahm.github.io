@@ -14,20 +14,20 @@ body {
 	margin: 0 auto;
 }
 
-#list {
+ul {
 	list-style: none;
-	padding: 3px;
+	padding: 0;
 	margin: 0;
 }
 
-#item {
+.list_item {
 	display: flex;
 	align-items: center;
 	padding: 10px;
 	border: 1px solid transparent;
 }
 
-#item:hover {
+.list_item:hover {
 	text-decoration: underline;
 	cursor: pointer;
 	border-color: #0084ff;
@@ -35,9 +35,68 @@ body {
 	background-color: #fafaff;
 }
 
-#item span {
+.list_item span {
 	font-size: 1.2em;
 	margin-left: 1em;
+}
+
+.critical_header {
+	padding: .5em 0;
+	border-bottom: 1px solid #aaa;
+}
+
+.critical_header .critical_item li {
+	font-weight: bold;
+	text-align: center;
+}
+
+.critical_item ul {
+	display: flex;
+}
+
+.critical_item li {
+	padding: .5em;
+}
+
+.critical_item .ip {
+	width: 120px;
+}
+
+.critical_item .resource {
+	width: 150px;
+	text-align: center;
+}
+
+.critical_item .index {
+	width: 80px;
+	text-align: center;
+}
+
+.critical_item .limit {
+	width: 50px;
+	text-align: center;
+}
+
+.critical_item .description {
+	flex: 1;
+}
+
+.critical_item:hover {
+	cursor: pointer;
+	outline: 1px solid #0084ff;
+	background-color: rgba(0, 132, 255, .2);
+}
+
+#critical_list {
+	max-height: 200px;
+}
+
+.top {
+	display: flex;
+}
+
+.top> div {
+	flex: 1;
 }
 
 .layout {
@@ -53,17 +112,35 @@ img[src="img/plus.png"]:hover {
 	</head>
 	
 	<body class="loading content_width">
-		<h1>Account <img width="16" height="16" src="img/plus.png" title="Add account" id="add_account"></h1>
-		<ul id="account_list"></ul>
+		<div class="top">
+			<div>
+				<h1>Account <img width="16" height="16" src="img/plus.png" title="Add account" id="add_account"></h1>
+				<ul id="account_list"></ul>
+			</div>
+			<div>
+				<h1>Profile <img width="16" height="16" src="img/plus.png" title="Add profile" id="add_profile"></h1>
+				<ul id="profile_list"></ul>
+			</div>
+		</div>
 		
-		<h1>Profile <img width="16" height="16" src="img/plus.png" title="Add profile" id="add_profile"></h1>
-		<ul id="profile_list"></ul>
+		<h1>Critical <img width="16" height="16" src="img/plus.png" title="Add critical" id="add_critical"></h1>
+		<ul class="critical_header">
+			<li class="critical_item">
+				<ul>
+					<li class="ip">IP
+					<li class="resource">RESOURCE
+					<li class="index">INDEX
+					<li class="limit">LIMIT
+					<li class="description">DESCRIPTION
+				</ul>
+		</ul>
+		<ul id="critical_list"></ul>
 		
 		<div class="bg_loading"></div>
 		
 		<div class="layout">
 			<ul>
-				<li id="item">
+				<li class="list_item">
 					<img width="24" height="24">
 					<span></span>
 			</ul>
@@ -74,7 +151,15 @@ if (top === window) {
 	location.href = "http://itahm.com";
 }
 
-var item = document.getElementById("item");
+var listItem = document.querySelector(".list_item"),
+	criticalItem = document.querySelector(".critical_item"),
+	resourceString = {
+		"responseTime": "Rosponse time",
+		"processor": "Processor load",
+		"memory": "Physical memory",
+		"storage": "Storage usage",
+		"throughput": "Interface throughput"
+	};
 
 document.getElementById("add_account").onclick = function () {
 	onSelectAccount();
@@ -84,14 +169,18 @@ document.getElementById("add_profile").onclick = function () {
 	onSelectProfile();
 };
 
+document.getElementById("add_critical").onclick = function () {
+	onSelectCritical();
+};
+
 (function () {
 	var list = document.getElementById("account_list"),
 		accountData = top.databases.account.data,
 		df = document.createDocumentFragment();
 	
 	for (var username in accountData) {
-	df.appendChild(createIcon(accountData[username].level === 0? "img/svg/root.svg": "img/svg/user.svg", username)).onclick
-		= onSelectAccount.bind(undefined, username);
+		df.appendChild(createItem(accountData[username].level === 0? "img/svg/root.svg": "img/svg/user.svg", username))
+			.onclick = onSelectAccount.bind(undefined, username);
 	}
 	
 	list.appendChild(df);
@@ -103,8 +192,29 @@ document.getElementById("add_profile").onclick = function () {
 		df = document.createDocumentFragment();
 	
 	for (var name in profileData) {
-	df.appendChild(createIcon("img/svg/list.svg", name)).onclick
-		= onSelectProfile.bind(undefined, name);
+		df.appendChild(createItem("img/svg/list.svg", name))
+			.onclick = onSelectProfile.bind(undefined, name);
+	}
+	
+	list.appendChild(df);
+}) ();
+
+(function () {
+	var list = document.getElementById("critical_list"),
+		criticalData = top.databases.critical.data,
+		df = document.createDocumentFragment(),
+		critical, criticalResource, limit;
+	
+	for (var ip in criticalData) {
+		critical = criticalData[ip];
+		
+		for (var resource in critical) {
+			criticalResource = critical[resource];
+			
+			for (var index in criticalResource) {
+				df.appendChild(createCriticalItem(ip, resource, index, criticalResource[index]));
+			}
+		}
 	}
 	
 	list.appendChild(df);
@@ -132,11 +242,36 @@ function onSelectProfile(name) {
 		});
 }
 
-function createIcon(src, label) {
-	var clone = window.item.cloneNode(true);
+function onSelectCritical(ip, resource, index, limit) {
+	top.showDialog("critical_dialog.html",
+		function (dialog) {
+			dialog.initialize(ip, resource, index, limit);
+		},
+		function () {
+			location.reload();
+		});
+}
+
+function createItem(src, label) {
+	var clone = window.listItem.cloneNode(true);
 	
 	clone.children[0].src = src;
 	clone.children[1].textContent = label;
+	
+	return clone;
+}
+
+function createCriticalItem(ip, resource, index, critical) {
+	var clone = window.criticalItem.cloneNode(true),
+		item = clone.children[0];
+	
+	item.children[0].textContent = ip;
+	item.children[1].textContent = resourceString[resource];
+	item.children[2].textContent = index;
+	item.children[3].textContent = critical.limit;
+	item.children[4].textContent = critical.description;
+	
+	clone.onclick = onSelectCritical.bind(undefined, ip, resource, index, critical.limit);
 	
 	return clone;
 }

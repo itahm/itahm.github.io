@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>dialog</title>
+		
+		<style>
+@import "css/itahm.css";
+		
+body {
+	margin: 0; padding: 0;
+	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	background-color: rgba(0, 0, 0, .8);
+}
+
+.dialog {
+	padding: 20px;
+	background-color: #fff;
+}
+
+input:not([type="checkbox"]),
+select {
+	width: 100%;
+	box-sizing: border-box;
+	padding: .5em;
+}
+
+input[type="checkbox"] {
+	vertical-align: middle;
+}
+
+.table {
+	margin-bottom: 10px;
+}
+
+.table ul {
+	display: flex;
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+
+.table li:first-child {
+	text-align: right;
+	padding: .5em;
+	flex: 1;
+}
+
+.table li:last-child {
+	flex: 2;
+}
+
+footer{
+	display: flex;
+}
+
+footer input {
+	flex: 1;
+}
+
+.critical {
+	display: flex;
+}
+
+.critical input {
+	flex: 1;
+	text-align: right;
+}
+
+.critical span {
+	padding: .5em;
+}
+
+.layout {
+	display: none;
+}
+
+		</style>
+		
+	</head>
+	
+	<body>
+		
+		<div class="dialog dialog_width rounded">
+			<form autocomplete="off">
+				<h2>Critical</h2>
+				<div class="table">
+					<ul>
+						<li>IP
+						<li>
+							<select name="ip" disabled required></select>
+					</ul>
+					<ul>
+						<li>RESOURCE
+						<li>
+							<select name="resource" disabled required>
+								<option value="responseTime" selected>Response time
+								<option value="processor">Processor load
+								<option value="memory">Physical memory
+								<option value="storage">Storage usage
+								<option value="throughput">Interface throughput
+							</select>
+							<select name="index" disabled required></select>
+					</ul>
+					<ul>
+						<li>CRITICAL
+						<li class="critical">
+							<input name="limit" type="number" min="1" max="100" required>
+							<span>%</span>
+					</ul>
+				</div>
+				<label><input type="checkbox" name="remove" disabled>remove</label>
+				<footer>
+					<input type="reset" class="r_button" value="cancel">
+					<input type="submit" class="r_button" value="apply">
+				</footer>
+			</form>
+		</div>
+		
+		<div class="layout">
+			<select>
+				<option class="item">
+			</select>
+		</div>
+		
+		<script>
+
+if (top === window) {
+	throw "";
+}
+
+var form = document.querySelector("form"),
+	item = document.querySelector(".item");
+
+form.addEventListener("reset", onCancel);
+
+form.elements.ip.onchange = function () {
+	selectDevice(this.value);
+};
+
+form.elements.resource.onchange = selectResource;
+
+if (sessionStorage.level == 0) {
+	form.addEventListener("submit", onApply);
+}
+else {
+	document.querySelector("input[type=submit]").disabled = true;
+}
+
+function onApply(e) {
+	e.preventDefault();
+	
+	var critical = top.databases.critical.data[form.elements.ip.value],
+		resource;
+	
+	if (!critical) {
+		critical = {};
+		
+		top.databases.critical.data[form.elements.ip.value] = critical;
+	}
+	
+	resource = critical[form.elements.resource.value];
+	if (!resource) {
+		resource = {};
+		
+		critical[form.elements.resource.value] = resource;
+	}
+	
+	resource[form.elements.index.value] = {
+		limit: form.elements.limit.value,
+		description: form.elements.index.options[form.elements.index.options.selectedIndex].text
+	}
+	
+	sync();
+};
+
+function onRemove(e) {
+	if (!confirm("remove critical?")) {
+		return;
+	}
+	
+	delete top.databases.critical.data[form.elements.ip.value][form.elements.resource.value][window.selectedIndex];
+	
+	sync();
+}
+
+function onCancel(e) {
+	top.closeDialog(true);
+}
+
+function selectResource() {
+	var resource = form.elements.resource.value;
+	
+	form.elements.index.length = 0;
+	
+	if (resource === "responseTime") {
+		form.elements.index.appendChild(createItem(0, "Response time"));
+		form.elements.index.value = 0;
+	}
+	else if (resource === "processor") {
+		var entry = window.snmp["hrProcessorEntry"];
+		
+		for (var index in entry) {
+			form.elements.index.appendChild(createItem(index, "Processor "+ index));
+		}
+	}
+	else if (resource === "memory" || resource === "storage") {
+		var entry = window.snmp["hrStorageEntry"],
+			storage;
+		
+		for (var index in entry) {
+			storage = entry[index];
+			
+			if (storage.hrStorageType === 2 && resource === "memory") {
+				form.elements.index.appendChild(createItem(index, storage.hrStorageDescr));
+				form.elements.index.value = index;
+			}
+			else if(storage.hrStorageType === 4 && resource === "storage") {
+				form.elements.index.appendChild(createItem(index, storage.hrStorageDescr));
+			}
+		}
+	}
+	else if (resource === "throughput") {
+		var entry = window.snmp["ifEntry"],
+			throughput;
+		
+		for (var index in entry) {
+			throughput = entry[index];
+			
+			if (throughput.ifSpeed !== 0) {
+				form.elements.index.appendChild(createItem(index, throughput.ifName));
+			}
+		}
+	}
+	
+	if (window.selectedIndex) {
+		form.elements.index.value = window.selectedIndex;
+	}
+}
+
+function selectDevice(ip) {
+	top.sendRequest({
+		command: "select",
+		ip: ip
+	}, function (response) {
+		window.snmp = response;
+		
+		selectResource();
+	});
+}
+
+function sync() {
+	top.sendRequest({
+		command: "push",
+		database: "critical",
+		sequence: top.databases.critical.sequence,
+		data: top.databases.critical.data
+	}, function (response) {
+		top.databases.critical.sequence = response.sequence;
+		
+		top.closeDialog();
+	});
+	
+	document.body.classList.add("loading");
+}
+
+function createItem(value, text) {
+	var clone = window.item.cloneNode(true);
+	
+	clone.value = value;
+	clone.text = text;
+	
+	return clone;
+}
+
+function initialize(ip, resource, index, limit) {
+	if (ip) {
+		window.critical = top.databases.critical.data[ip];
+		
+		form.elements.ip.appendChild(createItem(ip, ip));
+		
+		if (sessionStorage.level == 0) {
+			form.elements.remove.onclick = onRemove;
+			form.elements.remove.disabled = false;
+		}
+		
+		form.elements.resource.value = resource;
+		form.elements.limit.value = limit;
+		
+		window.selectedIndex = index;
+		
+		selectDevice(ip);
+	}
+	else {
+		var deviceData = top.databases.device.data;
+		
+		for (var ip in deviceData) {
+			if (deviceData[ip].snmp && !deviceData[ip].shutdown) {
+				form.elements.ip.appendChild((createItem(ip, ip)));
+			}
+		}
+		
+		form.elements.ip.disabled = false;
+		form.elements.resource.disabled = false;
+		form.elements.index.disabled = false;
+		form.elements.ip.value = undefined;
+	}
+}
+
+		</script>
+	
+	</body>
+	
+</html>

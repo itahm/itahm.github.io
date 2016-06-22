@@ -55,24 +55,31 @@ text {
 }
 
 #selection_mark {
-	stroke: #fdd400;
+	/*stroke: #fdd400;*/
+	stroke: rgba(0, 132, 255, .5);
 	stroke-width: 5px;
 	fill: #fff;
 }
-
+/*
 #tool circle {
 	stroke: #800;
 	stroke-width: 1px;
 	fill: #f00;
 }
-
-use.alert {
+*/
+use.shutdown {
 	stroke-width: 5;
-	stroke: #f00;
+	stroke: rgba(255, 0, 0, .5);
 	fill: none;
 	animation: alert 2s infinite;
 }
- 
+
+use.critical {
+	stroke-width: 5;
+	stroke: rgba(255, 255, 0, .5);
+	fill: none;
+}
+
 @keyframes alert {
     from {
     	opacity: 0;
@@ -130,14 +137,17 @@ body:not(.ifname) #line text {
 				</g>
 				<g id="tool">
 					<g id="anchor" transform="translate(0, 0)">
-						<image xlink:href="img/svg/chart.svg" id="chart_anchor" title="click to view chart"
+						<image xlink:href="img/svg/chart.svg" id="chart_anchor"
 							transform="translate(-34, -0) translate(-8, -8)" width="16" height="16" cursor="pointer">
+							<title>이 장비의 차트를 봅니다.</title>
 						</image>
-						<image xlink:href="img/svg/information.svg" id="edit_anchor" title="click to edit device."
+						<image xlink:href="img/svg/information.svg" id="edit_anchor"
 							transform="translate(34, 0) translate(-8, -8)" width="16" height="16" cursor="pointer">
+							<title>이 장비의 정보를 수정합니다.</title>
 						</image>
-						<image xlink:href="img/svg/anchor.svg" id="link_anchor" title="drag to connect link."
+						<image xlink:href="img/svg/anchor.svg" id="link_anchor"
 							transform="translate(0, -34) translate(-8, -8)" width="16" height="16" cursor="pointer">
+							<title>이 앵커를 드래그하여 다른 장비와 연결합니다.</title>
 						</image>
 					</g>
 				</g>
@@ -409,7 +419,7 @@ catch(e) {
 		iconMap[device.ip] = svgDevice;
 		labelMap[device.ip] = svgLabel;
 		
-		if (device.snmp && device.shutdown) {
+		if (device.snmp && device.shutdown || device.status === false) {
 			setAlert(device);
 		}
 	};
@@ -417,12 +427,11 @@ catch(e) {
 	window.setAlert = function (device) {
 		var svgAlert = alertMap[device.ip];
 		
-		if (device.shutdown) {
+		if (device.shutdown || !device.status) {
 			if (!svgAlert) {
 				svgAlert = document.createElementNS(svgNS, "use");
 				
 				svgAlert.setAttributeNS(xlinkNS, "xlink:href", "#circle");
-				svgAlert.setAttributeNS(null, "class", "alert");
 				svgAlert.setAttributeNS(null, "x", device.x);
 				svgAlert.setAttributeNS(null, "y", device.y);
 				
@@ -430,6 +439,8 @@ catch(e) {
 				
 				alertMap[device.ip] = svgAlert;
 			}
+			
+			svgAlert.setAttributeNS(null, "class", device.shutdown? "shutdown": "critical");
 		}
 		else {
 			if (svgAlert) {
@@ -438,8 +449,6 @@ catch(e) {
 				canvas.removeChild(svgAlert);
 			}
 		}
-		
-		//document.body.classList[Object.keys(alertMap).length === 0? "remove": "add"]("alert");
 	};
 	
 	window.isDevice = function (node) {
@@ -705,13 +714,16 @@ function displayIFName(show) {
 	document.body.classList[show? "add": "remove"]("ifname");
 }
 
+//abstract
 function getDevice(ip) {
 	return top.databases.device.data[ip];
 }
 
+//abstract
 function onEditDevice(device) {	
 }
 
+//abstract
 function onShowChart(device) {
 }
 

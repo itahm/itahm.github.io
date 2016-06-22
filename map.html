@@ -67,86 +67,93 @@ iframe {
 	
 	<script>
 	
-	var map = document.getElementById("map").contentWindow,
-		scale;
-	
-	window.addEventListener("resize", function (e) {
-		map.resize();
-	});
-	
-	document.getElementById("map").addEventListener("wheel", function (e) {
-		map.zoom(e.deltaY < 0? scale *= 1.1: scale /= 1.1);
-		
-		top.databases.device.scale = scale;
-	});
-	
-	document.getElementById("zoom_in").onclick = function () {
-		map.zoom(scale *= 1.1);
-		
-		top.databases.device.scale = scale;
-	}
-	document.getElementById("zoom_out").onclick = function () {
-		map.zoom(scale /= 1.1);
-		
-		top.databases.device.scale = scale;
-	}
-	
-	document.getElementById("name").onchange = function () {
-		map.displayIPAddress(false);
-	};
-	
-	document.getElementById("address").onchange = function () {
-		map.displayIPAddress(true);
-	};
-	
-	document.getElementById("ifname").onchange = function () {
-		map.displayIFName(this.checked);
-	};
-	
-	document.getElementById("map").onload = function () {
-		map.onEditDevice = function (device) {
-			top.showDialog("device_dialog.html",
-				function (dialog) {
-					dialog.initialize(device);
-				},
-				function () {
-					location.reload();
-				}
-			);
-		}
-		
-		map.onShowChart = function (device){
-			top.databases.device.selected = device.ip;
-			
-			location.href = "status.html";
-		}
-		
-		map.getIcon = function (type) {
-			var iconData = top.databases.icon;
-			
-			return iconData.data[type] || iconData.origin[type];
-		};
-		
-		map.forEachDevice = function(func) {
-			var deviceData = top.databases.device.data;
-			
-			for (var ip in deviceData) {
-				func(deviceData[ip]);
-			}
-		}
-		
-		map.zoom(scale = top.databases.device.scale);
-		
-		map.initialize();
-	}
+var map = document.getElementById("map"),
+	mapWindow = map.contentWindow,
+	scale;
 
-	function onSelectDevice(ip) {
-		var device = top.databases.device.data[ip];
-		
-		map.moveAllDevice(- device.x, - device.y);
-		
-		map.selectDevice(ip);
+top.mapWindow = window;
+
+window.addEventListener("message", function (e) {
+	mapWindow.setAlert(e.data);
+});
+
+window.addEventListener("resize", function (e) {
+	mapWindow.resize();
+});
+
+map.addEventListener("wheel", function (e) {
+	mapWindow.zoom(e.deltaY < 0? scale *= 1.1: scale /= 1.1);
+	
+	top.databases.device.scale = scale;
+});
+
+document.getElementById("zoom_in").onclick = function () {
+	mapWindow.zoom(scale *= 1.1);
+	
+	top.databases.device.scale = scale;
+}
+document.getElementById("zoom_out").onclick = function () {
+	mapWindow.zoom(scale /= 1.1);
+	
+	top.databases.device.scale = scale;
+}
+
+document.getElementById("name").onchange = function () {
+	mapWindow.displayIPAddress(false);
+};
+
+document.getElementById("address").onchange = function () {
+	mapWindow.displayIPAddress(true);
+};
+
+document.getElementById("ifname").onchange = function () {
+	mapWindow.displayIFName(this.checked);
+};
+
+map.onload = function () {
+	mapWindow.onEditDevice = function (device) {
+		top.showDialog("device_dialog.html",
+			function (dialog) {
+				dialog.initialize(device);
+			},
+			function () {
+				location.reload();
+			}
+		);
 	}
+	
+	mapWindow.onShowChart = function (device){
+		top.databases.device.selected = device.ip;
+		
+		location.href = "status.html";
+	}
+	
+	mapWindow.getIcon = function (type) {
+		var iconData = top.databases.icon;
+		
+		return iconData.data[type] || iconData.origin[type];
+	};
+	
+	mapWindow.forEachDevice = function(func) {
+		var deviceData = top.databases.device.data;
+		
+		for (var ip in deviceData) {
+			func(deviceData[ip]);
+		}
+	}
+	
+	mapWindow.zoom(scale = top.databases.device.scale);
+	
+	mapWindow.initialize();
+}
+
+function onSelectDevice(ip) {
+	var device = top.databases.device.data[ip];
+	
+	mapWindow.moveAllDevice(- device.x, - device.y);
+	
+	mapWindow.selectDevice(ip);
+}
 	
 	</script>
 </html>

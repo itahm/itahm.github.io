@@ -86,9 +86,10 @@ footer input {
 							<input type="password" name="password"
 								class="table text"
 								placeholder="new password"
-								pattern="[a-zA-Z0-9]{4,}"
-								title="at least 6 alphanumeric characters"
+								pattern=".{6,}"
+								title="at least 6 characters"
 								required>
+							<div>6자 이상</div>
 					</ul>
 					<ul>
 						<li>confirm password
@@ -200,12 +201,11 @@ function initialize(username) {
 		
 		if (sessionStorage.level == 0) {
 			form.elements.remove.onclick = onRemove;
+			form.elements.remove.disabled = false;
 		}
 	}
 	else {
 		form.elements.username.focus();
-		
-		form.elements.remove.disabled = true;
 	}
 }
 

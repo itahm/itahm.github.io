@@ -4,7 +4,7 @@
 		<meta charset="UTF-8">
 		<meta http-equiv="Content-Script-Type" content="text/javascript">
 		<meta http-equiv="Content-Style-Type" content="text/css">
-		<title>Account @ ITAhM</title>
+		<title>Log @ ITAhM</title>
 		
 		<style>
 @import "css/itahm.css";
@@ -26,6 +26,7 @@ header {
 	display: flex;
 	justify-content: space-between;
 }
+
 .head,
 #list {
 	list-style: none;
@@ -101,7 +102,10 @@ header {
 	<body class="loading">
 		<div class="content_width">
 			<header>
-				<h1>Log</h1>
+				<div>
+					<h1>Log</h1>
+					<h2 id="date">Date</h2>
+				</div>
 				<div id="calendar"></div>
 			</header>
 			<ul class="head">
@@ -114,6 +118,8 @@ header {
 			</ul>
 			<ul id="list"></ul>
 		</div>
+		
+		<div class="bg_loading"></div>
 		
 		<div class="layout">
 			<ul>
@@ -136,6 +142,7 @@ if (top === window) {
 }
 
 var list = document.getElementById("list"),
+	date = document.getElementById("date"),
 	item = document.querySelector(".item"),
 	noLog = document.querySelector(".no_log");
 
@@ -144,6 +151,15 @@ new ITAhM.Calendar("calendar", function (date) {
 });
 
 reLoadList(new Date().setHours(0, 0, 0, 0));
+
+function getDateString(mills) {
+	var date = new Date(mills),
+		yyyy = date.getFullYear(),
+		mm = date.getMonth() +1,
+		dd = date.getDate();
+	
+	return yyyy +"-"+ (mm > 9? "": "0") + mm +"-"+ (dd > 9? "": "0") + dd;
+}
 
 function clearList() {
 	var item;
@@ -155,6 +171,8 @@ function clearList() {
 
 function reLoadList(mills) {
 	document.body.classList.add("loading");
+	
+	date.textContent = getDateString(mills);
 	
 	top.sendRequest({
 		command: "log",

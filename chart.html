@@ -103,8 +103,15 @@ function onSelectDevice(ip) {
 	
 	if (device.snmp) {
 		top.databases.device.selected = ip;
+	
+		top.sendRequest({
+			command: "select",
+			ip: device.ip
+		}, function (response) {
+			top.databases.snmp = response;
 		
-		location.reload();
+			location.reload();
+		});
 	}
 	else {
 		alert("SNMP is not enabled for "+ ip);

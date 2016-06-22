@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>Demo @ ITAhM</title>
+		
+		<style>
+@import "css/itahm.css";
+
+		</style>
+		
+	</head>
+	
+	<body class="loading">
+	
+		<form id="form">
+			<input type="text" name="host" value=>
+			<input type="text" name="port" value="2014">
+			<input type="text" name="username" value="guest1">
+			<input type="password" name="password" value="guest1">
+		</form>
+		
+		<div class="bg_loading"></div>
+		
+		<script src="js/ITAhM.js"></script>
+		<script src="js/object.js"></script>
+		<script>
+
+var agent = "121.128.247.213",
+	port = 2014,
+	username = "guest1",
+	password = "guest1";
+	
+connect();
+
+function connect() {
+	var xhr = new ITAhM.Communicator(agent, port, 3000),
+	
+	request = {
+		command: "signin",
+		username: username,
+		password: password
+	};
+
+	xhr.sendRequest(request, function (status, response) {
+		if (status === 200) {				
+			sessionStorage.host = agent;
+			sessionStorage.port = port;
+			sessionStorage.user = username;
+			sessionStorage.level = response.level;
+			
+			location.href = "itahm.html";
+		}
+		else {
+			alert("Demo 가능한 기간이 아닙니다.");
+			
+			location.href = "/";
+		}
+	});
+}
+		</script>
+	
+	</body>
+	
+</html>

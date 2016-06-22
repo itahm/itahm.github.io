@@ -1,7 +1,7 @@
 "use strict" ;
 
 var url,
-	requestQ = ["icon", "profile", "account", "device"],
+	requestQ = ["icon", "profile", "account", "device", "critical"],
 	event = {
 		command: "listen"
 	},
@@ -60,7 +60,7 @@ function listen() {
 	xhr.onload = onEvent;
 	xhr.onerror = onError;
 	xhr.ontimeout = listen;
-	xhr.send(JSON.stringify(window.event));
+	xhr.send(JSON.stringify(self.event));
 }
 
 function onError(e) {
@@ -79,10 +79,10 @@ function onEvent() {
 		
 		postMessage({
 			type: "event",
-			value: response.message
+			value: response
 		});
 		
-		window.event.index = response.index +1;
+		self.event.index = response.index +1;
 		
 		listen();
 	}
