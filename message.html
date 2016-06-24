@@ -38,6 +38,7 @@ input[type="text"] {
 
 	<body>
 		<form>
+			<p>안드로이드 앱으로 메세지를 전송하세요.</p>
 			<input type="text" name="message" required>
 			<input type="reset" value="Cancel" class="r_button">
 			<input type="submit" value="Send message" class="r_button" disabled>
@@ -45,12 +46,12 @@ input[type="text"] {
 	</body>
 	<script>
 
-var form = document.forms[0];
+var form = document.querySelector("form");
 
 form.elements.message.focus();
 
 if (sessionStorage.level == 0) {
-	form.elements.remove.disabled = false;
+	form.querySelector("input[type=submit]").disabled = false;
 
 	form.onsubmit = function (e) {
 		e.preventDefault();
