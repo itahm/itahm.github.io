@@ -30,7 +30,7 @@ iframe {
 	</head>
 	
 	<body>
-		<iframe id="chart" src="chart_base.html"></iframe>
+		<iframe id="chart"></iframe>
 		<iframe id="cursor" src="date_cursor.html"></iframe>
 		
 		<script src="js/ITAhM.js"></script>	
@@ -84,7 +84,7 @@ var data = {
 	window.start = date.setMonth(date.getMonth() -1);
 })(new Date(2016, 5, 6, 0, 0, 0, 0));
 	
-chart.onload = function () {
+window.chart.onload = function () {
 	window.chartData = new ITAhM.ChartSummaryData(data);
 
 	chart.contentWindow.onValueToString = onValueToString;
@@ -93,7 +93,7 @@ chart.onload = function () {
 	chart.contentWindow.draw(window.today, window.end);
 }
 
-cursor.onload = function () {
+window.cursor.onload = function () {
 	var cursorWindow = cursor.contentWindow;
 	
 	cursorWindow.onResetDate = onResetDate;
@@ -101,16 +101,17 @@ cursor.onload = function () {
 	cursorWindow.initialize(window.start, window.end, window.today, window.end);
 }
 
+window.chart.src="chart_base.html";
+
 function onValueToString(value) {
 	return value.toFixed(2) +"ms";
 }
 
 function onResetDate(start, end) {
 	if (start !== end) {
-		chart.contentWindow.draw(start.getTime(), end.getTime());
+		//chart.contentWindow.draw(start.getTime(), end.getTime());
 	}
 }
-
 
 		</script>
 	

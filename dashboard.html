@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta http-equiv="Content-Script-Type" content="text/javascript">
+		<meta http-equiv="Content-Style-Type" content="text/css">
+		<title>Dashboard @ ITAhM</title>
+		
+		<style>
+@import "css/itahm.css";
+
+body {
+	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
+	padding: 0; margin: 0;
+}
+
+article {
+	margin: 0 auto;
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+}
+
+section:not(:first-child) {
+	display: flex;
+	flex: 1;
+	overflow-y: auto;
+	margin-top: 1em;
+}
+
+section> div {
+	margin: 1em;
+	flex: 1;
+}
+
+header {
+	padding: .5em;
+	background-color: #0084ff;
+	color: #fff;
+}
+
+ul {
+	list-style: none;
+	padding: 0; margin: 0;
+}
+
+.summary {
+	display: flex;
+}
+
+.summary li {
+	flex: 1;
+	padding: .5em;
+	text-align: center;
+}
+
+.summary li:first-child {
+	border-right: 1px solid #999;
+}
+
+.table> ul:first-child {
+	border-bottom: 1px solid #999; 
+}
+
+		</style>
+		
+	</head>
+	
+	<body class="loading">
+		<article class="content_width">
+			<section>
+				<div>
+					<header>상태 요약	</header>
+					<div class="table">
+						<ul class="summary">
+							<li>
+							<li>임계 초과
+							<li>응답 없음
+							<li>정상
+							<li>합계
+						</ul>
+						<ul id="summary_list">
+						</ul>
+					</div>
+				</div>
+			</section>
+			
+			<section>
+				<div>
+					<header>응답 시간 Top	</header>
+					<div class="table"></div>
+				</div>
+				<div>
+					<header>Processor load Top</header>
+					<div class="table"></div>
+				</div>
+			</section>
+			
+			<section>
+				<div>
+					<header>Physical memory 사용량 Top	</header>
+					<div class="table"></div>
+				</div>
+				<div>
+					<header>Physical memory 사용율 Top	</header>
+					<div class="table"></div>
+				</div>
+			</section>
+			
+			<section>
+				<div>
+					<header>Storage 사용량 Top	</header>
+					<div class="table"></div>
+				</div>
+				<div>
+					<header>Storage 사용율 Top	</header>
+					<div class="table"></div>
+				</div>
+			</section>
+			
+			<section>
+				<div>
+					<header>Interface 사용량 Top	</header>
+					<div class="table"></div>
+				</div>
+				<div>
+					<header>Interface 사용율 Top	</header>
+					<div class="table"></div>
+				</div>
+			</section>
+		</article>
+		
+		<div class="bg_loading"></div>
+		<script>
+
+var summaryList = document.getElementById("summary_list"),
+	summaryItem = document.querySelector(".summary");
+
+(function () {
+	var deviceData = top.databases.device.data,
+		df = document.createDocumentFragment(),
+		shutdown = 0,
+		critical = 0,
+		normal = 0,
+		labeled = {},
+		device, count;
+	
+	for (var ip in deviceData) {
+		device = deviceData[ip];
+		
+		if (device.label) {
+			labels = device.label.split(",");
+			
+			for (var i=0, length=labels.length; i<length; i++) {
+				if (!labeled[labels[i]]) {
+					labeled[labels[i]] = {
+						shutdown: 0,
+						critical: 0,
+						normal: 0
+					}
+				}
+				
+				if (device.shutdown) {
+					labeled[labels[i]].shutdown++;
+				}
+				else if (!device.status) {
+					labeled[labels[i]].critical++;
+				}
+				else {
+					labeled[labels[i]].normal++;
+				}
+			}
+		}
+		
+		if (device.shutdown) {
+			shutdown++;
+		}
+		else if (!device.status) {
+			critical++;
+		}
+		else {
+			normal++;
+		}		
+	}
+	
+	df.appendChild(createStatusItem("전체", critical, shutdown, normal, critical + shutdown + normal));
+	
+	var ls //labeledSummary;
+	for (var label in labeled) {
+		ls = labeled[label];
+		
+		df.appendChild(createStatusItem(label, ls.critical, ls.shutdown, ls.normal, ls.critical + ls.shutdown + ls.normal));
+	}
+	
+	summaryList.appendChild(df);
+}) ();
+
+document.body.classList.remove("loading");
+
+function createStatusItem(label, critical, shutdown, normal, sum) {
+	var clone = summaryItem.cloneNode(true);
+	
+	clone.children[0].textContent = label;
+	clone.children[1].textContent = critical;
+	clone.children[2].textContent = shutdown;
+	clone.children[3].textContent = normal;
+	clone.children[4].textContent = sum;
+	
+	return clone;
+}
+		
+		</script>
+	
+	</body>
+	
+</html>

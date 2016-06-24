@@ -139,7 +139,7 @@ new Draggable(document.body);
 			window.blockWidth =  window.max / window.dayCount;
 			
 			for (var x = 0, i = 0; i <= window.dayCount; x += window.blockWidth, i++) {
-				grid.children[i].setAttributeNS(null, "cx", window.posList[i] = x);
+				grid.childNodes[i].setAttributeNS(null, "cx", window.posList[i] = x);
 			}
 		}
 	}

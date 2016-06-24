@@ -81,12 +81,6 @@ window.addEventListener("resize", function (e) {
 	mapWindow.resize();
 });
 
-map.addEventListener("wheel", function (e) {
-	mapWindow.zoom(e.deltaY < 0? scale *= 1.1: scale /= 1.1);
-	
-	top.databases.device.scale = scale;
-});
-
 document.getElementById("zoom_in").onclick = function () {
 	mapWindow.zoom(scale *= 1.1);
 	
@@ -111,6 +105,12 @@ document.getElementById("ifname").onchange = function () {
 };
 
 map.onload = function () {
+	this.contentWindow.addEventListener("wheel", function (e) {
+		mapWindow.zoom(e.deltaY < 0? scale *= 1.1: scale /= 1.1);
+		
+		top.databases.device.scale = scale;
+	});
+	
 	mapWindow.onEditDevice = function (device) {
 		top.showDialog("device_dialog.html",
 			function (dialog) {

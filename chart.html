@@ -34,7 +34,8 @@
 
 if (parent === window) throw "";		
 
-var deviceIP = top.databases.device.selected,
+var chart = document.getElementById("chart"),
+	deviceIP = top.databases.device.selected,
 	resourceIndex = top.databases.device.resourceIndex,
 	snmp = top.databases.snmp;
 
@@ -47,10 +48,9 @@ var deviceIP = top.databases.device.selected,
 })(new Date());
 
 (function () {
-	var chart = document.getElementById("chart"),
-		host = " ["+ window.deviceIP +"]";
+	var host = " ["+ window.deviceIP +"]";
 	
-	chart.onload = function () {
+	window.chart.onload = function () {
 		this.contentWindow.initialize();
 	};	
 	
@@ -77,7 +77,7 @@ var deviceIP = top.databases.device.selected,
 		break;
 	}
 	
-	chart.src = "chart_"+ top.databases.device.selectedResource +".html";
+	window.chart.src = "chart_"+ top.databases.device.selectedResource +".html";
 }) ();
 
 (function () {
@@ -95,7 +95,7 @@ var deviceIP = top.databases.device.selected,
 }) ();
 
 function onResetDate(start, end) {
-	chart.contentWindow.onResetDate(start.getTime(), end.getTime());
+	window.chart.contentWindow.onResetDate(start.getTime(), end.getTime());
 }
 
 function onSelectDevice(ip) {

@@ -103,7 +103,7 @@ header {
 		<div class="content_width">
 			<header>
 				<div>
-					<h1>Log</h1>
+					<h1>Log (<span id="count"></span>)</h1>
 					<h2 id="date">Date</h2>
 				</div>
 				<div id="calendar"></div>
@@ -143,6 +143,7 @@ if (top === window) {
 
 var list = document.getElementById("list"),
 	date = document.getElementById("date"),
+	count = document.getElementById("count"),
 	item = document.querySelector(".item"),
 	noLog = document.querySelector(".no_log");
 
@@ -181,7 +182,7 @@ function reLoadList(mills) {
 		date: mills
 	}, function (data) {
 		var df = document.createDocumentFragment(),
-			item, log;
+			item, log, count = 0;
 		
 		clearList();
 		
@@ -189,6 +190,8 @@ function reLoadList(mills) {
 			log = data[index];
 			
 			df.appendChild(createItem(log.date, log.ip, log.message)).classList.add(log.status);
+			
+			count++;
 		}
 		
 		if (df.firstChild) {
@@ -198,6 +201,7 @@ function reLoadList(mills) {
 			window.list.appendChild(noLog.cloneNode(true));
 		}
 		
+		window.count.textContent = count;
 		document.body.classList.remove("loading");
 	});
 }

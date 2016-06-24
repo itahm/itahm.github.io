@@ -124,6 +124,16 @@ div.main:empty #itahm {
 	display: block;
 }
 
+aside {
+	display: none;
+}
+
+.demo {
+	padding: 30px;
+	color: #fff;
+	background-color: #0084ff;
+	text-align: center;
+}
 		</style>
 		
 	</head>
@@ -137,7 +147,7 @@ div.main:empty #itahm {
 				</h1>
 				<ul>
 					<li><a href="https://dl.dropboxusercontent.com/s/nvmatfjo70smly5/ITAhM.1.1.3.17.jar" download="ITAhM.1.1.3.17.jar">Download</a>
-					<li><a href="demo.html" title="아이탐 체험하기">Demo</a>
+					<li><a href="demo.html" title="아이탐 미리 보기">Demo</a>
 					<li><a href="connect.html" title="connect to agent" title="아이탐 접속">Connect</a>
 				</ul>
 			</nav>
@@ -164,6 +174,8 @@ div.main:empty #itahm {
 							약어이며, high performance를 의미 하는 h가 더해진 서비스의 이름 입니다.
 							한글로는 "아이탐" 입니다.</p>
 						<p>향후 확장 가능한 더 큰 프로젝트의 일부 Module로써 개발되었습니다.</p>
+						
+						<h1 class="demo"><a href="demo.html">ITAhM Demo 미리 보기!</a></h1>
 						
 						<h3>구성</h3>
 						<ul>
@@ -196,14 +208,14 @@ div.main:empty #itahm {
 						<ul>
 							<li>확장성
 								<p>에이전트는 java 응용프로그램으로 자바를 지원하는 windows나 linux등 모든 os에 설치 가능 합니다.</p>
-								<p>Uer Interface는 웹브라우저를 통해 구현하였고 Internet Explorer, google Chrome, Firefox, Opera등 모든 브라우저에 동작합니다.</p>
+								<p>Uer Interface는 웹브라우저를 통해 구현하였고 Internet Explorer, google Chrome, Firefox, Opera등 모든 브라우저에서 동작합니다.</p>
 							<li>통신
 								<p>웹브라우저와 웹서버 그리고 3rd party 서비스간 json(JavaScript Object Notation) 통신 기술을 보유하고 있습니다.</p>
 							<li>그래픽
 								<p>Topology는 브라우저의 성능에 비례하여 거의 무한히 많은 장치들을 그려낼 수 있고 확대/축소 이동시 지연현상을 느끼지 못할만큼 빠릅니다.
 								<p>Chart는 1개월간 요약 데이터를 드래그에 의해 간편하게 검색 할 수 있으며 1분단위 세부정보와 실시간 모니터링을 제공합니다. 
 							<li>모바일
-								<p>에이전트에서 발생하는 알림을 모바일 앱으로 수신하도록 하여 기존 sms를 대체합니다.</p>
+								<p>에이전트에서 발생하는 알림을 모바일 앱으로 수신하도록 하여 기존 sms(단문서비스)를 대체합니다.</p>
 						</ul>
 						
 						<h3>장점(요약)</h3>
@@ -215,7 +227,30 @@ div.main:empty #itahm {
 								<p>에이전트 서버는 저사양 서버 또는 데스크탑에서 충분히 가동할 수 있을 만큼 자원대비 성능이 탁월하며<br>
 									여러대의 서버를 병렬로 구성하여 그룹화 할수도 있습니다.</p>
 							<li>기능과 편의(UX)
-								<p>기존 엔터프라이즈 솔루션이 제공하는 거의 모든 기능을 아이탐만의 방식으로 편리하고 최적의 서비스를 제공합니다.</p> 
+								<p>기존 엔터프라이즈 솔루션이 제공하는 거의 모든 기능을 아이탐만의 방식으로 편리하고 최적의 서비스를 제공합니다.</p>
+						</ul>
+				
+						<h3>에이전트 설치</h3>
+						<ul>
+							<li>
+								<p>ITAhM agent를 설치할 폴더를 준비(생성) 합니다.</p>
+								<p>예) "c:\Users\홍길동\itahm" (windows)</p>
+							<li>
+								<p>최신의 아이탐 에이전트를 다운로드 하여 위에서 준비한 폴더에 위치합니다.</p>
+							<li>
+								<p>ITAhM.jar 파일을 실행시킵니다. 윈도우즈의 경우 command 콘솔에서, 리눅스의 경우 백그라운드로 실행합니다.</p>
+								<p>java -jar ITAhM.jar (windows)</p>
+								<p>nohup java -jar ITAhM.jar & (linux)</p>
+							<li>
+								<p>홈페이지 상단의 Connect 버튼을 눌러 접속합니다.</p>
+						</ul>
+						
+						<h3>유의사항</h3>
+						<ul>
+							<li>
+								<p>모든 브라우저에서 테스트 되었으나, 일부 브라우저에서 성능이 더 안좋을 수 있습니다.</p>
+							<li>
+								<p>일반적으로 크롬 브라우저에서 양호한 성능을 보입니다.</p>
 						</ul>
 				
 						<p>문의사항은 itahm2014@gamil.com 으로 보내주십시오. 감사합니다.</p>
@@ -225,7 +260,7 @@ div.main:empty #itahm {
 						<p  class="comment ko">아이탐은 무한하게 확장 가능한 구성도를 제공합니다.
 							장비의 타입에 따라 아이콘 모양을 달리하며,
 							기본적으로 제공되는 아이콘 이외 사용자 정의 아이콘을 사용할 수도 있습니다.</p>
-						<iframe src="demo_map.html" width="100%" height="500"></iframe>
+						<!--iframe src="demo_map.html" width="100%" height="500"></iframe-->
 						<div>
 							<div class="comment en">
 								<h3>Scroll to zoom in/out.</h3>
@@ -251,7 +286,7 @@ div.main:empty #itahm {
 						<h1>성능</h1>
 						<p class="comment ko">응답시간, CPU 사용률, 디스크 및 메모리 사용량
 							, interface 송수신량 등 장비의 5가지 상태를 한번에 확인할 수 있습니다.</p>
-						<iframe src="demo_status.html" width="100%" height="1020"></iframe>
+						<!--iframe src="demo_status.html" width="100%" height="1020"></iframe-->
 						<ul class="comment ko">
 							<li>각각의 정보를 클릭하여 최근 한달간 성능의 추이를 조회할 수 있습니다.
 						</ul>
@@ -259,7 +294,7 @@ div.main:empty #itahm {
 					
 					<div id="chart" class="content">
 						<h1>차트</h1>
-						<iframe src="demo_chart.html" width="100%" height="500"></iframe>
+						<!--iframe src="demo_chart.html" width="100%" height="500"></iframe-->
 						<div>
 							<div class="comment en">
 								<h3>Drag to move before or later.</h3>

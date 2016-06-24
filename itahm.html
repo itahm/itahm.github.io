@@ -108,6 +108,7 @@ body:not(.dialog) #dialog {
 		<header>
 			<nav class="content_width">
 				<ul>
+					<li><a href="dashboard.html" target="main">Dashboard</a>
 					<li><a href="main.html" target="main">Map</a>
 					<li><a href="log.html" target="main">Log</a>
 					<li><a href="setting.html" target="main">Setting</a>
@@ -199,7 +200,9 @@ var count = document.getElementById("count"),
 					var critical = event.value,
 						device = window.databases.device.data[critical.ip];
 					
-					window.count.textContent = ++window.logCount;
+					window.logCount++;
+					
+					window.count.textContent = window.logCount > 9? "9+": window.logCount;
 					window.log.textContent = critical.message;
 					
 					document.body.classList.add("log");
