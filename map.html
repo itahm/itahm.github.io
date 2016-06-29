@@ -74,12 +74,16 @@ var map = document.getElementById("map"),
 top.mapWindow = window;
 
 window.addEventListener("message", function (e) {
-	mapWindow.setAlert(e.data);
+	mapWindow.redrawDevice(e.data);
 });
 
 window.addEventListener("resize", function (e) {
 	mapWindow.resize();
 });
+
+window.onbeforeunload = function () {
+	top.mapWindow = undefined;
+};
 
 document.getElementById("zoom_in").onclick = function () {
 	mapWindow.zoom(scale *= 1.1);

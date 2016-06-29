@@ -150,13 +150,16 @@ var count = document.getElementById("count"),
 				}
 				else {
 					if (status === 401) {
-						alert("Invalid session.");
+						alert("세션이 만료되었습니다.");
 					}
 					else if (status === 409) { // conflict
-						alert("Database is being modified by another user");
+						alert("다른 관리자 계정이 데이터베이스를 수정하였습니다.");
+					}
+					else if (status === 400) {
+						alert("잘못된 요청입니다.");
 					}
 					else {
-						alert("Agent is not responding.");
+						alert("에이전트가 응답하지 않습니다.");
 					}
 					
 					window.onbeforeunload = undefined;
@@ -197,21 +200,30 @@ var count = document.getElementById("count"),
 					break;
 					
 				case "event":
-					var critical = event.value,
-						device = window.databases.device.data[critical.ip];
+					var eventData = event.value,
+						device = window.databases.device.data[eventData.ip];
 					
 					window.logCount++;
 					
 					window.count.textContent = window.logCount > 9? "9+": window.logCount;
-					window.log.textContent = critical.message;
+					window.log.textContent = eventData.message;
 					
 					document.body.classList.add("log");
 					
-					if (critical.custom) {
-						device.status = critical.status;
-					}
-					else {
-						device.shutdown = !critical.status;
+					switch(eventData.type) {
+					case "shutdown":
+						device.shutdown = eventData.value;
+						
+						break;
+					case "critical":
+						device.critical = eventData.value;
+						
+						break;
+					case "test":
+						device.snmp = eventData.value;
+						device.shutdown = !eventData.value;
+						
+						break;
 					}
 					
 					if (window.mapWindow) {

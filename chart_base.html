@@ -149,7 +149,7 @@ var chart = document.getElementById("chart"),
 		drawGrid();
 	}) ();
 
-	function resize() {console.log("!");
+	function resize() {
 		var rect = window.chart.getBoundingClientRect(),
 			width = rect.width - MARGIN *2,
 			height = rect.height - MARGIN *2 - DATE_AXIS_HEIGHT,
@@ -194,13 +194,13 @@ function drawGrid() {
 	
 	window.blockHeight = height / Math.round(height / MIN_AXIS_VSPACE);
 	
-	for (var x = 0, roundedX ; x <= width; x += blockWidth) {console.log("!");
+	for (var x = 0, roundedX ; x <= width; x += blockWidth) {
 		roundedX = Math.round(x) -.5;
 		
 		path.moveTo(x, 0).lineTo(roundedX, height);
 	}
 	
-	for (var y = 0, roundedY ; y <= height; y += blockHeight) {console.log("!");
+	for (var y = 0, roundedY ; y <= height; y += blockHeight) {
 		roundedY = Math.round(y) -.5;
 		
 		path.moveTo(0, roundedY).lineTo(width, roundedY);
@@ -280,7 +280,7 @@ function drawGraph(chartData, tpp) {
 	strokeMin.beginPath();
 	fillMin.beginPath();
 	
-	for (var i=0, _i=blocks.length; i<_i; i++) {console.log("!");
+	for (var i=0, _i=blocks.length; i<_i; i++) {
 		dateArray = blocks[i];
 	
 		date = dateArray[0];
@@ -298,7 +298,7 @@ function drawGraph(chartData, tpp) {
 		fillMax.lineTo(x, (y.max - low) * yRatio);
 		fillMin.lineTo(x, (y.min - low) * yRatio);
 	
-		for (var j=1,_j=dateArray.length; j<_j; j++) {console.log("!");				
+		for (var j=1,_j=dateArray.length; j<_j; j++) {				
 			date = dateArray[j];
 			
 			x = (date - start) / tpp;
@@ -331,7 +331,7 @@ function drawDateAxis() {
 	var tpp = (window.end - window.start) / window.rect.width,
 		text, date, h;
 	
-	for (var x = 0, grow = 0; x <= window.rect.width; x += window.blockWidth ) {console.log("!");
+	for (var x = 0, grow = 0; x <= window.rect.width; x += window.blockWidth ) {
 		window.dateAxis.appendChild(createDateText(x, 0, window.start + x * tpp));
 	}
 	
@@ -342,7 +342,7 @@ function drawValueAxis(chartData) {
 	var diff = (chartData.high - chartData.low) * window.blockHeight / window.rect.height,
 		value;
 	
-	for (var y = 0, grow = 0; y <= window.rect.height; y += window.blockHeight, grow += diff) {console.log("!");
+	for (var y = 0, grow = 0; y <= window.rect.height; y += window.blockHeight, grow += diff) {
 		value = chartData.high - grow;
 		
 		leftAxis.appendChild(createText(0, y, onValueToString(value)));
@@ -353,7 +353,7 @@ function drawValueAxis(chartData) {
 	rightAxis.transform.baseVal.getItem(0).setTranslate(window.rect.width - rightAxis.getBBox().width, 0);
 }
 
-function draw(start, end) {console.log(2);
+function draw(start, end) {
 	var chartData,
 		x, y, dateArray, date;
 
@@ -368,19 +368,19 @@ function draw(start, end) {console.log(2);
 	
 	clear(window.graph);
 	
-	if (chartData) {console.log(3);
+	if (chartData) {
 		drawGraph(chartData);
 	}
 	
 	clear(window.leftAxis);
 	clear(window.rightAxis);
 	
-	if (chartData) {console.log(4);
+	if (chartData) {
 		drawValueAxis(chartData);
 	}
 }
 
-function initialize(summaryData, max, color) {console.log(1);
+function initialize(summaryData, max, color) {
 	window.summaryData = summaryData;
 	window.max = max;
 	window.color = color;

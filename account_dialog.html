@@ -161,11 +161,28 @@ function onApply(e) {
 };
 
 function onRemove(e) {
+	var accountData = top.databases.account.data,
+		rootCheck = false;
+	
+	for (var username in accountData) {
+		if (username != form.elements.username.value && accountData[username].level === 0) {
+			rootCheck = true;
+			
+			break;
+		}
+	}
+	
+	if (!rootCheck) {
+		alert("루트 레벨 계정이 하나 이상 필요합니다.\n계정을 삭제할 수 없습니다.");
+		
+		return;
+	}
+	
 	if (!confirm("remove account?")) {
 		return;
 	}
 	
-	delete top.databases.account.data[form.elements.username.value];
+	delete accountData[form.elements.username.value];
 	
 	sync();
 }

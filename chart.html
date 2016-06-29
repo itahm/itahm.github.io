@@ -95,7 +95,9 @@ var chart = document.getElementById("chart"),
 }) ();
 
 function onResetDate(start, end) {
-	window.chart.contentWindow.onResetDate(start.getTime(), end.getTime());
+	if (start !== end) {
+		window.chart.contentWindow.onResetDate(start.getTime(), end.getTime());
+	}
 }
 
 function onSelectDevice(ip) {

@@ -34,9 +34,13 @@ section> div {
 }
 
 header {
-	padding: .5em;
-	background-color: #0084ff;
-	color: #fff;
+	padding: .5em 1em;
+	background: linear-gradient(rgba(0, 132, 255, .3), rgba(0, 132, 255, .5), rgba(0, 132, 255, .3));
+	background: #e3e3e3;
+	/*color: #fff;*/
+	border: 1px solid #332c2c;
+	border-radius: 1em;
+	font-weight: bold;
 }
 
 ul {
@@ -148,6 +152,10 @@ var summaryList = document.getElementById("summary_list"),
 	for (var ip in deviceData) {
 		device = deviceData[ip];
 		
+		if (!device.snmp) {
+			continue;
+		}
+		
 		if (device.label) {
 			labels = device.label.split(",");
 			
@@ -163,7 +171,7 @@ var summaryList = document.getElementById("summary_list"),
 				if (device.shutdown) {
 					labeled[labels[i]].shutdown++;
 				}
-				else if (!device.status) {
+				else if (device.critical) {
 					labeled[labels[i]].critical++;
 				}
 				else {
@@ -175,7 +183,7 @@ var summaryList = document.getElementById("summary_list"),
 		if (device.shutdown) {
 			shutdown++;
 		}
-		else if (!device.status) {
+		else if (device.critical) {
 			critical++;
 		}
 		else {

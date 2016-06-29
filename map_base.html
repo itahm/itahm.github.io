@@ -162,6 +162,11 @@ body:not(.ifname) #line text {
 var svgNS = "http://www.w3.org/2000/svg",
 	xlinkNS = "http://www.w3.org/1999/xlink";
 
+var deviceCanvas = document.getElementById("device"),
+	iconMap = {},
+	labelMap = {},
+	alertMap = {};
+
 // map
 (function (window, undefined) {
 	var canvas = document.getElementById("map"),
@@ -313,7 +318,7 @@ var svgNS = "http://www.w3.org/2000/svg",
 		}
 		else {
 			window.selectedDevice = getDevice(ip);
-			selectedSvgDevice = getSvgDevice(ip);
+			selectedSvgDevice = window.iconMap[ip];
 // 있으면 안돼는 일이지만 데이터 잘못 들어갔을때 삭제라도 할수있게 임시. 
 try {
 			x = selectedDevice.x;
@@ -335,12 +340,8 @@ catch(e) {
 // svg device group
 (function (window, undefined) {
 	
-	var canvas = document.getElementById("device"),
-		selectionMark = document.getElementById("selection_mark"),
-		fragment = document.createDocumentFragment(),
-		iconMap = {},
-		labelMap = {},
-		alertMap = {};
+	var selectionMark = document.getElementById("selection_mark"),
+		fragment = document.createDocumentFragment();
 	
 	function onSelect(ip, e) {
 		e.stopPropagation();
@@ -384,7 +385,7 @@ catch(e) {
 		data.name2.setAttributeNS(null, "y", (y2 *2 + y1) /3);
 	}
 	
-	window.addDevice = function (device, icon) {
+	window.addDevice = function (device) {
 		var svgDevice = document.createElementNS(svgNS, "image"),
 			svgLabel = document.createElementNS(svgNS, "text"),
 			svgAddr = document.createElementNS(svgNS, "tspan"),
@@ -395,12 +396,11 @@ catch(e) {
 		svgDevice.setAttributeNS(null, "width", "40px");
 		svgDevice.setAttributeNS(null, "height", "40px");
 		svgDevice.setAttributeNS(null, "transform", "translate(-20, -20)");
-		svgDevice.setAttributeNS(xlinkNS, "xlink:href",  device.snmp? icon.src: icon.disabled);
 		
 		svgDevice.onclick = onSelect.bind(undefined, device.ip);
 		svgDevice.addEventListener("link", onLink.bind(undefined, device.ip));
 		
-		canvas.appendChild(svgDevice);
+		window.deviceCanvas.appendChild(svgDevice);
 		
 		svgName.textContent = device.name;
 		svgAddr.textContent = device.ip;
@@ -414,45 +414,16 @@ catch(e) {
 		// 아이콘 크기 + 글자 크기 = 20 + 16 = 36
 		svgLabel.setAttributeNS(null, "transform", "translate(0, 36)");
 		
-		canvas.appendChild(svgLabel);
+		window.deviceCanvas.appendChild(svgLabel);
 		
-		iconMap[device.ip] = svgDevice;
-		labelMap[device.ip] = svgLabel;
+		window.iconMap[device.ip] = svgDevice;
+		window.labelMap[device.ip] = svgLabel;
 		
-		if (device.snmp && device.shutdown || device.status === false) {
-			setAlert(device);
-		}
-	};
-	
-	window.setAlert = function (device) {
-		var svgAlert = alertMap[device.ip];
-		
-		if (device.shutdown || !device.status) {
-			if (!svgAlert) {
-				svgAlert = document.createElementNS(svgNS, "use");
-				
-				svgAlert.setAttributeNS(xlinkNS, "xlink:href", "#circle");
-				svgAlert.setAttributeNS(null, "x", device.x);
-				svgAlert.setAttributeNS(null, "y", device.y);
-				
-				canvas.appendChild(svgAlert);
-				
-				alertMap[device.ip] = svgAlert;
-			}
-			
-			svgAlert.setAttributeNS(null, "class", device.shutdown? "shutdown": "critical");
-		}
-		else {
-			if (svgAlert) {
-				delete alertMap[device.ip];
-				
-				canvas.removeChild(svgAlert);
-			}
-		}
+		redrawDevice(device, svgDevice);
 	};
 	
 	window.isDevice = function (node) {
-		return node.parentNode === canvas && node.tagName === "image";
+		return node.parentNode === window.deviceCanvas && node.tagName === "image";
 	};
 	
 	window.moveDevice = function (ip, x, y) {
@@ -461,9 +432,9 @@ catch(e) {
 		device.x = x;
 		device.y = y;		
 
-		var svgDevice = iconMap[ip],
-			svgLabel = labelMap[ip],
-			svgAlert = alertMap[ip];
+		var svgDevice = window.iconMap[ip],
+			svgLabel = window.labelMap[ip],
+			svgAlert = window.alertMap[ip];
 		
 		svgDevice.setAttributeNS(null, "x", x);
 		svgDevice.setAttributeNS(null, "y", y);
@@ -480,7 +451,7 @@ catch(e) {
 	};
 	
 	window.topDevice = function (svgDevice) {
-		canvas.appendChild(svgDevice);
+		window.deviceCanvas.appendChild(svgDevice);
 	};
 	
 	window.moveSelectionMark = function (x, y) {
@@ -491,7 +462,7 @@ catch(e) {
 	};
 	
 	window.showSelectionMark = function (x, y, snmp) {
-		canvas.appendChild(selectionMark);
+		window.deviceCanvas.appendChild(selectionMark);
 		
 		showTool(x, y, snmp);
 		
@@ -502,10 +473,6 @@ catch(e) {
 		fragment.appendChild(selectionMark);
 		
 		hideAnchor();
-	};
-	
-	window.getSvgDevice= function (ip) {
-		return iconMap[ip];
 	};
 	
 }) (window);
@@ -697,11 +664,48 @@ catch(e) {
 	
 }) (window);
 
+function redrawDevice(device, svgDevice) {
+	svgDevice = svgDevice || window.iconMap[device.ip];
+	
+	var icon = getIcon(device.type);
+	
+	if (!device.snmp) {
+		svgDevice.setAttributeNS(xlinkNS, "xlink:href", icon.disabled);
+		
+		return;
+	}
+	
+	var svgAlert = window.alertMap[device.ip];
+	
+	svgDevice.setAttributeNS(xlinkNS, "xlink:href", icon.src);
+	
+	if (device.shutdown || device.critical) {
+		if (!svgAlert) {
+			svgAlert = document.createElementNS(svgNS, "use");
+			
+			svgAlert.setAttributeNS(xlinkNS, "xlink:href", "#circle");
+			svgAlert.setAttributeNS(null, "x", device.x);
+			svgAlert.setAttributeNS(null, "y", device.y);
+			
+			window.deviceCanvas.appendChild(svgAlert);
+			
+			window.alertMap[device.ip] = svgAlert;
+		}
+		
+		svgAlert.setAttributeNS(null, "class", device.shutdown? "shutdown": "critical");
+	}
+	else {
+		if (svgAlert) {
+			delete window.alertMap[device.ip];
+			
+			window.deviceCanvas.removeChild(svgAlert);
+		}
+	}
+}
+
 function initialize() {
 	forEachDevice(function (device) {
-		var icon = getIcon(device.type);
-		
-		addDevice(device, icon);
+		addDevice(device);
 		addLine(device);
 	});
 }
@@ -712,6 +716,11 @@ function displayIPAddress(show) {
 
 function displayIFName(show) {
 	document.body.classList[show? "add": "remove"]("ifname");
+}
+
+//abstract
+function getIcon(type) {
+	
 }
 
 //abstract

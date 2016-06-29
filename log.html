@@ -82,8 +82,12 @@ header {
 	text-align: center;
 }
 
-.item.false {
+.item.shutdown {
 	background-color: rgba(255, 0, 0, .2);
+}
+
+.item.critical {
+	background-color: rgba(255, 255, 0, .2);
 }
 
 .no_log {
@@ -189,7 +193,7 @@ function reLoadList(mills) {
 		for (var index in data) {
 			log = data[index];
 			
-			df.appendChild(createItem(log.date, log.ip, log.message)).classList.add(log.status);
+			df.appendChild(createItem(log));
 			
 			count++;
 		}
@@ -206,13 +210,17 @@ function reLoadList(mills) {
 	});
 }
 
-function createItem(mills, ip, message) {
+function createItem(log) {
 	var clone = window.item.cloneNode(true),
 		row = clone.children[0];
 	
-	row.children[0].textContent = new Date(mills).toLocaleString();
-	row.children[1].textContent = ip;
-	row.children[2].textContent = message;
+	row.children[0].textContent = new Date(log.date).toLocaleString();
+	row.children[1].textContent = log.ip;
+	row.children[2].textContent = log.message;
+	
+	if (log.value && (log.type === "critical" || log.type === "shutdown")) {
+		clone.classList.add(log.type);
+	}
 	
 	return clone;
 }
