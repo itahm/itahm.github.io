@@ -96,7 +96,7 @@ ul {
 		<article class="content_width">
 			<section>
 				<div>
-					<header>상태 요약	</header>
+					<header>상태 요약</header>
 					<div class="table">
 						<ul class="summary">
 							<li>
@@ -120,39 +120,47 @@ ul {
 				</div>
 				<div>
 					<header>Processor load Top</header>
+					<div class="list">
+						<ul id="processor"></ul>
+					</div>
+				</div>
+			</section>
+			
+			<section>
+				<div>
+					<header>Physical memory 사용량 Top</header>
+					<div class="list">
+						<ul id="memory"></ul>
+					</div>
+				</div>
+				<div>
+					<header>Physical memory 사용율 Top</header>
 					<div class="list"></div>
 				</div>
 			</section>
 			
 			<section>
 				<div>
-					<header>Physical memory 사용량 Top	</header>
-					<div class="list"></div>
+					<header>Storage 사용량 Top</header>
+					<div class="list">
+						<ul id="storage"></ul>
+					</div>
 				</div>
 				<div>
-					<header>Physical memory 사용율 Top	</header>
-					<div class="list"></div>
-				</div>
-			</section>
-			
-			<section>
-				<div>
-					<header>Storage 사용량 Top	</header>
-					<div class="list"></div>
-				</div>
-				<div>
-					<header>Storage 사용율 Top	</header>
+					<header>Storage 사용율 Top</header>
 					<div class="list"></div>
 				</div>
 			</section>
 			
 			<section>
 				<div>
-					<header>Interface 사용량 Top	</header>
-					<div class="list"></div>
+					<header>Interface 사용량 Top</header>
+					<div class="list">
+						<ul id="throughput"></ul>
+					</div>
 				</div>
 				<div>
-					<header>Interface 사용율 Top	</header>
+					<header>Interface 사용율 Top</header>
 					<div class="list"></div>
 				</div>
 			</section>
@@ -169,12 +177,17 @@ ul {
 		</div>
 		
 		<div class="bg_loading"></div>
+		<script src="/js/ITAhM.js"></script>
 		<script>
 
 var summaryList = document.getElementById("summary_list"),
 	summaryItem = document.querySelector(".summary"),
 	topItem = document.querySelector(".top_item"),
-	responseTime = document.getElementById("response_time");
+	responseTime = document.getElementById("response_time"),
+	processor = document.getElementById("processor"),
+	memory = document.getElementById("memory"),
+	storage = document.getElementById("storage"),
+	throughput = document.getElementById("throughput");
 
 (function () {
 	var deviceData = top.databases.device.data,
@@ -243,24 +256,36 @@ top.sendRequest({
 	command: "top",
 	ip: "127.0.0.1"
 }, function (response) {
-	topResponseTime(response.responseTime);
+	setTop(response.responseTime, window.responseTime, function (value) {
+		return value +"ms";
+	});
+	setTop(response.processor, window.processor, function (value) {
+		return value +"%";
+	});
+	setTop(response.memory, window.memory, ITAhM.util.toBytesString);
+	setTop(response.storage, window.storage, ITAhM.util.toBytesString);
+	setTop(response.throughput, window.throughput, ITAhM.util.toBPSString);
 });
 
 document.body.classList.remove("loading");
 
-function topResponseTime(top) {
-	var ipList = Object.keys(top).sort(sortFunction.bind(top)),
+function setTop(top, list, toString) {
+	var ipList = Object.keys(top).sort(function (a, b) {
+			return top[b] - top[a];
+		}),
 		ip;
 	
 	for (var i=0, length=ipList.length; i< length; i++) {
 		ip = ipList[i];
 		
-		responseTime.appendChild(createTopItem(ip, top[ip] +"ms"));
+		list.appendChild(createTopItem(ip, toString(top[ip])));
 	}
 }
 
-function sortFunction(a, b) {
-	return this[b] - this[a];
+function onSelectTopItem(ip) {
+	top.databases.device.selected = ip;
+	
+	location.href = "status.html";
 }
 
 function createStatusItem(label, critical, shutdown, normal, sum) {
@@ -282,6 +307,7 @@ function createTopItem(ip, value) {
 	item.children[0].textContent = ip;
 	item.children[1].textContent = value;
 	
+	clone.onclick = onSelectTopItem.bind(window, ip);
 	return clone;
 }
 
