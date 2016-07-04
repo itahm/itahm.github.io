@@ -48,6 +48,10 @@ ul {
 	padding: 0; margin: 0;
 }
 
+.list {
+	padding: .5em; 1em;
+}
+
 .summary {
 	display: flex;
 }
@@ -62,8 +66,26 @@ ul {
 	border-right: 1px solid #999;
 }
 
-.table> ul:first-child {
+.summary:first-child {
 	border-bottom: 1px solid #999; 
+}
+
+.top_item ul {
+	display: flex;
+}
+
+.top_item li {
+	padding: .5em;
+	flex: 1;
+}
+
+.top_item li:last-child {
+	text-align: right;
+	flex: 2;
+}
+
+.layout {
+	display: none;
 }
 
 		</style>
@@ -91,54 +113,68 @@ ul {
 			
 			<section>
 				<div>
-					<header>응답 시간 Top	</header>
-					<div class="table"></div>
+					<header>응답 시간 Top</header>
+					<div class="list">
+						<ul id="response_time"></ul>
+					</div>
 				</div>
 				<div>
 					<header>Processor load Top</header>
-					<div class="table"></div>
+					<div class="list"></div>
 				</div>
 			</section>
 			
 			<section>
 				<div>
 					<header>Physical memory 사용량 Top	</header>
-					<div class="table"></div>
+					<div class="list"></div>
 				</div>
 				<div>
 					<header>Physical memory 사용율 Top	</header>
-					<div class="table"></div>
+					<div class="list"></div>
 				</div>
 			</section>
 			
 			<section>
 				<div>
 					<header>Storage 사용량 Top	</header>
-					<div class="table"></div>
+					<div class="list"></div>
 				</div>
 				<div>
 					<header>Storage 사용율 Top	</header>
-					<div class="table"></div>
+					<div class="list"></div>
 				</div>
 			</section>
 			
 			<section>
 				<div>
 					<header>Interface 사용량 Top	</header>
-					<div class="table"></div>
+					<div class="list"></div>
 				</div>
 				<div>
 					<header>Interface 사용율 Top	</header>
-					<div class="table"></div>
+					<div class="list"></div>
 				</div>
 			</section>
 		</article>
+		
+		<div class="layout">
+			<ul>
+				<li class="top_item">
+					<ul>
+						<li>
+						<li>
+					</ul>
+			</ul>
+		</div>
 		
 		<div class="bg_loading"></div>
 		<script>
 
 var summaryList = document.getElementById("summary_list"),
-	summaryItem = document.querySelector(".summary");
+	summaryItem = document.querySelector(".summary"),
+	topItem = document.querySelector(".top_item"),
+	responseTime = document.getElementById("response_time");
 
 (function () {
 	var deviceData = top.databases.device.data,
@@ -203,7 +239,29 @@ var summaryList = document.getElementById("summary_list"),
 	summaryList.appendChild(df);
 }) ();
 
+top.sendRequest({
+	command: "top",
+	ip: "127.0.0.1"
+}, function (response) {
+	topResponseTime(response.responseTime);
+});
+
 document.body.classList.remove("loading");
+
+function topResponseTime(top) {
+	var ipList = Object.keys(top).sort(sortFunction.bind(top)),
+		ip;
+	
+	for (var i=0, length=ipList.length; i< length; i++) {
+		ip = ipList[i];
+		
+		responseTime.appendChild(createTopItem(ip, top[ip] +"ms"));
+	}
+}
+
+function sortFunction(a, b) {
+	return this[b] - this[a];
+}
 
 function createStatusItem(label, critical, shutdown, normal, sum) {
 	var clone = summaryItem.cloneNode(true);
@@ -216,7 +274,17 @@ function createStatusItem(label, critical, shutdown, normal, sum) {
 	
 	return clone;
 }
-		
+
+function createTopItem(ip, value) {
+	var clone = topItem.cloneNode(true),
+		item = clone.children[0];
+	
+	item.children[0].textContent = ip;
+	item.children[1].textContent = value;
+	
+	return clone;
+}
+
 		</script>
 	
 	</body>

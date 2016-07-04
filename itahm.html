@@ -156,7 +156,7 @@ var count = document.getElementById("count"),
 						alert("다른 관리자 계정이 데이터베이스를 수정하였습니다.");
 					}
 					else if (status === 400) {
-						alert("잘못된 요청입니다.");
+						alert("잘못된 요청입니다.\n"+ response.error);
 					}
 					else {
 						alert("에이전트가 응답하지 않습니다.");
