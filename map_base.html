@@ -419,7 +419,7 @@ catch(e) {
 		window.iconMap[device.ip] = svgDevice;
 		window.labelMap[device.ip] = svgLabel;
 		
-		redrawDevice(device, svgDevice);
+		reDraw(device, svgDevice);
 	};
 	
 	window.isDevice = function (node) {
@@ -664,7 +664,7 @@ catch(e) {
 	
 }) (window);
 
-function redrawDevice(device, svgDevice) {
+function reDraw(device, svgDevice) {
 	svgDevice = svgDevice || window.iconMap[device.ip];
 	
 	var icon = getIcon(device.type);

@@ -2,20 +2,67 @@
 <html>
 	<head>
 		<meta charset="UTF-8">
-		<title>Insert title here</title>
-
+		<meta http-equiv="Content-Script-Type" content="text/javascript">
+		<meta http-equiv="Content-Style-Type" content="text/css">
+		<title></title>
+		
 		<style>
 @import "css/itahm.css";
+
+body {
+	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
+	margin: 0; padding: 0;
+	display: flex;
+}
+
+aside,
+section {
+	position: relative;
+}
+
+aside {
+	width: 299px; height: 100%;
+	border-right: 1px solid #0084ff;
+	display: flex;
+	padding: 5px;
+	box-sizing: border-box;
+	flex-direction: column;
+	overflow: hidden;
+}
+
+body.maximized aside {
+	padding: 0;
+	width: 0;
+}
+
+form {
+	display: flex;
+	margin: 10px 0;
+}
+
+form> * {
+	padding: .5em;
+}
+
+aside input[type="text"] {
+	flex: 1;
+	min-width: 0;
+}
+
+section {
+	flex: 1;
+	height: 100%;
+}
 
 nav {
 	position: absolute; top: 5px;
 }
 
-nav.rt {
+nav.right {
 	right: 5px;
 }
 
-nav.lt {
+nav.left {
 	left: 5px;
 }
 
@@ -28,95 +75,164 @@ nav img {
 	cursor: pointer;
 }
 
-input, button, label {
+nav {
 	font-size: 9pt;
 }
 
-.map {
-	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
+#list {
+	flex: 1;
+	overflow: auto;
+}
+
+#list ul {
+	margin: 0;
+	padding: 3px 0;
+	list-style: none;
+	display: flex;
+	cursor: pointer;
+}
+
+#list li {
+	flex: 1;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	font-size: 12px;
+}
+
+#list ul:hover li:nth-child(2) {
+	text-decoration: underline;
+	color: #0084ff;
+}
+
+#list ul:nth-child(odd) {
+	background-color: #fafafa;
+}
+
+#list li {
+	padding: 3px;
+}
+
+.function {
+	display: flex;
+}
+
+.function> * {
+	flex: 1;
+	margin: 0 3px;
+}
+
+.handle {
+	position: absolute; top: 0; bottom: 0; left: 0;
+	display: flex;
+	align-items: center;
+}
+
+.handle div {
+	width: 1em;
+	height: 2em;
+	border-radius: 0 1em 1em 0;
+	background-color: #0084ff;
+	cursor: pointer;
 }
 
 iframe {
 	border: none;
-	width: 100%;
-	height: 100%;
-	padding: 0; margin: 0;
+	width: 100%; height: 100%;
 }
-		</style>
-	</head>
 
-	<body>
+		</style>
 		
-		<div class="map">
-			<iframe id="map" src="map_base.html"></iframe>
+	</head>
+	
+	<body class="loading maximized">
+		
+		<aside>
+			<div class="function">
+				<button class="r_button" id="add">Add</button>
+				<button class="r_button" id="reload">Reload</button>
+				<button class="r_button" id="sync">Sync</button>
+			</div>
+			<form id="form">
+				<select name="label"></select>
+				<input type="text" name="keyword">
+				<input type="submit" value="search">
+			</form>
+			<div id="list"></div>
+		</aside>
+		
+		<section>
+			<iframe id="map"></iframe>
 			
-			<nav class="lt">
+			<nav class="left">
 				<img src="img/zoomin.png" width="16px" height="16px" title="zoom in" id="zoom_in">
 				<img src="img/zoomout.png" width="16px" height="16px" title="zoom out" id="zoom_out">
 			</nav>
 			
-			<nav class="rt">	
+			<nav class="right">	
 				<label><input type="checkbox" id="ifname" checked>interface</label>
  				<label title="show name"><input type="radio" name="display" id="name" value="false" checked>name</label>
 				<label title="show ip address"><input type="radio" name="display" id="address" value="true">ip address</label>
 			</nav>
 			
-		</div>
-		
-	</body>
-	
-	<script>
-	
+			<div class="handle">
+				<div id="handle"></div>
+			</div>
+		</section>
+			
+		<div class="bg_loading"></div>
+		<script>
+
 var map = document.getElementById("map"),
-	mapWindow = map.contentWindow,
-	scale;
+	form = document.getElementById("form"),
+	list = document.getElementById("list"),
+	rowMap = {},
+	labels = {};
 
-top.mapWindow = window;
-
-window.addEventListener("message", function (e) {
-	mapWindow.redrawDevice(e.data);
-});
-
-window.addEventListener("resize", function (e) {
-	mapWindow.resize();
-});
-
-window.onbeforeunload = function () {
-	top.mapWindow = undefined;
-};
-
-document.getElementById("zoom_in").onclick = function () {
-	mapWindow.zoom(scale *= 1.1);
+window.map.onload = function () {
+	var mapWindow = window.map.contentWindow;
 	
-	top.databases.device.scale = scale;
-}
-document.getElementById("zoom_out").onclick = function () {
-	mapWindow.zoom(scale /= 1.1);
+	window.mapWindow = mapWindow;
+	top.mapWindow = mapWindow;
+
+	window.addEventListener("resize", function () {
+		clearTimeout(window.schedule);
+		
+		window.schedule = setTimeout(resize, 500);
+	});
 	
-	top.databases.device.scale = scale;
-}
+	document.getElementById("zoom_in").onclick = function () {
+		mapWindow.zoom(scale *= 1.1);
+		
+		window.top.databases.device.scale = scale;
+	}
 
-document.getElementById("name").onchange = function () {
-	mapWindow.displayIPAddress(false);
-};
+	document.getElementById("zoom_out").onclick = function () {
+		mapWindow.zoom(scale /= 1.1);
+		
+		window.top.databases.device.scale = scale;
+	}
 
-document.getElementById("address").onchange = function () {
-	mapWindow.displayIPAddress(true);
-};
+	document.getElementById("name").onchange = function () {
+		mapWindow.displayIPAddress(false);
+	};
 
-document.getElementById("ifname").onchange = function () {
-	mapWindow.displayIFName(this.checked);
-};
+	document.getElementById("address").onchange = function () {
+		mapWindow.displayIPAddress(true);
+	};
 
-map.onload = function () {
-	this.contentWindow.addEventListener("wheel", function (e) {
+	document.getElementById("ifname").onchange = function () {
+		mapWindow.displayIFName(this.checked);
+	};
+	
+	mapWindow.addEventListener("wheel", function (e) {
 		mapWindow.zoom(e.deltaY < 0? scale *= 1.1: scale /= 1.1);
 		
-		top.databases.device.scale = scale;
+		window.top.databases.device.scale = scale;
 	});
 	
 	mapWindow.onEditDevice = function (device) {
-		top.showDialog("device_dialog.html",
+		window.top.showDialog("device_dialog.html",
 			function (dialog) {
 				dialog.initialize(device);
 			},
@@ -127,37 +243,258 @@ map.onload = function () {
 	}
 	
 	mapWindow.onShowChart = function (device){
-		top.databases.device.selected = device.ip;
+		window.top.databases.device.selected = device.ip;
 		
 		location.href = "status.html";
 	}
 	
 	mapWindow.getIcon = function (type) {
-		var iconData = top.databases.icon;
+		var iconData = window.top.databases.icon;
 		
 		return iconData.data[type] || iconData.origin[type];
 	};
 	
 	mapWindow.forEachDevice = function(func) {
-		var deviceData = top.databases.device.data;
+		var deviceData = window.top.databases.device.data;
 		
 		for (var ip in deviceData) {
 			func(deviceData[ip]);
 		}
 	}
 	
-	mapWindow.zoom(scale = top.databases.device.scale);
+	mapWindow.zoom(scale = window.top.databases.device.scale);
 	
 	mapWindow.initialize();
+	
+	document.body.classList.remove("loading");
 }
 
-function onSelectDevice(ip) {
-	var device = top.databases.device.data[ip];
+window.onbeforeunload = function () {
+	window.top.mapWindow = undefined;
+};
+
+form.elements.label.addEventListener("change", onChangeLabel);
+form.addEventListener("submit", onSearch);
+
+document.getElementById("handle").onclick = function () {
+	document.body.classList.toggle("maximized");
 	
-	mapWindow.moveAllDevice(- device.x, - device.y);
-	
-	mapWindow.selectDevice(ip);
+	resize();
 }
+
+document.getElementById("reload").onclick = onReLoad;
+document.getElementById("add").onclick = onAddDevice;
+
+(function (sync) {
+	if (sessionStorage.level == 0) {
+		sync.onclick = onSync;
+	}
+	else {
+		sync.disabled = true;
+	}
+}) (document.getElementById("sync"));
+
+initList();
+
+initLabel();
+
+window.map.src = "map_base.html";
+
+function resize() {
+	window.mapWindow.resize();
+}
+
+function initList() {
+	var df = document.createDocumentFragment();
 	
-	</script>
+	var deviceData = window.top.databases.device.data;
+	
+	for (var ip in deviceData) {
+		df.appendChild(createRow(deviceData[ip]));
+	}
+	
+	list.appendChild(df);
+}
+
+function createRow(device) {
+	var row = document.createElement("ul"),
+		label;
+	
+	row.appendChild(document.createElement("li")).textContent = device.name;
+	row.appendChild(document.createElement("li")).textContent = device.type;
+	row.appendChild(document.createElement("li")).textContent = device.ip;
+	
+	row.onclick = onSelectDevice.bind(undefined, device.ip);
+	
+	rowMap[device.ip] = row;
+	
+	if (device.label) {
+		label = device.label.split(",");
+		
+		for (var i=0, length=label.length; i<length; i++) {
+			row.classList.add(label[i]);
+			
+			labels[label[i]] = null;
+		}
+	}
+	else {
+		row.classList.add("unlabeled");
+		
+		labels["unlabeled"] = null;
+	}
+	
+	return row;
+}
+
+function initLabel() {
+	var select = form.elements.label,
+		option = document.createElement("option");
+
+	// label select 초기화
+	select.length = 0;
+	
+	option.value = "";
+	option.text = "all labels";
+	option.selected = true;
+	
+	select.add(option);
+	
+	for (var label in labels) {
+		option = document.createElement("option");
+		
+		option.text = label;
+		
+		select.add(option);
+	}
+}
+
+function onSync() {
+	if (!confirm("Synchronize device database with agent now?")) {
+		return;
+	}
+	
+	window.top.sendRequest({
+		command: "push",
+		database: "device",
+		sequence: window.top.databases.device.sequence,
+		data: window.top.databases.device.data
+	}, function (response) {
+		reload(response);
+	});
+}
+
+function onAddDevice() {
+	window.top.showDialog("device_dialog.html",
+		function (dialog) {
+			dialog.initialize();
+		},
+		function () {
+			location.reload();
+		}
+	);
+}
+
+function onReLoad() {
+	window.top.sendRequest({
+		command: "pull",
+		database: "device",
+	}, function (response) {
+		reload(response);
+	});
+}
+
+function onSelectDevice(ip) {	
+	var device = window.top.databases.device.data[ip];
+	
+	window.mapWindow.moveAllDevice(- device.x, - device.y);
+	window.mapWindow.selectDevice(ip);
+}
+
+function onStopPropagation(e) {
+	e.stopPropagation();
+}
+
+function onSearch(e) {
+	e.preventDefault();
+	
+	// search 결과를 초기화 하기 위해
+	selectLabel(form.elements.label.value);
+
+	filterDeviceList(form.elements.keyword.value);
+}
+
+function onChangeLabel(e) {
+	form.elements.keyword.value = "";
+	
+	selectLabel(form.elements.label.value);
+}
+
+function reload(response) {
+	top.databases.device.sequence = response.sequence;
+	top.databases.device.data = response.data;
+	
+	location.reload();
+}
+
+function clearDeviceList() {
+	var df = document.createDocumentFragment(),
+		row;
+	
+	while (row = list.firstChild) {
+		df.appendChild(row);
+	}
+	
+	return df;
+};
+
+function filterDeviceList(keyword) {
+	var row = clearDeviceList().firstChild,
+		next, cols,
+		df = document.createDocumentFragment(),
+		device;
+	
+	while (row) {
+		next = row.nextSibling;
+		
+		cols = row.children;
+		
+		for (var i=0, length=cols.length; i<length; i++) {
+			if (cols[i].textContent.indexOf(keyword) !== -1) {
+				df.appendChild(row);
+				
+				break;
+			}
+		}
+		
+		row = next;
+	}
+	
+	list.appendChild(df);
+};
+
+function selectLabel(label) {
+	var df = document.createDocumentFragment(),
+		rows;
+	
+	for (var ip in rowMap) {
+		df.appendChild(rowMap[ip]);
+	}
+	
+	if (label) {
+		rows = [].slice.call(df.querySelectorAll("."+ label), 0);
+		
+		df = document.createDocumentFragment();
+		
+		for (var i=0, length=rows.length; i<length; i++) {
+			df.appendChild(rows[i]);
+		}
+	}
+	
+	list.appendChild(df);
+};
+
+		</script>
+	
+	</body>
+	
 </html>

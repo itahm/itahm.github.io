@@ -21,23 +21,25 @@ article {
 	flex-direction: column;
 }
 
-section:not(:first-child) {
+article> :not(header) {
 	display: flex;
 	flex: 1;
 	overflow-y: auto;
-	margin-top: 1em;
-}
-
-section> div {
-	margin: 1em;
-	flex: 1;
 }
 
 header {
+	display: flex;
+}
+
+section {
+	margin: .5em;
+	flex: 1;
+}
+
+section> div:first-child {
 	padding: .5em 1em;
 	background: linear-gradient(rgba(0, 132, 255, .3), rgba(0, 132, 255, .5), rgba(0, 132, 255, .3));
 	background: #e3e3e3;
-	/*color: #fff;*/
 	border: 1px solid #332c2c;
 	border-radius: 1em;
 	font-weight: bold;
@@ -54,6 +56,7 @@ ul {
 
 .summary {
 	display: flex;
+	font-weight: bold;
 }
 
 .summary li {
@@ -66,12 +69,31 @@ ul {
 	border-right: 1px solid #999;
 }
 
+.summary li:nth-child(2) {
+	color: #cc0;
+}
+
+.summary li:nth-child(3) {
+	color: #c00;
+}
+
+.summary li:nth-child(4) {
+	color: #0c0;
+}
+
 .summary:first-child {
 	border-bottom: 1px solid #999; 
 }
 
 .top_item ul {
 	display: flex;
+	cursor: pointer;
+}
+
+.top_item ul:hover {
+	text-decoration: underline;
+	outline: 1px solid #0084ff;
+	background-color: rgba(0, 132, 255, .2);
 }
 
 .top_item li {
@@ -84,6 +106,50 @@ ul {
 	flex: 2;
 }
 
+.counter {
+	margin: 1em;
+	position: relative;
+	width: 10em;
+	height: 10em;
+}
+
+.counter div {
+	position: absolute; top: 0; left: 0;
+	width: 10em; height: 10em;
+}
+
+.counter div:first-child {
+	border-radius: 50%;
+	border: 1em solid #00f;
+	box-sizing: border-box;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+}
+
+.counter div:last-child {
+ 	transform-origin: 5em 5em;
+ 	animation: count 10s infinite linear;
+}
+
+.counter span {
+	margin: 0 auto;
+	display: block;
+	width: 1em; height: 1em;
+	border-radius: 50%;
+	background-color: #fff;
+}
+
+@keyframes count {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
 .layout {
 	display: none;
 }
@@ -94,9 +160,9 @@ ul {
 	
 	<body class="loading">
 		<article class="content_width">
-			<section>
-				<div>
-					<header>상태 요약</header>
+			<header>				
+				<section>
+					<div>상태 요약</div>
 					<div class="table">
 						<ul class="summary">
 							<li>
@@ -108,62 +174,78 @@ ul {
 						<ul id="summary_list">
 						</ul>
 					</div>
+				</section>
+				
+				<div id="counter" class="counter">
+					<div>
+						Last update
+						<p>06:04</p>
+					</div>
+					<div>
+						<span></span>
+					</div>
 				</div>
-			</section>
+			</header>
 			
-			<section>
-				<div>
-					<header>응답 시간 Top</header>
+			<div class="top">
+				<section>
+					<div>응답 시간 Top</div>
 					<div class="list">
 						<ul id="response_time"></ul>
 					</div>
-				</div>
-				<div>
-					<header>Processor load Top</header>
+				</section>
+				<section>
+					<div>Processor load Top</div>
 					<div class="list">
 						<ul id="processor"></ul>
 					</div>
-				</div>
-			</section>
+				</section>
+			</div>
 			
-			<section>
-				<div>
-					<header>Physical memory 사용량 Top</header>
+			<div class="top">
+				<section>
+					<div>Physical memory 사용량 Top</div>
 					<div class="list">
 						<ul id="memory"></ul>
 					</div>
-				</div>
-				<div>
-					<header>Physical memory 사용율 Top</header>
-					<div class="list"></div>
-				</div>
-			</section>
+				</section>
+				<section>
+					<div>Physical memory 사용율 Top</div>
+					<div class="list">
+						<ul id="memoryRate"></ul>
+					</div>
+				</section>
+			</div>
 			
-			<section>
-				<div>
-					<header>Storage 사용량 Top</header>
+			<div class="top">
+				<section>
+					<div>Storage 사용량 Top</div>
 					<div class="list">
 						<ul id="storage"></ul>
 					</div>
-				</div>
-				<div>
-					<header>Storage 사용율 Top</header>
-					<div class="list"></div>
-				</div>
-			</section>
+				</section>
+				<section>
+					<div>Storage 사용율 Top</div>
+					<div class="list">
+						<ul id="storageRate"></ul>
+					</div>
+				</section>
+			</div>
 			
-			<section>
-				<div>
-					<header>Interface 사용량 Top</header>
+			<div class="top">
+				<section>
+					<div>Interface 사용량 Top</div>
 					<div class="list">
 						<ul id="throughput"></ul>
 					</div>
-				</div>
-				<div>
-					<header>Interface 사용율 Top</header>
-					<div class="list"></div>
-				</div>
-			</section>
+				</section>
+				<section>
+					<div>Interface 사용율 Top</div>
+					<div class="list">
+						<ul id="throughputRate"></ul>
+					</div>
+				</section>
+			</div>
 		</article>
 		
 		<div class="layout">
@@ -186,8 +268,11 @@ var summaryList = document.getElementById("summary_list"),
 	responseTime = document.getElementById("response_time"),
 	processor = document.getElementById("processor"),
 	memory = document.getElementById("memory"),
+	memoryRate = document.getElementById("memoryRate"),
 	storage = document.getElementById("storage"),
-	throughput = document.getElementById("throughput");
+	storageRate = document.getElementById("storageRate"),
+	throughput = document.getElementById("throughput"),
+	throughputRate = document.getElementById("throughputRate");
 
 (function () {
 	var deviceData = top.databases.device.data,
@@ -256,18 +341,21 @@ top.sendRequest({
 	command: "top",
 	ip: "127.0.0.1"
 }, function (response) {
-	setTop(response.responseTime, window.responseTime, function (value) {
-		return value +"ms";
-	});
-	setTop(response.processor, window.processor, function (value) {
-		return value +"%";
-	});
+	setTop(response.responseTime, window.responseTime, toPercentageString);
+	setTop(response.processor, window.processor, toPercentageString);
 	setTop(response.memory, window.memory, ITAhM.util.toBytesString);
+	setTop(response.memoryRate, window.memoryRate, toPercentageString);
 	setTop(response.storage, window.storage, ITAhM.util.toBytesString);
+	setTop(response.storageRate, window.storageRate, toPercentageString);
 	setTop(response.throughput, window.throughput, ITAhM.util.toBPSString);
+	setTop(response.throughputRate, window.throughputRate, toPercentageString);
 });
 
 document.body.classList.remove("loading");
+
+function toPercentageString(value) {
+	return value +"%";
+}
 
 function setTop(top, list, toString) {
 	var ipList = Object.keys(top).sort(function (a, b) {
