@@ -36,10 +36,14 @@ section {
 	flex: 1;
 }
 
+section.agent {
+	flex: none;
+	width: 160px;
+}
+
 section> div:first-child {
 	padding: .5em 1em;
-	background: linear-gradient(rgba(0, 132, 255, .3), rgba(0, 132, 255, .5), rgba(0, 132, 255, .3));
-	background: #e3e3e3;
+	background: linear-gradient(rgba(227, 227, 227, .3), rgba(227, 227, 227, .5), rgba(227, 227, 227, .3));
 	border: 1px solid #332c2c;
 	border-radius: 1em;
 	font-weight: bold;
@@ -85,23 +89,23 @@ ul {
 	border-bottom: 1px solid #999; 
 }
 
-.top_item ul {
+.list_item ul {
 	display: flex;
 	cursor: pointer;
 }
 
-.top_item ul:hover {
+.list_item ul:hover {
 	text-decoration: underline;
-	outline: 1px solid #0084ff;
-	background-color: rgba(0, 132, 255, .2);
+	/*outline: 1px solid #0084ff;*/
+	background-color: rgba(227, 227, 227, 1);
 }
 
-.top_item li {
+.list_item li {
 	padding: .5em;
 	flex: 1;
 }
 
-.top_item li:last-child {
+.list_item li:last-child {
 	text-align: right;
 	flex: 2;
 }
@@ -176,10 +180,23 @@ ul {
 					</div>
 				</section>
 				
+				<section class="agent">
+					<div>에이전트</div>
+					<div class="list">
+						<ul>
+							<li class="list_item">
+								<ul>
+									<li>연결
+									<li id="connections">
+								</ul>
+						</ul>
+					</div>
+				</section>
+				
 				<div id="counter" class="counter">
 					<div>
 						Last update
-						<p>06:04</p>
+						<p id="update"></p>
 					</div>
 					<div>
 						<span></span>
@@ -250,7 +267,7 @@ ul {
 		
 		<div class="layout">
 			<ul>
-				<li class="top_item">
+				<li class="list_item">
 					<ul>
 						<li>
 						<li>
@@ -264,7 +281,7 @@ ul {
 
 var summaryList = document.getElementById("summary_list"),
 	summaryItem = document.querySelector(".summary"),
-	topItem = document.querySelector(".top_item"),
+	listItem = document.querySelector(".list_item"),
 	responseTime = document.getElementById("response_time"),
 	processor = document.getElementById("processor"),
 	memory = document.getElementById("memory"),
@@ -272,7 +289,9 @@ var summaryList = document.getElementById("summary_list"),
 	storage = document.getElementById("storage"),
 	storageRate = document.getElementById("storageRate"),
 	throughput = document.getElementById("throughput"),
-	throughputRate = document.getElementById("throughputRate");
+	throughputRate = document.getElementById("throughputRate"),
+	updateTime = document.getElementById("update"),
+	connections = document.getElementById("connections");
 
 (function () {
 	var deviceData = top.databases.device.data,
@@ -337,24 +356,59 @@ var summaryList = document.getElementById("summary_list"),
 	summaryList.appendChild(df);
 }) ();
 
-top.sendRequest({
-	command: "top",
-	ip: "127.0.0.1"
-}, function (response) {
-	setTop(response.responseTime, window.responseTime, toPercentageString);
-	setTop(response.processor, window.processor, toPercentageString);
-	setTop(response.memory, window.memory, ITAhM.util.toBytesString);
-	setTop(response.memoryRate, window.memoryRate, toPercentageString);
-	setTop(response.storage, window.storage, ITAhM.util.toBytesString);
-	setTop(response.storageRate, window.storageRate, toPercentageString);
-	setTop(response.throughput, window.throughput, ITAhM.util.toBPSString);
-	setTop(response.throughputRate, window.throughputRate, toPercentageString);
-});
+update();
+
+document.getElementById("counter").addEventListener("animationiteration", update);
 
 document.body.classList.remove("loading");
 
+function update() {
+	top.sendRequest({
+		command: "top",
+		ip: "127.0.0.1"
+	}, function (response) {
+		window.updateTime.textContent = getTime();
+		
+		setTop(response.responseTime, window.responseTime, toMillsString);
+		setTop(response.processor, window.processor, toPercentageString);
+		setTop(response.memory, window.memory, ITAhM.util.toBytesString);
+		setTop(response.memoryRate, window.memoryRate, toPercentageString);
+		setTop(response.storage, window.storage, ITAhM.util.toBytesString);
+		setTop(response.storageRate, window.storageRate, toPercentageString);
+		setTop(response.throughput, window.throughput, ITAhM.util.toBPSString);
+		setTop(response.throughputRate, window.throughputRate, toPercentageString);
+	});
+	
+	top.sendRequest({
+		command: "agent",
+	}, function (response) {
+		connections.textContent = response.connections;
+	});
+}
+
+function toMillsString(value) {
+	return value +"ms";
+}
+
 function toPercentageString(value) {
 	return value +"%";
+}
+
+function clear(list) {
+	var child;
+	
+	while(child = list.firstChild) {
+		list.removeChild(child);
+	}
+}
+
+function getTime() {
+	var date = new Date(),
+		h = date.getHours(),
+		m = date.getMinutes(),
+		s = date.getSeconds();
+	
+	return (h > 9? "": "0") + h +" : "+ (m > 9? "": "0") + m +" : "+ (s > 9? "": "0") + s;
 }
 
 function setTop(top, list, toString) {
@@ -362,6 +416,8 @@ function setTop(top, list, toString) {
 			return top[b] - top[a];
 		}),
 		ip;
+	
+	clear(list);
 	
 	for (var i=0, length=ipList.length; i< length; i++) {
 		ip = ipList[i];
@@ -389,7 +445,7 @@ function createStatusItem(label, critical, shutdown, normal, sum) {
 }
 
 function createTopItem(ip, value) {
-	var clone = topItem.cloneNode(true),
+	var clone = listItem.cloneNode(true),
 		item = clone.children[0];
 	
 	item.children[0].textContent = ip;
