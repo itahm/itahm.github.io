@@ -118,66 +118,40 @@ var chart = document.getElementById("chart"),
 	rightAxis = document.getElementById("axis_right"),
 	dateAxis = document.getElementById("axis_date"),
 	graph = document.getElementById("graph"),
-	grid = document.getElementById("grid");
+	grid = document.getElementById("grid"),
+	rect = {};
 
-(function (window, undefined){
-	
-	window.addEventListener("resize", function () {
-		if (!window.summaryData) {
-			return;
-		}
-		
-		if (window.resizeTimer) {
-			clearTimeout(window.resizeTimer);
-		}
-		
-		window.resizeTimer = setTimeout(resize, 300);
-	});
-
-	(function (){
-		var rect = window.chart.getBoundingClientRect();
-		
-		window.rect = {
-			width: rect.width - MARGIN *2,
-			height: rect.height - MARGIN *2 - DATE_AXIS_HEIGHT
-		};
-		
-		window.blockHeight = window.rect.height / Math.round(window.rect.height / MIN_AXIS_VSPACE);
-		
-		graph.transform.baseVal.getItem(0).setTranslate(0, window.rect.height);
-		
-		drawGrid();
-	}) ();
-
-	function resize() {
-		var rect = window.chart.getBoundingClientRect(),
-			width = rect.width - MARGIN *2,
-			height = rect.height - MARGIN *2 - DATE_AXIS_HEIGHT,
-			reset = false;
-		
-		if (height !== window.rect.height) {
-			graph.transform.baseVal.getItem(0).setTranslate(0, height);
-			
-			window.rect.height = height;
-			
-			reset = true;
-		}
-		
-		if (width !== window.rect.width) {
-			window.rect.width = width;
-			
-			reset = true;
-		}
-		
-		drawGrid();
-		
-		(function (){
-			var result = window.summaryData.parseData(window.start, window.end);
-		
-			draw(window.start, window.end);
-		}) ();
+window.addEventListener("resize", function () {
+	if (!window.summaryData) {
+		return;
 	}
-})(window);
+	
+	if (window.resizeTimer) {
+		clearTimeout(window.resizeTimer);
+	}
+	
+	window.resizeTimer = setTimeout(onResize, 300);
+});
+
+function onResize() {
+	resize();
+	
+	draw(window.start, window.end);
+}
+
+function resize() {
+	var rect = window.chart.getBoundingClientRect(),
+		width = rect.width - MARGIN *2,
+		height = rect.height - MARGIN *2 - DATE_AXIS_HEIGHT,
+		reset = false;
+	
+	graph.transform.baseVal.getItem(0).setTranslate(0, height);
+		
+	window.rect.height = height;
+	window.rect.width = width;
+	
+	drawGrid();
+}
 
 function drawGrid() {
 	var path = new ITAhM.Path(window.grid),
@@ -248,16 +222,20 @@ function onValueToString(value) {
 	return value;
 } 
 
-function drawGraph(chartData, tpp) {
+function drawGraph(tpp) {
+	if (!window.chartData) {
+		return;
+	}
+	
 	var tpp = (window.end - window.start) / window.rect.width,
 		fillMax = new ITAhM.Path(window.graph),
 		fillMin = new ITAhM.Path(window.graph),
 		strokeMax = new ITAhM.Path(window.graph),
 		strokeAvg = new ITAhM.Path(window.graph),
 		strokeMin = new ITAhM.Path(window.graph),
-		high = chartData.high,
-		low = chartData.low,
-		blocks = chartData.keys,
+		high = window.chartData.high,
+		low = window.chartData.low,
+		blocks = window.chartData.keys,
 		yRatio = window.rect.height / (high - low);
 	
 	strokeMax.set("stroke", window.color);
@@ -338,12 +316,16 @@ function drawDateAxis() {
 	window.dateAxis.transform.baseVal.getItem(0).setTranslate(0, rect.height + MARGIN);
 }
 
-function drawValueAxis(chartData) {
-	var diff = (chartData.high - chartData.low) * window.blockHeight / window.rect.height,
+function drawValueAxis() {
+	if (!window.chartData) {
+		return;
+	}
+	
+	var diff = (window.chartData.high - window.chartData.low) * window.blockHeight / window.rect.height,
 		value;
 	
 	for (var y = 0, grow = 0; y <= window.rect.height; y += window.blockHeight, grow += diff) {
-		value = chartData.high - grow;
+		value = window.chartData.high - grow;
 		
 		leftAxis.appendChild(createText(0, y, onValueToString(value)));
 		rightAxis.appendChild(createText(0, y, (value *100 / max).toFixed(2) + "%"));
@@ -353,10 +335,13 @@ function drawValueAxis(chartData) {
 	rightAxis.transform.baseVal.getItem(0).setTranslate(window.rect.width - rightAxis.getBBox().width, 0);
 }
 
+/**
+ * public
+ */
 function draw(start, end) {
-	var chartData,
-		x, y, dateArray, date;
+	var x, y, dateArray, date;
 
+	window.chartData = window.summaryData.parseData(start, end)
 	window.start = start;
 	window.end = end;
 	
@@ -364,26 +349,25 @@ function draw(start, end) {
 	
 	drawDateAxis();
 	
-	chartData = window.summaryData.parseData(start, end);
-	
 	clear(window.graph);
 	
-	if (chartData) {
-		drawGraph(chartData);
-	}
+	drawGraph();
 	
 	clear(window.leftAxis);
 	clear(window.rightAxis);
 	
-	if (chartData) {
-		drawValueAxis(chartData);
-	}
+	drawValueAxis();
 }
 
+/**
+ * public
+ */
 function initialize(summaryData, max, color) {
 	window.summaryData = summaryData;
 	window.max = max;
 	window.color = color;
+	
+	resize();
 }
 
 		</script>

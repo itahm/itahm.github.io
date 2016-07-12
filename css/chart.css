@@ -21,11 +21,6 @@ h2 {
 	text-align: center;
 }
 
-header a {
-	padding: 1em;
-	float: right;
-}
-
 #cursor {
 	height: 60px;
 }

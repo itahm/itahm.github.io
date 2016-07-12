@@ -34,6 +34,8 @@ header {
 section {
 	margin: .5em;
 	flex: 1;
+	display: flex;
+	flex-direction: column;
 }
 
 section.agent {
@@ -47,6 +49,11 @@ section> div:first-child {
 	border: 1px solid #332c2c;
 	border-radius: 1em;
 	font-weight: bold;
+}
+
+section> div:last-child {
+	flex: 1;
+	overflow: auto;
 }
 
 ul {
@@ -92,16 +99,19 @@ ul {
 .list_item ul {
 	display: flex;
 	cursor: pointer;
+	padding: .5em;
+	transition-duration: .5s;
 }
 
 .list_item ul:hover {
 	text-decoration: underline;
-	/*outline: 1px solid #0084ff;*/
-	background-color: rgba(227, 227, 227, 1);
+	border-radius: 0 0 .5em .5em;
+	box-shadow: 0 .5em #999;
+	padding: 0 .5em .5em .5em;
+	margin-bottom: .5em;
 }
 
 .list_item li {
-	padding: .5em;
 	flex: 1;
 }
 
@@ -136,7 +146,7 @@ ul {
 	width: 10em; height: 10em;
 }
 
-.counter div:first-child {
+.counter div:nth-child(1) {
 	border-radius: 50%;
 	border: 1em solid #00f;
 	box-sizing: border-box;
@@ -146,7 +156,7 @@ ul {
 	align-items: center;
 }
 
-.counter div:last-child {
+.counter div:nth-child(3) {
  	transform-origin: 5em 5em;
  	animation: count 10s infinite linear;
 }
@@ -157,6 +167,13 @@ ul {
 	width: 1em; height: 1em;
 	border-radius: 50%;
 	background-color: #fff;
+}
+
+.counter hr {
+	margin: 0 auto;
+	width: 4px; height: 1em;
+	background-color: #fff;
+	border: none;
 }
 
 @keyframes count {
@@ -216,6 +233,9 @@ ul {
 					<div>
 						Last update
 						<p id="update"></p>
+					</div>
+					<div>
+						<hr></hr>
 					</div>
 					<div>
 						<span></span>

@@ -149,6 +149,12 @@ var count = document.getElementById("count"),
 					onResponse(response);
 				}
 				else {
+					if (window.closed) {
+						return;
+					}
+					
+					window.closed = true;
+					
 					if (status === 401) {
 						alert("세션이 만료되었습니다.");
 					}
@@ -164,7 +170,7 @@ var count = document.getElementById("count"),
 					
 					window.onbeforeunload = undefined;
 					
-					location.href = "connect.html";
+					//location.href = "connect.html";
 				}
 			});
 		}

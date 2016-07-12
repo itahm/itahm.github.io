@@ -161,10 +161,8 @@ new Draggable(document.body);
 		if (moveCursor(Math.round(e.detail.dragX / window.blockWidth))) {
 			moveCursorArea();
 			
-			if (window.topPos !== window.bottomPos) {
-				window.onResetDate(window.dateList[Math.min(window.topPosLast, window.bottomPosLast)]
-					, window.dateList[Math.max(window.topPosLast, window.bottomPosLast)]);
-			}
+			window.onResetDate(window.dateList[Math.min(window.topPosLast, window.bottomPosLast)]
+				, window.dateList[Math.max(window.topPosLast, window.bottomPosLast)]);
 		}
 	});
 	
@@ -282,10 +280,15 @@ function moveCursorArea() {return;
 	window.cursorArea.setAttributeNS(null, "width", Math.abs(x1 - x2));
 }
 
-function getDateText(date) {
+function getDateText(mills) {
+	var date = new Date(mills);
+	
 	return MONTH[date.getMonth()] +" "+ date.getDate();
 }
 
+/**
+ * public
+ */
 function initialize(start, end, top, bottom) {
 	var date = new Date();
 	
@@ -306,9 +309,8 @@ function initialize(start, end, top, bottom) {
 		
 		date = new Date(mills);
 		date.setMinutes(date.getMinutes() +30);
-		date.setMinutes(0, 0, 0);
 		
-		window.dateList[i] = date;
+		window.dateList[i] = date.setMinutes(0, 0, 0);
 	}
 	
 	moveCursorTop(window.dayCount);

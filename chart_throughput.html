@@ -34,16 +34,18 @@ h3.output {
 		</header>
 		
 		<h3 class="input">Input</h3>
-		<iframe id="chart_in" class="chart"></iframe>
+		<iframe id="chart_in" src="chart_base.html" class="chart"></iframe>
 		<h3 class="output">Output</h3>
-		<iframe id="chart_out" class="chart"></iframe>
+		<iframe id="chart_out" src="chart_base.html" class="chart"></iframe>
 		
 		<script src="js/ITAhM.js"></script>	
 		<script src="js/object.js"></script>
 		<script>
 
 var chartIn = document.getElementById("chart_in"),
+	chartInWindow = chartIn.contentWindow,
 	chartOut = document.getElementById("chart_out"),
+	chartOutWindow = chartOut.contentWindow,
 	deviceIP = top.databases.device.selected,
 	resourceIndex = top.databases.device.resourceIndex,
 	snmp = top.databases.snmp;
@@ -52,15 +54,23 @@ if(!deviceIP || !resourceIndex || !snmp) {
 	throw "!";
 }
 
-function initialize() {
+chartIn.onload = function () {
+	window.chartInWindow.onValueToString = onValueToString;
+};
+
+chartOut.onload = function () {
+	window.chartOutWindow.onValueToString = onValueToString;
+};
+
+function initialize(from, to, start, end) {
 	var entry = snmp.ifEntry[resourceIndex],
 		request = {
 			command: "query",
 			ip: window.deviceIP,
 			summary: true,
 			index: resourceIndex,
-			start: window.start,
-			end: window.end
+			start: from,
+			end: to
 		};
 	
 	window.max = entry.ifSpeed;
@@ -68,54 +78,83 @@ function initialize() {
 	document.getElementById("if_name").textContent = entry.ifName;
 	
 	request.database = "ifInOctets";
-	top.sendRequest(request, onResponse);
+	top.sendRequest(request, onResponseIn);
 	
 	request.database = "ifOutOctets";
-	top.sendRequest(request, onResponse);
+	top.sendRequest(request, onResponseOut);
+	
+	window.start = start;
+	window.end = end;
 	
 	document.getElementById("legend").textContent = "bandwidth : "+ ITAhM.util.toBPSString(max);
 }
 
-(function (date) {
-	date.setHours(0, 0, 0, 0);
-	
-	window.today = date.getTime();
-	window.end = date.setDate(date.getDate() +1);
-	window.start = date.setMonth(date.getMonth() -1);
-})(new Date());
+function onResponseIn(data) {
+	window.summaryDataIn = new ITAhM.ChartSummaryData(data);
+	window.chartInWindow.initialize(window.summaryDataIn, window.max, "#7d7");
+	window.chartInWindow.draw(window.start, window.end);
+}
 
-function onResponse(data) {
-	chartIn.onload = function () {
-		var chartWindow = this.contentWindow;
-		
-		chartWindow.onValueToString = onValueToString;
-		
-		chartWindow.initialize(new ITAhM.ChartSummaryData(data), window.max, "#7d7");
-		chartWindow.draw(window.today, window.end);
-	};
-	
-	chartOut.onload = function () {
-		var chartWindow = this.contentWindow;
-		
-		chartWindow.onValueToString = onValueToString;
-		
-		chartWindow.initialize(new ITAhM.ChartSummaryData(data), window.max, "#f60");
-		chartWindow.draw(window.today, window.end);
-	};
-	
-	chartIn.src="chart_base.html";
-	chartOut.src="chart_base.html";
+function onResponseOut(data) {
+	window.summaryDataOut = new ITAhM.ChartSummaryData(data);
+	window.chartOutWindow.initialize(window.summaryDataOut, window.max, "#f60");
+	window.chartOutWindow.draw(window.start, window.end);
 }
 
 function onValueToString(value) {
 	return ITAhM.util.toBPSString(value);
 }
 
-function onResetDate(start, end) {
-	window.chartIn.contentWindow.draw(start, end);
-	window.chartOut.contentWindow.draw(start, end);
+/**
+ * public
+ */
+function draw(start, end) {
+	if (start === end || (start === window.start && end === window.end)) {
+		return;
+	}
+	
+	window.start = start;
+	window.end = end;
+	
+	window.chartWindow.draw(window.start, window.end);
 }
 
+/**
+ * public
+ */
+function getFile() {
+	buildFile(window.summaryDataIn, window.chartInWindow.chartData, "chart_throughput_in.csv");
+	buildFile(window.summaryDataOut, window.chartOutWindow.chartData, "chart_throughput_out.csv");
+}
+
+function buildFile(summaryData, chartData, fileName) {
+	var blocks = chartData.keys,
+		row, block, date, mills, value, k = 0;
+	
+	if (false) {
+	}
+	//if (date.setDate(date.getDate() +1) === window.end) {}
+	else {
+		row = ["index,date,max,avg,min"];
+		
+		for (var i=0, _i=blocks.length; i<_i; i++) {
+			block = blocks[i];
+			
+			for (var j=0, _j=block.length; j<_j; j++) {
+				mills = block[j];
+				value = summaryData.get(mills);
+				
+				date = new Date(mills);
+				
+				row[row.length] = [k++, ITAhM.util.toDateTimeString(date), value.max, value.avg, value.min].join(",");
+			}
+		}
+		
+		ITAhM.util.download(new Blob([row.join("\n")] ,{
+				type: "text/csv;charset=utf-8;"
+			}), fileName);
+	}
+}
 		</script>
 	
 	</body>

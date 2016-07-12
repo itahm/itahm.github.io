@@ -14,6 +14,15 @@
 #chart {
 	flex: 1;
 }
+
+nav {
+	padding: 1em;
+	float: right;
+}
+
+nav img {
+	cursor: pointer;
+}
 		</style>
 		
 	</head>
@@ -21,7 +30,10 @@
 	<body>
 		
 		<header>
-			<a href="status.html">Close</a>
+			<nav>
+				<img width="16" height="16" src="img/save.png" id="save" title="파일로 저장">
+				<a href="status.html"><img width="16" height="16" src="img/close.png" title="차트 닫기"></a>
+			</nav>
 			<h1 id="host">resource[host]</h1>
 		</header>
 		
@@ -35,9 +47,15 @@
 if (parent === window) throw "";		
 
 var chart = document.getElementById("chart"),
+	chartWindow = chart.contentWindow,
+	cursor = document.getElementById("cursor"),
 	deviceIP = top.databases.device.selected,
 	resourceIndex = top.databases.device.resourceIndex,
 	snmp = top.databases.snmp;
+
+document.getElementById("save").onclick = function () {
+	chartWindow.getFile();
+};
 
 (function (date) {
 	date.setHours(0, 0, 0, 0);
@@ -47,12 +65,21 @@ var chart = document.getElementById("chart"),
 	window.start = date.setMonth(date.getMonth() -1);
 })(new Date());
 
+window.chart.onload = function () {
+	window.cursor.src = "date_cursor.html";
+	
+	window.chartWindow.initialize(window.start, window.end, window.today, window.end);
+};	
+
+window.cursor.onload = function () {
+	var cursorWindow = window.cursor.contentWindow;
+	
+	cursorWindow.onResetDate = window.chartWindow.draw;
+	cursorWindow.initialize(window.start, window.end, window.end, window.today);
+};
+
 (function () {
 	var host = " ["+ window.deviceIP +"]";
-	
-	window.chart.onload = function () {
-		this.contentWindow.initialize();
-	};	
 	
 	switch(top.databases.device.selectedResource) {
 	case "responseTime":
@@ -79,26 +106,6 @@ var chart = document.getElementById("chart"),
 	
 	window.chart.src = "chart_"+ top.databases.device.selectedResource +".html";
 }) ();
-
-(function () {
-	var cursor = document.getElementById("cursor");
-
-	cursor.onload = function () {
-		var cursorWindow = cursor.contentWindow;
-		
-		cursorWindow.onResetDate = onResetDate;
-		
-		cursorWindow.initialize(window.start, window.end, window.end, window.today);
-	}
-	
-	cursor.src = "date_cursor.html";
-}) ();
-
-function onResetDate(start, end) {
-	if (start !== end) {
-		window.chart.contentWindow.onResetDate(start.getTime(), end.getTime());
-	}
-}
 
 function onSelectDevice(ip) {
 	var device = top.databases.device.data[ip];

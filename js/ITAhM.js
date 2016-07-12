@@ -124,6 +124,18 @@ Array.prototype.fill = Array.prototype.fill || function (val) {
 			return year +"-"+ (month > 9? "": "0") + month +"-"+ (day > 9? "": "0") + day;
 		},
 		
+		toDateTimeString: function (date) {
+			var year = date.getFullYear(),
+				month = date.getMonth() + 1,
+				day  = date.getDate(),
+				h = date.getHours(),
+				m = date.getMinutes(),
+				s = date.getSeconds();
+			
+			return year +"-"+ (month > 9? "": "0") + month +"-"+ (day > 9? "": "0") + day +" "
+				+ (h > 9? "": "0") + h +":"+ (m > 9? "": "0") + m +":"+ (s > 9? "": "0") + s;
+		},
+		
 		download: function(blob, fileName) {
 			if (window.navigator.msSaveBlob) {
 				window.navigator.msSaveBlob(blob, fileName);
@@ -151,10 +163,6 @@ Array.prototype.fill = Array.prototype.fill || function (val) {
 			event.initCustomEvent(type, true, true, data);
 			
 			return event;
-		},
-		
-		toDateTimeString: function (date) {
-			return date.toISOString().slice(0, 10) + " "+ date.toTimeString().slice(0, 8)
 		},
 		
 		createCSVData: function (data, keys, summary) {

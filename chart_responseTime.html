@@ -21,62 +21,120 @@
 			<div id="legend"></div>
 		</header>
 		
-		<iframe id="chart" class="chart"></iframe>
+		<iframe id="chart" src="chart_base.html" class="chart"></iframe>
 		
 		<script src="js/ITAhM.js"></script>	
 		<script src="js/object.js"></script>
 		<script>
 
 var chart = document.getElementById("chart"),
+	chartWindow = chart.contentWindow,
 	cursor = document.getElementById("cursor"),
 	deviceIP = top.databases.device.selected,
 	max = 5000;
-
-if(!deviceIP) {
+	
+if(!window.deviceIP) {
 	throw "!";
 }
 
-(function (date) {
-	date.setHours(0, 0, 0, 0);
-	
-	window.today = date.getTime();
-	window.end = date.setDate(date.getDate() +1);
-	window.start = date.setMonth(date.getMonth() -1);
-})(new Date());
+document.getElementById("legend").textContent = "Timeout : "+ max +"ms";
 
-function initialize() {
+window.chart.onload = function () {
+	window.chartWindow.onValueToString = onValueToString;
+};
+
+/**
+ * public
+ */
+function initialize(from, to, start, end) {
 	top.sendRequest({
 		command: "query",
 		ip: window.deviceIP,
 		summary: true,
 		database: "responseTime",
 		index: 0,
-		start: window.start,
-		end: window.end
+		start: from,
+		end: to
 	}, onResponse);
-
-	document.getElementById("legend").textContent = "Timeout : "+ max +"ms";
-}
-
-function onResponse(data) {
-	chart.onload = function () {
-		var chartWindow = this.contentWindow;
-		
-		chartWindow.onValueToString = onValueToString;
-		
-		chartWindow.initialize(new ITAhM.ChartSummaryData(data), window.max, "#0084ff");
-		chartWindow.draw(window.today, window.end);
-	};
 	
-	chart.src="chart_base.html";
+	window.start = start;
+	window.end = end;
 }
 
+/**
+ * private
+ */
+function onResponse(data) {
+	window.summaryData = new ITAhM.ChartSummaryData(data);
+	window.chartWindow.initialize(window.summaryData, window.max, "#0084ff");
+	window.chartWindow.draw(window.start, window.end);
+}
+
+/**
+ * private
+ */
 function onValueToString(value) {
 	return value.toFixed(0) +"ms";
 }
 
-function onResetDate(start, end) {
-	window.chart.contentWindow.draw(start, end);
+/**
+ * public
+ */
+function draw(start, end) {
+	if (start === end || (start === window.start && end === window.end)) {
+		return;
+	}
+	
+	var date = new Date(start);
+	
+	window.start = start;
+	window.end = end;
+	
+	window.chartWindow.draw(window.start, window.end);
+	/*
+	if (date.setDate(date.getDate() +1) === window.end) {
+		top.sendRequest({
+			command: "query",
+			ip: window.deviceIP,
+			summary: false,
+			database: "responseTime",
+			index: 0,
+			start: start,
+			end: end
+		}, window.chartWindow.detail.bind(undefined, start, end));
+	}
+	else {
+		
+	}*/
+}
+
+/**
+ * public
+ */
+function getFile() {
+	var chartData = window.chartWindow.chartData,
+		blocks = chartData.keys,
+		date = new Date(window.start),
+		row, block, date, mills, value, k = 0;
+	
+	row = ["index,date,max,avg,min"];
+	
+	for (var i=0, _i=blocks.length; i<_i; i++) {
+		block = blocks[i];
+		
+		for (var j=0, _j=block.length; j<_j; j++) {
+			mills = block[j];
+			value = window.summaryData.get(mills);
+			
+			date = new Date(mills);
+			
+			row[row.length] = [k++, ITAhM.util.toDateTimeString(date), value.max, value.avg, value.min].join(",");
+		}
+	}
+	
+	ITAhM.util.download(new Blob([row.join("\n")] ,{
+			type: "text/csv;charset=utf-8;"
+		}), "chart_responsetime.csv");
 }
 
 		</script>

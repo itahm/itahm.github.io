@@ -22,13 +22,14 @@
 			<div id="legend"></div>
 		</header>
 		
-		<iframe id="chart" class="chart"></iframe>
+		<iframe id="chart" src="chart_base.html" class="chart"></iframe>
 		
 		<script src="js/ITAhM.js"></script>	
 		<script src="js/object.js"></script>
 		<script>
 
 var chart = document.getElementById("chart"),
+	chartWindow = chart.contentWindow,
 	deviceIP = top.databases.device.selected,
 	resourceIndex = top.databases.device.resourceIndex,
 	snmp = top.databases.snmp;
@@ -37,55 +38,91 @@ if(!deviceIP || !snmp) {
 	throw "!";
 }
 
-(function (date) {
-	date.setHours(0, 0, 0, 0);
-	
-	window.today = date.getTime();
-	window.end = date.setDate(date.getDate() +1);
-	window.start = date.setMonth(date.getMonth() -1);
-})(new Date());
-
-function initialize() {
-	var entry = snmp.hrStorageEntry[resourceIndex];
+window.chart.onload = function () {
+	window.chartWindow.onValueToString = onValueToString;
+};
+/**
+ * public
+ */
+function initialize(from, to, start, end) {
+	var entry = snmp.hrStorageEntry[resourceIndex],
+		request = {
+			command: "query",
+			ip: window.deviceIP,
+			summary: true,
+			database: "hrStorageUsed",
+			index: resourceIndex,
+			start: from,
+			end: to
+		};
 	
 	window.max = entry.hrStorageSize * entry.hrStorageAllocationUnits;
 	
-	top.sendRequest({
-		command: "query",
-		ip: window.deviceIP,
-		summary: true,
-		database: "hrStorageUsed",
-		index: resourceIndex,
-		start: window.start,
-		end: window.end
-	}, onResponse);
+	top.sendRequest(request, onResponse);
+	
+	window.start = start;
+	window.end = end;
 	
 	document.getElementById("storage_name").textContent = entry.hrStorageDescr;
-	
 	document.getElementById("legend").textContent = "Storage volume : "+ ITAhM.util.toBytesString(max);
 }
 
 function onResponse(data) {
-	chart.onload = function () {
-		var chartWindow = this.contentWindow;
-		
-		chartWindow.onValueToString = onValueToString;
-		
-		chartWindow.initialize(new ITAhM.ChartSummaryData(data), window.max, "#9d9789");
-		chartWindow.draw(window.today, window.end);
-	};
-	
-	chart.src="chart_base.html";
+	window.summaryData = new ITAhM.ChartSummaryData(data);
+	chartWindow.initialize(window.summaryData, window.max, "#9d9789");
+	chartWindow.draw(window.start, window.end);
 }
 
 function onValueToString(value) {
 	return ITAhM.util.toBytesString(value).replace("ytes", "");
 }
 
-function onResetDate(start, end) {
-	window.chart.contentWindow.draw(start, end);
+/**
+ * public
+ */
+function draw(start, end) {
+	if (start === end || (start === window.start && end === window.end)) {
+		return;
+	}
+	
+	window.start = start;
+	window.end = end;
+	
+	window.chartWindow.draw(window.start, window.end);
 }
 
+/**
+ * public
+ */
+function getFile() {
+	var chartData = window.chartWindow.chartData,
+		blocks = chartData.keys,
+		row, block, date, mills, value, k = 0;
+	
+	if (false) {
+	}
+	//if (date.setDate(date.getDate() +1) === window.end) {}
+	else {
+		row = ["index,date,max,avg,min"];
+		
+		for (var i=0, _i=blocks.length; i<_i; i++) {
+			block = blocks[i];
+			
+			for (var j=0, _j=block.length; j<_j; j++) {
+				mills = block[j];
+				value = window.summaryData.get(mills);
+				
+				date = new Date(mills);
+				
+				row[row.length] = [k++, ITAhM.util.toDateTimeString(date), value.max, value.avg, value.min].join(",");
+			}
+		}
+		
+		ITAhM.util.download(new Blob([row.join("\n")] ,{
+				type: "text/csv;charset=utf-8;"
+			}), "chart_storage.csv");
+	}
+}
 		</script>
 	
 	</body>

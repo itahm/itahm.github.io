@@ -132,7 +132,7 @@ var ITAhM = ITAhM || {};
 			return date.setMinutes(date.getMinutes() +1, 0, 0);
 		},
 		
-		buildData: function (start, end) {
+		parseData: function (start, end) {
 			var keys = [],
 				tmp = [],
 				date = new Date(start),
