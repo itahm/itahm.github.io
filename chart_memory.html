@@ -44,7 +44,7 @@ window.chart.onload = function () {
  * public
  */
 function initialize(from, to, start, end) {
-	var entry = snmp.hrStorageEntry[resourceIndex];
+	var entry = snmp.hrStorageEntry[window.resourceIndex];
 
 	window.max = entry.hrStorageSize * entry.hrStorageAllocationUnits;
 	
@@ -53,10 +53,10 @@ function initialize(from, to, start, end) {
 		ip: window.deviceIP,
 		summary: true,
 		database: "hrStorageUsed",
-		index: resourceIndex,
+		index: window.resourceIndex,
 		start: from,
 		end: to
-	}, onResponse);
+	}, onSummaryResponse);
 	
 	
 	window.start = start;
@@ -65,10 +65,20 @@ function initialize(from, to, start, end) {
 	document.getElementById("legend").textContent = "Memory capacity : "+ ITAhM.util.toBytesString(max);
 }
 
-function onResponse(data) {
+function onSummaryResponse(data) {
 	window.summaryData = new ITAhM.ChartSummaryData(data);
-	chartWindow.initialize(window.summaryData, window.max, "#b8860b");
+	chartWindow.initialize(window.summaryData, window.max, "#b8860b", true);
 	chartWindow.draw(window.start, window.end);
+	
+	sendDetailRequest();
+}
+
+/**
+ * private
+ */
+function onDetailResponse(data) {
+	window.detailData = new ITAhM.ChartData(data);
+	window.chartWindow.detail(window.detailData, window.start, window.end);
 }
 
 function onValueToString(value) {
@@ -76,33 +86,33 @@ function onValueToString(value) {
 }
 
 /**
- * public
+ * private
  */
-function draw(start, end) {
-	if (start === end || (start === window.start && end === window.end)) {
-		return;
-	}
-	
-	window.start = start;
-	window.end = end;
-	
-	window.chartWindow.draw(window.start, window.end);
+function sendDetailRequest() {
+	top.sendRequest({
+		command: "query",
+		ip: window.deviceIP,
+		summary: false,
+		database: "hrStorageUsed",
+		index: window.resourceIndex,
+		start: window.start,
+		end: window.end
+	}, onDetailResponse);
 }
 
+
 /**
- * public
+ * private
  */
-function getFile() {
+function buildSummaryFile() {
 	var chartData = window.chartWindow.chartData,
 		blocks = chartData.keys,
+		date = new Date(window.start),
 		row, block, date, mills, value, k = 0;
 	
-	if (false) {
-	}
-	//if (date.setDate(date.getDate() +1) === window.end) {}
-	else {
-		row = ["index,date,max,avg,min"];
-		
+	row = ["index,date,max,avg,min"];
+	
+	if (chartData) {
 		for (var i=0, _i=blocks.length; i<_i; i++) {
 			block = blocks[i];
 			
@@ -115,12 +125,79 @@ function getFile() {
 				row[row.length] = [k++, ITAhM.util.toDateTimeString(date), value.max, value.avg, value.min].join(",");
 			}
 		}
-		
-		ITAhM.util.download(new Blob([row.join("\n")] ,{
-				type: "text/csv;charset=utf-8;"
-			}), "chart_memory.csv");
+	}
+	
+	return row;
+}
+
+/**
+ * private
+ */
+function buildDetailFile() {
+	var chartData = window.chartWindow.chartData,
+		blocks = chartData.keys,
+		row, block, date, mills, value, k = 0;
+	
+	row = ["index,date,physical memory(bytes)"];
+	
+	if (chartData) {
+		for (var i=0, _i=blocks.length; i<_i; i++) {
+			block = blocks[i];
+			
+			for (var j=0, _j=block.length; j<_j; j++) {
+				mills = block[j];
+				
+				date = new Date(mills);
+				
+				row[row.length] = [k++, ITAhM.util.toDateTimeString(date), window.detailData.get(mills)].join(",");
+			}
+		}
+	}
+	
+	return row;
+}
+
+/**
+ * public
+ */
+function draw(start, end) {
+	if (start === end || (start === window.start && end === window.end)) {
+		return;
+	}
+	
+	var date = new Date(start);
+	
+	window.start = start;
+	window.end = end;
+	
+	window.chartWindow.draw(window.start, window.end);
+	
+	if (date.setDate(date.getDate() +1) === window.end) {
+		sendDetailRequest();
+	}
+	else {
+		window.detailData = undefined;
 	}
 }
+
+/**
+ * public
+ */
+function getFile() {
+	var rowArray;
+	
+	if (window.detailData) {
+		rowArray = buildDetailFile();
+	}
+	else {
+		rowArray = buildSummaryFile();
+	}
+	
+	ITAhM.util.download(new Blob([rowArray.join("\n")] ,{
+		type: "text/csv;charset=utf-8;"
+	}), "chart_memory.csv");
+}
+
 		</script>
 	
 	</body>

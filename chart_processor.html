@@ -16,7 +16,6 @@
 	</head>
 	
 	<body>
-		
 		<script src="js/ITAhM.js"></script>	
 		<script src="js/object.js"></script>
 		<script>
@@ -24,7 +23,7 @@
 var deviceIP = top.databases.device.selected,
 	snmp = top.databases.snmp,
 	chartList = {},
-	dataList = {},
+	summaryList = {},
 	colorList = [
 		"#6d8764",
 		"#f0a30a",
@@ -35,6 +34,12 @@ var deviceIP = top.databases.device.selected,
 		"#008a00",
 		"#1ba1e2",
 	],
+	detailRequest = {
+		command: "query",
+		ip: deviceIP,
+		summary: false,
+		database: "hrProcessorLoad",
+	},
 	chartIndex,
 	colorLength = colorList.length,
 	colorIndex = 0,
@@ -75,17 +80,19 @@ function initialize(from, to, start, end) {
 	for (var index in entry) {
 		request.index = index;
 		
-		top.sendRequest(request, onResponse.bind(undefined, index));
+		top.sendRequest(request, onSummaryResponse.bind(undefined, index));
 	}
+	
+	window.lastChartIndex = index;
 	
 	window.start = start;
 	window.end = end;
 }
 
-function onResponse(index, data) {
+function onSummaryResponse(index, data) {
 	var chart = window.chartList[index];
 	
-	window.dataList[index] = new ITAhM.ChartSummaryData(data);
+	window.summaryList[index] = new ITAhM.ChartSummaryData(data);
 	
 	chart.onload = onLoadChart.bind(undefined, index);
 	
@@ -97,8 +104,14 @@ function onLoadChart(index) {
 	
 	chartWindow.onValueToString = onValueToString;
 	
-	chartWindow.initialize(window.dataList[index], window.max, window.colorList[window.colorIndex++ % window.colorLength]);
+	chartWindow.initialize(window.summaryList[index], window.max, window.colorList[window.colorIndex++ % window.colorLength], window.lastChartIndex === index);
 	chartWindow.draw(window.start, window.end);
+	
+	window.detailRequest.start = window.start;
+	window.detailRequest.end = window.end;
+	window.detailRequest.index = index;
+	
+	top.sendRequest(window.detailRequest, onDetailResponse.bind(undefined, index));
 }
 
 function onValueToString(value) {
@@ -106,29 +119,93 @@ function onValueToString(value) {
 }
 
 /**
+ * private
+ */
+function onDetailResponse(index, data) {
+	window.detailList = window.detailList || {};
+	
+	window.detailList[index] = new ITAhM.ChartData(data);
+	window.chartList[index].contentWindow.detail(window.detailList[index], window.start, window.end);
+}
+
+/**
  * public
  */
-function draw(start, end) {
+ function draw(start, end) {
 	if (start === end || (start === window.start && end === window.end)) {
 		return;
 	}
 	
+	var date = new Date(start);
+	
 	window.start = start;
 	window.end = end;
 	
-	window.chartWindow.draw(window.start, window.end);
+	for (var index in window.chartList) {
+		window.chartList[index].contentWindow.draw(window.start, window.end);
+	}
+	
+	if (date.setDate(date.getDate() +1) === window.end) {
+		window.detailRequest.start = window.start;
+		window.detailRequest.end = window.end;
+		
+		for (var index in window.chartList) {
+			window.detailRequest.index = index;
+			
+			top.sendRequest(window.detailRequest, onDetailResponse.bind(undefined, index));
+		}
+	}
+	else {
+		window.detailList = undefined;
+	}
 }
 
 /**
  * public
  */
 function getFile() {
-	for (var index in window.dataList) {
-		buildFile(window.dataList[index], window.chartList[index].contentWindow.chartData, "chart_processor_"+ index +".csv");
+	var list, buildFunction, rowArray;
+	
+	if (window.detailList) {
+		list = window.detailList;
+		buildFunction = buildDetailFile;
+	}
+	else {
+		list = window.summaryList;
+		buildFunction = buildSummaryFile;
+	}
+	
+	for (var index in list) {
+		rowArray = buildFunction(list[index], window.chartList[index].contentWindow.chartData);
+		
+		ITAhM.util.download(new Blob([rowArray.join("\n")] ,{
+			type: "text/csv;charset=utf-8;"
+		}), "chart_processor_"+ index +".csv");
 	}
 }
 
-function buildFile(summaryData, chartData, fileName) {
+function buildDetailFile(detailData, chartData) {
+	var blocks = chartData.keys,
+		row, block, date, mills, k = 0;
+	
+	row = ["index,date,processor load(%)"];
+	
+	for (var i=0, _i=blocks.length; i<_i; i++) {
+		block = blocks[i];
+		
+		for (var j=0, _j=block.length; j<_j; j++) {
+			mills = block[j];
+			
+			date = new Date(mills);
+			
+			row[row.length] = [k++, ITAhM.util.toDateTimeString(date), detailData.get(mills)].join(",");
+		}
+	}
+	
+	return row;
+}
+
+function buildSummaryFile(summaryData, chartData) {
 	var blocks = chartData.keys,
 		row, block, date, mills, value, k = 0;
 	
@@ -147,9 +224,7 @@ function buildFile(summaryData, chartData, fileName) {
 		}
 	}
 	
-	ITAhM.util.download(new Blob([row.join("\n")] ,{
-		type: "text/csv;charset=utf-8;"
-	}), fileName);
+	return row;
 }
 
 		</script>

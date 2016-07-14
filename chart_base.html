@@ -102,7 +102,6 @@ nav input[type="checkbox"]:checked ~img.lock {
 		
 		<script src="js/ITAhM.js"></script>
 		<script src="js/object.js"></script>
-		<script src="js/Draggable.js"></script>
 		<script>
 
 var svgNS = "http://www.w3.org/2000/svg",
@@ -111,7 +110,8 @@ var svgNS = "http://www.w3.org/2000/svg",
 	MIN_AXIS_VSPACE = 50,
 	MIN_AXIS_HSPACE = 60,
 	DATE_AXIS_HEIGHT = 6,
-	MARGIN = 20;
+	MARGIN = 20,
+	MARGIN_BOTTOM = 20;
 
 var chart = document.getElementById("chart"),
 	leftAxis = document.getElementById("axis_left"),
@@ -222,21 +222,22 @@ function onValueToString(value) {
 	return value;
 } 
 
-function drawGraph(tpp) {
+function drawGraph() {
 	if (!window.chartData) {
 		return;
 	}
 	
-	var tpp = (window.end - window.start) / window.rect.width,
-		fillMax = new ITAhM.Path(window.graph),
+	var fillMax = new ITAhM.Path(window.graph),
 		fillMin = new ITAhM.Path(window.graph),
 		strokeMax = new ITAhM.Path(window.graph),
 		strokeAvg = new ITAhM.Path(window.graph),
 		strokeMin = new ITAhM.Path(window.graph),
 		high = window.chartData.high,
-		low = window.chartData.low,
 		blocks = window.chartData.keys,
-		yRatio = window.rect.height / (high - low);
+		dateArray, mills;
+	
+	window.low = window.chartData.low,
+	window.yRatio = window.rect.height / (high - window.low);
 	
 	strokeMax.set("stroke", window.color);
 	strokeMax.set("stroke-opacity", .5);
@@ -261,33 +262,33 @@ function drawGraph(tpp) {
 	for (var i=0, _i=blocks.length; i<_i; i++) {
 		dateArray = blocks[i];
 	
-		date = dateArray[0];
+		mills = dateArray[0];
 		
-		x = (date - start) / tpp;
-		y = summaryData.get(date);
+		x = (mills - start) / window.tpp;
+		y = summaryData.get(mills);
 	
 		fillMax.moveTo(x, 0);
 		fillMin.moveTo(x, 0);
 		
-		strokeAvg.moveTo(x, (y.avg - low) * yRatio);
-		strokeMax.moveTo(x, (y.max - low) * yRatio);
-		strokeMin.moveTo(x, (y.min - low) * yRatio);
+		strokeAvg.moveTo(x, (y.avg - window.low) * window.yRatio);
+		strokeMax.moveTo(x, (y.max - window.low) * window.yRatio);
+		strokeMin.moveTo(x, (y.min - window.low) * window.yRatio);
 		
-		fillMax.lineTo(x, (y.max - low) * yRatio);
-		fillMin.lineTo(x, (y.min - low) * yRatio);
+		fillMax.lineTo(x, (y.max - window.low) * window.yRatio);
+		fillMin.lineTo(x, (y.min - window.low) * window.yRatio);
 	
 		for (var j=1,_j=dateArray.length; j<_j; j++) {				
-			date = dateArray[j];
+			mills = dateArray[j];
 			
-			x = (date - start) / tpp;
-			y = summaryData.get(date);
+			x = (mills - start) / window.tpp;
+			y = summaryData.get(mills);
 			
-			strokeMax.lineTo(x, (y.max - low) * yRatio);
-			strokeAvg.lineTo(x, (y.avg - low) * yRatio);
-			strokeMin.lineTo(x, (y.min - low) * yRatio);
+			strokeMax.lineTo(x, (y.max - window.low) * window.yRatio);
+			strokeAvg.lineTo(x, (y.avg - window.low) * window.yRatio);
+			strokeMin.lineTo(x, (y.min - window.low) * window.yRatio);
 			
-			fillMax.lineTo(x, (y.max - low) * yRatio);
-			fillMin.lineTo(x, (y.min - low) * yRatio);
+			fillMax.lineTo(x, (y.max - window.low) * window.yRatio);
+			fillMin.lineTo(x, (y.min - window.low) * window.yRatio);
 		}
 	
 		fillMax.lineTo(x, 0);
@@ -306,11 +307,10 @@ function drawGraph(tpp) {
 }
 
 function drawDateAxis() {
-	var tpp = (window.end - window.start) / window.rect.width,
-		text, date, h;
+	var text, date, h;
 	
 	for (var x = 0, grow = 0; x <= window.rect.width; x += window.blockWidth ) {
-		window.dateAxis.appendChild(createDateText(x, 0, window.start + x * tpp));
+		window.dateAxis.appendChild(createDateText(x, 0, window.start + x * window.tpp));
 	}
 	
 	window.dateAxis.transform.baseVal.getItem(0).setTranslate(0, rect.height + MARGIN);
@@ -341,9 +341,11 @@ function drawValueAxis() {
 function draw(start, end) {
 	var x, y, dateArray, date;
 
-	window.chartData = window.summaryData.parseData(start, end)
+	window.chartData = window.summaryData.parseData(start, end);
+	window.detailData = undefined;
 	window.start = start;
 	window.end = end;
+	window.tpp = (window.end - window.start) / window.rect.width;
 	
 	clear(window.dateAxis);
 	
@@ -362,10 +364,59 @@ function draw(start, end) {
 /**
  * public
  */
-function initialize(summaryData, max, color) {
+function detail(detailData, start, end) {
+	var path = new ITAhM.Path(window.graph),
+		blocks, dateArray, mills;
+	
+	window.chartData = detailData.parseData(start, end);
+	if (!window.chartData) {
+		return;
+	}
+	
+	blocks = window.chartData.keys;
+	
+	path.set("stroke", window.color);
+	path.set("stroke-width", .5);
+	path.set("fill", "none");
+	path.beginPath();
+	
+	for (var i=0, _i=blocks.length; i<_i; i++) {
+		dateArray = blocks[i];
+	
+		mills = dateArray[0];
+		
+		x = (mills - start) / window.tpp;
+		y = detailData.get(mills);
+		
+		path.moveTo(x, (y - window.low) * window.yRatio);
+	
+		for (var j=1,_j=dateArray.length; j<_j; j++) {				
+			mills = dateArray[j];
+			
+			x = (mills - start) / window.tpp;
+			y = detailData.get(mills);
+			
+			path.lineTo(x, (y - window.low) * window.yRatio);
+		}
+	
+		path.draw();
+	}
+}
+
+/**
+ * public
+ */
+function initialize(summaryData, max, color, drawDate) {
 	window.summaryData = summaryData;
 	window.max = max;
 	window.color = color;
+	
+	if (!drawDate) {
+		window.DATE_AXIS_HEIGHT = 0;
+		
+		window.drawDateAxis = function () {
+		};
+	}
 	
 	resize();
 }

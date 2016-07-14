@@ -55,7 +55,7 @@ function initialize(from, to, start, end) {
 		index: 0,
 		start: from,
 		end: to
-	}, onResponse);
+	}, onSummaryResponse);
 	
 	window.start = start;
 	window.end = end;
@@ -64,10 +64,21 @@ function initialize(from, to, start, end) {
 /**
  * private
  */
-function onResponse(data) {
+function onSummaryResponse(data) {
 	window.summaryData = new ITAhM.ChartSummaryData(data);
-	window.chartWindow.initialize(window.summaryData, window.max, "#0084ff");
+	
+	window.chartWindow.initialize(window.summaryData, window.max, "#0084ff", true);
 	window.chartWindow.draw(window.start, window.end);
+	
+	sendDetailRequest();
+}
+
+/**
+ * private
+ */
+function onDetailResponse(data) {
+	window.detailData = new ITAhM.ChartData(data);
+	window.chartWindow.detail(window.detailData, window.start, window.end);
 }
 
 /**
@@ -75,6 +86,77 @@ function onResponse(data) {
  */
 function onValueToString(value) {
 	return value.toFixed(0) +"ms";
+}
+
+/**
+ * private
+ */
+function sendDetailRequest() {
+	top.sendRequest({
+		command: "query",
+		ip: window.deviceIP,
+		summary: false,
+		database: "responseTime",
+		index: 0,
+		start: window.start,
+		end: window.end
+	}, onDetailResponse);
+}
+
+/**
+ * private
+ */
+function buildSummaryFile() {
+	var chartData = window.chartWindow.chartData,
+		blocks = chartData.keys,
+		date = new Date(window.start),
+		row, block, date, mills, value, k = 0;
+	
+	row = ["index,date,max,avg,min"];
+	
+	if (chartData) {
+		for (var i=0, _i=blocks.length; i<_i; i++) {
+			block = blocks[i];
+			
+			for (var j=0, _j=block.length; j<_j; j++) {
+				mills = block[j];
+				value = window.summaryData.get(mills);
+				
+				date = new Date(mills);
+				
+				row[row.length] = [k++, ITAhM.util.toDateTimeString(date), value.max, value.avg, value.min].join(",");
+			}
+		}
+	}
+	
+	return row;
+}
+
+/**
+ * private
+ */
+function buildDetailFile() {
+	var chartData = window.chartWindow.chartData,
+		blocks = chartData.keys,
+		row, block, date, mills, value, k = 0;
+	
+	row = ["index,date,response time(ms)"];
+	
+	if (chartData) {
+		for (var i=0, _i=blocks.length; i<_i; i++) {
+			block = blocks[i];
+			
+			for (var j=0, _j=block.length; j<_j; j++) {
+				mills = block[j];
+				
+				date = new Date(mills);
+				
+				row[row.length] = [k++, ITAhM.util.toDateTimeString(date), window.detailData.get(mills)].join(",");
+			}
+		}
+	}
+	
+	return row;
 }
 
 /**
@@ -91,50 +173,31 @@ function draw(start, end) {
 	window.end = end;
 	
 	window.chartWindow.draw(window.start, window.end);
-	/*
+	
 	if (date.setDate(date.getDate() +1) === window.end) {
-		top.sendRequest({
-			command: "query",
-			ip: window.deviceIP,
-			summary: false,
-			database: "responseTime",
-			index: 0,
-			start: start,
-			end: end
-		}, window.chartWindow.detail.bind(undefined, start, end));
+		sendDetailRequest();
 	}
 	else {
-		
-	}*/
+		window.detailData = undefined;
+	}
 }
 
 /**
  * public
  */
 function getFile() {
-	var chartData = window.chartWindow.chartData,
-		blocks = chartData.keys,
-		date = new Date(window.start),
-		row, block, date, mills, value, k = 0;
+	var rowArray;
 	
-	row = ["index,date,max,avg,min"];
-	
-	for (var i=0, _i=blocks.length; i<_i; i++) {
-		block = blocks[i];
-		
-		for (var j=0, _j=block.length; j<_j; j++) {
-			mills = block[j];
-			value = window.summaryData.get(mills);
-			
-			date = new Date(mills);
-			
-			row[row.length] = [k++, ITAhM.util.toDateTimeString(date), value.max, value.avg, value.min].join(",");
-		}
+	if (window.detailData) {
+		rowArray = buildDetailFile();
+	}
+	else {
+		rowArray = buildSummaryFile();
 	}
 	
-	ITAhM.util.download(new Blob([row.join("\n")] ,{
-			type: "text/csv;charset=utf-8;"
-		}), "chart_responsetime.csv");
+	ITAhM.util.download(new Blob([rowArray.join("\n")] ,{
+		type: "text/csv;charset=utf-8;"
+	}), "chart_responsetime.csv");
 }
 
 		</script>

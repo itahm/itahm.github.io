@@ -50,7 +50,7 @@ var chartIn = document.getElementById("chart_in"),
 	resourceIndex = top.databases.device.resourceIndex,
 	snmp = top.databases.snmp;
 
-if(!deviceIP || !resourceIndex || !snmp) {
+if(!deviceIP || !window.resourceIndex || !snmp) {
 	throw "!";
 }
 
@@ -63,12 +63,12 @@ chartOut.onload = function () {
 };
 
 function initialize(from, to, start, end) {
-	var entry = snmp.ifEntry[resourceIndex],
+	var entry = snmp.ifEntry[window.resourceIndex],
 		request = {
 			command: "query",
 			ip: window.deviceIP,
 			summary: true,
-			index: resourceIndex,
+			index: window.resourceIndex,
 			start: from,
 			end: to
 		};
@@ -78,10 +78,10 @@ function initialize(from, to, start, end) {
 	document.getElementById("if_name").textContent = entry.ifName;
 	
 	request.database = "ifInOctets";
-	top.sendRequest(request, onResponseIn);
+	top.sendRequest(request, onSummaryInResponse);
 	
 	request.database = "ifOutOctets";
-	top.sendRequest(request, onResponseOut);
+	top.sendRequest(request, onSummaryOutResponse);
 	
 	window.start = start;
 	window.end = end;
@@ -89,20 +89,58 @@ function initialize(from, to, start, end) {
 	document.getElementById("legend").textContent = "bandwidth : "+ ITAhM.util.toBPSString(max);
 }
 
-function onResponseIn(data) {
-	window.summaryDataIn = new ITAhM.ChartSummaryData(data);
-	window.chartInWindow.initialize(window.summaryDataIn, window.max, "#7d7");
+function onSummaryInResponse(data) {
+	window.summaryInData = new ITAhM.ChartSummaryData(data);
+	window.chartInWindow.initialize(window.summaryInData, window.max, "#7d7");
 	window.chartInWindow.draw(window.start, window.end);
+	
+	sendDetailRequest("ifInOctets", onDetailInResponse);
 }
 
-function onResponseOut(data) {
-	window.summaryDataOut = new ITAhM.ChartSummaryData(data);
-	window.chartOutWindow.initialize(window.summaryDataOut, window.max, "#f60");
+function onSummaryOutResponse(data) {
+	window.summaryOutData = new ITAhM.ChartSummaryData(data);
+	window.chartOutWindow.initialize(window.summaryOutData, window.max, "#f60", true);
 	window.chartOutWindow.draw(window.start, window.end);
+	
+	sendDetailRequest("ifOutOctets", onDetailOutResponse);
 }
 
 function onValueToString(value) {
 	return ITAhM.util.toBPSString(value);
+}
+
+/**
+ * private
+ */
+function sendDetailRequest(database, callback) {
+	var request = {
+			command: "query",
+			ip: window.deviceIP,
+			summary: false,
+			index: window.resourceIndex,
+			start: window.start,
+			end: window.end
+		};
+	
+	request.database = database;
+	
+	top.sendRequest(request, callback);
+}
+
+/**
+ * private
+ */
+function onDetailInResponse(data) {
+	window.detailInData = new ITAhM.ChartData(data);
+	window.chartInWindow.detail(window.detailInData, window.start, window.end);
+}
+
+/**
+ * private
+ */
+function onDetailOutResponse(data) {
+	window.detailOutData = new ITAhM.ChartData(data);
+	window.chartOutWindow.detail(window.detailOutData, window.start, window.end);
 }
 
 /**
@@ -113,30 +151,74 @@ function draw(start, end) {
 		return;
 	}
 	
+	var date = new Date(start);
+	
 	window.start = start;
 	window.end = end;
 	
-	window.chartWindow.draw(window.start, window.end);
+	window.chartInWindow.draw(window.start, window.end);
+	window.chartOutWindow.draw(window.start, window.end);
+	
+	if (date.setDate(date.getDate() +1) === window.end) {
+		sendDetailRequest("ifInOctets", onDetailInResponse);
+		sendDetailRequest("ifOutOctets", onDetailOutResponse);
+	}
+	else {
+		window.detailInData = undefined;
+	}
 }
 
 /**
  * public
  */
 function getFile() {
-	buildFile(window.summaryDataIn, window.chartInWindow.chartData, "chart_throughput_in.csv");
-	buildFile(window.summaryDataOut, window.chartOutWindow.chartData, "chart_throughput_out.csv");
+	var buildFunc, dataIn, dataOut;
+	
+	if (window.detailInData) {
+		buildFunc = buildDetailFile;
+		dataIn = window.detailInData;
+		dataOut = window.detailOutData;
+	}
+	else {
+		buildFunc = buildSummaryFile;
+		dataIn = window.summaryInData;
+		dataOut = window.summaryOutData;
+	}
+	
+	buildFunc(dataIn, window.chartInWindow.chartData, "chart_throughput_in.csv");
+	buildFunc(dataOut, window.chartOutWindow.chartData, "chart_throughput_out.csv");
 }
 
-function buildFile(summaryData, chartData, fileName) {
+function buildDetailFile(detailData, chartData, fileName) {
 	var blocks = chartData.keys,
-		row, block, date, mills, value, k = 0;
+		row = ["index,date,interface throughput(bps)"],
+		block, date, mills, value, k = 0;
 	
-	if (false) {
+	if (chartData) {
+		for (var i=0, _i=blocks.length; i<_i; i++) {
+			block = blocks[i];
+			
+			for (var j=0, _j=block.length; j<_j; j++) {
+				mills = block[j];
+				
+				date = new Date(mills);
+				
+				row[row.length] = [k++, ITAhM.util.toDateTimeString(date), detailData.get(mills)].join(",");
+			}
+		}
 	}
-	//if (date.setDate(date.getDate() +1) === window.end) {}
-	else {
-		row = ["index,date,max,avg,min"];
-		
+	
+	ITAhM.util.download(new Blob([row.join("\n")] ,{
+		type: "text/csv;charset=utf-8;"
+	}), fileName);
+}
+
+function buildSummaryFile(summaryData, chartData, fileName) {
+	var blocks = chartData.keys,
+		row = ["index,date,max,avg,min"], 
+		block, date, mills, value, k = 0;
+	
+	if (chartData) {
 		for (var i=0, _i=blocks.length; i<_i; i++) {
 			block = blocks[i];
 			
@@ -149,12 +231,13 @@ function buildFile(summaryData, chartData, fileName) {
 				row[row.length] = [k++, ITAhM.util.toDateTimeString(date), value.max, value.avg, value.min].join(",");
 			}
 		}
-		
-		ITAhM.util.download(new Blob([row.join("\n")] ,{
-				type: "text/csv;charset=utf-8;"
-			}), fileName);
 	}
+	
+	ITAhM.util.download(new Blob([row.join("\n")] ,{
+		type: "text/csv;charset=utf-8;"
+	}), fileName);
 }
+
 		</script>
 	
 	</body>
