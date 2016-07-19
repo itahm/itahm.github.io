@@ -173,7 +173,7 @@ var ITAhM = ITAhM || {};
 	ITAhM.Path.prototype = {
 		initialize: function (container) {
 			this.container = container;
-			this.path = document.createElementNS(svgNS, "path");
+			this.path = document.createElementNS("http://www.w3.org/2000/svg", "path");
 			this.beginPath();
 		},
 		

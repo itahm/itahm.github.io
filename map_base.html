@@ -197,7 +197,7 @@ var deviceCanvas = document.getElementById("device"),
 	}.bind(transform.getItem(1));
 	
 	window.resize = function () {
-		rect = canvas.getBoundingClientRect();
+		rect = canvas.getBoundingClientRect();console.log(rect.height);
 		
 		this.setTranslate(rect.width /2, rect.height /2);
 	}.bind(transform.getItem(0));
