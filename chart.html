@@ -36,7 +36,7 @@ nav img {
 				<img width="16" height="16" src="img/save.png" id="save" title="CSV 파일로 저장">
 				<a href="status.html"><img width="16" height="16" src="img/close.png" title="차트 닫기"></a>
 			</nav>
-			<h1 id="host">resource[host]</h1>
+			<h1><span id="resource"></span> @ <span id="host"></span></h1>
 		</header>
 		
 		<iframe id="chart" class="chart"></iframe>
@@ -85,27 +85,27 @@ window.cursor.onload = function () {
 };
 
 (function () {
-	var host = " ["+ window.deviceIP +"]";
+	document.getElementById("host").textContent = window.deviceIP;
 	
 	switch(top.databases.device.selectedResource) {
 	case "responseTime":
-		document.getElementById("host").textContent = "Response time" + host;
+		document.getElementById("resource").textContent = "Response time";
 		
 		break;
 	case "processor":
-		document.getElementById("host").textContent = "Processor load" + host;
+		document.getElementById("resource").textContent = "Processor load";
 		
 		break;
 	case "storage":
-		document.getElementById("host").textContent = "Storage usage" + host;
+		document.getElementById("resource").textContent = "Storage usage";
 		
 		break;
 	case "memory":
-		document.getElementById("host").textContent = "Physical memory" + host;
+		document.getElementById("resource").textContent = "Physical memory";
 		
 		break;
 	case "throughput":
-		document.getElementById("host").textContent = "Interface throughput" + host;
+		document.getElementById("resource").textContent = "Interface throughput";
 		
 		break;
 	}

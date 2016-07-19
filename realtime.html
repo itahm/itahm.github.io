@@ -14,7 +14,7 @@ body {
 	flex-direction: column;
 }
 
-h2 {
+h2, h3 {
 	text-align: center;
 }
 
@@ -110,7 +110,7 @@ RealtimeData.prototype = {
 	<body>
 
 		<h2><span id="resource"></span> @ <span id="ip"></span></h2>
-		
+		<h3 id="index"></h3>
 		<svg id="chart">
 			<text id="max_text">max</text>
 			<text id="cur_text">cur</text><text id="cur_text2">cur</text>
@@ -165,31 +165,36 @@ switch(opener.top.databases.device.selectedResource) {
 case "responseTime":
 	window.onResponse = onRTResponse;
 	window.format = toMSString;
-	//window.line = new Line(window.graph);
 	
 	document.getElementById("resource").textContent = "Response time";
+	
 	break;
+	
 case "processor":
 	window.onResponse = onPLResponse;
 	window.format = toPercentString;
-	//window.line = new Line(window.graph);
 	
 	document.getElementById("resource").textContent = "Processor load";
+	
 	break;
 	
 case "memory":
 	window.onResponse = onPMResponse;
 	window.format = ITAhM.util.toBytesString;
-	//window.line = new Line(window.graph);
 	
 	document.getElementById("resource").textContent = "Physical memory";
+	
 	break;
+	
 case "storage":
 	window.onResponse = onSUResponse;
 	window.format = ITAhM.util.toBytesString;
 	
 	document.getElementById("resource").textContent = "Storage usage";
+	document.getElementById("index").textContent = "loading...";
+	
 	break;
+	
 case "throughput":
 	window.onResponse = onITResponse;
 	window.realtimeData2 = new RealtimeData(window.PERIOD * 60000);
@@ -200,6 +205,8 @@ case "throughput":
 	document.body.classList.add("throughput");
 	
 	document.getElementById("resource").textContent = "Interface throughput";
+	document.getElementById("index").textContent = "loading...";
+	
 	break;
 }
 
@@ -283,11 +290,15 @@ function onPMResponse(response) {
 function onSUResponse(response) {
 	var entry = response.hrStorageEntry[resourceIndex];
 
+	document.getElementById("index").textContent = entry.hrStorageDescr;
+	
 	parseData(entry.hrStorageAllocationUnits * entry.hrStorageUsed);
 }
 
 function onITResponse(response) {
 	var entry = response.ifEntry[resourceIndex];
+	
+	document.getElementById("index").textContent = entry.ifName;
 	
 	parseITData(entry.ifInBPS, entry.ifOutBPS);
 }
