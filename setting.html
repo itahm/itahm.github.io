@@ -20,14 +20,14 @@ ul {
 	margin: 0;
 }
 
-.list_item {
+.item {
 	display: flex;
 	align-items: center;
 	padding: 10px;
 	border: 1px solid transparent;
 }
 
-.list_item:hover {
+.item:hover {
 	text-decoration: underline;
 	cursor: pointer;
 	border-color: #0084ff;
@@ -35,60 +35,9 @@ ul {
 	background-color: #fafaff;
 }
 
-.list_item span {
+.item span {
 	font-size: 1.2em;
 	margin-left: 1em;
-}
-
-.critical_header {
-	padding: .5em 0;
-	border-bottom: 1px solid #aaa;
-}
-
-.critical_header .critical_item li {
-	font-weight: bold;
-	text-align: center;
-}
-
-.critical_item ul {
-	display: flex;
-}
-
-.critical_item li {
-	padding: .5em;
-}
-
-.critical_item .ip {
-	width: 120px;
-}
-
-.critical_item .resource {
-	width: 150px;
-	text-align: center;
-}
-
-.critical_item .index {
-	width: 80px;
-	text-align: center;
-}
-
-.critical_item .limit {
-	width: 50px;
-	text-align: center;
-}
-
-.critical_item .description {
-	flex: 1;
-}
-
-.critical_item:hover {
-	cursor: pointer;
-	outline: 1px solid #0084ff;
-	background-color: rgba(0, 132, 255, .2);
-}
-
-#critical_list {
-	max-height: 200px;
 }
 
 .top {
@@ -123,24 +72,11 @@ img[src="img/plus.png"]:hover {
 			</div>
 		</div>
 		
-		<h1>Critical <img width="16" height="16" src="img/plus.png" title="Add critical" id="add_critical"></h1>
-		<ul class="critical_header">
-			<li class="critical_item">
-				<ul>
-					<li class="ip">IP
-					<li class="resource">RESOURCE
-					<li class="index">INDEX
-					<li class="limit">LIMIT
-					<li class="description">DESCRIPTION
-				</ul>
-		</ul>
-		<ul id="critical_list"></ul>
-		
 		<div class="bg_loading"></div>
 		
 		<div class="layout">
 			<ul>
-				<li class="list_item">
+				<li class="item">
 					<img width="24" height="24">
 					<span></span>
 			</ul>
@@ -151,15 +87,7 @@ if (top === window) {
 	location.href = "http://itahm.com";
 }
 
-var listItem = document.querySelector(".list_item"),
-	criticalItem = document.querySelector(".critical_item"),
-	resourceString = {
-		"responseTime": "Rosponse time",
-		"processor": "Processor load",
-		"memory": "Physical memory",
-		"storage": "Storage usage",
-		"throughput": "Interface throughput"
-	};
+var listItem = document.querySelector(".item");
 
 document.getElementById("add_account").onclick = function () {
 	onSelectAccount();
@@ -167,10 +95,6 @@ document.getElementById("add_account").onclick = function () {
 
 document.getElementById("add_profile").onclick = function () {
 	onSelectProfile();
-};
-
-document.getElementById("add_critical").onclick = function () {
-	onSelectCritical();
 };
 
 (function () {
@@ -199,27 +123,6 @@ document.getElementById("add_critical").onclick = function () {
 	list.appendChild(df);
 }) ();
 
-(function () {
-	var list = document.getElementById("critical_list"),
-		criticalData = top.databases.critical.data,
-		df = document.createDocumentFragment(),
-		critical, criticalResource, limit;
-	
-	for (var ip in criticalData) {
-		critical = criticalData[ip];
-		
-		for (var resource in critical) {
-			criticalResource = critical[resource];
-			
-			for (var index in criticalResource) {
-				df.appendChild(createCriticalItem(ip, resource, index, criticalResource[index]));
-			}
-		}
-	}
-	
-	list.appendChild(df);
-}) ();
-
 document.body.classList.remove("loading");
 
 function onSelectAccount(username) {
@@ -242,16 +145,6 @@ function onSelectProfile(name) {
 		});
 }
 
-function onSelectCritical(ip, resource, index, limit) {
-	top.showDialog("critical_dialog.html",
-		function (dialog) {
-			dialog.initialize(ip, resource, index, limit);
-		},
-		function () {
-			location.reload();
-		});
-}
-
 function createItem(src, label) {
 	var clone = window.listItem.cloneNode(true);
 	
@@ -261,20 +154,6 @@ function createItem(src, label) {
 	return clone;
 }
 
-function createCriticalItem(ip, resource, index, critical) {
-	var clone = window.criticalItem.cloneNode(true),
-		item = clone.children[0];
-	
-	item.children[0].textContent = ip;
-	item.children[1].textContent = resourceString[resource];
-	item.children[2].textContent = index;
-	item.children[3].textContent = critical.limit;
-	item.children[4].textContent = critical.description;
-	
-	clone.onclick = onSelectCritical.bind(undefined, ip, resource, index, critical.limit);
-	
-	return clone;
-}
 
 		</script>
 	

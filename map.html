@@ -24,9 +24,9 @@ aside {
 	width: 299px; height: 100%;
 	border-right: 1px solid #0084ff;
 	display: flex;
+	flex-direction: column;
 	padding: 5px;
 	box-sizing: border-box;
-	flex-direction: column;
 	overflow: hidden;
 }
 
@@ -113,15 +113,6 @@ nav {
 	padding: 3px;
 }
 
-.function {
-	display: flex;
-}
-
-.function> * {
-	flex: 1;
-	margin: 0 3px;
-}
-
 .handle {
 	position: absolute; top: 0; bottom: 0; left: 0;
 	display: flex;
@@ -148,11 +139,6 @@ iframe {
 	<body class="loading maximized">
 		
 		<aside>
-			<div class="function">
-				<button class="r_button" id="add">Add</button>
-				<button class="r_button" id="reload">Reload</button>
-				<button class="r_button" id="sync">Sync</button>
-			</div>
 			<form id="form">
 				<select name="label"></select>
 				<input type="text" name="keyword">
@@ -164,20 +150,22 @@ iframe {
 		<section>
 			<iframe id="map"></iframe>
 			
-			<nav class="left">
-				<img src="img/zoomin.png" width="16px" height="16px" title="zoom in" id="zoom_in">
-				<img src="img/zoomout.png" width="16px" height="16px" title="zoom out" id="zoom_out">
-			</nav>
-			
-			<nav class="right">	
-				<label><input type="checkbox" id="ifname" checked>interface</label>
- 				<label title="show name"><input type="radio" name="display" id="name" value="false" checked>name</label>
-				<label title="show ip address"><input type="radio" name="display" id="address" value="true">ip address</label>
-			</nav>
-			
 			<div class="handle">
 				<div id="handle"></div>
 			</div>
+			
+			<nav class="left">
+				<img src="img/add_device.png" width="16px" height="16px" title="장비 추가" id="add">
+				<img src="img/save.png" width="16px" height="16px" title="저장" id="save">
+				<img src="img/zoomin.png" width="16px" height="16px" title="확대" id="zoom_in">
+				<img src="img/zoomout.png" width="16px" height="16px" title="축소" id="zoom_out">
+			</nav>
+			
+			<nav class="right">	
+				<label title="인터페이스명 표시/감추기"><input type="checkbox" id="ifname" checked>interface</label>
+ 				<label title="장비명 표시"><input type="radio" name="display" id="name" value="false" checked>name</label>
+				<label title="IP 표시"><input type="radio" name="display" id="address" value="true">ip address</label>
+			</nav>
 		</section>
 			
 		<div class="bg_loading"></div>
@@ -188,6 +176,38 @@ var map = document.getElementById("map"),
 	list = document.getElementById("list"),
 	rowMap = {},
 	labels = {};
+
+window.onbeforeunload = function () {
+	window.top.mapWindow = undefined;
+};
+
+form.elements.label.addEventListener("change", onChangeLabel);
+form.addEventListener("submit", onSearch);
+
+document.getElementById("handle").onclick = function () {
+	document.body.classList.toggle("maximized");
+	
+	resize();
+};
+
+document.getElementById("save").onclick = function () {
+	var request = {
+			command: "push",
+			database: "device",
+			sequence: window.top.databases.device.sequence,
+			data: window.top.databases.device.data
+		};
+	
+	top.sendRequest(request, function (response) {
+		top.databases.device.sequence = response.sequence;
+		
+		alert("구성의 변경사항을 저장하였습니다.");
+	});
+};
+
+document.getElementById("add").onclick = function () {
+	editDevice();
+};
 
 window.map.onload = function () {
 	var mapWindow = window.map.contentWindow;
@@ -231,16 +251,7 @@ window.map.onload = function () {
 		window.top.databases.device.scale = scale;
 	});
 	
-	mapWindow.onEditDevice = function (device) {
-		window.top.showDialog("device_dialog.html",
-			function (dialog) {
-				dialog.initialize(device);
-			},
-			function () {
-				location.reload();
-			}
-		);
-	}
+	mapWindow.onEditDevice = editDevice;
 	
 	mapWindow.onShowChart = function (device){
 		window.top.databases.device.selected = device.ip;
@@ -268,31 +279,6 @@ window.map.onload = function () {
 	
 	document.body.classList.remove("loading");
 }
-
-window.onbeforeunload = function () {
-	window.top.mapWindow = undefined;
-};
-
-form.elements.label.addEventListener("change", onChangeLabel);
-form.addEventListener("submit", onSearch);
-
-document.getElementById("handle").onclick = function () {
-	document.body.classList.toggle("maximized");
-	
-	resize();
-}
-
-document.getElementById("reload").onclick = onReLoad;
-document.getElementById("add").onclick = onAddDevice;
-
-(function (sync) {
-	if (sessionStorage.level == 0) {
-		sync.onclick = onSync;
-	}
-	else {
-		sync.disabled = true;
-	}
-}) (document.getElementById("sync"));
 
 initList();
 
@@ -368,39 +354,15 @@ function initLabel() {
 	}
 }
 
-function onSync() {
-	if (!confirm("Synchronize device database with agent now?")) {
-		return;
-	}
-	
-	window.top.sendRequest({
-		command: "push",
-		database: "device",
-		sequence: window.top.databases.device.sequence,
-		data: window.top.databases.device.data
-	}, function (response) {
-		reload(response);
-	});
-}
-
-function onAddDevice() {
+function editDevice(device) {
 	window.top.showDialog("device_dialog.html",
 		function (dialog) {
-			dialog.initialize();
+			dialog.initialize(device);
 		},
 		function () {
-			location.reload();
+			window.location.reload();
 		}
 	);
-}
-
-function onReLoad() {
-	window.top.sendRequest({
-		command: "pull",
-		database: "device",
-	}, function (response) {
-		reload(response);
-	});
 }
 
 function onSelectDevice(ip) {	
@@ -427,13 +389,6 @@ function onChangeLabel(e) {
 	form.elements.keyword.value = "";
 	
 	selectLabel(form.elements.label.value);
-}
-
-function reload(response) {
-	top.databases.device.sequence = response.sequence;
-	top.databases.device.data = response.data;
-	
-	location.reload();
 }
 
 function clearDeviceList() {

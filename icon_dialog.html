@@ -131,11 +131,28 @@ else {
 		disabled: form.elements.disabled.value,
 	};
 	
-	top.closeDialog();
+	sync();
 }
 
+ function sync() {
+	top.sendRequest({
+		command: "push",
+		database: "icon",
+		sequence: top.databases.icon.sequence,
+		data: top.databases.icon.data
+	}, function (response) {
+		top.databases.icon.sequence = response.sequence;
+		
+		top.closeDialog();
+	});
+	
+	document.body.classList.add("loading");
+ }
+ 
 function onReset(e) {
 	delete top.databases.icon.data[form.elements.type.value];
+	
+	sync();
 	
 	top.closeDialog();
 }

@@ -163,6 +163,7 @@ var svgNS = "http://www.w3.org/2000/svg",
 	xlinkNS = "http://www.w3.org/1999/xlink";
 
 var deviceCanvas = document.getElementById("device"),
+	deviceData = top.databases.device.data,
 	iconMap = {},
 	labelMap = {},
 	alertMap = {};
@@ -197,7 +198,7 @@ var deviceCanvas = document.getElementById("device"),
 	}.bind(transform.getItem(1));
 	
 	window.resize = function () {
-		rect = canvas.getBoundingClientRect();console.log(rect.height);
+		rect = canvas.getBoundingClientRect();
 		
 		this.setTranslate(rect.width /2, rect.height /2);
 	}.bind(transform.getItem(0));
@@ -317,7 +318,7 @@ var deviceCanvas = document.getElementById("device"),
 			cancelSelect = false;
 		}
 		else {
-			window.selectedDevice = getDevice(ip);
+			window.selectedDevice = window.deviceData[ip];
 			selectedSvgDevice = window.iconMap[ip];
 // 있으면 안돼는 일이지만 데이터 잘못 들어갔을때 삭제라도 할수있게 임시. 
 try {
@@ -356,7 +357,7 @@ catch(e) {
 		svgDevice = data.svg;
 		
 		if (direct) {
-			device = getDevice(data.peer2);
+			device = window.deviceData[data.peer2];
 			
 			svgDevice.setAttributeNS(null, "x1", x);
 			svgDevice.setAttributeNS(null, "y1", y);
@@ -367,7 +368,7 @@ catch(e) {
 			y2 = device.y;
 		}
 		else {
-			device = getDevice(data.peer1);
+			device = window.deviceData[data.peer1];
 			
 			svgDevice.setAttributeNS(null, "x2", x);
 			svgDevice.setAttributeNS(null, "y2", y);
@@ -427,7 +428,7 @@ catch(e) {
 	};
 	
 	window.moveDevice = function (ip, x, y) {
-		var device = getDevice(ip);
+		var device = window.deviceData[ip];
 				
 		device.x = x;
 		device.y = y;		
@@ -577,31 +578,6 @@ catch(e) {
 		labelSvg.setAttributeNS(null, "y", (y1 *2 + y2) /3);
 	};
 	
-	// TODO 자세히 다뤄볼것. 링크는 언제든 변할수 있는것이니... 언제 갱신해 줘야 할지.
-	window.onLink = function (ip, e) {
-		var device = getDevice(ip),
-			peer = e.detail.peer,
-			peerIP = peer.ip,
-			ifEntry = device.ifEntry;
-		
-		if (peerIP in ifEntry) {
-			/*
-			if (ifEntry[peerID]) {
-				// 이미 링크가 존재하고, 시스템에 의해 생성된 것은 지울수 없게 할 수도 있음.
-				return;
-			}*/
-			
-			delete ifEntry[peerIP];
-			delete peer.ifEntry[ip];
-		}
-		else {
-			ifEntry[peerIP] = "";
-			peer.ifEntry[ip] = "";
-		}
-		
-		location.reload();
-	};
-	
 	window.addLine = function (device) {
 		var ifEntry = device.ifEntry,
 			peerList = {},
@@ -612,7 +588,7 @@ catch(e) {
 		database[ip] = peerList;
 		
 		for (var peerIP in ifEntry) {
-			peer = getDevice(peerIP);
+			peer = window.deviceData[peerIP];
 			
 			if (!peer) {
 				delete ifEntry[peerIP];
@@ -710,6 +686,24 @@ function initialize() {
 	});
 }
 
+function onLink(ip, e) {
+	var device = window.deviceData[ip],
+		peer = e.detail.peer,
+		peerIP = peer.ip,
+		ifEntry = device.ifEntry;
+	
+	if (peerIP in ifEntry) {
+		delete ifEntry[peerIP];
+		delete peer.ifEntry[ip];
+	}
+	else {
+		ifEntry[peerIP] = "";
+		peer.ifEntry[ip] = "";
+	}
+	
+	location.reload();
+}
+
 function displayIPAddress(show) {
 	document.body.classList[show? "remove": "add"]("name");
 }
@@ -721,11 +715,6 @@ function displayIFName(show) {
 //abstract
 function getIcon(type) {
 	
-}
-
-//abstract
-function getDevice(ip) {
-	return top.databases.device.data[ip];
 }
 
 //abstract

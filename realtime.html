@@ -52,6 +52,7 @@ body.throughput #point {
 
 body.throughput #graph path:nth-child(1) {
 	stroke: #7d7;
+	fill: rgba(119, 221, 119, .5);
 }
 
 body.throughput #graph path:nth-child(2) {
@@ -250,13 +251,13 @@ function resize() {
 	translate.setTranslate(0, height + window.OY);
 	
 	window.maxText.setAttribute("x", width -20);
-	window.maxText.setAttribute("y", window.OY);
+	window.maxText.setAttribute("y", window.OY -6);
 	
 	window.curText.setAttribute("x", width +20);
 	window.curText2.setAttribute("x", width +20 + window.OX /2);
 	
 	window.minText.setAttribute("x", width -20);
-	window.minText.setAttribute("y", y - window.OY);
+	window.minText.setAttribute("y", y - window.OY +20);
 	
 	point.setAttribute("cx", width);
 	point2.setAttribute("cx", width);
@@ -375,21 +376,28 @@ function drawIT() {
 		initialized2 = false,
 		date = new Date(),
 		start = date.setMinutes(date.getMinutes() -window.PERIOD),
-		mills, y;
+		mills, x, y;
 	
 	window.line.beginPath();
 	window.line2.beginPath();
 	
 	window.realtimeData.each(function (mills, value) {
+		x = (mills - start) / window.tpp;
+		y = (value - window.min) * valueRatio;
+		
 		if (initialized) {
-			window.line.lineTo((mills - start) / window.tpp, y = (value - window.min) * valueRatio);
+			window.line.lineTo(x, y);
 		}
 		else {
-			window.line.moveTo((mills - start) / window.tpp, y = (value - window.min) * valueRatio);
+			window.line.moveTo(x, 0);
+			window.line.lineTo(x, y);
 			
 			initialized = true;
 		}
 	});
+	
+	window.line.lineTo(x, 0);
+	//window.line.closePath();
 	
 	window.line.draw();
 	
@@ -399,11 +407,13 @@ function drawIT() {
 	window.point.setAttribute("cy", y);
 	
 	window.realtimeData2.each(function (mills, value) {
+		y = (value - window.min) * valueRatio;
+		
 		if (initialized2) {
-			window.line2.lineTo((mills - start) / window.tpp, y = (value - window.min) * valueRatio);
+			window.line2.lineTo((mills - start) / window.tpp, y);
 		}
 		else {
-			window.line2.moveTo((mills - start) / window.tpp, y = (value - window.min) * valueRatio);
+			window.line2.moveTo((mills - start) / window.tpp, y);
 			
 			initialized2 = true;
 		}

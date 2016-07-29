@@ -153,13 +153,14 @@ else {
 function onApply(e) {
 	e.preventDefault();
 	
-	var critical = top.databases.critical.data[form.elements.ip.value],
+	var ip = form.elements.ip.value,
+		critical = top.databases.critical.data[ip],
 		resource;
 	
 	if (!critical) {
 		critical = {};
 		
-		top.databases.critical.data[form.elements.ip.value] = critical;
+		top.databases.critical.data[ip] = critical;
 	}
 	
 	resource = critical[form.elements.resource.value];
@@ -253,13 +254,19 @@ function selectDevice(ip) {
 }
 
 function sync() {
-	top.sendRequest({
-		command: "push",
-		database: "critical",
-		sequence: top.databases.critical.sequence,
-		data: top.databases.critical.data
-	}, function (response) {
+	var data = top.databases.critical.data,
+		request = {
+			command: "push",
+			database: "critical",
+			sequence: top.databases.critical.sequence,
+			data: data
+		};
+	
+	data.target = form.elements.ip.value;
+	
+	top.sendRequest(request, function (response) {
 		top.databases.critical.sequence = response.sequence;
+		top.databases.critical.data = response.data;
 		
 		top.closeDialog();
 	});

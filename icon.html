@@ -53,21 +53,12 @@ header {
 	list-style: none;
 }
 
-body:not(.root) #sync,
-.layout {
-	display: none;
-}
-
 		</style>
 		
 	</head>
 	
 	<body class="loading content_width">
 	
-		<header>
-			<button id="sync" class="r_button">Sync</button>
-		</header>
-		
 		<ul id="list"></ul>
 		
 		<div class="bg_loading"></div>
@@ -92,12 +83,6 @@ var list = document.getElementById("list"),
 	icon = document.querySelector(".icon"),
 	group = document.querySelector(".group");
 
-if (sessionStorage.level == 0) {
-	document.body.classList.add("root");
-	
-	document.getElementById("sync").onclick = onSync;
-}
-
 (function () {
 	var iconData = {},
 		data, type;
@@ -116,21 +101,6 @@ if (sessionStorage.level == 0) {
 	
 	document.body.classList.remove("loading");
 }) ();
-
-function onSync() {
-	if (!confirm("Synchronize icon database with agent now?")) {
-		return;
-	}
-	
-	top.sendRequest({
-		command: "push",
-		database: "icon",
-		sequence: top.databases.icon.sequence,
-		data: top.databases.icon.data
-	}, function (response) {
-		top.databases.icon.sequence = response.sequence;
-	});
-}
 
 function onSelectIcon(type) {
 	top.showDialog("icon_dialog.html",

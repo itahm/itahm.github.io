@@ -134,7 +134,7 @@ footer input {
 					<li>snmp
 					<li>
 						<label>
-							<input type="checkbox" name="snmp" class="snmp" disabled>
+							<input type="checkbox" name="snmp" class="snmp">
 							<span class="on">on</span><span class="off">off</span>
 						</label>
 					
@@ -238,20 +238,20 @@ var form = document.querySelector("form");
 			return value.trim();
 		}).join(",");
 		
-		//등록된 장비이면
-		if ("snmp" in device) {
-			// true인 것은 true나 false 모두 가능
-			if (device.snmp) {
-				device.snmp = form.elements.snmp.checked;
-			}
-			// false인 것은 변경하지 않거나 제거 가능 (true 불가)
-			else if (form.elements.snmp.checked){
+		if (form.elements.snmp.checked) {
+			if (device.snmp === false) {
 				delete device.snmp;
 			}
 		}
-		//else 등록 전 장비이면 snmp 없음
+		else {/*
+			if ("profile" in device) {
+				delete device.profile;
+			}*/
+			
+			device.snmp = false;
+		}
 		
-		top.closeDialog();
+		sync();
 	}
 	
 	function onCancel(e) {
@@ -259,9 +259,9 @@ var form = document.querySelector("form");
 	}
 	
 	function onRemoveDevice() {
-		delete top.databases.device.data[device.ip];
+		delete top.databases.device.data[window.device.ip];
 		
-		top.closeDialog();
+		sync();
 	}
 	
 	window.initialize = function (device) {	
@@ -302,6 +302,24 @@ var form = document.querySelector("form");
 	
 }) (window);
 
+function sync() {
+	var data = window.top.databases.device.data,
+		request = {
+			command: "push",
+			database: "device",
+			sequence: window.top.databases.device.sequence,
+			data: data
+		};
+	
+	data.target = window.device.ip;
+	
+	top.sendRequest(request, function (response) {
+		top.databases.device.sequence = response.sequence;
+		top.databases.device.data = response.data;
+		
+		top.closeDialog();
+	});
+}
 		</script>
 	
 	</body>

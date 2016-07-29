@@ -445,7 +445,8 @@ databases.device.data = {
         "snmp": true,
         "type": "workgroup switch",
         "community": "",
-        "shutdown": false
+        "shutdown": false,
+        "critical": true
     },
     "10.0.11.7": {
         "ip": "10.0.11.7",

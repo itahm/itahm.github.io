@@ -2,6 +2,7 @@
 <html>
 	<head>
 		<meta charset="UTF-8">
+		<meta http-equiv="Cache-Control" content="no-cache">
 		<meta http-equiv="Content-Script-Type" content="text/javascript">
 		<meta http-equiv="Content-Style-Type" content="text/css">
 		<title>Main @ ITAhM</title>
@@ -15,6 +16,7 @@ header {
 	justify-content: center;
 	background-color: #0084ff;
 	color: #fff;
+	font-weight: bold;
 }
 
 header li {
@@ -42,10 +44,18 @@ nav {
 }
 
 nav ul {
-	flex: 1;
 	list-style: none;
 	padding: 0;
 	display: flex;
+}
+
+nav ul:first-child {
+	justify-content: flex-start;
+	font-weight: bold;
+	font-size: 1.2em;
+}
+
+nav ul:list-child {
 	justify-content: flex-end;
 }
 
@@ -108,13 +118,16 @@ body:not(.dialog) #dialog {
 		<header>
 			<nav class="content_width">
 				<ul>
-					<li><a href="dashboard.html" target="main">Dashboard</a>
-					<li><a href="map.html" target="main">Map</a>
-					<li><a href="log.html" target="main">Log</a>
-					<li><a href="setting.html" target="main">Setting</a>
-					<li><a href="icon.html" target="main">Icon</a>
-					<li><a id="message">Message</a>
-					<li><a id="signout">Sign out</a>
+					<li><a href="dashboard.html" target="main">대쉬보드</a>
+					<li><a href="map.html" target="main">구성도</a>
+					<li><a href="event.html" target="main">이벤트</a>
+				</ul>
+				<ul>
+					<li><a href="setting.html" target="main">설정</a>
+					<li><a href="icon.html" target="main">아이콘</a>
+					<li><a id="message">메세지</a>
+					<li><a id="reload">재시작</a>
+					<li><a id="signout">로그아웃</a>
 				</ul>
 			</nav>
 		</header>
@@ -135,8 +148,35 @@ body:not(.dialog) #dialog {
 		<script src="js/icon.js"></script>
 		<script>
 var count = document.getElementById("count"),
+	dialog = document.getElementById("dialog"),
 	log = document.getElementById("log"),
 	logCount = 0;
+
+window.onbeforeunload = function () {
+	return "아이탐 종료.";
+};
+
+document.getElementById("reload").onclick = function () {
+	window.onbeforeunload = undefined;
+	
+	location.reload();
+};
+
+document.getElementById("message").onclick = function () {
+	showDialog("message.html");
+};
+
+document.getElementById("signout").onclick = function () {
+	if (confirm("Are you sure you want to sign out right now?")) {
+		sendRequest({
+			command: "signout"
+		}, function () {
+			window.onbeforeunload = undefined;
+			
+			location.href = "connect.html";
+		});
+	}
+};
 
 (function (window, undefined){
 	
@@ -160,9 +200,13 @@ var count = document.getElementById("count"),
 					}
 					else if (status === 409) { // conflict
 						alert("다른 관리자 계정이 데이터베이스를 수정하였습니다.");
+					
+						return;
 					}
 					else if (status === 400) {
 						alert("잘못된 요청입니다.\n"+ response.error);
+						
+						return;
 					}
 					else {
 						alert("에이전트가 응답하지 않습니다.");
@@ -170,7 +214,7 @@ var count = document.getElementById("count"),
 					
 					window.onbeforeunload = undefined;
 					
-					//location.href = "connect.html";
+					location.href = "connect.html";
 				}
 			});
 		}
@@ -193,13 +237,6 @@ var count = document.getElementById("count"),
 					// TODO ITAhM의 시작.
 					
 					document.title = sessionStorage.host +" @ ITAhM";
-		
-					window.onbeforeunload = function () {
-						return "아이탐 종료.";
-					}
-					
-					document.getElementById("message").onclick = onSendMessage;
-					document.getElementById("signout").onclick = onSignout;
 					
 					document.getElementById("frame").src = "dashboard.html";
 					
@@ -212,7 +249,7 @@ var count = document.getElementById("count"),
 					window.logCount++;
 					
 					window.count.textContent = window.logCount > 9? "9+": window.logCount;
-					window.log.textContent = eventData.message;
+					window.log.textContent = eventData.ip +" "+ eventData.message;
 					
 					document.body.classList.add("log");
 					
@@ -259,58 +296,36 @@ var count = document.getElementById("count"),
 		location.href = "http://itahm.com";
 	}
 	
-	function onSendMessage() {
-		showDialog("message.html");
-	}
-	
-	function onSignout(e) {
-		if (confirm("Are you sure you want to sign out right now?")) {
-			sendRequest({
-				command: "signout"
-			}, function () {
-				window.onbeforeunload = undefined;
-				
-				location.href = "connect.html";
-			});
-		}
-	}
-	
 }) (window);
 
 // dialog
-(function (window, undefined) {
+function onLoad(handler) {
+	document.body.classList.add("dialog");
 	
-	var dialog = document.getElementById("dialog");
+	handler(window.dialog.contentWindow);
+}
+
+function onUnLoad(handler) {
+	handler();
 	
-	function onLoad(handler) {
-		document.body.classList.add("dialog");
-		
-		handler(dialog.contentWindow);
-	}
+	document.body.classList.remove("dialog");
+}
+
+function showDialog(url, load, unload) {
+	window.dialog.onload = onLoad.bind(window.dialog, load || function () {});
+	window.dialog.onunload = onUnLoad.bind(window.dialog, unload || function () {});
 	
-	function onUnLoad(handler) {
-		handler();
-		
+	window.dialog.src = url; 
+}
+
+function closeDialog(cancel) {
+	if (cancel) {
 		document.body.classList.remove("dialog");
 	}
-	
-	window.showDialog = function (url, load, unload) {
-		dialog.onload = onLoad.bind(dialog, load || function () {});
-		dialog.onunload = onUnLoad.bind(dialog, unload || function () {});
-		
-		dialog.src = url; 
-	};
-	
-	window.closeDialog = function (cancel) {
-		if (cancel) {
-			document.body.classList.remove("dialog");
-		}
-		else {
-			dialog.onunload();
-		}
-	};
-	
-}) (window);
+	else {
+		window.dialog.onunload();
+	}
+}
 
 function clearLog() {
 	window.logCount = 0;

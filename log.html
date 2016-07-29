@@ -8,43 +8,23 @@
 		
 		<style>
 @import "css/itahm.css";
-@import "css/calendar.css";
 
 body {
 	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
-}
-
-.content_width {
-	height: 100%;
-	padding: 10px;
-	margin: 0 auto;
+	padding: 0; margin: 0;
 	display: flex;
 	flex-direction: column;
 }
 
-header {
-	display: flex;
-	justify-content: space-between;
-}
-
-.head,
-#list {
+ul {
 	list-style: none;
 	padding: 0; margin: 0;
 }
 
-.head {
+.header {
+	padding: .5em 0;
 	border-bottom: 1px solid #aaa;
 	font-weight: bold;
-}
-
-.item {
-	margin: 3px;
-}
-
-#calendar {
-	border: 1px solid #0084ff;
-	padding: 5px;
 }
 
 #list {
@@ -52,17 +32,19 @@ header {
 	overflow-y: auto;
 }
 
+.item {
+	margin: 3px;
+	padding: 0; margin: 0;
+}
+
 .item ul {
 	display: flex;
 	align-items: center;
-	list-style: none;
-	padding: 0; margin: 0;
 	border: 1px solid transparent;
 }
 
 .item li {
 	padding: .5em;
-	
 }
 
 .item .date {
@@ -78,7 +60,7 @@ header {
 	flex: 1;
 }
 
-.head .item li {
+.header .item li {
 	text-align: center;
 }
 
@@ -90,53 +72,22 @@ header {
 	background-color: rgba(255, 255, 0, .2);
 }
 
-.no_log {
-	padding: .5em;
-	text-align: center;
-}
-
-.layout {
-	display: none;
-}
-
 		</style>
 		
 	</head>
 	
 	<body class="loading">
-		<div class="content_width">
-			<header>
-				<div>
-					<h1>Log (<span id="count"></span>)</h1>
-					<h2 id="date">Date</h2>
-				</div>
-				<div id="calendar"></div>
-			</header>
-			<ul class="head">
-				<li class="item">
-					<ul>
-						<li class="date">DATE
-						<li class="ip">IP
-						<li class="message">MESSAGE
-					</ul>
-			</ul>
-			<ul id="list"></ul>
-		</div>
+		<ul class="header">
+			<li class="item">
+				<ul>
+					<li class="date">DATE
+					<li class="ip">IP
+					<li class="message">MESSAGE (<span id="count"></span>)
+				</ul>
+		</ul>
+		<ul id="list"></ul>
 		
 		<div class="bg_loading"></div>
-		
-		<div class="layout">
-			<ul>
-				<li class="item">
-					<ul>
-						<li class="date">date
-						<li class="ip">ip
-						<li class="message">message
-					</ul>
-				<li class="no_log">
-					No log.
-			</ul>
-		</div>
 		
 		<script src="js/ITAhM.js"></script>
 		<script src="js/object.js"></script>
@@ -146,49 +97,16 @@ if (top === window) {
 }
 
 var list = document.getElementById("list"),
-	date = document.getElementById("date"),
 	count = document.getElementById("count"),
-	item = document.querySelector(".item"),
-	noLog = document.querySelector(".no_log");
+	item = document.querySelector(".item");
 
-top.clearLog();
-
-new ITAhM.Calendar("calendar", function (date) {
-	reLoadList(date.getTime());
-});
-
-reLoadList(new Date().setHours(0, 0, 0, 0));
-
-function getDateString(mills) {
-	var date = new Date(mills),
-		yyyy = date.getFullYear(),
-		mm = date.getMonth() +1,
-		dd = date.getDate();
-	
-	return yyyy +"-"+ (mm > 9? "": "0") + mm +"-"+ (dd > 9? "": "0") + dd;
-}
-
-function clearList() {
-	var item;
-	
-	while(item = window.list.firstChild) {
-		window.list.removeChild(item);
-	}
-}
-
-function reLoadList(mills) {
-	document.body.classList.add("loading");
-	
-	date.textContent = getDateString(mills);
-	
+function initialize(mills) {
 	top.sendRequest({
 		command: "log",
 		date: mills
 	}, function (data) {
 		var df = document.createDocumentFragment(),
 			item, log, count = 0;
-		
-		clearList();
 		
 		for (var index in data) {
 			log = data[index];
@@ -201,12 +119,12 @@ function reLoadList(mills) {
 		if (df.firstChild) {
 			window.list.appendChild(df);
 		}
-		else {
-			window.list.appendChild(noLog.cloneNode(true));
-		}
 		
 		window.count.textContent = count;
-		document.body.classList.remove("loading");
+		
+		setTimeout(function () {
+			document.body.classList.remove("loading");
+		}, 200);
 	});
 }
 

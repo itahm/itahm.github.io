@@ -43,12 +43,13 @@ section.agent {
 	width: 200px;
 }
 
-section> div:first-child {
-	padding: .5em 1em;
-	background: linear-gradient(rgba(227, 227, 227, .3), rgba(227, 227, 227, .5), rgba(227, 227, 227, .3));
-	border: 1px solid #332c2c;
-	border-radius: 1em;
+section .title {
+	padding: .5em 2em;
+	background: linear-gradient(to right, rgba(0, 132, 255, .8), rgba(0, 132, 255, .8), rgba(0, 132, 255, .5), rgba(0, 132, 255, .3));
+	text-shadow: 1px 1px 1px #00f;
+	border-radius: 1.6em 1.6em 0 0;
 	font-weight: bold;
+	color: #fff;
 }
 
 section> div:last-child {
@@ -76,20 +77,30 @@ ul {
 	text-align: center;
 }
 
-.summary li:first-child {
+.summary li:nth-child(1) {
 	border-right: 1px solid #999;
+	color: #000;
+	background-color: #ddd;
 }
 
 .summary li:nth-child(2) {
-	color: #cc0;
+	background-color: #fc0;
+	color: #fff;
 }
 
 .summary li:nth-child(3) {
-	color: #c00;
+	background-color: #f00;
+	color: #fff;
 }
 
 .summary li:nth-child(4) {
-	color: #0c0;
+	background-color: #7d7;
+	color: #fff;
+}
+
+.summary li:last-child {
+	color: #000;
+	background-color: #ddd;
 }
 
 .summary:first-child {
@@ -106,9 +117,9 @@ ul {
 .list_item ul:hover {
 	text-decoration: underline;
 	border-radius: 0 0 .5em .5em;
-	box-shadow: 0 .5em #999;
-	padding: 0 .5em .5em .5em;
-	margin-bottom: .5em;
+	box-shadow: 0 .3em #999;
+	padding: .2em .5em .5em .5em;
+	margin-bottom: .3em;
 }
 
 .list_item li {
@@ -195,24 +206,9 @@ ul {
 	
 	<body class="loading">
 		<article class="content_width">
-			<header>				
-				<section>
-					<div>상태 요약</div>
-					<div class="table">
-						<ul class="summary">
-							<li>
-							<li>임계 초과
-							<li>응답 없음
-							<li>정상
-							<li>합계
-						</ul>
-						<ul id="summary_list">
-						</ul>
-					</div>
-				</section>
-				
+			<header>
 				<section class="agent">
-					<div>에이전트</div>
+					<div class="title">에이전트</div>
 					<div class="list">
 						<ul>
 							<li>
@@ -225,6 +221,20 @@ ul {
 									<li>여유
 									<li id="space">
 								</ul>
+						</ul>
+					</div>
+				</section>			
+				
+				<section>
+					<div class="table">
+						<ul class="summary">
+							<li>구분
+							<li>임계 초과
+							<li>응답 없음
+							<li>정상
+							<li>합계
+						</ul>
+						<ul id="summary_list">
 						</ul>
 					</div>
 				</section>
@@ -245,13 +255,13 @@ ul {
 			
 			<div class="top">
 				<section>
-					<div>응답 시간 Top</div>
+					<div class="title">응답 시간 Top</div>
 					<div class="list">
 						<ul id="response_time"></ul>
 					</div>
 				</section>
 				<section>
-					<div>Processor load Top</div>
+					<div class="title">Processor load Top</div>
 					<div class="list">
 						<ul id="processor"></ul>
 					</div>
@@ -260,13 +270,13 @@ ul {
 			
 			<div class="top">
 				<section>
-					<div>Physical memory 사용량 Top</div>
+					<div class="title">Physical memory 사용량 Top</div>
 					<div class="list">
 						<ul id="memory"></ul>
 					</div>
 				</section>
 				<section>
-					<div>Physical memory 사용율 Top</div>
+					<div class="title">Physical memory 사용율 Top</div>
 					<div class="list">
 						<ul id="memoryRate"></ul>
 					</div>
@@ -275,13 +285,13 @@ ul {
 			
 			<div class="top">
 				<section>
-					<div>Storage 사용량 Top</div>
+					<div class="title">Storage 사용량 Top</div>
 					<div class="list">
 						<ul id="storage"></ul>
 					</div>
 				</section>
 				<section>
-					<div>Storage 사용율 Top</div>
+					<div class="title">Storage 사용율 Top</div>
 					<div class="list">
 						<ul id="storageRate"></ul>
 					</div>
@@ -290,13 +300,13 @@ ul {
 			
 			<div class="top">
 				<section>
-					<div>Interface 사용량 Top</div>
+					<div class="title">Interface 사용량 Top</div>
 					<div class="list">
 						<ul id="throughput"></ul>
 					</div>
 				</section>
 				<section>
-					<div>Interface 사용율 Top</div>
+					<div class="title">Interface 사용율 Top</div>
 					<div class="list">
 						<ul id="throughputRate"></ul>
 					</div>
