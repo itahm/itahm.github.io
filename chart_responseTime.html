@@ -64,7 +64,7 @@ function initialize(from, to, start, end) {
 /**
  * private
  */
-function onSummaryResponse(data) {
+function onSummaryResponse(data) {console.log("1470096000000" in data);
 	window.summaryData = new ITAhM.ChartSummaryData(data);
 	
 	window.chartWindow.initialize(window.summaryData, window.max, "#0084ff", true);

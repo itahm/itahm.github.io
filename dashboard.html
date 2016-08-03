@@ -218,6 +218,11 @@ ul {
 								</ul>
 							<li>
 								<ul class="agent_status">
+									<li>대기
+									<li id="waiters">
+								</ul>
+							<li>
+								<ul class="agent_status">
 									<li>여유
 									<li id="space">
 								</ul>
@@ -341,6 +346,7 @@ var summaryList = document.getElementById("summary_list"),
 	throughputRate = document.getElementById("throughputRate"),
 	updateTime = document.getElementById("update"),
 	connections = document.getElementById("connections"),
+	waiters = document.getElementById("waiters"),
 	space = document.getElementById("space");
 
 (function () {
@@ -433,6 +439,7 @@ function update() {
 		command: "agent",
 	}, function (response) {
 		connections.textContent = response.connections;
+		waiters.textContent = response.waiters;
 		space.textContent = ITAhM.util.toBytesString(response.space);
 	});
 }
