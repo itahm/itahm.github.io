@@ -38,18 +38,41 @@ section {
 	flex-direction: column;
 }
 
-section.agent {
+section .agent {
 	flex: none;
 	width: 200px;
 }
 
 section .title {
 	padding: .5em 2em;
-	background: linear-gradient(to right, rgba(0, 132, 255, .8), rgba(0, 132, 255, .8), rgba(0, 132, 255, .5), rgba(0, 132, 255, .3));
-	text-shadow: 1px 1px 1px #00f;
 	border-radius: 1.6em 1.6em 0 0;
 	font-weight: bold;
 	color: #fff;
+}
+
+section .title.blue {
+	background: linear-gradient(to right, rgba(0, 132, 255, 1), rgba(0, 132, 255, 1), rgba(0, 132, 255, .6), rgba(0, 132, 255, .4));
+	text-shadow: 1px 1px 1px #00f;
+}
+
+section .title.gray {
+	background: linear-gradient(to right, rgba(119, 119, 119, 1), rgba(119, 119, 119, 1), rgba(119, 119, 119, .6), rgba(119, 119, 119, .4));
+	text-shadow: 1px 1px 1px #000;
+}
+
+section .title.wine {
+	background: linear-gradient(to right, rgba(162, 0, 37, 1), rgba(162, 0, 37, 1), rgba(162, 0, 37, .6), rgba(162, 0, 37, .4));
+	text-shadow: 1px 1px 1px #300;
+}
+
+section .title.brown {
+	background: linear-gradient(to right, rgba(130, 90, 44, 1), rgba(130, 90, 44, 1), rgba(130, 90, 44, .6), rgba(130, 90, 44, .4));
+	text-shadow: 1px 1px 1px #00f;
+}
+
+section .title.green {
+	background: linear-gradient(to right, rgba(0, 138, 0, 1), rgba(0, 138, 0, 1), rgba(0, 138, 0, .6), rgba(0, 138, 0, .4));
+	text-shadow: 1px 1px 1px #030;
 }
 
 section> div:last-child {
@@ -208,7 +231,7 @@ ul {
 		<article class="content_width">
 			<header>
 				<section class="agent">
-					<div class="title">에이전트</div>
+					<div class="title blue">에이전트</div>
 					<div class="list">
 						<ul>
 							<li>
@@ -260,28 +283,19 @@ ul {
 			
 			<div class="top">
 				<section>
-					<div class="title">응답 시간 Top</div>
+					<div class="title gray">응답 시간 Top</div>
 					<div class="list">
 						<ul id="response_time"></ul>
 					</div>
 				</section>
 				<section>
-					<div class="title">Processor load Top</div>
-					<div class="list">
-						<ul id="processor"></ul>
-					</div>
-				</section>
-			</div>
-			
-			<div class="top">
-				<section>
-					<div class="title">Physical memory 사용량 Top</div>
+					<div class="title wine">Physical memory 사용량 Top</div>
 					<div class="list">
 						<ul id="memory"></ul>
 					</div>
 				</section>
 				<section>
-					<div class="title">Physical memory 사용율 Top</div>
+					<div class="title wine">Physical memory 사용율 Top</div>
 					<div class="list">
 						<ul id="memoryRate"></ul>
 					</div>
@@ -290,13 +304,19 @@ ul {
 			
 			<div class="top">
 				<section>
-					<div class="title">Storage 사용량 Top</div>
+					<div class="title gray">Processor load Top</div>
+					<div class="list">
+						<ul id="processor"></ul>
+					</div>
+				</section>
+				<section>
+					<div class="title brown">Storage 사용량 Top</div>
 					<div class="list">
 						<ul id="storage"></ul>
 					</div>
 				</section>
 				<section>
-					<div class="title">Storage 사용율 Top</div>
+					<div class="title brown">Storage 사용율 Top</div>
 					<div class="list">
 						<ul id="storageRate"></ul>
 					</div>
@@ -305,13 +325,19 @@ ul {
 			
 			<div class="top">
 				<section>
-					<div class="title">Interface 사용량 Top</div>
+					<div class="title green">Interface 에러 Top</div>
+					<div class="list">
+						<ul id="throughputErr"></ul>
+					</div>
+				</section>
+				<section>
+					<div class="title green">Interface 사용량 Top</div>
 					<div class="list">
 						<ul id="throughput"></ul>
 					</div>
 				</section>
 				<section>
-					<div class="title">Interface 사용율 Top</div>
+					<div class="title green">Interface 사용율 Top</div>
 					<div class="list">
 						<ul id="throughputRate"></ul>
 					</div>
@@ -344,6 +370,7 @@ var summaryList = document.getElementById("summary_list"),
 	storageRate = document.getElementById("storageRate"),
 	throughput = document.getElementById("throughput"),
 	throughputRate = document.getElementById("throughputRate"),
+	throughputErr = document.getElementById("throughputErr"),
 	updateTime = document.getElementById("update"),
 	connections = document.getElementById("connections"),
 	waiters = document.getElementById("waiters"),
@@ -433,6 +460,7 @@ function update() {
 		setTop(response.storageRate, window.storageRate, toPercentageString);
 		setTop(response.throughput, window.throughput, ITAhM.util.toBPSString);
 		setTop(response.throughputRate, window.throughputRate, toPercentageString);
+		setTop(response.throughputErr, window.throughputErr, toString);
 	});
 	
 	top.sendRequest({
@@ -442,6 +470,10 @@ function update() {
 		waiters.textContent = response.waiters;
 		space.textContent = ITAhM.util.toBytesString(response.space);
 	});
+}
+
+function toString(value) {
+	return value;
 }
 
 function toMillsString(value) {

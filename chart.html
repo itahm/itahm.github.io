@@ -108,6 +108,10 @@ window.cursor.onload = function () {
 		document.getElementById("resource").textContent = "Interface throughput";
 		
 		break;
+	case "error":
+		document.getElementById("resource").textContent = "Interface error";
+		
+		break;
 	}
 	
 	window.chart.src = "chart_"+ top.databases.device.selectedResource +".html";

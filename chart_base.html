@@ -328,7 +328,10 @@ function drawValueAxis() {
 		value = window.chartData.high - grow;
 		
 		leftAxis.appendChild(createText(0, y, onValueToString(value)));
-		rightAxis.appendChild(createText(0, y, (value *100 / max).toFixed(2) + "%"));
+		
+		if (window.max) {
+			rightAxis.appendChild(createText(0, y, (value *100 / window.max).toFixed(2) + "%"));
+		}
 	}
 	
 	leftAxis.transform.baseVal.getItem(0).setTranslate(leftAxis.getBBox().width, 0);

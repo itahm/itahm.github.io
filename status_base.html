@@ -22,17 +22,13 @@ body> section {
 	margin-top: 10px;
 }
 
-#responseTime {
-	display: inline-block;
-}
-
-.proc_mem {
+.merge {
 	display: flex;
 	margin-top: 10px;
 }
 
-.proc_mem section:last-child {
-	margin-left: 10px;
+.merge section:last-child {
+	/*margin-left: 10px;*/
 	flex: 1;
 }
 
@@ -138,6 +134,21 @@ body> section {
 	text-align: center;
 	padding: .5em; margin: 3px;
 	flex: 1;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+#iFace .i_face li:last-child {
+	display: flex;
+}
+
+#iFace .i_face li:last-child:hover {
+	background-color: rgba(0, 132, 255, .2);
+}
+
+#iFace .i_face li:last-child div{
+	flex: 1;
 }
 
 #iFace .title {
@@ -145,8 +156,8 @@ body> section {
 	margin-bottom: 3px;
 }
 
-#iFace .title .input,
-#iFace .title .output {
+#iFace .title li:nth-child(4),
+#iFace .title li:nth-child(5) {
 	flex: 2;
 }
 
@@ -211,41 +222,49 @@ li.i_face:hover {
 			<h3 id="status"></h3>
 		</header>
 		
-		<section>
-			<h2 id="responseTime">Response time : <span id="response_time"></span></h2>
-		</section>
-		<div class="proc_mem">
+		<div class="merge">
 			<section>
-				<h2>Processor load</h2>
+				<h2>응답 속도</h2>
+				<div class="resource" id="responseTime">
+					<h3>
+						<img src="img/synchronize.png" width="16" height="16">
+						<span id="response_time"></span>
+					</h3>
+				</div>
+			</section>
+			<section>
+				<h2>프로세서 로드</h2>
 				<div class="resource" id="processor"></div>
 			</section>
 			<section>
-				<h2>Physical memory</h2>
+				<h2>물리적 메모리</h2>
 				<div class="resource" id="memory"></div>
 			</section>
 		</div>
 		
 		<section>
-			<h2>Storage usage</h2>
+			<h2>스토리지 사용</h2>
 			<ul id="storage">
 				<li class="title">
 					<ul>
-						<li>storage label
-						<li>size
-						<li class="usage">used
+						<li>이름
+						<li>크기
+						<li class="usage">사용
 					</ul>
 			</ul>
 		</section>
 	
 		<section>
-			<h2>Interface throughput</h2>
+			<h2>통신</h2>
 			<ul id="iFace">
 				<li class="title">
 					<ul>
-						<li>interface name
-						<li>bandwidth
-						<li class="input">input
-						<li class="output">output
+						<li>이름
+						<li>설명
+						<li>대역폭
+						<li>사용량(송신/수신)
+						<li>사용률(송신/수신)
+						<li>에러(송신/수신)
 					</ul>
 			</ul>
 		</section>
@@ -259,9 +278,9 @@ li.i_face:hover {
 					<div class="color"></div>
 				<li>
 					<ul>
-						<li>capacity
+						<li>용량
 						<li>value
-						<li>used
+						<li>사용
 						<li>value
 					</ul>
 			</ul>
@@ -284,13 +303,17 @@ li.i_face:hover {
 						<li>
 						<li>
 						<li>
-						<li class="bar">
-							<span class="label"></span>
-							<div class="color input"></div>
+						<li>
 						<li>
 						<li class="bar">
 							<span class="label"></span>
+							<div class="color input"></div>
+						<li class="bar">
+							<span class="label"></span>
 							<div class="color output"></div>
+						<li>
+							<div></div>
+							<div></div>
 					</ul>
 			</ul>
 		</div>
@@ -376,23 +399,31 @@ li.i_face:hover {
 		return clone;
 	}
 	
-	function createIFaceGuage(name, bandwidth, inBPS, outBPS) {
+	function createIFaceGuage(index, name, alias, bandwidth, inBPS, outBPS, inErr, outErr) {
 		var clone = iFaceGauge.cloneNode(true),
 			ul = clone.children[0];
 		
 		ul.children[0].textContent = name;
-		ul.children[1].textContent = ITAhM.util.toBPSString(bandwidth);
-		ul.children[2].textContent = ITAhM.util.toBPSString(inBPS);
-		ul.children[4].textContent = ITAhM.util.toBPSString(outBPS);
-		
-		ul.children[3].children[0].textContent
-		= ul.children[3].children[1].style.width
-		= (100* inBPS / bandwidth).toFixed(2) +"%";
-		
-		
+		ul.children[1].textContent = alias;
+		ul.children[2].textContent = ITAhM.util.toBPSString(bandwidth);
+		ul.children[3].textContent = ITAhM.util.toBPSString(inBPS);
+		ul.children[4].textContent = ITAhM.util.toBPSString(outBPS);		
 		ul.children[5].children[0].textContent
 		= ul.children[5].children[1].style.width
+		= (100* inBPS / bandwidth).toFixed(2) +"%";
+		ul.children[6].children[0].textContent
+		= ul.children[6].children[1].style.width
 		= (100* outBPS / bandwidth).toFixed(2) +"%";
+		ul.children[7].children[0].textContent = inErr;
+		ul.children[7].children[1].textContent = outErr;
+		
+		ul.children[7].onclick = function (index, e) {
+			onSelectResource("error", index);
+			
+			e.stopPropagation();
+		}.bind(undefined, index);
+		
+		clone.onclick = onSelectResource.bind(undefined, "throughput", index);
 		
 		return clone;
 	}
@@ -416,7 +447,7 @@ li.i_face:hover {
 		
 		entry = snmp.ifEntry;
 		for (var index in entry) {
-			initIFace(entry[index]).onclick = onSelectResource.bind(undefined, "throughput", index);
+			initIFace(entry[index], index)
 		}
 		
 		if (device.shutdown) {
@@ -471,17 +502,17 @@ li.i_face:hover {
 		memoryArea.appendChild(createMemoryGuage(used, size));
 	}
 	
-	function initIFace(iFace) {
-		var bandwidth = iFace.ifSpeed;
+	function initIFace(iFace, index) {
+		var bandwidth = iFace.ifHighSpeed || iFace.ifSpeed;
 		
 		if (bandwidth > 0) {
 			var inBPS = iFace.ifInBPS || 0,
 				outBPS = iFace.ifOutBPS || 0;
 			
-			return interfaceArea.appendChild(createIFaceGuage(iFace.ifName, bandwidth, inBPS, outBPS));
+			interfaceArea
+				.appendChild(createIFaceGuage(index, iFace.ifName, iFace.ifDescr || iFace.ifAlias, bandwidth, inBPS, outBPS, iFace.ifInErrors, iFace.ifOutErrors));
+				
 		}
-		
-		return document.createElement("div");
 	}
 	
 	// abstract

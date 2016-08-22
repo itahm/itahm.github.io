@@ -209,6 +209,19 @@ case "throughput":
 	document.getElementById("index").textContent = "loading...";
 	
 	break;
+case "error":
+	window.onResponse = onIEResponse;
+	window.realtimeData2 = new RealtimeData(window.PERIOD * 60000);
+	window.line2 = new ITAhM.Path(graph),
+	window.format = toString;
+	window.draw = drawIT;
+	
+	document.body.classList.add("throughput");
+	
+	document.getElementById("resource").textContent = "Interface error";
+	document.getElementById("index").textContent = "loading...";
+	
+	break;
 }
 
 resize();
@@ -304,12 +317,24 @@ function onITResponse(response) {
 	parseITData(entry.ifInBPS, entry.ifOutBPS);
 }
 
+function onIEResponse(response) {
+	var entry = response.ifEntry[resourceIndex];
+	
+	document.getElementById("index").textContent = entry.ifName;
+	
+	parseITData(entry.ifInErrors, entry.ifOutErrors);
+}
+
 function toMSString(value) {
 	return value +"ms";
 }
 
 function toPercentString(value) {
 	return value +"%";
+}
+
+function toString(value) {
+	return value;
 }
 
 function parseData(value) {
