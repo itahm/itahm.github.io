@@ -86,15 +86,15 @@ footer input {
 		
 		<div class="dialog dialog_width rounded">
 			<form autocomplete="off">
-				<h2>Critical</h2>
+				<h2>임계 설정</h2>
 				<div class="table">
 					<ul>
-						<li>IP
+						<li>IP 주소
 						<li>
 							<select name="ip" disabled required></select>
 					</ul>
 					<ul>
-						<li>RESOURCE
+						<li>대상 자원
 						<li>
 							<select name="resource" disabled required>
 								<option value="responseTime" selected>Response time
@@ -106,19 +106,20 @@ footer input {
 							<select name="index" disabled required></select>
 					</ul>
 					<ul>
-						<li>CRITICAL
+						<li>임계값(%)
 						<li class="critical">
 							<input name="limit" type="number" min="1" max="100" required>
-							<span>%</span>
 					</ul>
 				</div>
 				<label><input type="checkbox" name="remove" disabled>remove</label>
 				<footer>
 					<input type="reset" class="r_button" value="cancel">
-					<input type="submit" class="r_button" value="apply">
+					<input type="submit" class="r_button" value="apply" disabled>
 				</footer>
 			</form>
 		</div>
+		
+		<div class="bg_loading"></div>
 		
 		<div class="layout">
 			<select>
@@ -139,28 +140,29 @@ form.addEventListener("reset", onCancel);
 
 form.elements.ip.onchange = function () {
 	selectDevice(this.value);
+	
+	form.elements.resource.disabled = false;
+	form.elements.index.disabled = false;
 };
 
 form.elements.resource.onchange = selectResource;
 
 if (sessionStorage.level == 0) {
 	form.addEventListener("submit", onApply);
-}
-else {
-	document.querySelector("input[type=submit]").disabled = true;
+	document.querySelector("input[type=submit]").disabled = false;
 }
 
 function onApply(e) {
 	e.preventDefault();
 	
 	var ip = form.elements.ip.value,
-		critical = top.databases.critical.data[ip],
+		critical = top.databases.critical[ip],
 		resource;
 	
 	if (!critical) {
 		critical = {};
 		
-		top.databases.critical.data[ip] = critical;
+		top.databases.critical[ip] = critical;
 	}
 	
 	resource = critical[form.elements.resource.value];
@@ -175,17 +177,35 @@ function onApply(e) {
 		description: form.elements.index.options[form.elements.index.options.selectedIndex].text
 	}
 	
-	sync();
+	put();
 };
 
 function onRemove(e) {
-	if (!confirm("remove critical?")) {
-		return;
+	if (confirm("이 설정을 삭제하겠습니까?")) {
+		var critical = top.databases.critical[form.elements.ip.value];
+		
+		delete critical[form.elements.resource.value][window.selectedIndex];
+		
+		put();
 	}
+}
+
+function put() {
+	var ip = form.elements.ip.value;
 	
-	delete top.databases.critical.data[form.elements.ip.value][form.elements.resource.value][window.selectedIndex];
+	document.body.classList.add("loading");
 	
-	sync();
+	top.sendRequest({
+			command: "put",
+			database: "critical",
+			key: ip,
+			value: top.databases.critical[ip]
+		}, function (data) {
+			top.databases.critical = data;
+			setTimeout(function () {
+				top.closeDialog();
+			}, 1000)
+		});
 }
 
 function onCancel(e) {
@@ -253,27 +273,6 @@ function selectDevice(ip) {
 	});
 }
 
-function sync() {
-	var data = top.databases.critical.data,
-		request = {
-			command: "push",
-			database: "critical",
-			sequence: top.databases.critical.sequence,
-			data: data
-		};
-	
-	data.target = form.elements.ip.value;
-	
-	top.sendRequest(request, function (response) {
-		top.databases.critical.sequence = response.sequence;
-		top.databases.critical.data = response.data;
-		
-		top.closeDialog();
-	});
-	
-	document.body.classList.add("loading");
-}
-
 function createItem(value, text) {
 	var clone = window.item.cloneNode(true);
 	
@@ -285,7 +284,7 @@ function createItem(value, text) {
 
 function initialize(ip, resource, index, limit) {
 	if (ip) {
-		window.critical = top.databases.critical.data[ip];
+		window.critical = top.databases.critical[ip];
 		
 		form.elements.ip.appendChild(createItem(ip, ip));
 		
@@ -302,17 +301,11 @@ function initialize(ip, resource, index, limit) {
 		selectDevice(ip);
 	}
 	else {
-		var deviceData = top.databases.device.data;
-		
-		for (var ip in deviceData) {
-			if (deviceData[ip].snmp && !deviceData[ip].shutdown) {
-				form.elements.ip.appendChild((createItem(ip, ip)));
-			}
+		for (var ip in top.databases.snmp) {
+			form.elements.ip.appendChild((createItem(ip, ip)));
 		}
 		
 		form.elements.ip.disabled = false;
-		form.elements.resource.disabled = false;
-		form.elements.index.disabled = false;
 		form.elements.ip.value = undefined;
 	}
 }

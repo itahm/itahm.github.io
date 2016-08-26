@@ -193,14 +193,11 @@ document.getElementById("handle").onclick = function () {
 document.getElementById("save").onclick = function () {
 	var request = {
 			command: "push",
-			database: "device",
-			sequence: window.top.databases.device.sequence,
-			data: window.top.databases.device.data
+			database: "position",
+			data: window.top.databases.position
 		};
 	
 	top.sendRequest(request, function (response) {
-		top.databases.device.sequence = response.sequence;
-		
 		alert("구성의 변경사항을 저장하였습니다.");
 	});
 };
@@ -224,13 +221,13 @@ window.map.onload = function () {
 	document.getElementById("zoom_in").onclick = function () {
 		mapWindow.zoom(scale *= 1.1);
 		
-		window.top.databases.device.scale = scale;
+		window.top.databases.local.scale = scale;
 	}
 
 	document.getElementById("zoom_out").onclick = function () {
 		mapWindow.zoom(scale /= 1.1);
 		
-		window.top.databases.device.scale = scale;
+		window.top.databases.local.scale = scale;
 	}
 
 	document.getElementById("name").onchange = function () {
@@ -248,32 +245,18 @@ window.map.onload = function () {
 	mapWindow.addEventListener("wheel", function (e) {
 		mapWindow.zoom(e.deltaY < 0? scale *= 1.1: scale /= 1.1);
 		
-		window.top.databases.device.scale = scale;
+		window.top.databases.local.scale = scale;
 	});
 	
 	mapWindow.onEditDevice = editDevice;
 	
-	mapWindow.onShowChart = function (device){
-		window.top.databases.device.selected = device.ip;
+	mapWindow.onShowChart = function (ip){
+		window.top.databases.local.selected = ip;
 		
 		location.href = "status.html";
 	}
 	
-	mapWindow.getIcon = function (type) {
-		var iconData = window.top.databases.icon;
-		
-		return iconData.data[type] || iconData.origin[type];
-	};
-	
-	mapWindow.forEachDevice = function(func) {
-		var deviceData = window.top.databases.device.data;
-		
-		for (var ip in deviceData) {
-			func(deviceData[ip]);
-		}
-	}
-	
-	mapWindow.zoom(scale = window.top.databases.device.scale);
+	mapWindow.zoom(scale = window.top.databases.local.scale);
 	
 	mapWindow.initialize();
 	
@@ -293,7 +276,7 @@ function resize() {
 function initList() {
 	var df = document.createDocumentFragment();
 	
-	var deviceData = window.top.databases.device.data;
+	var deviceData = window.top.databases.device;
 	
 	for (var ip in deviceData) {
 		df.appendChild(createRow(deviceData[ip]));
@@ -354,10 +337,10 @@ function initLabel() {
 	}
 }
 
-function editDevice(device) {
+function editDevice(ip) {
 	window.top.showDialog("device_dialog.html",
 		function (dialog) {
-			dialog.initialize(device);
+			dialog.initialize(ip);
 		},
 		function () {
 			window.location.reload();
@@ -366,9 +349,10 @@ function editDevice(device) {
 }
 
 function onSelectDevice(ip) {	
-	var device = window.top.databases.device.data[ip];
+	var device = window.top.databases.device[ip],
+		pos = window.top.databases.position[ip];
 	
-	window.mapWindow.moveAllDevice(- device.x, - device.y);
+	window.mapWindow.moveAllDevice(- pos.x, - pos.y);
 	window.mapWindow.selectDevice(ip);
 }
 

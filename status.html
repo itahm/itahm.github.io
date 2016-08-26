@@ -40,13 +40,13 @@ body.shutdown #shutdown {
 	
 	<script>
 
-var deviceIP = window.top.databases.device.selected;
+var deviceIP = window.top.databases.local.selected;
 
 if (!deviceIP) {
 	throw "!";
 }
 
-window.device = top.databases.device.data[deviceIP];
+window.device = top.databases.device[deviceIP];
 
 document.getElementById("host").textContent = deviceIP;
 
@@ -66,7 +66,7 @@ if (window.device.shutdown) {
 			statusWindow.onSelectResource = onSelectResource;
 			statusWindow.initialize(window.device, response);
 			
-			top.databases.snmp = response;
+			top.databases.local.node = response;
 			
 			document.body.classList.remove("loading");
 		});
@@ -75,17 +75,17 @@ if (window.device.shutdown) {
 })();	
 
 function onSelectResource(resource, index) {
-	top.databases.device.selectedResource = resource;
-	top.databases.device.resourceIndex = index;
+	top.databases.local.selectedResource = resource;
+	top.databases.local.resourceIndex = index;
 	
 	location.href = "chart.html";
 }
 
 function onSelectDevice(ip) {
-	var device = top.databases.device.data[ip];
+	var device = top.databases.device[ip];
 	
 	if (device.snmp) {
-		top.databases.device.selected = ip;
+		top.databases.local.selected = ip;
 		
 		location.reload();
 	}

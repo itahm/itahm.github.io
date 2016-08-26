@@ -46,11 +46,11 @@ var chartIn = document.getElementById("chart_in"),
 	chartInWindow = chartIn.contentWindow,
 	chartOut = document.getElementById("chart_out"),
 	chartOutWindow = chartOut.contentWindow,
-	deviceIP = top.databases.device.selected,
-	resourceIndex = top.databases.device.resourceIndex,
-	snmp = top.databases.snmp;
+	deviceIP = top.databases.local.selected,
+	resourceIndex = top.databases.local.resourceIndex,
+	node = top.databases.local.node;
 
-if(!deviceIP || !window.resourceIndex || !snmp) {
+if(!deviceIP || !window.resourceIndex || !node) {
 	throw "!";
 }
 
@@ -63,7 +63,7 @@ chartOut.onload = function () {
 };
 
 function initialize(from, to, start, end) {
-	var entry = snmp.ifEntry[window.resourceIndex],
+	var entry = node.ifEntry[window.resourceIndex],
 		request = {
 			command: "query",
 			ip: window.deviceIP,

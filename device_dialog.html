@@ -58,12 +58,7 @@ input[type="checkbox"] {
 	vertical-align: middle;
 }
 
-.snmp:not(:checked) ~span.on,
-.snmp:checked ~span.off {
-	display: none;
-}
-
-.snmp[disabled] ~span {
+#snmp[disabled] ~span {
 	color: #aaa;
 }
 
@@ -86,6 +81,14 @@ input[type="checkbox"] {
 	text-decoration: underline;
 }
 
+input[name="snmp"] +span:after {
+	content: "수집하지 않음";
+}
+
+input[name="snmp"]:checked +span:after {
+	content: "수집중";
+}
+
 footer {
 	margin-top: 5px;
 	display: flex;
@@ -94,6 +97,14 @@ footer {
 footer input {
 	flex: 1;
 	padding: .5em;
+}
+
+body:not(.snmp) .snmp {
+	display: none;
+}
+
+body:not(.removable) .remove {
+	display: none;
 }
 
 		</style>
@@ -106,7 +117,7 @@ footer input {
 			<h2>device</h2>
 			<div class="table">
 				<ul>
-					<li>ip address
+					<li>ip 주소
 					<li class="address">
 						<input type="text" pattern="25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?" title="0 ~ 255" required id="ip1" autofocus>.
 						<input type="text" pattern="25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?" title="0 ~ 255" required id="ip2">.
@@ -114,34 +125,34 @@ footer input {
 						<input type="text" pattern="25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?" title="0 ~ 255" required id="ip4">
 				</ul>
 				<ul>
-					<li>name
+					<li>이름
 					<li>
 						<input type="text" name="name" placeholder="device name">
 				</ul>
 				<ul>
-					<li>type
+					<li>타입
 					<li>
 						<select name="type" required></select>
 					
 				</ul>
 				<ul>
-					<li>label
+					<li>라벨
 					<li>
 						<input type="text" name="label" placeholder="separated by commas">
 					
 				</ul>
-				<ul>
+				<ul class="snmp">
 					<li>snmp
 					<li>
 						<label>
-							<input type="checkbox" name="snmp" class="snmp">
-							<span class="on">on</span><span class="off">off</span>
+							<input type="checkbox" name="snmp">
+							<span></span>
 						</label>
 					
 				</ul>
-				<label>
-					<input type="checkbox" id="remove" disabled>
-					remove
+				<label class="remove">
+					<input type="checkbox" name="remove">
+					삭제
 				</label>
 			</div>
 			
@@ -172,22 +183,22 @@ var form = document.querySelector("form");
 	function buildType() {
 		var df = document.createDocumentFragment(),
 			groupName, optgroup, option,
-			iconData = {},
+			typeData = {},
 			group = {},
-			icon, data, type;
+			icon, iconData, type;
 		
-		data = top.databases.icon.origin;
-		for (type in data) {
-			iconData[type] = data[type];
-		}
-		
-		data = top.databases.icon.data;
-		for (type in data) {
-			iconData[type] = data[type];
-		}
-		
+		iconData = top.databases.local.icon;
 		for (type in iconData) {
-			icon = iconData[type];
+			typeData[type] = iconData[type];
+		}
+		
+		iconData = top.databases.icon;
+		for (type in iconData) {
+			typeData[type] = iconData[type];
+		}
+		
+		for (type in typeData) {
+			icon = typeData[type];
 			
 			groupName = icon.group;
 			
@@ -214,7 +225,7 @@ var form = document.querySelector("form");
 		var ip = [form.elements.ip1.value, form.elements.ip2.value, form.elements.ip3.value, form.elements.ip4.value].join(".");
 		
 		if (!window.device) {
-			if (ip in top.databases.device.data) {
+			if (ip in top.databases.device) {
 				alert("IP address already exists.");
 				
 				form.elements.ip1.select();
@@ -223,35 +234,33 @@ var form = document.querySelector("form");
 			}
 			
 			window.device = {
-				x: 0,
-				y: 0,
 				ifEntry: {}
 			};
 			
-			top.databases.device.data[ip] = device;
+			// 추가인 경우 position 정보는 갱신되지 않으므로 임의로 넣어준다.
+			top.databases.position[ip] = {
+				x: 0, y: 0
+			};
+			
 		}
 		
-		device.name = form.elements.name.value;
-		device.ip = ip;
-		device.type = form.elements.type.value;
-		device.label = form.elements.label.value.split(",").map(function (value) {
+		window.device.name = form.elements.name.value;
+		window.device.ip = ip;
+		window.device.type = form.elements.type.value;
+		window.device.label = form.elements.label.value.split(",").map(function (value) {
 			return value.trim();
 		}).join(",");
-		
-		if (form.elements.snmp.checked) {
-			if (device.snmp === false) {
-				delete device.snmp;
-			}
-		}
-		else {/*
-			if ("profile" in device) {
-				delete device.profile;
-			}*/
-			
-			device.snmp = false;
-		}
-		
-		sync();
+	
+		top.sendRequest({
+				command: "put",
+				database: "device",
+				key: ip,
+				value: window.device
+			}, function (data) {
+				top.databases.device = data;
+				
+				top.closeDialog();
+			});
 	}
 	
 	function onCancel(e) {
@@ -259,14 +268,46 @@ var form = document.querySelector("form");
 	}
 	
 	function onRemoveDevice() {
-		delete top.databases.device.data[window.device.ip];
-		
-		sync();
+		if (confirm("삭제하겠습니까?")) {
+			top.sendRequest({
+					command: "put",
+					database: "device",
+					key: window.device.ip,
+					value: null
+				}, function (data) {
+					top.databases.device = data;
+					
+					delete top.databases.snmp[window.device.ip];
+					delete top.databases.position[window.device.ip];
+					
+					top.closeDialog();
+				});
+		}
 	}
 	
-	window.initialize = function (device) {	
-		if (device) {
-			window.device = device;
+	function onEnableDevice(e) {
+		var msg = this.checked? "SNMP 정보를 수집하겠습니까?": "SNMP 정보 수집을 중지 하겠습니까?";
+		
+		if (confirm(msg)) {
+			top.sendRequest({
+					command: "put",
+					database: "snmp",
+					key: window.device.ip,
+					value: this.checked? {}: null
+				}, function (data) {
+					top.databases.snmp = data;
+					
+					top.closeDialog();
+				});
+		}
+		else {
+			e.preventDefault();
+		}
+	}
+	
+	window.initialize = function (ip) {	
+		if (ip) {
+			window.device = top.databases.device[ip];
 			
 			form.elements.name.value = device.name;
 			
@@ -282,18 +323,17 @@ var form = document.querySelector("form");
 			form.elements.ip4.disabled = true;
 			
 			if (sessionStorage.level == 0) {
+				document.body.classList.add("removable");
 				form.elements.remove.onclick = onRemoveDevice;
-				form.elements.remove.disabled = false;
+				
+				document.body.classList.add("snmp");	
+				form.elements.snmp.onclick = onEnableDevice;
+				form.elements.snmp.checked = top.databases.snmp[ip]? true: false;
 			}
 			
 			form.elements.type.value = device.type;
 			// 저장할때는 trim으로 다 붙여서 넣지만 보여줄때는 보기 좋게 한칸씩 띈다.
 			form.elements.label.value = device.label && (device.label.split(",")).join(", ") || "";
-			
-			if ("snmp" in device) {
-				form.elements.snmp.checked = device.snmp;
-				form.elements.snmp.disabled = false;
-			}
 		}
 		else {
 			form.elements.type.value="unknown";
@@ -302,24 +342,6 @@ var form = document.querySelector("form");
 	
 }) (window);
 
-function sync() {
-	var data = window.top.databases.device.data,
-		request = {
-			command: "push",
-			database: "device",
-			sequence: window.top.databases.device.sequence,
-			data: data
-		};
-	
-	data.target = window.device.ip;
-	
-	top.sendRequest(request, function (response) {
-		top.databases.device.sequence = response.sequence;
-		top.databases.device.data = response.data;
-		
-		top.closeDialog();
-	});
-}
 		</script>
 	
 	</body>

@@ -1,24 +1,13 @@
 var databases = {
-	icon: {
-		data: {
-			
-		},
-		origin: {
-			
-		}
-	},
-	device: {
-		data: {
-			
-		},
-		selected: -1,
-	},
+	local: {
+		selected: -1
+	}
 	responseTime: {
 		
 	}
 }
 
-databases.icon.data = {
+databases.icon = {
 		"server": {
 	        "group": "server",
 	        "src": "img/svg/server.svg",
@@ -108,7 +97,7 @@ databases.icon.data = {
 	    }
 };
 
-databases.device.data = {
+databases.device = {
 	"127.0.0.1": {
         "ip": "127.0.0.1",
         "x": 30,

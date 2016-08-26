@@ -125,7 +125,7 @@ else {
  function onApply(e) {
 	e.preventDefault();
 	
-	top.databases.icon.data[form.elements.type.value] = {
+	top.databases.icon[form.elements.type.value] = {
 		group: form.elements.group.value,
 		src: form.elements.url.value,
 		disabled: form.elements.disabled.value,
@@ -138,11 +138,8 @@ else {
 	top.sendRequest({
 		command: "push",
 		database: "icon",
-		sequence: top.databases.icon.sequence,
-		data: top.databases.icon.data
-	}, function (response) {
-		top.databases.icon.sequence = response.sequence;
-		
+		data: top.databases.icon
+	}, function (data) {
 		top.closeDialog();
 	});
 	
@@ -150,7 +147,7 @@ else {
  }
  
 function onReset(e) {
-	delete top.databases.icon.data[form.elements.type.value];
+	delete top.databases.icon[form.elements.type.value];
 	
 	sync();
 	
@@ -163,7 +160,7 @@ function onCancel(e) {
 
 window.initialize = function (type) {
 	if (type) {
-		window.icon = top.databases.icon.data[type] || top.databases.icon.origin[type];
+		window.icon = top.databases.icon[type] || top.databases.local.icon[type];
 		
 		document.getElementById("image").src = icon.src;
 		document.getElementById("disabled").src = icon.disabled;

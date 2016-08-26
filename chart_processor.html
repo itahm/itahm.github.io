@@ -20,8 +20,8 @@
 		<script src="js/object.js"></script>
 		<script>
 
-var deviceIP = top.databases.device.selected,
-	snmp = top.databases.snmp,
+var deviceIP = top.databases.local.selected,
+	node = top.databases.local.node,
 	chartList = {},
 	summaryList = {},
 	colorList = [
@@ -45,7 +45,7 @@ var deviceIP = top.databases.device.selected,
 	colorIndex = 0,
 	max = 100;
 
-if(!window.deviceIP || !window.snmp) {
+if(!window.deviceIP || !window.node) {
 	throw "!";
 }
 
@@ -53,7 +53,7 @@ if(!window.deviceIP || !window.snmp) {
  * public
  */
 function initialize(from, to, start, end) {
-	var entry = window.snmp.hrProcessorEntry,
+	var entry = window.node.hrProcessorEntry,
 		df = document.createDocumentFragment(),
 		request = {
 			command: "query",

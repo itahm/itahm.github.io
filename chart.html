@@ -51,9 +51,9 @@ if (parent === window) throw "";
 var chart = document.getElementById("chart"),
 	chartWindow = chart.contentWindow,
 	cursor = document.getElementById("cursor"),
-	deviceIP = top.databases.device.selected,
-	resourceIndex = top.databases.device.resourceIndex,
-	snmp = top.databases.snmp;
+	deviceIP = top.databases.local.selected,
+	resourceIndex = top.databases.local.resourceIndex,
+	node = top.databases.local.node;
 
 document.getElementById("save").onclick = function () {
 	chartWindow.getFile();
@@ -87,7 +87,7 @@ window.cursor.onload = function () {
 (function () {
 	document.getElementById("host").textContent = window.deviceIP;
 	
-	switch(top.databases.device.selectedResource) {
+	switch(top.databases.local.selectedResource) {
 	case "responseTime":
 		document.getElementById("resource").textContent = "Response time";
 		
@@ -114,23 +114,23 @@ window.cursor.onload = function () {
 		break;
 	}
 	
-	window.chart.src = "chart_"+ top.databases.device.selectedResource +".html";
+	window.chart.src = "chart_"+ top.databases.local.selectedResource +".html";
 }) ();
 
 /**
  * public
  */
 function onSelectDevice(ip) {
-	var device = top.databases.device.data[ip];
+	var snmp = top.databases.snmp[ip];
 	
-	if (device.snmp) {
-		top.databases.device.selected = ip;
+	if (snmp) {
+		top.databases.local.selected = ip;
 	
 		top.sendRequest({
 			command: "select",
-			ip: device.ip
+			ip: ip
 		}, function (response) {
-			top.databases.snmp = response;
+			top.databases.local.node = response;
 		
 			location.reload();
 		});

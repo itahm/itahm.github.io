@@ -377,8 +377,10 @@ var summaryList = document.getElementById("summary_list"),
 	space = document.getElementById("space");
 
 (function () {
-	var deviceData = top.databases.device.data,
+	var deviceData = top.databases.device,
+		snmpData = top.databases.snmp,
 		df = document.createDocumentFragment(),
+		snmp,
 		shutdown = 0,
 		critical = 0,
 		normal = 0,
@@ -387,8 +389,9 @@ var summaryList = document.getElementById("summary_list"),
 	
 	for (var ip in deviceData) {
 		device = deviceData[ip];
-		
-		if (!device.snmp) {
+		snmp = snmpData[ip];
+	
+		if (!snmp) {
 			continue;
 		}
 		
@@ -404,10 +407,10 @@ var summaryList = document.getElementById("summary_list"),
 					}
 				}
 				
-				if (device.shutdown) {
+				if (snmp.shutdown) {
 					labeled[labels[i]].shutdown++;
 				}
-				else if (device.critical) {
+				else if (snmp.critical) {
 					labeled[labels[i]].critical++;
 				}
 				else {
@@ -416,10 +419,10 @@ var summaryList = document.getElementById("summary_list"),
 			}
 		}
 		
-		if (device.shutdown) {
+		if (snmp.shutdown) {
 			shutdown++;
 		}
-		else if (device.critical) {
+		else if (snmp.critical) {
 			critical++;
 		}
 		else {
@@ -517,7 +520,7 @@ function setTop(top, list, toString) {
 }
 
 function onSelectTopItem(ip) {
-	top.databases.device.selected = ip;
+	top.databases.local.selected = ip;
 	
 	location.href = "status.html";
 }

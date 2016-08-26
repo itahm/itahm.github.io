@@ -95,15 +95,8 @@ if (top === window) {
 		top.sendRequest({
 			command: "push",
 			database: "account",
-			sequence: top.databases.account.sequence,
-			data: top.databases.account.data
-		}, function (response) {
-			if (response) {
-				top.databases.account.sequence = response.sequence;
-			}
-			else {
-				alert("synchronization failed.");
-			}
+			data: top.databases.account
+		}, function (data) {
 		});
 	}
 	
@@ -127,7 +120,7 @@ if (top === window) {
 	}
 	
 	function initialize() {
-		var accountData = top.databases.account.data,
+		var accountData = top.databases.account,
 			df = document.createDocumentFragment(),
 			span;
 		

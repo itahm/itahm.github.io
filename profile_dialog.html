@@ -105,7 +105,7 @@ footer input {
 				<label><input type="checkbox" name="remove" disabled>remove</label>
 				<footer>
 					<input type="reset" class="r_button" value="cancel">
-					<input type="submit" class="r_button" value="apply">
+					<input type="submit" class="r_button" value="apply" disabled>
 				</footer>
 			</form>
 		</div>
@@ -122,9 +122,9 @@ form.addEventListener("reset", onCancel);
 
 if (sessionStorage.level == 0) {
 	form.addEventListener("submit", onApply);
-}
-else {
-	document.querySelector("input[type=submit]").disabled = true;
+	form.elements.remove.onclick = onRemove;
+	form.elements.remove.disabled = false;
+	document.querySelector("input[type=submit]").disabled = false;
 }
 
 /**
@@ -135,24 +135,20 @@ else {
 	
 	var name = form.elements.name.value;
 	
-	top.databases.profile.data[name] = {
-		name: name,
-		udp: form.elements.udp.value,
-		version: form.elements.version.value,
-		community: form.elements.community.value
-	};
-	
-	sync();
+	put(name, {
+			name: name,
+			udp: form.elements.udp.value,
+			version: form.elements.version.value,
+			community: form.elements.community.value
+		});
 }
 
 function onRemove(e) {
-	if (!confirm("remove profile?")) {
+	if (!confirm("계정을 삭제하겠습니까?")) {
 		return;
 	}
 	
-	delete top.databases.profile.data[form.elements.name.value];
-	
-	sync();
+	put(form.elements.name.value, null);
 }
 
 function onCancel(e) {
@@ -161,7 +157,7 @@ function onCancel(e) {
 
 function initialize(name) {
 	if (name) {
-		window.profile = top.databases.profile.data[name];
+		window.profile = top.databases.profile[name];
 		
 		form.elements.name.value = name;
 		form.elements.name.disabled = true;
@@ -169,32 +165,25 @@ function initialize(name) {
 		form.elements.udp.value = profile.udp;
 		form.elements.version.value = profile.version;
 		form.elements.community.value = profile.community;
-		
-		if (sessionStorage.level == 0) {
-			form.elements.remove.onclick = onRemove;
-			form.elements.remove.disabled = false;
-		}
 	}
 	else {
 		form.elements.name.focus();
-		
-		form.elements.remove.disabled = true;
 	}
 }
 
-function sync() {
+function put(name, profile) {
+	document.body.classList.add("loading");
+	
 	top.sendRequest({
-		command: "push",
+		command: "put",
 		database: "profile",
-		sequence: top.databases.profile.sequence,
-		data: top.databases.profile.data
-	}, function (response) {
-		top.databases.profile.sequence = response.sequence;
+		key: name,
+		value: profile
+	}, function (data) {
+		top.databases.profile = data;
 		
 		top.closeDialog();
 	});
-	
-	document.body.classList.add("loading");
 }
 
 		</script>

@@ -133,8 +133,8 @@ var OX = 200,
 	INTERVAL = 5000,
 	PERIOD = 5;
 
-var ip = opener.top.databases.device.selected,
-	resourceIndex = opener.top.databases.device.resourceIndex,
+var ip = opener.top.databases.local.selected,
+	resourceIndex = opener.top.databases.local.resourceIndex,
 	chart = document.getElementById("chart"),
 	graph = document.getElementById("graph"),
 	translate = graph.transform.baseVal.getItem(0),
@@ -162,7 +162,7 @@ window.addEventListener("resize", function() {
 
 document.getElementById("ip").textContent = ip;
 
-switch(opener.top.databases.device.selectedResource) {
+switch(opener.top.databases.local.selectedResource) {
 case "responseTime":
 	window.onResponse = onRTResponse;
 	window.format = toMSString;

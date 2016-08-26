@@ -99,7 +99,7 @@ document.getElementById("add_profile").onclick = function () {
 
 (function () {
 	var list = document.getElementById("account_list"),
-		accountData = top.databases.account.data,
+		accountData = top.databases.account,
 		df = document.createDocumentFragment();
 	
 	for (var username in accountData) {
@@ -112,7 +112,7 @@ document.getElementById("add_profile").onclick = function () {
 
 (function () {
 	var list = document.getElementById("profile_list"),
-		profileData = top.databases.profile.data,
+		profileData = top.databases.profile,
 		df = document.createDocumentFragment();
 	
 	for (var name in profileData) {

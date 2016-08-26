@@ -247,31 +247,23 @@ var elements = {
 	var name = document.getElementById("name"),
 		chart = document.getElementById("chart"),
 		mode = document.getElementById("mode"),
-		deviceIP,
 		chartData;
 	
 	mode.onchange = function () {
 		chart.contentWindow.mode(this.value);
 	};
 	
-	(function () {
-		var database = top.databases.device,
-			device = database.data[database.selected];
-		
-		deviceIP = device.ip;
-		
-		top.sendRequest({
+	top.sendRequest({
 			command: "select",
-			ip: deviceIP
+			ip: top.databases.local.selected
 		}, function (response) {
 			initialize(device, response);
 		});
-	}) ();
 	
 	function sendRequest(database, index, start, end, callback, summary) {
 		var request = {
 				command: "query",
-				ip: deviceIP,
+				ip: top.databases.local.selected,
 				summary: summary,
 				database: database,
 				index: index,

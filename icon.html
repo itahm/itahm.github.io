@@ -91,12 +91,12 @@ var list = document.getElementById("list"),
 	var iconData = {},
 		data, type;
 	
-	data = top.databases.icon.origin;
+	data = top.databases.local.icon;
 	for (type in data) {
 		iconData[type] = data[type];
 	}
 	
-	data = top.databases.icon.data;
+	data = top.databases.icon;
 	for (type in data) {
 		iconData[type] = data[type];
 	}

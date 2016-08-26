@@ -1,11 +1,13 @@
 "use strict" ;
 
 var url,
-	requestQ = ["icon", "profile", "account", "device", "critical"],
+	requestQ = ["icon", "profile", "account", "device", "position", "snmp", "critical"],
 	event = {
 		command: "listen"
 	},
-	databases = {};
+	databases = {
+		local: {}
+	};
 
 onmessage = function (e) {
 	url = e.data;

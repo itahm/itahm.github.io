@@ -162,344 +162,391 @@ body:not(.ifname) #line text {
 var svgNS = "http://www.w3.org/2000/svg",
 	xlinkNS = "http://www.w3.org/1999/xlink";
 
-var deviceCanvas = document.getElementById("device"),
-	deviceData = top.databases.device.data,
-	iconMap = {},
+var mapCanvas = document.getElementById("map"),
+	deviceCanvas = document.getElementById("device"),
+	toolCanvas = document.getElementById("tool"),
+	lineCanvas = document.getElementById("line"),
+	deviceData = top.databases.device,
+	posData = top.databases.position,
+	snmpData = top.databases.snmp,
+	selectionMark = document.getElementById("selection_mark"),
+	linkAnchor = document.getElementById("link_anchor"),
+	transform = document.getElementById("transform").transform.baseVal,
+	linkData = {},
+	iconData = {},
 	labelMap = {},
-	alertMap = {};
+	alertData = {},
+	scale = 1,
+	cancelSelect = false,
+	dragOrigin;
 
-// map
-(function (window, undefined) {
-	var canvas = document.getElementById("map"),
-		linkAnchor = document.getElementById("link_anchor"),
-		eventData = {},
-		event = ITAhM.util.createCustomEvent("link", eventData),
-		transform = document.getElementById("transform").transform.baseVal,
-		scale = 1,
-		selectedSvgDevice,
-		cancelSelect = false,
-		dragOrigin;
-	
-	new Draggable(canvas);
-	
-	canvas.addEventListener("click", onCancelSelect);
-	canvas.addEventListener("dragstart", onDragStart);
-	canvas.addEventListener("dragmove", onDragMove);
-	canvas.addEventListener("dragend", onDragEnd);
-	
-	document.onselectstart = function () {
-		return false;
-	}
-	
-	window.zoom = function (ratio) {
-		scale = ratio;
-		
-		this.setScale(ratio, ratio);
-	}.bind(transform.getItem(1));
-	
-	window.resize = function () {
-		rect = canvas.getBoundingClientRect();
-		
-		this.setTranslate(rect.width /2, rect.height /2);
-	}.bind(transform.getItem(0));
-	
-	window.moveMap = function(x, y) {
-		this.setTranslate(x, y);
-	}.bind(transform.getItem(2));
-	
-	window.restoreMap = function() {
-		var x = this.matrix.e,
-			y = this.matrix.f;
-	
-		moveAllDevice(x, y);
-	
-		moveMap(0, 0);
-	}.bind(transform.getItem(2));
-	
-	function onDragStart(e) {
-		var data = e.detail,
-			target = data.target;
-		
-		if (window.selectedDevice) {
-			dragOrigin = {
-				x: selectedDevice.x,
-				y: selectedDevice.y
-			};
-			
-			if (target === selectedSvgDevice) {
-			}
-			else if (target === linkAnchor) {
-				setLinkAnchor(dragOrigin.x, dragOrigin.y, dragOrigin.x, dragOrigin.y -34);
-			}
-		}
-		
-		cancelSelect = true;
-	}
-	
-	function onDragMove(e) {
-		var data = e.detail,
-			target = data.target;
-		
-		// selectedDevice 인 경우 move
-		if (target === selectedSvgDevice) {
-			var x = dragOrigin.x + Math.round(data.dragX / scale /10) *10,
-				y = dragOrigin.y + Math.round(data.dragY / scale /10) *10;
-			
-			moveSelectionMark(x, y);
-			
-			moveDevice(window.selectedDevice.ip, x, y);
-		}
-		else if (target === linkAnchor) {
-			var destination = data.destination,
-				x = dragOrigin.x + Math.round(data.dragX / scale),
-				y = dragOrigin.y + Math.round(data.dragY / scale);
-			
-			if (isDevice(destination) &&  destination !== selectedSvgDevice) {
-				moveLinkAnchor(Number(destination.getAttributeNS(null, "x")), Number(destination.getAttributeNS(null, "y")));
-			}
-			else {
-				moveLinkAnchor(x, y - 34);
-			}
-		}
-		else {
-			var x = Math.round(data.dragX / scale /10) *10,
-				y = Math.round(data.dragY / scale /10) *10;
-			
-			moveMap(x, y);
-		}
-	}
-	
-	function onDragEnd(e) {
-		var data = e.detail,
-			target = data.target,
-			destination = data.destination;
-		
-		if (target === selectedSvgDevice) {
-		}
-		else if (target === linkAnchor) {
-			canvas.appendChild(linkAnchor);
-			
-			restoreLinkAnchor();
-			
-			if (isDevice(destination) &&  destination !== selectedSvgDevice) {
-				eventData.peer = window.selectedDevice;
-				
-				destination.dispatchEvent(event);
-			}
-		}
-		else {
-			restoreMap();
-		}
-	}
-	
-	window.moveAllDevice = function (x, y) {
-		if (window.selectedDevice) {
-			moveSelectionMark(selectedDevice.x + x, selectedDevice.y + y);
-		}
-		
-		forEachDevice(function (device) {
-			moveDevice(device.ip, device.x + x, device.y + y);
-		});
-	}
-	
-	function onCancelSelect() {
-		if (cancelSelect) {
-			cancelSelect = false;
-		}
-		else {
-			clearSelectionMark();
-			
-			window.selectedDevice = undefined;
-		}
-	}
-	
-	window.selectDevice = function (ip) {
-		if (cancelSelect) {
-			cancelSelect = false;
-		}
-		else {
-			window.selectedDevice = window.deviceData[ip];
-			selectedSvgDevice = window.iconMap[ip];
-// 있으면 안돼는 일이지만 데이터 잘못 들어갔을때 삭제라도 할수있게 임시. 
-try {
-			x = selectedDevice.x;
-			y = selectedDevice.y;
-			
-			showSelectionMark(x, y, selectedDevice.snmp);
-			
-			topDevice(selectedSvgDevice);
+new Draggable(mapCanvas);
+
+mapCanvas.addEventListener("click", onCancelSelect);
+mapCanvas.addEventListener("dragstart", onDragStart);
+mapCanvas.addEventListener("dragmove", onDragMove);
+mapCanvas.addEventListener("dragend", onDragEnd);
+
+document.onselectstart = function () {
+	return false;
 }
-catch(e) {
-	onEditDevice(selectedDevice);
+	
+function zoom(ratio) {
+	window.scale = ratio;
+	
+	transform.getItem(1).setScale(ratio, ratio);
 }
+	
+function resize() {
+	rect = mapCanvas.getBoundingClientRect();
+	
+	transform.getItem(0).setTranslate(rect.width /2, rect.height /2);
+}
+	
+function moveMap(x, y) {
+	transform.getItem(2).setTranslate(x, y);
+}
+	
+function restoreMap() {
+	var matrix = transform.getItem(2).matrix;
 
+	moveAllDevice(matrix.e, matrix.f);
+
+	moveMap(0, 0);
+}
+	
+function onDragStart(e) {
+	var data = e.detail,
+		target = data.target;
+	
+	if (window.selected) {
+		//var selectedSvgDevice = window.iconData[window.selected];
+		var pos = window.posData[window.selected];
+		
+		window.dragOrigin = {
+			x: pos.x,
+			y: pos.y
+		};
+		
+		/*if (target === selectedSvgDevice) {
+		}
+		else*/ if (target === linkAnchor) {
+			setLinkAnchor(window.dragOrigin.x, window.dragOrigin.y, window.dragOrigin.x, window.dragOrigin.y -34);
 		}
 	}
-
-}) (window);
-
-// svg device group
-(function (window, undefined) {
 	
-	var selectionMark = document.getElementById("selection_mark"),
-		fragment = document.createDocumentFragment();
+	window.cancelSelect = true;
+}
 	
-	function onSelect(ip, e) {
-		e.stopPropagation();
-		
-		selectDevice(ip);
-	}
+function onDragMove(e) {
+	var data = e.detail,
+		target = data.target,
+		selectedSvgDevice = window.iconData[window.selected];
 	
-	function moveLine(x, y, data, direct) {
-		var svgDevice, device,
-			x1, y1, x2, y2;
-	
-		svgDevice = data.svg;
-		
-		if (direct) {
-			device = window.deviceData[data.peer2];
-			
-			svgDevice.setAttributeNS(null, "x1", x);
-			svgDevice.setAttributeNS(null, "y1", y);
-			
-			x1 = x;
-			y1 = y;
-			x2 = device.x;
-			y2 = device.y;
-		}
-		else {
-			device = window.deviceData[data.peer1];
-			
-			svgDevice.setAttributeNS(null, "x2", x);
-			svgDevice.setAttributeNS(null, "y2", y);
-			
-			x1 = device.x;
-			y1 = device.y;
-			x2 = x;
-			y2 = y;
-		}
-		
-		data.name1.setAttributeNS(null, "x", (x1 *2 + x2) /3);
-		data.name1.setAttributeNS(null, "y", (y1 *2 + y2) /3);
-		
-		data.name2.setAttributeNS(null, "x", (x2 *2 + x1) /3);
-		data.name2.setAttributeNS(null, "y", (y2 *2 + y1) /3);
-	}
-	
-	window.addDevice = function (device) {
-		var svgDevice = document.createElementNS(svgNS, "image"),
-			svgLabel = document.createElementNS(svgNS, "text"),
-			svgAddr = document.createElementNS(svgNS, "tspan"),
-			svgName = document.createElementNS(svgNS, "tspan");
-		
-		svgDevice.setAttributeNS(null, "x", device.x);
-		svgDevice.setAttributeNS(null, "y", device.y);
-		svgDevice.setAttributeNS(null, "width", "40px");
-		svgDevice.setAttributeNS(null, "height", "40px");
-		svgDevice.setAttributeNS(null, "transform", "translate(-20, -20)");
-		
-		svgDevice.onclick = onSelect.bind(undefined, device.ip);
-		svgDevice.addEventListener("link", onLink.bind(undefined, device.ip));
-		
-		window.deviceCanvas.appendChild(svgDevice);
-		
-		svgName.textContent = device.name;
-		svgAddr.textContent = device.ip;
-		
-		svgLabel.appendChild(svgName);
-		svgLabel.appendChild(svgAddr);
-		
-		svgLabel.setAttributeNS(null, "x", device.x);
-		svgLabel.setAttributeNS(null, "y", device.y);
-		// text baseline이 글자의 밑을 기준으로 하므로 글자 크기만큼 내려준다.
-		// 아이콘 크기 + 글자 크기 = 20 + 16 = 36
-		svgLabel.setAttributeNS(null, "transform", "translate(0, 36)");
-		
-		window.deviceCanvas.appendChild(svgLabel);
-		
-		window.iconMap[device.ip] = svgDevice;
-		window.labelMap[device.ip] = svgLabel;
-		
-		reDraw(device, svgDevice);
-	};
-	
-	window.isDevice = function (node) {
-		return node.parentNode === window.deviceCanvas && node.tagName === "image";
-	};
-	
-	window.moveDevice = function (ip, x, y) {
-		var device = window.deviceData[ip];
-				
-		device.x = x;
-		device.y = y;		
-
-		var svgDevice = window.iconMap[ip],
-			svgLabel = window.labelMap[ip],
-			svgAlert = window.alertMap[ip];
-		
-		svgDevice.setAttributeNS(null, "x", x);
-		svgDevice.setAttributeNS(null, "y", y);
-		
-		svgLabel.setAttributeNS(null, "x", x);
-		svgLabel.setAttributeNS(null, "y", y);
-		
-		if (svgAlert) {
-			svgAlert.setAttributeNS(null, "x", x);
-			svgAlert.setAttributeNS(null, "y", y);
-		}
-		
-		forEachLine(ip, moveLine.bind(undefined, x, y));
-	};
-	
-	window.topDevice = function (svgDevice) {
-		window.deviceCanvas.appendChild(svgDevice);
-	};
-	
-	window.moveSelectionMark = function (x, y) {
-		selectionMark.setAttributeNS(null, "cx", x);
-		selectionMark.setAttributeNS(null, "cy", y);
-		
-		moveAnchor(x, y);
-	};
-	
-	window.showSelectionMark = function (x, y, snmp) {
-		window.deviceCanvas.appendChild(selectionMark);
-		
-		showTool(x, y, snmp);
+	if (target === selectedSvgDevice) {
+		var x = window.dragOrigin.x + Math.round(data.dragX / window.scale /10) *10,
+			y = window.dragOrigin.y + Math.round(data.dragY / window.scale /10) *10;
 		
 		moveSelectionMark(x, y);
-	};
-	
-	window.clearSelectionMark = function () {
-		fragment.appendChild(selectionMark);
 		
-		hideAnchor();
-	};
+		moveDevice(window.selected, x, y);
+	}
+	else if (target === linkAnchor) {
+		var destination = data.destination,
+			x = window.dragOrigin.x + Math.round(data.dragX / window.scale),
+			y = window.dragOrigin.y + Math.round(data.dragY / window.scale);
+		
+		if (isDevice(destination) &&  destination !== selectedSvgDevice) {
+			moveLinkAnchor(Number(destination.getAttributeNS(null, "x")), Number(destination.getAttributeNS(null, "y")));
+		}
+		else {
+			moveLinkAnchor(x, y - 34);
+		}
+	}
+	else {
+		var x = Math.round(data.dragX / window.scale /10) *10,
+			y = Math.round(data.dragY / window.scale /10) *10;
+		
+		moveMap(x, y);
+	}
+}
+
+function onDragEnd(e) {
+	var data = e.detail,
+		target = data.target,
+		destination = data.destination,
+		eventData = {},
+		event = ITAhM.util.createCustomEvent("link", eventData),
+		selectedSvgDevice = window.iconData[window.selected];
 	
-}) (window);
+	if (target === selectedSvgDevice) {
+	}
+	else if (target === linkAnchor) {
+		mapCanvas.appendChild(linkAnchor);
+		
+		restoreLinkAnchor();
+		
+		if (isDevice(destination) &&  destination !== selectedSvgDevice) {
+			eventData.peer = window.selected;
+			
+			destination.dispatchEvent(event);
+		}
+	}
+	else {
+		restoreMap();
+	}
+}
+	
+function moveAllDevice(x, y) {
+	var pos;
+	
+	if (window.selected) {
+		pos = window.posData[window.selected];
+		
+		moveSelectionMark(pos.x + x, pos.y + y);
+	}
+	
+	for (var ip in window.deviceData) {
+		pos = window.posData[ip];
+		
+		moveDevice(ip, pos.x + x, pos.y + y);
+	}
+}
+	
+function onCancelSelect() {
+	if (window.cancelSelect) {
+		window.cancelSelect = false;
+	}
+	else {
+		clearSelectionMark();
+		
+		window.selected = undefined;
+	}
+}
+	
+function selectDevice(ip) {
+	if (window.cancelSelect) {
+		window.cancelSelect = false;
+	}
+	else {
+		var pos = window.posData[ip];
+		
+		window.selected = ip;
+		
+		showSelectionMark(pos.x, pos.y, window.snmpData[ip]);
+		
+		topDevice(window.iconData[ip]);
+	}
+}
+
+function moveLine(x, y, data, direct) {
+	var svgDevice, pos,
+		x1, y1, x2, y2;
+
+	svgDevice = data.svg;
+	
+	if (direct) {
+		pos = window.posData[data.peer2];
+		
+		svgDevice.setAttributeNS(null, "x1", x);
+		svgDevice.setAttributeNS(null, "y1", y);
+		
+		x1 = x;
+		y1 = y;
+		x2 = pos.x;
+		y2 = pos.y;
+	}
+	else {
+		pos = window.posData[data.peer1];
+		
+		svgDevice.setAttributeNS(null, "x2", x);
+		svgDevice.setAttributeNS(null, "y2", y);
+		
+		x1 = pos.x;
+		y1 = pos.y;
+		x2 = x;
+		y2 = y;
+	}
+	
+	data.name1.setAttributeNS(null, "x", (x1 *2 + x2) /3);
+	data.name1.setAttributeNS(null, "y", (y1 *2 + y2) /3);
+	
+	data.name2.setAttributeNS(null, "x", (x2 *2 + x1) /3);
+	data.name2.setAttributeNS(null, "y", (y2 *2 + y1) /3);
+}
+
+function addDevice(ip) {
+	var device = window.deviceData[ip],
+		pos = window.posData[ip],
+		svgDevice = document.createElementNS(svgNS, "image"),
+		svgLabel = document.createElementNS(svgNS, "text"),
+		svgAddr = document.createElementNS(svgNS, "tspan"),
+		svgName = document.createElementNS(svgNS, "tspan");
+
+	svgDevice.setAttributeNS(null, "x", pos.x);
+	svgDevice.setAttributeNS(null, "y", pos.y);
+	svgDevice.setAttributeNS(null, "width", "40px");
+	svgDevice.setAttributeNS(null, "height", "40px");
+	svgDevice.setAttributeNS(null, "transform", "translate(-20, -20)");
+	
+	svgDevice.onclick = onSelectDevice.bind(undefined, ip);
+	svgDevice.addEventListener("link", onLink.bind(undefined, ip));
+	
+	window.deviceCanvas.appendChild(svgDevice);
+	
+	svgName.textContent = device.name;
+	svgAddr.textContent = device.ip;
+	
+	svgLabel.appendChild(svgName);
+	svgLabel.appendChild(svgAddr);
+	
+	svgLabel.setAttributeNS(null, "x", pos.x);
+	svgLabel.setAttributeNS(null, "y", pos.y);
+	// text baseline이 글자의 밑을 기준으로 하므로 글자 크기만큼 내려준다.
+	// 아이콘 크기 + 글자 크기 = 20 + 16 = 36
+	svgLabel.setAttributeNS(null, "transform", "translate(0, 36)");
+	
+	window.deviceCanvas.appendChild(svgLabel);
+	
+	window.iconData[ip] = svgDevice;
+	window.labelMap[ip] = svgLabel;
+	
+	resetDevice(ip);
+}
+
+function resetDevice(ip, reset) {
+	var device = window.deviceData[ip],
+		svgDevice = window.iconData[ip],
+		svgAlert = window.alertData[ip],
+		pos = window.posData[ip],
+		icon = getIcon(device.type),
+		snmp;
+	
+	if (reset) {
+		window.snmpData = top.databases.snmp;
+	}
+	
+	snmp = window.snmpData[ip];
+	
+	if (!snmp) {
+		svgDevice.setAttributeNS(xlinkNS, "xlink:href", icon.disabled);
+		
+		return;
+	}
+	
+	svgDevice.setAttributeNS(xlinkNS, "xlink:href", icon.src);
+	
+	if (snmp.shutdown || snmp.critical) {
+		if (!svgAlert) {
+			svgAlert = document.createElementNS(svgNS, "use");
+			
+			svgAlert.setAttributeNS(xlinkNS, "xlink:href", "#circle");
+			svgAlert.setAttributeNS(null, "x", pos.x);
+			svgAlert.setAttributeNS(null, "y", pos.y);
+			
+			window.deviceCanvas.appendChild(svgAlert);
+			
+			window.alertData[ip] = svgAlert;
+		}
+		
+		svgAlert.setAttributeNS(null, "class", snmp.shutdown? "shutdown": "critical");
+	}
+	else {
+		if (svgAlert) {
+			delete window.alertData[ip];
+			
+			window.deviceCanvas.removeChild(svgAlert);
+		}
+	}
+}
+
+function isDevice(node) {
+	return node.parentNode === window.deviceCanvas && node.tagName === "image";
+}
+
+function moveDevice(ip, x, y) {
+	var device = window.deviceData[ip],
+		pos = window.posData[ip],
+		link = window.linkData[ip],
+		data;
+			
+	pos.x = x;
+	pos.y = y;		
+
+	var svgDevice = window.iconData[ip],
+		svgLabel = window.labelMap[ip],
+		svgAlert = window.alertData[ip];
+	
+	svgDevice.setAttributeNS(null, "x", x);
+	svgDevice.setAttributeNS(null, "y", y);
+	
+	svgLabel.setAttributeNS(null, "x", x);
+	svgLabel.setAttributeNS(null, "y", y);
+	
+	if (svgAlert) {
+		svgAlert.setAttributeNS(null, "x", x);
+		svgAlert.setAttributeNS(null, "y", y);
+	}
+	
+	for (var peerIP in link) {
+		data = link[peerIP];
+	
+		moveLine(x, y, data, data.peer1 === ip);
+	}
+}
+
+function onSelectDevice(ip, e) {
+	e.stopPropagation();
+	
+	selectDevice(ip);
+}
+
+function topDevice(svgDevice) {
+	window.deviceCanvas.appendChild(svgDevice);
+}
+
+function moveSelectionMark(x, y) {
+	window.selectionMark.setAttributeNS(null, "cx", x);
+	window.selectionMark.setAttributeNS(null, "cy", y);
+	
+	moveAnchor(x, y);
+}
+
+function showSelectionMark(x, y, snmp) {
+	window.deviceCanvas.appendChild(window.selectionMark);
+	
+	showTool(x, y, snmp);
+	
+	moveSelectionMark(x, y);
+}
+
+function clearSelectionMark() {
+	document.createDocumentFragment().appendChild(window.selectionMark);
+	
+	hideAnchor();
+}
 
 // svg tool group
 (function (window, undefined) {
 	
-	var canvas = document.getElementById("tool"),
+	var 
 		link = document.getElementById("link"),
 		anchor = document.getElementById("anchor"),
 		svgLink = document.getElementById("link_line"),
 		chartAnchor = document.getElementById("chart_anchor"),
 		editAnchor = document.getElementById("edit_anchor"),
-		linkAnchor = document.getElementById("link_anchor"),
 		linkDrag = linkAnchor.transform.baseVal.getItem(0),
 		linkSVG = document.createElementNS(svgNS, "line"),
 		fragment = document.createDocumentFragment();
 		
 	chartAnchor.onclick = function (e) {
-		onShowChart(window.selectedDevice);
+		onShowChart(window.selected);
 		
 		e.stopPropagation();
 	};
 	
 	editAnchor.onclick = function (e) {
-		onEditDevice(window.selectedDevice);
+		onEditDevice(window.selected);
 		
 		e.stopPropagation();
 	};
@@ -511,7 +558,7 @@ catch(e) {
 	window.showTool = function (x, y, chart) {
 		document.body.classList[chart? "add": "remove"]("snmp");
 		
-		canvas.appendChild(anchor);
+		toolCanvas.appendChild(anchor);
 		
 		moveAnchor(x, y);
 	};
@@ -557,151 +604,95 @@ catch(e) {
 	
 }) (window);
 
-// svg line group
-(function (window, undefined) {
+function createLabel(name, x1, y1, x2, y2) {
+	var labelSvg = document.createElementNS(svgNS, "text");
 	
-	var canvas = document.getElementById("line"),
-		database = {};
-
-	function createLabel(name, x1, y1, x2, y2) {
-		var labelSvg = document.createElementNS(svgNS, "text");
+	labelSvg.textContent = name;
+	
+	moveLabel(labelSvg, x1, y1, x2, y2);
+	
+	return labelSvg;
+}
+	
+function moveLabel(labelSvg, x1, y1, x2, y2) {
+	labelSvg.setAttributeNS(null, "x", (x1 *2 + x2) /3);
+	labelSvg.setAttributeNS(null, "y", (y1 *2 + y2) /3);
+}
+	
+function addLine(ip) {
+	var device = window.deviceData[ip],
+		pos = window.posData[ip],
+		ifEntry = device.ifEntry,
+		peerList = {},
+		peer, peerPos, peerIP, link, lineSvg,
+		labelSvg;
+	
+	window.linkData[ip] = peerList;
+	
+	for (var peerIP in ifEntry) {
+		peer = window.deviceData[peerIP];
 		
-		labelSvg.textContent = name;
-		
-		moveLabel(labelSvg, x1, y1, x2, y2);
-		
-		return labelSvg;
-	};
-	
-	function moveLabel(labelSvg, x1, y1, x2, y2) {
-		labelSvg.setAttributeNS(null, "x", (x1 *2 + x2) /3);
-		labelSvg.setAttributeNS(null, "y", (y1 *2 + y2) /3);
-	};
-	
-	window.addLine = function (device) {
-		var ifEntry = device.ifEntry,
-			peerList = {},
-			ip = device.ip,
-			peer, peerIP, linkData, lineSvg,
-			labelSvg;
-		
-		database[ip] = peerList;
-		
-		for (var peerIP in ifEntry) {
-			peer = window.deviceData[peerIP];
+		if (!peer) {
+			delete ifEntry[peerIP];
 			
-			if (!peer) {
-				delete ifEntry[peerIP];
-				
-				continue;
-			}
-			
-			labelSvg = createLabel(ifEntry[peerIP], device.x, device.y, peer.x, peer.y);
-			
-			// peer가 먼저 svg 만들었다면 공유
-			if (database[peerIP]) {
-				linkData = database[peerIP][ip];
-				
-				linkData.name2 = labelSvg;
-			}
-			else {
-				lineSvg = document.createElementNS(svgNS, "line");
-				
-				lineSvg.setAttributeNS(null, "x1", device.x);
-				lineSvg.setAttributeNS(null, "y1", device.y);
-				lineSvg.setAttributeNS(null, "x2", peer.x);
-				lineSvg.setAttributeNS(null, "y2", peer.y);
-				
-				linkData = {
-					peer1: ip,
-					name1: labelSvg,
-					peer2: peerIP,
-					svg: canvas.appendChild(lineSvg)
-				};
-			}
-			
-			// label이 선보다 위에 그려지도록 나중에 붙여줌
-			canvas.appendChild(labelSvg);
-			
-			peerList[peerIP] = linkData;
-		}
-	};
-	
-	window.forEachLine = function (ip, f) {
-		var linkData = database[ip],
-			data;
-		
-		for (var peerIP in linkData) {
-			data = linkData[peerIP];
-			
-			f(data, data.peer1 === ip);
-		}
-	};
-	
-}) (window);
-
-function reDraw(device, svgDevice) {
-	svgDevice = svgDevice || window.iconMap[device.ip];
-	
-	var icon = getIcon(device.type);
-	
-	if (!device.snmp) {
-		svgDevice.setAttributeNS(xlinkNS, "xlink:href", icon.disabled);
-		
-		return;
-	}
-	
-	var svgAlert = window.alertMap[device.ip];
-	
-	svgDevice.setAttributeNS(xlinkNS, "xlink:href", icon.src);
-	
-	if (device.shutdown || device.critical) {
-		if (!svgAlert) {
-			svgAlert = document.createElementNS(svgNS, "use");
-			
-			svgAlert.setAttributeNS(xlinkNS, "xlink:href", "#circle");
-			svgAlert.setAttributeNS(null, "x", device.x);
-			svgAlert.setAttributeNS(null, "y", device.y);
-			
-			window.deviceCanvas.appendChild(svgAlert);
-			
-			window.alertMap[device.ip] = svgAlert;
+			continue;
 		}
 		
-		svgAlert.setAttributeNS(null, "class", device.shutdown? "shutdown": "critical");
-	}
-	else {
-		if (svgAlert) {
-			delete window.alertMap[device.ip];
+		peerPos = window.posData[peerIP];
+		
+		labelSvg = createLabel(ifEntry[peerIP], pos.x, pos.y, peerPos.x, peerPos.y);
+		
+		// peer가 먼저 svg 만들었다면 공유
+		if (window.linkData[peerIP]) {
+			link = linkData[peerIP][ip];
 			
-			window.deviceCanvas.removeChild(svgAlert);
+			link.name2 = labelSvg;
 		}
+		else {
+			lineSvg = document.createElementNS(svgNS, "line");
+			
+			lineSvg.setAttributeNS(null, "x1", pos.x);
+			lineSvg.setAttributeNS(null, "y1", pos.y);
+			lineSvg.setAttributeNS(null, "x2", peerPos.x);
+			lineSvg.setAttributeNS(null, "y2", peerPos.y);
+			
+			link = {
+				peer1: ip,
+				name1: labelSvg,
+				peer2: peerIP,
+				svg: lineCanvas.appendChild(lineSvg)
+			};
+		}
+		
+		// label이 선보다 위에 그려지도록 나중에 붙여줌
+		lineCanvas.appendChild(labelSvg);
+		
+		peerList[peerIP] = link;
 	}
 }
 
 function initialize() {
-	forEachDevice(function (device) {
-		addDevice(device);
-		addLine(device);
-	});
+	for (var ip in window.deviceData) {
+		addDevice(ip);
+		addLine(ip);
+	}
 }
 
 function onLink(ip, e) {
-	var device = window.deviceData[ip],
-		peer = e.detail.peer,
-		peerIP = peer.ip,
-		ifEntry = device.ifEntry;
+	var peerIP = e.detail.peer;
 	
-	if (peerIP in ifEntry) {
-		delete ifEntry[peerIP];
-		delete peer.ifEntry[ip];
-	}
-	else {
-		ifEntry[peerIP] = "";
-		peer.ifEntry[ip] = "";
-	}
+	document.body.classList.add("loading");	
 	
-	location.reload();
+	top.sendRequest({
+			command: "link",
+			peer1: ip,
+			peer2: peerIP,
+			link: peerIP in window.deviceData[ip].ifEntry? false: true
+		}, function (data) {
+			top.databases.device = data;
+			
+			location.reload();
+		});
 }
 
 function displayIPAddress(show) {
@@ -712,17 +703,16 @@ function displayIFName(show) {
 	document.body.classList[show? "add": "remove"]("ifname");
 }
 
-//abstract
 function getIcon(type) {
-	
+	return window.top.databases.icon[type] || window.top.databases.local.icon[type];
 }
 
 //abstract
-function onEditDevice(device) {	
+function onEditDevice(ip) {	
 }
 
 //abstract
-function onShowChart(device) {
+function onShowChart(ip) {
 }
 
 resize();

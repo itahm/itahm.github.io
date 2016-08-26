@@ -149,17 +149,15 @@ iframe {
 		};
 		
 		map.getDevice = function (ip) {
-			return databases.device.data[ip];
+			return databases.device[ip];
 		};
 		
 		map.getIcon = function (type) {
-			var iconData = databases.icon;
-			
-			return iconData.data[type] || iconData.origin[type];
+			return databases.icon[type];
 		};
 		
 		map.forEachDevice = function(func) {
-			var deviceData = databases.device.data;
+			var deviceData = databases.device;
 			
 			for (var id in deviceData) {
 				func(deviceData[id]);

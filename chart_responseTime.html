@@ -30,7 +30,7 @@
 var chart = document.getElementById("chart"),
 	chartWindow = chart.contentWindow,
 	cursor = document.getElementById("cursor"),
-	deviceIP = top.databases.device.selected,
+	deviceIP = top.databases.local.selected,
 	max = 5000;
 	
 if(!window.deviceIP) {
@@ -64,7 +64,7 @@ function initialize(from, to, start, end) {
 /**
  * private
  */
-function onSummaryResponse(data) {console.log("1470096000000" in data);
+function onSummaryResponse(data) {
 	window.summaryData = new ITAhM.ChartSummaryData(data);
 	
 	window.chartWindow.initialize(window.summaryData, window.max, "#0084ff", true);

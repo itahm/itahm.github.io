@@ -111,7 +111,7 @@ footer input {
 				<label><input type="checkbox" name="remove" disabled>remove</label>
 				<footer>
 					<input type="reset" class="r_button" value="cancel">
-					<input type="submit" class="r_button" value="apply">
+					<input type="submit" class="r_button" value="apply" disabled>
 				</footer>
 			</form>
 		</div>
@@ -128,9 +128,8 @@ form.addEventListener("reset", onCancel);
 
 if (sessionStorage.level == 0) {
 	form.addEventListener("submit", onApply);
-}
-else {
-	document.querySelector("input[type=submit]").disabled = true;
+	
+	document.querySelector("input[type=submit]").disabled = false;
 }
 
 /**
@@ -142,26 +141,25 @@ function onApply(e) {
 	var password = form.elements.password,
 		password2 = form.elements.password2;
 		
-	if (password.value === password2.value) {
-		var username = form.elements.username.value;
-		
-		top.databases.account.data[username] = {
-			username: username,
-			password: password.value,
-			level: parseInt(form.elements.level.value)
-		};
-		
-		sync();
-	}
-	else {
+	if (password.value !== password2.value) {
 		alert("password does not match the confirmation");
 		
 		password2.select();
+		
+		return;
 	}
+	
+	var username = form.elements.username.value;
+	
+	put(username, {
+			username: username,
+			password: password.value,
+			level: parseInt(form.elements.level.value)
+		});
 };
 
 function onRemove(e) {
-	var accountData = top.databases.account.data,
+	var accountData = top.databases.account,
 		rootCheck = false;
 	
 	for (var username in accountData) {
@@ -178,37 +176,35 @@ function onRemove(e) {
 		return;
 	}
 	
-	if (!confirm("remove account?")) {
+	if (!confirm("계정을 삭제하겠습니까?")) {
 		return;
 	}
 	
-	delete accountData[form.elements.username.value];
-	
-	sync();
+	put(form.elements.username.value, null);
 }
 
 function onCancel(e) {
 	top.closeDialog(true);
 }
 
-function sync() {
+function put(username, account) {
+	document.body.classList.add("loading");
+	
 	top.sendRequest({
-		command: "push",
+		command: "put",
 		database: "account",
-		sequence: top.databases.account.sequence,
-		data: top.databases.account.data
-	}, function (response) {
-		top.databases.account.sequence = response.sequence;
+		key: username,
+		value: account
+	}, function (data) {
+		top.databases.account = data;
 		
 		top.closeDialog();
 	});
-	
-	document.body.classList.add("loading");
 }
 
 function initialize(username) {
 	if (username) {
-		window.account = top.databases.account.data[username];
+		window.account = top.databases.account[username];
 		
 		form.elements.username.value = username;
 		form.elements.username.disabled = true;

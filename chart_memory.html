@@ -29,11 +29,11 @@
 
 var chart = document.getElementById("chart"),
 	chartWindow = chart.contentWindow,
-	deviceIP = top.databases.device.selected,
-	resourceIndex = top.databases.device.resourceIndex,
-	snmp = top.databases.snmp;
+	deviceIP = top.databases.local.selected,
+	resourceIndex = top.databases.local.resourceIndex,
+	node = top.databases.local.node;
 
-if(!deviceIP || !snmp) {
+if(!deviceIP || !node) {
 	throw "!";
 }
 
@@ -44,7 +44,7 @@ window.chart.onload = function () {
  * public
  */
 function initialize(from, to, start, end) {
-	var entry = snmp.hrStorageEntry[window.resourceIndex];
+	var entry = node.hrStorageEntry[window.resourceIndex];
 
 	window.max = entry.hrStorageSize * entry.hrStorageAllocationUnits;
 	

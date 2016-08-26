@@ -167,14 +167,15 @@ document.getElementById("message").onclick = function () {
 };
 
 document.getElementById("signout").onclick = function () {
-	if (confirm("Are you sure you want to sign out right now?")) {
+	//if (confirm("Are you sure you want to sign out right now?")) {
+	if (confirm("로그아웃 하겠습니까?")) {
 		sendRequest({
-			command: "signout"
-		}, function () {
-			window.onbeforeunload = undefined;
-			
-			location.href = "connect.html";
-		});
+				command: "signout"
+			}, function () {
+				window.onbeforeunload = undefined;
+				
+				location.href = "connect.html";
+			});
 	}
 };
 
@@ -231,11 +232,10 @@ document.getElementById("signout").onclick = function () {
 					
 					window.databases = databases;
 					
-					databases.device.scale = 1;
+					databases.local.scale = 1;
 					
-					databases.icon.origin = ITAhM.iconData;
+					databases.local.icon = ITAhM.iconData;
 					// TODO ITAhM의 시작.
-					
 					document.title = sessionStorage.host +" @ ITAhM";
 					
 					document.getElementById("frame").src = "dashboard.html";
@@ -244,7 +244,7 @@ document.getElementById("signout").onclick = function () {
 					
 				case "event":
 					var eventData = event.value,
-						device = window.databases.device.data[eventData.ip];
+						snmpData = window.databases.snmp;
 					
 					window.logCount++;
 					
@@ -253,24 +253,16 @@ document.getElementById("signout").onclick = function () {
 					
 					document.body.classList.add("log");
 					
-					switch(eventData.type) {
-					case "shutdown":
-						device.shutdown = eventData.value;
-						
-						break;
-					case "critical":
-						device.critical = eventData.value;
-						
-						break;
-					case "test":
-						device.snmp = eventData.value;
-						device.shutdown = !eventData.value;
-						
-						break;
-					}
+					sendRequest({
+							command: "pull",
+							database: "snmp"
+						}
+						, function (data) {
+							window.databases.snmp = data;
+						});
 					
 					if (window.mapWindow) {
-						window.mapWindow.reDraw(device);
+						window.mapWindow.resetDevice(eventData.ip, true);
 					}
 					
 					break;
