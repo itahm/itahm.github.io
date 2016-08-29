@@ -12,13 +12,34 @@
 body {
 	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
 	padding: 0; margin: 0;
+	display: flex;
+}
+
+aside {
+	width: 400px;
+	display: flex;
+	flex-direction: column;
 }
 
 article {
-	margin: 0 auto;
+	flex: 1;
 	height: 100%;
 	display: flex;
 	flex-direction: column;
+}
+
+aside .head {
+	display: flex;
+}
+
+aside .agent {
+/*	flex: none;*/
+	width: 200px;
+}
+
+aside .main {
+	flex: 1;
+	overflow: auto;
 }
 
 article> :not(header) {
@@ -27,20 +48,11 @@ article> :not(header) {
 	overflow-y: auto;
 }
 
-header {
-	display: flex;
-}
-
 section {
 	margin: .5em;
 	flex: 1;
 	display: flex;
 	flex-direction: column;
-}
-
-section .agent {
-	flex: none;
-	width: 200px;
 }
 
 section .title {
@@ -168,19 +180,19 @@ ul {
 	text-align: center;
 }
 
-.counter {
+#counter {
 	margin: 1em;
 	position: relative;
 	width: 10em;
 	height: 10em;
 }
 
-.counter div {
+#counter div {
 	position: absolute; top: 0; left: 0;
 	width: 10em; height: 10em;
 }
 
-.counter div:nth-child(1) {
+#counter div:nth-child(1) {
 	border-radius: 50%;
 	border: 1em solid #00f;
 	box-sizing: border-box;
@@ -190,12 +202,12 @@ ul {
 	align-items: center;
 }
 
-.counter div:nth-child(3) {
+#counter div:nth-child(3) {
  	transform-origin: 5em 5em;
  	animation: count 10s infinite linear;
 }
 
-.counter span {
+#counter span {
 	margin: 0 auto;
 	display: block;
 	width: 1em; height: 1em;
@@ -203,7 +215,7 @@ ul {
 	background-color: #fff;
 }
 
-.counter hr {
+#counter hr {
 	margin: 0 auto;
 	width: 4px; height: 1em;
 	background-color: #fff;
@@ -228,8 +240,8 @@ ul {
 	</head>
 	
 	<body class="loading">
-		<article class="content_width">
-			<header>
+		<aside>
+			<div class="head">
 				<section class="agent">
 					<div class="title blue">에이전트</div>
 					<div class="list">
@@ -251,23 +263,8 @@ ul {
 								</ul>
 						</ul>
 					</div>
-				</section>			
-				
-				<section>
-					<div class="table">
-						<ul class="summary">
-							<li>구분
-							<li>임계 초과
-							<li>응답 없음
-							<li>정상
-							<li>합계
-						</ul>
-						<ul id="summary_list">
-						</ul>
-					</div>
 				</section>
-				
-				<div id="counter" class="counter">
+				<div id="counter">
 					<div>
 						Last update
 						<p id="update"></p>
@@ -279,8 +276,20 @@ ul {
 						<span></span>
 					</div>
 				</div>
-			</header>
-			
+			</div>
+			<div class="main">
+				<ul class="summary">
+					<li>구분
+					<li>임계 초과
+					<li>응답 없음
+					<li>정상
+					<li>합계
+				</ul>
+				<ul id="summary_list">
+				</ul>
+			</div>
+		</aside>
+		<article>
 			<div class="top">
 				<section>
 					<div class="title gray">응답 시간 Top</div>

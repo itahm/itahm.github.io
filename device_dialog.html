@@ -67,13 +67,12 @@ input[type="checkbox"] {
 	align-items: flex-end;
 }
 
-.address input {
+.address span {
 	flex: 1;
-	text-align: right;
 }
 
-.hide {
-	display: none;
+.address input {
+	text-align: right;
 }
 
 #profile:hover {
@@ -119,10 +118,10 @@ body:not(.removable) .remove {
 				<ul>
 					<li>ip 주소
 					<li class="address">
-						<input type="text" pattern="25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?" title="0 ~ 255" required id="ip1" autofocus>.
-						<input type="text" pattern="25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?" title="0 ~ 255" required id="ip2">.
-						<input type="text" pattern="25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?" title="0 ~ 255" required id="ip3">.
-						<input type="text" pattern="25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?" title="0 ~ 255" required id="ip4">
+						<span><input type="text" pattern="25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?" title="0 ~ 255" required id="ip1" autofocus></span>.
+						<span><input type="text" pattern="25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?" title="0 ~ 255" required id="ip2"></span>.
+						<span><input type="text" pattern="25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?" title="0 ~ 255" required id="ip3"></span>.
+						<span><input type="text" pattern="25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?" title="0 ~ 255" required id="ip4"></span>
 				</ul>
 				<ul>
 					<li>이름
