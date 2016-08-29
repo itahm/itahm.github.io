@@ -56,11 +56,6 @@ header {
 	</head>
 	
 	<body class="loading content_width">
-		
-		<header>
-			<button id="sync" class="r_button" style="display: none;">Sync</button>
-		</header>
-		
 		<ul id="list"></ul>
 		
 		<div class="bg_loading"></div>
@@ -83,22 +78,7 @@ if (top === window) {
 	var list = document.getElementById("list"),
 		icon = document.querySelector(".icon");
 	
-	document.getElementById("sync").onclick = onSync;
-	
 	initialize();
-	
-	function onSync() {
-		if (!confirm("Synchronize account database with agent now?")) {
-			return;
-		}
-		
-		top.sendRequest({
-			command: "push",
-			database: "account",
-			data: top.databases.account
-		}, function (data) {
-		});
-	}
 	
 	function onSelectAccount(username) {
 		top.showDialog("account_dialog.html",

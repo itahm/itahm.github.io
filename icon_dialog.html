@@ -68,6 +68,10 @@ input[type="checkbox"] {
 	vertical-align: middle;
 }
 
+body:not(.customized) .customizable {
+	display: none;
+}
+
 		</style>
 		
 	</head>
@@ -97,7 +101,7 @@ input[type="checkbox"] {
 					<li>disabled
 					<li><input type="text" name="disabled" placeholder="http://my.image.com/image.svg">
 				</ul>
-				<label><input type="checkbox" name="reset" disabled>reset</label>
+				<label class="customizable"><input type="checkbox" name="reset" disabled>reset</label>
 			</div>
 			<footer>
 				<input type="reset" class="r_button" value="Cancel">
@@ -125,33 +129,21 @@ else {
  function onApply(e) {
 	e.preventDefault();
 	
-	top.databases.icon[form.elements.type.value] = {
-		group: form.elements.group.value,
-		src: form.elements.url.value,
-		disabled: form.elements.disabled.value,
-	};
-	
-	sync();
+	put(form.elements.type.value, {
+			group: form.elements.group.value,
+			src: form.elements.url.value,
+			disabled: form.elements.disabled.value
+		});
 }
 
- function sync() {
-	top.sendRequest({
-		command: "push",
-		database: "icon",
-		data: top.databases.icon
-	}, function (data) {
-		top.closeDialog();
-	});
-	
-	document.body.classList.add("loading");
- }
- 
 function onReset(e) {
-	delete top.databases.icon[form.elements.type.value];
+	e.preventDefault();
 	
-	sync();
+	if (!confirm("아이콘 설정을 초기화 하겠습니까?")) {
+		return;
+	}
 	
-	top.closeDialog();
+	put(form.elements.type.value, null);
 }
  
 function onCancel(e) {
@@ -160,7 +152,14 @@ function onCancel(e) {
 
 window.initialize = function (type) {
 	if (type) {
-		window.icon = top.databases.icon[type] || top.databases.local.icon[type];
+		window.icon = top.databases.icon[type];
+		
+		if (window.icon) {
+			document.body.classList.add("customized");
+		}
+		else {
+			window.icon = top.databases.local.icon[type];
+		}
 		
 		document.getElementById("image").src = icon.src;
 		document.getElementById("disabled").src = icon.disabled;
@@ -179,6 +178,20 @@ window.initialize = function (type) {
 	form.elements.type.select();
 };
 
+function put(name, icon) {
+	document.body.classList.add("loading");
+	
+	top.sendRequest({
+		command: "put",
+		database: "icon",
+		key: name,
+		value: icon
+	}, function (data) {
+		top.databases.icon = data;
+		
+		top.closeDialog();
+	});
+}
 		</script>
 	
 	</body>
