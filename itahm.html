@@ -259,11 +259,11 @@ document.getElementById("signout").onclick = function () {
 						}
 						, function (data) {
 							window.databases.snmp = data;
+							
+							if (window.mapWindow) {
+								window.mapWindow.resetDevice(eventData.ip, true);
+							}
 						});
-					
-					if (window.mapWindow) {
-						window.mapWindow.resetDevice(eventData.ip, true);
-					}
 					
 					break;
 					

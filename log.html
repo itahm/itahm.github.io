@@ -97,7 +97,6 @@ if (top === window) {
 }
 
 var list = document.getElementById("list"),
-	count = document.getElementById("count"),
 	item = document.querySelector(".item");
 
 function initialize(mills) {
@@ -106,25 +105,22 @@ function initialize(mills) {
 		date: mills
 	}, function (data) {
 		var df = document.createDocumentFragment(),
-			item, log, count = 0;
+			indexArray = Object.keys(data);
+			count = indexArray.length;
 		
-		for (var index in data) {
-			log = data[index];
-			
-			df.appendChild(createItem(log));
-			
-			count++;
+		indexArray = indexArray.sort(function (a, b) {
+			return parseInt(a) - parseInt(b);
+		});
+		
+		for (var i=0; i<count; i++) {
+			df.appendChild(createItem(data[indexArray[i]]));
 		}
 		
-		if (df.firstChild) {
-			window.list.appendChild(df);
-		}
+		window.list.appendChild(df);
 		
-		window.count.textContent = count;
+		document.getElementById("count").textContent = count;
 		
-		setTimeout(function () {
-			document.body.classList.remove("loading");
-		}, 200);
+		document.body.classList.remove("loading");
 	});
 }
 

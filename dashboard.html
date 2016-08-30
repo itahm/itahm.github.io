@@ -472,7 +472,7 @@ function update() {
 		setTop(response.storageRate, window.storageRate, toPercentageString);
 		setTop(response.throughput, window.throughput, ITAhM.util.toBPSString);
 		setTop(response.throughputRate, window.throughputRate, toPercentageString);
-		setTop(response.throughputErr, window.throughputErr, toString);
+		setTop(response.throughputErr, window.throughputErr, toErrorString);
 	});
 	
 	top.sendRequest({
@@ -484,8 +484,8 @@ function update() {
 	});
 }
 
-function toString(value) {
-	return value;
+function toErrorString(value) {
+	return (value /10).toFixed(0);
 }
 
 function toMillsString(value) {

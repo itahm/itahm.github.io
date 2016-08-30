@@ -264,7 +264,7 @@ li.i_face:hover {
 						<li>대역폭
 						<li>사용량(송신/수신)
 						<li>사용률(송신/수신)
-						<li>에러(송신/수신)
+						<li>초당에러량(송신/수신)
 					</ul>
 			</ul>
 		</section>
@@ -399,7 +399,7 @@ li.i_face:hover {
 		return clone;
 	}
 	
-	function createIFaceGuage(index, name, alias, bandwidth, inBPS, outBPS, inErr, outErr) {
+	function createIFaceGuage(index, name, descr, alias, bandwidth, inBPS, outBPS, inErr, outErr) {
 		var clone = iFaceGauge.cloneNode(true),
 			ul = clone.children[0];
 		
@@ -414,14 +414,16 @@ li.i_face:hover {
 		ul.children[6].children[0].textContent
 		= ul.children[6].children[1].style.width
 		= (100* outBPS / bandwidth).toFixed(2) +"%";
-		ul.children[7].children[0].textContent = inErr;
-		ul.children[7].children[1].textContent = outErr;
+		ul.children[7].children[0].textContent = Math.round(inErr /10);
+		ul.children[7].children[1].textContent = Math.round(outErr /10);
 		
 		ul.children[7].onclick = function (index, e) {
 			onSelectResource("error", index);
 			
 			e.stopPropagation();
 		}.bind(undefined, index);
+		
+		ul.title = descr;
 		
 		clone.onclick = onSelectResource.bind(undefined, "throughput", index);
 		
@@ -510,7 +512,7 @@ li.i_face:hover {
 				outBPS = iFace.ifOutBPS || 0;
 			
 			interfaceArea
-				.appendChild(createIFaceGuage(index, iFace.ifName, iFace.ifDescr || iFace.ifAlias, bandwidth, inBPS, outBPS, iFace.ifInErrors, iFace.ifOutErrors));
+				.appendChild(createIFaceGuage(index, iFace.ifName, iFace.ifDescr, iFace.ifAlias, bandwidth, inBPS, outBPS, iFace.ifInErrors, iFace.ifOutErrors));
 				
 		}
 	}
