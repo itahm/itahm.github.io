@@ -78,6 +78,10 @@ footer input {
 	display: none;
 }
 
+body:not(.removable) .remove {
+	display: none;
+}
+
 		</style>
 		
 	</head>
@@ -111,7 +115,9 @@ footer input {
 							<input name="limit" type="number" min="1" max="100" required>
 					</ul>
 				</div>
-				<label><input type="checkbox" name="remove" disabled>remove</label>
+				<label class="remove">
+					<input type="checkbox" name="remove" disabled>remove
+				</label>
 				<footer>
 					<input type="reset" class="r_button" value="cancel">
 					<input type="submit" class="r_button" value="apply" disabled>
@@ -299,6 +305,8 @@ function initialize(ip, resource, index, limit) {
 		window.selectedIndex = index;
 		
 		selectDevice(ip);
+		
+		document.body.classList.add("removable");
 	}
 	else {
 		for (var ip in top.databases.snmp) {
@@ -306,7 +314,7 @@ function initialize(ip, resource, index, limit) {
 		}
 		
 		form.elements.ip.disabled = false;
-		form.elements.ip.value = undefined;
+		form.elements.ip.selectedIndex = -1;
 	}
 }
 

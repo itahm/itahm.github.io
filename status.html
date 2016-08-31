@@ -10,7 +10,13 @@
 body {
 	display: flex;
 	flex-direction: column;
+	margin: 0;
 	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
+}
+
+header {
+	background-color: #eee;
+	padding: 0 10px;
 }
 
 iframe {
@@ -32,7 +38,9 @@ body.shutdown #shutdown {
 	</head>
 
 	<body class="loading">
-		<h1><span id="host"></span><span id="shutdown"> (No response.)</span></h1>
+		<header>
+			<h1><span id="host"></span><span id="shutdown"> (No response.)</span></h1>
+		</header>
 		<iframe src="status_base.html" id="status"></iframe>
 		
 		<div class="bg_loading"></div>

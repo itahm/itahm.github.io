@@ -7,36 +7,47 @@
 		<style>
 @import "css/itahm.css";
 
-.resource {
+.summary {
 	display: flex;
 	flex-wrap: wrap;
 }
 
-section {
+.resource {
+	display: flex;
+	flex-direction: column;
 	padding: 10px;
 	border: 1px solid #0084ff;
 	border-radius: 5px;
+	margin: 10px;
+	flex: none;
 }
 
-body> section {
-	margin-top: 10px;
-}
-
-.merge {
-	display: flex;
-	margin-top: 10px;
-}
-
-.merge section:last-child {
-	/*margin-left: 10px;*/
+.summary >.resource:first-child {
 	flex: 1;
 }
 
-.processor {
+
+#response_time {
+	font-size: 2em;
+}
+
+/* title */
+.resource >h2 {
+}
+
+/* body */
+.resource >div {
+	flex: 1;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.processor_item {
 	margin: 10px;
 }
 
-.memory .bar {
+.memory_item .bar {
 	display: flex;
 	width: 80px;
 	height: 100px;
@@ -48,7 +59,7 @@ body> section {
 	overflow: hidden;
 }
 
-.memory .color {
+.memory_item .color {
 	position: absolute;
 	bottom: 0;
 	left: 0;
@@ -57,17 +68,17 @@ body> section {
 	z-index: -1;
 }
 
-.memory {
+.memory_item {
 	display: flex;
 }
 
-.memory,
-.memory ul {
+.memory_item,
+.memory_item ul {
 	list-style: none;
 	margin: 0; padding: 0;
 }
 
-.memory ul li {
+.memory_item ul li {
 	margin: .5em;
 }
 
@@ -115,22 +126,22 @@ body> section {
 }
 /**/
 
-/* interface 영역 css */
-#iFace {
+#storage,
+#i_face {
 	width: 100%;
 }
 
-#iFace,
-#iFace ul {
+#i_face,
+#i_face ul {
 	list-style: none;
 	padding: 0;
 }
 
-#iFace ul {
+#i_face ul {
 	display: flex;
 }
 
-#iFace ul> li {
+#i_face ul> li {
 	text-align: center;
 	padding: .5em; margin: 3px;
 	flex: 1;
@@ -139,49 +150,49 @@ body> section {
 	white-space: nowrap;
 }
 
-#iFace .i_face li:last-child {
+#i_face .i_face_item li:last-child {
 	display: flex;
 }
 
-#iFace .i_face li:last-child:hover {
+#i_face .i_face_item li:last-child:hover {
 	background-color: rgba(0, 132, 255, .2);
 }
 
-#iFace .i_face li:last-child div{
+#i_face .i_face_item li:last-child div{
 	flex: 1;
 }
 
-#iFace .title {
+#i_face .title {
 	border-bottom: 1px solid #ddd;
 	margin-bottom: 3px;
 }
 
-#iFace .title li:nth-child(4),
-#iFace .title li:nth-child(5) {
+#i_face .title li:nth-child(4),
+#i_face .title li:nth-child(5) {
 	flex: 2;
 }
 
-#iFace .title li {
+#i_face .title li {
 	font-weight: bold;
 }
 
-#iFace .bar {
+#i_face .bar {
 	position: relative;
 	border: 1px solid #999;
 	box-sizing: border-box;
 }
 
-#iFace .color {
+#i_face .color {
 	position: absolute; top: 0; left: 0;
 	height: 100%;
 	z-index: -1;
 }
 
-#iFace .color.input {
+#i_face .color.input {
 	background-color: #7d7;
 }
 
-#iFace .color.output {
+#i_face .color.output {
 	background-color: #f60;
 }
 
@@ -202,8 +213,8 @@ body> section {
 #processor:hover,
 #memory:hover,
 #responseTime:hover,
-li.storage:hover,
-li.i_face:hover {
+li.storage_item:hover,
+li.i_face_item:hover {
 	outline: solid 3px #0084ff;
 	cursor: pointer;
 }
@@ -211,6 +222,13 @@ li.i_face:hover {
 #memory {
 	display: inline-block;
 	padding: 10px;
+}
+
+body:not(.processor) .resource.processor,
+body:not(.storage) .resource.storage,
+body:not(.memory) .resource.memory,
+body:not(.throughput) .resource.throughput {
+	display: none;
 }
 
 		</style>
@@ -222,57 +240,67 @@ li.i_face:hover {
 			<h3 id="status"></h3>
 		</header>
 		
-		<div class="merge">
-			<section>
+		<div class="summary">
+			<section class="resource">
 				<h2>응답 속도</h2>
-				<div class="resource" id="responseTime">
-					<h3>
-						<img src="img/synchronize.png" width="16" height="16">
+				<div id="responseTime">
+					<h2>
+						<img src="img/synchronize.png" width="24" height="24">
 						<span id="response_time"></span>
-					</h3>
+					</h2>
 				</div>
 			</section>
-			<section>
+			
+			<section class="resource processor">
 				<h2>프로세서 로드</h2>
-				<div class="resource" id="processor"></div>
+				<div>
+					<div id="processor"></div>
+				</div>
 			</section>
-			<section>
+			
+			<section class="resource memory">
 				<h2>물리적 메모리</h2>
-				<div class="resource" id="memory"></div>
+				<div>
+					<div id="memory"></div>
+				</div>
 			</section>
 		</div>
 		
-		<section>
+		<section class="resource storage">
 			<h2>스토리지 사용</h2>
-			<ul id="storage">
-				<li class="title">
-					<ul>
-						<li>이름
-						<li>크기
-						<li class="usage">사용
-					</ul>
-			</ul>
+			<div>
+				<ul id="storage">
+					<li class="title">
+						<ul>
+							<li>이름
+							<li>크기
+							<li class="usage">사용
+						</ul>
+				</ul>
+			</div>
 		</section>
 	
-		<section>
+		<section class="resource throughput">
 			<h2>통신</h2>
-			<ul id="iFace">
-				<li class="title">
-					<ul>
-						<li>이름
-						<li>설명
-						<li>대역폭
-						<li>사용량(송신/수신)
-						<li>사용률(송신/수신)
-						<li>초당에러량(송신/수신)
-					</ul>
-			</ul>
+			<div>
+				<ul id="i_face">
+					<li class="title">
+						<ul>
+							<li>이름
+							<li>설명
+							<li>대역폭
+							<li>사용량(송신/수신)
+							<li>사용률(송신/수신)
+							<li>초당에러량(송신/수신)
+						</ul>
+				</ul>
+			</div>
 		</section>
 		
 		<div class="layout">
-			<canvas width="100" height="100" class="processor"></canvas>
+			<canvas width="100" height="100" class="processor_item"></canvas>
 			
-			<ul class="memory">
+			<ul class="memory_item">
 				<li class="bar">
 					<span class="label"></span>
 					<div class="color"></div>
@@ -286,7 +314,7 @@ li.i_face:hover {
 			</ul>
 			
 			<ul>
-				<li class="storage">
+				<li class="storage_item">
 					<ul>
 						<li>
 						<li>
@@ -298,7 +326,7 @@ li.i_face:hover {
 			</ul>
 			
 			<ul>
-				<li class="i_face">
+				<li class="i_face_item">
 					<ul>
 						<li>
 						<li>
@@ -327,12 +355,12 @@ li.i_face:hover {
 	var processorArea = document.getElementById("processor"),
 		storageArea = document.getElementById("storage"),
 		memoryArea = document.getElementById("memory"),
-		interfaceArea = document.getElementById("iFace"),
+		interfaceArea = document.getElementById("i_face"),
 		gauge = document.querySelector(".gauge"),
-		processorGauge = document.querySelector(".processor"),
-		memoryGauge = document.querySelector(".memory"),
-		storageGauge = document.querySelector(".storage"),
-		iFaceGauge = document.querySelector(".i_face");
+		processorGauge = document.querySelector(".processor_item"),
+		memoryGauge = document.querySelector(".memory_item"),
+		storageGauge = document.querySelector(".storage_item"),
+		iFaceGauge = document.querySelector(".i_face_item");
 	
 	document.getElementById("responseTime").onclick = function () {
 		onSelectResource("responseTime");
@@ -398,7 +426,7 @@ li.i_face:hover {
 		
 		return clone;
 	}
-	
+		
 	function createIFaceGuage(index, name, descr, alias, bandwidth, inBPS, outBPS, inErr, outErr) {
 		var clone = iFaceGauge.cloneNode(true),
 			ul = clone.children[0];
@@ -452,7 +480,7 @@ li.i_face:hover {
 			initIFace(entry[index], index)
 		}
 		
-		if (device.shutdown) {
+		if (top.databases.snmp[device.ip].shutdown) {
 			var status = document.getElementById("status");
 			
 			status.textContent
@@ -467,15 +495,15 @@ li.i_face:hover {
 	
 	function initProcessor(load) {
 		processorArea.appendChild(createProcGauge(load));
+		
+		document.body.classList.add("processor");
 	}
 	
 	function parseStorage(storage, index) {
 		switch(storage.hrStorageType) {
 		case 4:
 			if (storage.hrStorageSize > 0) {
-				initStorage(storage).onclick = function () {
-					onSelectResource("storage", index);
-				};
+				initStorage(storage, index);
 			}
 			
 			break;
@@ -491,10 +519,15 @@ li.i_face:hover {
 		return false;
 	}
 	
-	function initStorage(storage) {
-		return storageArea.appendChild(
+	function initStorage(storage, index) {
+		storageArea.appendChild(
 			createStorageGuage(storage.hrStorageUsed * storage.hrStorageAllocationUnits
-				, storage.hrStorageSize * storage.hrStorageAllocationUnits, storage.hrStorageDescr));
+				, storage.hrStorageSize * storage.hrStorageAllocationUnits, storage.hrStorageDescr)
+			).onclick = function () {
+				onSelectResource("storage", index);
+			};
+		
+		document.body.classList.add("storage");
 	}
 	
 	function initMemory(memory) {
@@ -502,6 +535,8 @@ li.i_face:hover {
 			size = memory.hrStorageSize * memory.hrStorageAllocationUnits;
 		
 		memoryArea.appendChild(createMemoryGuage(used, size));
+		
+		document.body.classList.add("memory");
 	}
 	
 	function initIFace(iFace, index) {
@@ -515,6 +550,8 @@ li.i_face:hover {
 				.appendChild(createIFaceGuage(index, iFace.ifName, iFace.ifDescr, iFace.ifAlias, bandwidth, inBPS, outBPS, iFace.ifInErrors, iFace.ifOutErrors));
 				
 		}
+		
+		document.body.classList.add("throughput");
 	}
 	
 	// abstract

@@ -335,7 +335,7 @@ var form = document.querySelector("form");
 			form.elements.label.value = device.label && (device.label.split(",")).join(", ") || "";
 		}
 		else {
-			form.elements.type.value="unknown";
+			form.elements.type.selectedIndex = -1;
 		}
 	};
 	
