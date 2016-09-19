@@ -207,7 +207,8 @@ document.getElementById("add").onclick = function () {
 };
 
 window.map.onload = function () {
-	var mapWindow = window.map.contentWindow;
+	var mapWindow = window.map.contentWindow,
+		scale;
 	
 	window.mapWindow = mapWindow;
 	top.mapWindow = mapWindow;
@@ -253,7 +254,7 @@ window.map.onload = function () {
 	mapWindow.onShowChart = function (ip){
 		window.top.databases.local.selected = ip;
 		
-		location.href = "status.html";
+		window.location.href = "status.html";
 	}
 	
 	mapWindow.zoom(scale = window.top.databases.local.scale);

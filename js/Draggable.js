@@ -26,12 +26,12 @@ function Draggable(target) {
 			return;
 		}
 			
-		if (!isDragging) {
+		if (!isDragging) {console.log(isDragging);
 			data = {
 				target: draggable
 			};
 			
-			target.dispatchEvent(createEvent("dragstart", data));
+			target.dispatchEvent(createEvent("dragon", data));
 			
 			isDragging = true;
 		}
@@ -48,7 +48,7 @@ function Draggable(target) {
 		lastX = x;
 		lastY = y;
 		
-		target.dispatchEvent(createEvent("dragmove", data));
+		target.dispatchEvent(createEvent("drag", data));
 	}
 	
 	function onMouseUp(e) {
@@ -69,7 +69,7 @@ function Draggable(target) {
 			return;
 		}
 		
-		target.dispatchEvent(createEvent("dragend", data));
+		target.dispatchEvent(createEvent("dragoff", data));
 		
 		isDragging = false;
 	}

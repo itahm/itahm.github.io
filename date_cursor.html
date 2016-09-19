@@ -100,11 +100,17 @@ var svg = document.querySelector("svg"),
 	cursorBottom = document.getElementById("bottom_cursor"),
 	bottomText = document.getElementById("bottom_text");
 	
-document.onselectstart = function () {
+document.onselectstart = function (e) {
 	return false;
-}
+};
 
-new Draggable(document.body);
+new Draggable(svg);
+
+document.body.ondragstart = function (e) {
+	e.stopPropagation();
+	
+	return false;
+};
 
 (function (window, undefined) {
 	window.addEventListener("resize", function () {
@@ -144,7 +150,7 @@ new Draggable(document.body);
 		}
 	}
 	
-	document.body.addEventListener("dragstart", function (e) {
+	svg.addEventListener("dragon", function (e) {
 		var event = e.detail;
 		
 		window.target = event.target;
@@ -157,16 +163,16 @@ new Draggable(document.body);
 		}
 	});
 	
-	document.body.addEventListener("dragmove", function (e) {
+	svg.addEventListener("drag", function (e) {
 		if (moveCursor(Math.round(e.detail.dragX / window.blockWidth))) {
-			moveCursorArea();
+			//moveCursorArea();
 			
 			window.onResetDate(window.dateList[Math.min(window.topPosLast, window.bottomPosLast)]
 				, window.dateList[Math.max(window.topPosLast, window.bottomPosLast)]);
 		}
 	});
 	
-	document.body.addEventListener("dragend", function (e) {
+	svg.addEventListener("dragoff", function (e) {
 		document.body.classList.remove("move");
 	});
 	
@@ -187,7 +193,7 @@ function getPosition(mills) {
 }
 
 function moveCursor(dragPos) {
-	if (window.target === window.cursorTop) {		
+	if (window.target === window.cursorTop) {
 		return moveCursorTop(clipPos(dragPos, window.topPos + dragPos));
 	}
 	else if (window.target === window.cursorBottom) {
@@ -218,6 +224,9 @@ function moveCursor(dragPos) {
 				}
 			}
 		}
+	}
+	else {
+		// throw
 	}
 	
 	return false;
@@ -271,15 +280,15 @@ function moveCursorBottom(pos) {
 	
 	return true;
 }
-
-function moveCursorArea() {return; 
+/*
+function moveCursorArea() {
 	var x1 = parseInt(window.cursorTop.getAttributeNS(null, "x")),
 		x2 = parseInt(window.cursorBottom.getAttributeNS(null, "x"));
 	
 	window.cursorArea.setAttributeNS(null, "x", Math.min(x1, x2));
 	window.cursorArea.setAttributeNS(null, "width", Math.abs(x1 - x2));
 }
-
+*/
 function getDateText(mills) {
 	var date = new Date(mills);
 	
@@ -315,7 +324,7 @@ function initialize(start, end, top, bottom) {
 	
 	moveCursorTop(window.dayCount);
 	moveCursorBottom(window.dayCount -1);
-	moveCursorArea();
+	//moveCursorArea();
 	
 	document.body.classList.add("initialized");
 }

@@ -74,12 +74,6 @@ use.shutdown {
 	animation: alert 2s infinite;
 }
 
-use.critical {
-	stroke-width: 5;
-	stroke: rgba(255, 255, 0, .5);
-	fill: none;
-}
-
 @keyframes alert {
     from {
     	opacity: 0;
@@ -87,11 +81,6 @@ use.critical {
     to {
     	opacity: 1;
     }
-}
-
-body.loading g,
-body:not(.snmp) #chart_anchor {
-	display: none;
 }
 
 /* dialog */
@@ -113,8 +102,6 @@ body:not(.chart) #chart {
 	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
 }
 
-body.name tspan:last-child,
-body:not(.name) tspan:first-child,
 body:not(.ifname) #line text {
 	display: none;
 }
@@ -123,7 +110,7 @@ body:not(.ifname) #line text {
 		
 	</head>
 	
-	<body class="loading name ifname">
+	<body class="loading">
 
 		<svg id="map">
 			<defs>
@@ -137,13 +124,9 @@ body:not(.ifname) #line text {
 				</g>
 				<g id="tool">
 					<g id="anchor" transform="translate(0, 0)">
-						<image xlink:href="img/svg/chart.svg" id="chart_anchor"
-							transform="translate(-34, -0) translate(-8, -8)" width="16" height="16" cursor="pointer">
-							<title>이 장비의 차트를 봅니다.</title>
-						</image>
-						<image xlink:href="img/svg/information.svg" id="edit_anchor"
+						<image xlink:href="img/svg/remove.svg" id="remove_anchor"
 							transform="translate(34, 0) translate(-8, -8)" width="16" height="16" cursor="pointer">
-							<title>이 장비의 정보를 수정합니다.</title>
+							<title>이 장비를 삭제합니다.</title>
 						</image>
 						<image xlink:href="img/svg/anchor.svg" id="link_anchor"
 							transform="translate(0, -34) translate(-8, -8)" width="16" height="16" cursor="pointer">
@@ -163,18 +146,21 @@ var svgNS = "http://www.w3.org/2000/svg",
 	xlinkNS = "http://www.w3.org/1999/xlink";
 
 var mapCanvas = document.getElementById("map"),
+	mapTransform = document.getElementById("transform").transform.baseVal,
 	deviceCanvas = document.getElementById("device"),
 	toolCanvas = document.getElementById("tool"),
+	linkCanvas = document.getElementById("link"),
 	lineCanvas = document.getElementById("line"),
-	deviceData = top.databases.device,
-	posData = top.databases.position,
-	snmpData = top.databases.snmp,
 	selectionMark = document.getElementById("selection_mark"),
+	anchor = document.getElementById("anchor"),
+	ancorTransform = anchor.transform.baseVal,
 	linkAnchor = document.getElementById("link_anchor"),
-	transform = document.getElementById("transform").transform.baseVal,
+	linkAnchorTransform = linkAnchor.transform.baseVal,
+	linkSVG = document.createElementNS(svgNS, "line"),
+	documentFragment = document.createDocumentFragment(),
 	linkData = {},
-	iconData = {},
-	labelMap = {},
+	deviceData = {},
+	labelData = {},
 	alertData = {},
 	scale = 1,
 	cancelSelect = false,
@@ -189,26 +175,32 @@ mapCanvas.addEventListener("dragoff", onDragEnd);
 
 document.onselectstart = function () {
 	return false;
-}
+};
+
+document.getElementById("remove_anchor").onclick = function (e) {
+	e.stopPropagation();
 	
+	removeDevice(window.selected.ip);
+};
+
 function zoom(ratio) {
 	window.scale = ratio;
 	
-	transform.getItem(1).setScale(ratio, ratio);
+	mapTransform.getItem(1).setScale(ratio, ratio);
 }
 	
 function resize() {
 	rect = mapCanvas.getBoundingClientRect();
 	
-	transform.getItem(0).setTranslate(rect.width /2, rect.height /2);
+	mapTransform.getItem(0).setTranslate(rect.width /2, rect.height /2);
 }
 	
 function moveMap(x, y) {
-	transform.getItem(2).setTranslate(x, y);
+	mapTransform.getItem(2).setTranslate(x, y);
 }
 	
 function restoreMap() {
-	var matrix = transform.getItem(2).matrix;
+	var matrix = mapTransform.getItem(2).matrix;
 
 	moveAllDevice(matrix.e, matrix.f);
 
@@ -217,20 +209,16 @@ function restoreMap() {
 	
 function onDragStart(e) {
 	var data = e.detail,
-		target = data.target;
+		target = data.target,
+		device;
 	
 	if (window.selected) {
-		//var selectedSvgDevice = window.iconData[window.selected];
-		var pos = window.posData[window.selected];
-		
 		window.dragOrigin = {
-			x: pos.x,
-			y: pos.y
+			x: window.selected.x,
+			y: window.selected.y
 		};
 		
-		/*if (target === selectedSvgDevice) {
-		}
-		else*/ if (target === linkAnchor) {
+		if (target === linkAnchor) {
 			setLinkAnchor(window.dragOrigin.x, window.dragOrigin.y, window.dragOrigin.x, window.dragOrigin.y -34);
 		}
 	}
@@ -241,7 +229,7 @@ function onDragStart(e) {
 function onDragMove(e) {
 	var data = e.detail,
 		target = data.target,
-		selectedSvgDevice = window.iconData[window.selected];
+		selectedSvgDevice = window.deviceData[window.selected.ip];
 	
 	if (target === selectedSvgDevice) {
 		var x = window.dragOrigin.x + Math.round(data.dragX / window.scale /10) *10,
@@ -277,7 +265,7 @@ function onDragEnd(e) {
 		destination = data.destination,
 		eventData = {},
 		event = ITAhM.util.createCustomEvent("link", eventData),
-		selectedSvgDevice = window.iconData[window.selected];
+		selectedSvgDevice = window.deviceData[window.selected.ip];
 	
 	if (target === selectedSvgDevice) {
 	}
@@ -298,18 +286,16 @@ function onDragEnd(e) {
 }
 	
 function moveAllDevice(x, y) {
-	var pos;
+	var device;
 	
 	if (window.selected) {
-		pos = window.posData[window.selected];
-		
-		moveSelectionMark(pos.x + x, pos.y + y);
+		moveSelectionMark(window.selected.x + x, window.selected.y + y);
 	}
 	
-	for (var ip in window.deviceData) {
-		pos = window.posData[ip];
+	for (var ip in getDevice()) {
+		device = getDevice(ip);
 		
-		moveDevice(ip, pos.x + x, pos.y + y);
+		moveDevice(device, device.x + x, device.y + y);
 	}
 }
 	
@@ -329,62 +315,55 @@ function selectDevice(ip) {
 		window.cancelSelect = false;
 	}
 	else {
-		var pos = window.posData[ip];
+		var device = getDevice(ip);
 		
-		window.selected = ip;
+		window.selected = device;
 		
-		showSelectionMark(pos.x, pos.y, window.snmpData[ip]);
+		showSelectionMark(device.x, device.y);
 		
-		topDevice(window.iconData[ip]);
+		topDevice(window.deviceData[ip]);
 	}
 }
 
 function moveLine(x, y, data, direct) {
-	var svgDevice, pos,
+	var device, svgDevice,
 		x1, y1, x2, y2;
 
 	svgDevice = data.svg;
 	
 	if (direct) {
-		pos = window.posData[data.peer2];
+		device = getDevice[data.peer2];
 		
 		svgDevice.setAttributeNS(null, "x1", x);
 		svgDevice.setAttributeNS(null, "y1", y);
 		
 		x1 = x;
 		y1 = y;
-		x2 = pos.x;
-		y2 = pos.y;
+		x2 = device.x;
+		y2 = device.y;
 	}
 	else {
-		pos = window.posData[data.peer1];
+		device = getDevice(data.peer1);
 		
 		svgDevice.setAttributeNS(null, "x2", x);
 		svgDevice.setAttributeNS(null, "y2", y);
 		
-		x1 = pos.x;
-		y1 = pos.y;
+		x1 = device.x;
+		y1 = device.y;
 		x2 = x;
 		y2 = y;
 	}
-	
-	data.name1.setAttributeNS(null, "x", (x1 *2 + x2) /3);
-	data.name1.setAttributeNS(null, "y", (y1 *2 + y2) /3);
-	
-	data.name2.setAttributeNS(null, "x", (x2 *2 + x1) /3);
-	data.name2.setAttributeNS(null, "y", (y2 *2 + y1) /3);
 }
 
 function addDevice(ip) {
-	var device = window.deviceData[ip],
-		pos = window.posData[ip],
+	var device = getDevice(ip),
 		svgDevice = document.createElementNS(svgNS, "image"),
 		svgLabel = document.createElementNS(svgNS, "text"),
 		svgAddr = document.createElementNS(svgNS, "tspan"),
-		svgName = document.createElementNS(svgNS, "tspan");
+		svgDelay = document.createElementNS(svgNS, "tspan");
 
-	svgDevice.setAttributeNS(null, "x", pos.x);
-	svgDevice.setAttributeNS(null, "y", pos.y);
+	svgDevice.setAttributeNS(null, "x", device.x);
+	svgDevice.setAttributeNS(null, "y", device.y);
 	svgDevice.setAttributeNS(null, "width", "40px");
 	svgDevice.setAttributeNS(null, "height", "40px");
 	svgDevice.setAttributeNS(null, "transform", "translate(-20, -20)");
@@ -394,62 +373,47 @@ function addDevice(ip) {
 	
 	window.deviceCanvas.appendChild(svgDevice);
 	
-	svgName.textContent = device.name;
 	svgAddr.textContent = device.ip;
 	
-	svgLabel.appendChild(svgName);
 	svgLabel.appendChild(svgAddr);
+	svgLabel.appendChild(svgDelay);
 	
-	svgLabel.setAttributeNS(null, "x", pos.x);
-	svgLabel.setAttributeNS(null, "y", pos.y);
+	svgLabel.setAttributeNS(null, "x", device.x);
+	svgLabel.setAttributeNS(null, "y", device.y);
 	// text baseline이 글자의 밑을 기준으로 하므로 글자 크기만큼 내려준다.
 	// 아이콘 크기 + 글자 크기 = 20 + 16 = 36
 	svgLabel.setAttributeNS(null, "transform", "translate(0, 36)");
 	
 	window.deviceCanvas.appendChild(svgLabel);
 	
-	window.iconData[ip] = svgDevice;
-	window.labelMap[ip] = svgLabel;
+	window.deviceData[ip] = svgDevice;
+	window.labelData[ip] = svgLabel;
 	
 	resetDevice(ip);
 }
 
-function resetDevice(ip, reset) {
-	var device = window.deviceData[ip],
-		svgDevice = window.iconData[ip],
-		svgAlert = window.alertData[ip],
-		pos = window.posData[ip],
-		icon = getIcon(device.type),
-		snmp;
+function resetDevice(ip) {
+	var device = getDevice(ip),
+		svgDevice = window.deviceData[ip],
+		svgDelay = window.labelData[ip].lastChild,
+		svgAlert = window.alertData[ip];
 	
-	if (reset) {
-		window.snmpData = top.databases.snmp;
-	}
+	svgDevice.setAttributeNS(xlinkNS, "xlink:href", "/img/svg/unknown.svg");
 	
-	snmp = window.snmpData[ip];
-	
-	if (!snmp) {
-		svgDevice.setAttributeNS(xlinkNS, "xlink:href", icon.disabled);
-		
-		return;
-	}
-	
-	svgDevice.setAttributeNS(xlinkNS, "xlink:href", icon.src);
-	
-	if (snmp.shutdown || snmp.critical) {
+	if (device.delay < 0) {
 		if (!svgAlert) {
 			svgAlert = document.createElementNS(svgNS, "use");
 			
 			svgAlert.setAttributeNS(xlinkNS, "xlink:href", "#circle");
-			svgAlert.setAttributeNS(null, "x", pos.x);
-			svgAlert.setAttributeNS(null, "y", pos.y);
+			svgAlert.setAttributeNS(null, "x", device.x);
+			svgAlert.setAttributeNS(null, "y", device.y);
 			
 			window.deviceCanvas.appendChild(svgAlert);
 			
 			window.alertData[ip] = svgAlert;
 		}
 		
-		svgAlert.setAttributeNS(null, "class", snmp.shutdown? "shutdown": "critical");
+		svgDelay.textContent = "";
 	}
 	else {
 		if (svgAlert) {
@@ -457,6 +421,8 @@ function resetDevice(ip, reset) {
 			
 			window.deviceCanvas.removeChild(svgAlert);
 		}
+		
+		svgDelay.textContent = getDelay(ip) && getDelay(ip).delay || "";
 	}
 }
 
@@ -464,18 +430,16 @@ function isDevice(node) {
 	return node.parentNode === window.deviceCanvas && node.tagName === "image";
 }
 
-function moveDevice(ip, x, y) {
-	var device = window.deviceData[ip],
-		pos = window.posData[ip],
-		link = window.linkData[ip],
+function moveDevice(device, x, y) {
+	var link = window.linkData[device.ip],
 		data;
 			
-	pos.x = x;
-	pos.y = y;		
+	device.x = x;
+	device.y = y;		
 
-	var svgDevice = window.iconData[ip],
-		svgLabel = window.labelMap[ip],
-		svgAlert = window.alertData[ip];
+	var svgDevice = window.deviceData[device.ip],
+		svgLabel = window.labelData[device.ip],
+		svgAlert = window.alertData[device.ip];
 	
 	svgDevice.setAttributeNS(null, "x", x);
 	svgDevice.setAttributeNS(null, "y", y);
@@ -512,125 +476,79 @@ function moveSelectionMark(x, y) {
 	moveAnchor(x, y);
 }
 
-function showSelectionMark(x, y, snmp) {
+function showSelectionMark(x, y) {
 	window.deviceCanvas.appendChild(window.selectionMark);
 	
-	showTool(x, y, snmp);
+	showTool(x, y);
 	
 	moveSelectionMark(x, y);
 }
 
 function clearSelectionMark() {
-	document.createDocumentFragment().appendChild(window.selectionMark);
+	documentFragment.appendChild(window.selectionMark);
 	
 	hideAnchor();
 }
 
-// svg tool group
-(function (window, undefined) {
-	
-	var 
-		link = document.getElementById("link"),
-		anchor = document.getElementById("anchor"),
-//		svgLink = document.getElementById("link_line"),
-		chartAnchor = document.getElementById("chart_anchor"),
-		editAnchor = document.getElementById("edit_anchor"),
-		linkDrag = linkAnchor.transform.baseVal.getItem(0),
-		linkSVG = document.createElementNS(svgNS, "line"),
-		fragment = document.createDocumentFragment();
-		
-	chartAnchor.onclick = function (e) {
-		onShowChart(window.selected);
-		
-		e.stopPropagation();
-	};
-	
-	editAnchor.onclick = function (e) {
-		onEditDevice(window.selected);
-		
-		e.stopPropagation();
-	};
-	
-	window.moveAnchor = function (x, y) {
-		this.setTranslate(x, y);
-	}.bind(anchor.transform.baseVal.getItem(0));
-	
-	window.showTool = function (x, y, chart) {
-		document.body.classList[chart? "add": "remove"]("snmp");
-		
-		toolCanvas.appendChild(anchor);
-		
-		moveAnchor(x, y);
-	};
-	
-	window.hideAnchor = function () {
-		fragment.appendChild(anchor);
-	};
-	
-	window.setLinkAnchor = function (x1, y1, x2, y2) {
-		link.appendChild(linkSVG);
-		
-		link.appendChild(linkAnchor);
-		
-		linkDrag.setTranslate(0, 0);
-		
-		linkAnchor.setAttributeNS(null, "x", x2);
-		linkAnchor.setAttributeNS(null, "y", y2);
-		
-		linkSVG.setAttributeNS(null, "x1", x1);
-		linkSVG.setAttributeNS(null, "y1", y1);
-		linkSVG.setAttributeNS(null, "x2", x2);
-		linkSVG.setAttributeNS(null, "y2", y2);
-	};
-	
-	window.moveLinkAnchor = function (x, y) {
-		linkAnchor.setAttributeNS(null, "x", x);
-		linkAnchor.setAttributeNS(null, "y", y);
-		
-		linkSVG.setAttributeNS(null, "x2", x);
-		linkSVG.setAttributeNS(null, "y2", y);
-	};
-	
-	window.restoreLinkAnchor = function () {
-		anchor.appendChild(linkAnchor);
-		
-		linkDrag.setTranslate(0, -34);
-		
-		linkAnchor.setAttributeNS(null, "x", 0);
-		linkAnchor.setAttributeNS(null, "y", 0);
-		
-		fragment.appendChild(linkSVG);
-	};
-	
-}) (window);
+function moveAnchor(x, y) {
+	ancorTransform.getItem(0).setTranslate(x, y);
+}
 
-function createLabel(name, x1, y1, x2, y2) {
-	var labelSvg = document.createElementNS(svgNS, "text");
+function showTool(x, y) {
+	toolCanvas.appendChild(anchor);
 	
-	labelSvg.textContent = name;
+	moveAnchor(x, y);
+}
+
+function hideAnchor() {
+	documentFragment.appendChild(anchor);
+}
+
+function setLinkAnchor(x1, y1, x2, y2) {
+	linkCanvas.appendChild(linkSVG);
 	
-	moveLabel(labelSvg, x1, y1, x2, y2);
+	linkCanvas.appendChild(linkAnchor);
 	
-	return labelSvg;
+	linkAnchorTransform.getItem(0).setTranslate(0, 0);
+	
+	linkAnchor.setAttributeNS(null, "x", x2);
+	linkAnchor.setAttributeNS(null, "y", y2);
+	
+	linkSVG.setAttributeNS(null, "x1", x1);
+	linkSVG.setAttributeNS(null, "y1", y1);
+	linkSVG.setAttributeNS(null, "x2", x2);
+	linkSVG.setAttributeNS(null, "y2", y2);
 }
 	
-function moveLabel(labelSvg, x1, y1, x2, y2) {
-	labelSvg.setAttributeNS(null, "x", (x1 *2 + x2) /3);
-	labelSvg.setAttributeNS(null, "y", (y1 *2 + y2) /3);
+function moveLinkAnchor(x, y) {
+	linkAnchor.setAttributeNS(null, "x", x);
+	linkAnchor.setAttributeNS(null, "y", y);
+	
+	linkSVG.setAttributeNS(null, "x2", x);
+	linkSVG.setAttributeNS(null, "y2", y);
 }
 	
+function restoreLinkAnchor() {
+	anchor.appendChild(linkAnchor);
+	
+	linkAnchorTransform.getItem(0).setTranslate(0, -34);
+	
+	linkAnchor.setAttributeNS(null, "x", 0);
+	linkAnchor.setAttributeNS(null, "y", 0);
+	
+	documentFragment.appendChild(linkSVG);
+}
+
 function addLine(ip) {
-	var device = window.deviceData[ip],
-		pos = window.posData[ip],
+	var device = getDevice(ip),
 		ifEntry = device.ifEntry,
 		peerList = {},
-		peer, peerPos, peerIP, link, lineSvg,
-		labelSvg;
+		peer, peerPos, peerIP, link, lineSvg;
 	
 	window.linkData[ip] = peerList;
 	
 	for (var peerIP in ifEntry) {
-		peer = window.deviceData[peerIP];
+		peer = window.getDevice(peerIP);
 		
 		if (!peer) {
 			delete ifEntry[peerIP];
@@ -638,87 +556,76 @@ function addLine(ip) {
 			continue;
 		}
 		
-		peerPos = window.posData[peerIP];
-		
-		labelSvg = createLabel(ifEntry[peerIP], pos.x, pos.y, peerPos.x, peerPos.y);
-		
 		// peer가 먼저 svg 만들었다면 공유
 		if (window.linkData[peerIP]) {
 			link = linkData[peerIP][ip];
-			
-			link.name2 = labelSvg;
 		}
 		else {
 			lineSvg = document.createElementNS(svgNS, "line");
 			
-			lineSvg.setAttributeNS(null, "x1", pos.x);
-			lineSvg.setAttributeNS(null, "y1", pos.y);
-			lineSvg.setAttributeNS(null, "x2", peerPos.x);
-			lineSvg.setAttributeNS(null, "y2", peerPos.y);
+			lineSvg.setAttributeNS(null, "x1", device.x);
+			lineSvg.setAttributeNS(null, "y1", device.y);
+			lineSvg.setAttributeNS(null, "x2", peer.x);
+			lineSvg.setAttributeNS(null, "y2", peer.y);
 			
 			link = {
 				peer1: ip,
-				name1: labelSvg,
 				peer2: peerIP,
 				svg: lineCanvas.appendChild(lineSvg)
 			};
 		}
-		
-		// label이 선보다 위에 그려지도록 나중에 붙여줌
-		lineCanvas.appendChild(labelSvg);
 		
 		peerList[peerIP] = link;
 	}
 }
 
 function initialize() {
-	for (var ip in window.deviceData) {
+	resize();
+	
+	for (var ip in getDevice()) {
 		addDevice(ip);
 		addLine(ip);
+	}
+	
+	setInterval(invalidate, 1000);
+}
+
+function invalidate() {
+	var svgDevice, delay;
+	
+	for (var ip in getDevice()) {
+		delay = getDelay(ip);
+		
+		if (delay === undefined) {
+			svgDevice = window.deviceData[ip];
+			
+			svgDevice.setAttributeNS(xlinkNS, "xlink:href", "/img/svg/disabled/unknown.svg");
+			device.delay = 0;
+		}
+		
+		resetDevice(ip);
 	}
 }
 
 function onLink(ip, e) {
-	var peerIP = e.detail.peer;
+	link(ip, e.detail.peer.ip);
 	
-	document.body.classList.add("loading");	
-	
-	top.sendRequest({
-			command: "link",
-			peer1: ip,
-			peer2: peerIP,
-			link: peerIP in window.deviceData[ip].ifEntry? false: true
-		}, function (data) {
-			top.databases.device = data;
-			
-			location.reload();
-		});
-}
-
-function displayIPAddress(show) {
-	document.body.classList[show? "remove": "add"]("name");
-}
-
-function displayIFName(show) {
-	document.body.classList[show? "add": "remove"]("ifname");
-}
-
-function getIcon(type) {
-	return window.top.databases.icon[type] || window.top.databases.local.icon[type];
+	location.reload();
 }
 
 //abstract
-function onEditDevice(ip) {	
+function getDevice(ip) {	
 }
 
 //abstract
-function onShowChart(ip) {
+function removeDevice(ip) {	
 }
 
-resize();
+//abstract
+function link(ip, peerIP) {
+}
+
 clearSelectionMark();
-
-document.body.classList.remove("loading");
 
 		</script>
 	

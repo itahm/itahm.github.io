@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>Mini @ ITAhM</title>
+
+		<style>
+@import "css/itahm.css";
+
+.initialize {
+	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+}
+
+.step {
+	margin: 1em;
+	display: flex;
+	flex-direction: column;
+	width: 800px;
+}
+
+.step h1 {
+	margin: 0;
+	padding: 1em;
+	border-radius: 1em 1em 0 0;
+	background-color: #0084ff;
+	text-shadow: 1px 1px 1px #00f;
+	color: #fff;
+}
+
+.step div {
+	padding: 1em;
+	border: 1px solid #0084ff;
+}
+
+.map {
+	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
+}
+
+iframe {
+	border: none;
+	padding: 0; margin: 0;
+}
+
+#dialog {
+	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.toolbar {
+	position: absolute; top: 0; left: 0; right: 0;
+}
+
+.toolbar li {
+	cursor: pointer;
+}
+
+body.initialized .initialize {
+	display: none;
+}
+
+body:not(.initialized) .map {
+	display: none;
+}
+
+body:not(.dialog) #dialog {
+	display: none;
+}
+
+		</style>
+	</head>
+
+	<body>
+		<div class="initialize">
+			<div class="step">
+				<h1>Step.1</h1>
+				<div>
+					<h3>ITAhM.mini.jar 실행파일을 다운로드 하고 실행시킵니다.</h3>
+					<a href="https://dl.dropboxusercontent.com/s/5kzmc0ym56l5oid/ITAhM.1.1.3.20.jar" download="ITAhM.mini.jar">ITAhM.mini.jar</a>
+				</div>
+			</div>
+			<div class="step">
+				<h1>Step.2</h1>
+				<div id="drop_zone">
+					<h3>서비스의 Default TCP는 2015입니다. 다른 TCP로 실행한 경우 변경하십시오.</h3>
+					<form id="tcp">
+						<input type="number" name="tcp">
+						<input type="submit">
+					</form>
+				</div>
+			</div>
+			<p>
+				Chrome, Firefox, Opera 최신 버전에서 테스트 되었습니다.
+				<button onclick="stop()" style="display: none;">stop</button>
+			</p>
+		</div>
+		<div class="map">
+			<iframe src="map_mini.html" width="100%" height="100%" id="map"></iframe>
+			<ul class="toolbar">
+				<li>추가
+				<li>확대
+				<li>축소
+			</ul>
+		</div>
+	</body>
+	
+	<script>
+
+var reader = new FileReader(),
+	resultData = {}, deviceData = {},
+	lastModified, timer, cancel, file, schedule, scale = 1,
+	map = document.getElementById("map"),
+	dropZone = document.getElementById("drop_zone");
+
+window.addEventListener("resize", function () {
+	if (!window.mapWindow) {
+		return;
+	}
+	
+	clearTimeout(window.schedule);
+	
+	window.schedule = setTimeout(function () {
+		window.mapWindow.resize();
+	}, 500);
+});
+
+dropZone.ondrop = function (e) {
+	e.preventDefault();
+	e.stopPropagation();
+	
+	start(e.dataTransfer.files);
+};
+
+dropZone.ondragover = function (e) {
+	e.preventDefault();
+	e.stopPropagation();
+	
+	e.dataTransfer.dropEffect = "link";
+};
+
+map.onload = function () {
+	window.mapWindow = this.contentWindow;
+	
+	window.mapWindow.addEventListener("wheel", function (e) {
+		window.mapWindow.zoom(e.deltaY < 0? window.scale *= 1.1: window.scale /= 1.1);
+	});
+	
+	window.mapWindow.link = function (ip, peerIP) {
+		console.log("link!");
+	};
+	
+	window.mapWindow.removeDevice = function (ip) {
+		var device = window.deviceData[ip];
+		
+		for (var peerIP in device.ifEntry) {
+			delete window.deviceData[peerIP].ifEntry[ip];
+		}
+		
+		delete window.deviceData[ip];
+		
+		window.mapWindow.location.reload();
+	};
+	
+	window.mapWindow.getDevice = function (ip) {
+		return ip? window.deviceData[ip]: window.deviceData;
+	};
+	
+	window.mapWindow.getDelay = function (ip) {
+		return ip? window.resultData[ip]: window.resultData;
+	};
+}
+
+document.body.classList.remove("loading");
+
+function start(files) {
+	window.cancel = false;
+	window.file = files[0];
+	window.lastModified = window.file.lastModified;
+	
+	reader.onload = function () {
+		try {
+			window.deviceData = JSON.parse(this.result);
+		} catch (e) {
+			throw e;
+		}
+		
+		document.body.classList.add("initialized");
+		
+		window.mapWindow.initialize();
+		
+		reader.onload = parse;
+		
+		load();
+	};
+	
+	reader.readAsText(window.file, "UTF-8");
+}
+
+function load() {
+	if (!window.cancel) {
+		window.timer = setTimeout(function() {
+			reader.readAsText(window.file, "UTF-8");
+		}, 1000);
+	}
+}
+
+function parse() {
+	if (window.file.lastModified === window.lastModified) {
+		alert("itahm.exe 로부터 응답이 없습니다.\n처음부터 다시 시작하십시오.");
+		
+		window.location.reload();
+	}
+	else {
+		window.resultData = JSON.parse(this.result);
+		
+		load();
+	}
+}
+
+function stop() {
+	window.cancel = true;
+	
+	clearTimeout(window.timer);
+}
+
+	</script>
+</html>
