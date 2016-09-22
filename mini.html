@@ -119,7 +119,7 @@ Connector.prototype = {
 				xhr.timeout = this.timeout;
 			}
 			
-			xhr.withCredentials = true;
+			//xhr.withCredentials = true;
 			
 			xhr.onloadend = this.onComplete.bind(xhr, onResponse);
 			
