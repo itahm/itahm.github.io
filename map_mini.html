@@ -4,7 +4,7 @@
 		<meta charset="UTF-8">
 		<meta http-equiv="Content-Script-Type" content="text/javascript">
 		<meta http-equiv="Content-Style-Type" content="text/css">
-		<title>ITAhM</title>
+		<title>Map:mini @ ITAhM</title>
 		
 		<style>
 @import "css/itahm.css";
@@ -67,7 +67,7 @@ text {
 	fill: #f00;
 }
 */
-use.shutdown {
+use {
 	stroke-width: 5;
 	stroke: rgba(255, 0, 0, .5);
 	fill: none;
@@ -159,7 +159,7 @@ var mapCanvas = document.getElementById("map"),
 	linkSVG = document.createElementNS(svgNS, "line"),
 	documentFragment = document.createDocumentFragment(),
 	linkData = {},
-	deviceData = {},
+	svgData = {},
 	labelData = {},
 	alertData = {},
 	scale = 1,
@@ -180,8 +180,17 @@ document.onselectstart = function () {
 document.getElementById("remove_anchor").onclick = function (e) {
 	e.stopPropagation();
 	
-	removeDevice(window.selected.ip);
+	top.removeDevice(window.selected);
+	
+	window.location.reload();
 };
+
+resize();
+
+for (var address in top.getDevice()) {
+	addDevice(address);
+	addLine(address);
+}
 
 function zoom(ratio) {
 	window.scale = ratio;
@@ -198,24 +207,18 @@ function resize() {
 function moveMap(x, y) {
 	mapTransform.getItem(2).setTranslate(x, y);
 }
-	
-function restoreMap() {
-	var matrix = mapTransform.getItem(2).matrix;
 
-	moveAllDevice(matrix.e, matrix.f);
-
-	moveMap(0, 0);
-}
-	
 function onDragStart(e) {
 	var data = e.detail,
 		target = data.target,
 		device;
 	
 	if (window.selected) {
+		var device = top.getDevice(window.selected);
+		
 		window.dragOrigin = {
-			x: window.selected.x,
-			y: window.selected.y
+			x: device.x,
+			y: device.y
 		};
 		
 		if (target === linkAnchor) {
@@ -229,7 +232,7 @@ function onDragStart(e) {
 function onDragMove(e) {
 	var data = e.detail,
 		target = data.target,
-		selectedSvgDevice = window.deviceData[window.selected.ip];
+		selectedSvgDevice = window.svgData[window.selected];
 	
 	if (target === selectedSvgDevice) {
 		var x = window.dragOrigin.x + Math.round(data.dragX / window.scale /10) *10,
@@ -263,9 +266,7 @@ function onDragEnd(e) {
 	var data = e.detail,
 		target = data.target,
 		destination = data.destination,
-		eventData = {},
-		event = ITAhM.util.createCustomEvent("link", eventData),
-		selectedSvgDevice = window.deviceData[window.selected.ip];
+		selectedSvgDevice = window.svgData[window.selected];
 	
 	if (target === selectedSvgDevice) {
 	}
@@ -275,13 +276,18 @@ function onDragEnd(e) {
 		restoreLinkAnchor();
 		
 		if (isDevice(destination) &&  destination !== selectedSvgDevice) {
-			eventData.peer = window.selected;
-			
-			destination.dispatchEvent(event);
+			destination.dispatchEvent(ITAhM.util.createCustomEvent("link",
+				{
+					peer: window.selected
+				}));
 		}
 	}
 	else {
-		restoreMap();
+		var matrix = mapTransform.getItem(2).matrix;
+		
+		moveAllDevice(matrix.e, matrix.f);
+
+		moveMap(0, 0);
 	}
 }
 	
@@ -289,13 +295,15 @@ function moveAllDevice(x, y) {
 	var device;
 	
 	if (window.selected) {
-		moveSelectionMark(window.selected.x + x, window.selected.y + y);
+		device = top.getDevice(window.selected);
+		
+		moveSelectionMark(device.x + x, device.y + y);
 	}
 	
-	for (var ip in getDevice()) {
-		device = getDevice(ip);
+	for (var address in top.getDevice()) {
+		device = top.getDevice(address);
 		
-		moveDevice(device, device.x + x, device.y + y);
+		moveDevice(address, device.x + x, device.y + y);
 	}
 }
 	
@@ -310,18 +318,18 @@ function onCancelSelect() {
 	}
 }
 	
-function selectDevice(ip) {
+function selectDevice(address) {
 	if (window.cancelSelect) {
 		window.cancelSelect = false;
 	}
 	else {
-		var device = getDevice(ip);
+		var device = top.getDevice(address);
 		
-		window.selected = device;
+		window.selected = address;
 		
 		showSelectionMark(device.x, device.y);
 		
-		topDevice(window.deviceData[ip]);
+		topDevice(window.svgData[address]);
 	}
 }
 
@@ -332,7 +340,7 @@ function moveLine(x, y, data, direct) {
 	svgDevice = data.svg;
 	
 	if (direct) {
-		device = getDevice[data.peer2];
+		device = top.getDevice(data.peer2);
 		
 		svgDevice.setAttributeNS(null, "x1", x);
 		svgDevice.setAttributeNS(null, "y1", y);
@@ -343,7 +351,7 @@ function moveLine(x, y, data, direct) {
 		y2 = device.y;
 	}
 	else {
-		device = getDevice(data.peer1);
+		device = top.getDevice(data.peer1);
 		
 		svgDevice.setAttributeNS(null, "x2", x);
 		svgDevice.setAttributeNS(null, "y2", y);
@@ -355,12 +363,10 @@ function moveLine(x, y, data, direct) {
 	}
 }
 
-function addDevice(ip) {
-	var device = getDevice(ip),
+function addDevice(address) {
+	var device = top.getDevice(address),
 		svgDevice = document.createElementNS(svgNS, "image"),
-		svgLabel = document.createElementNS(svgNS, "text"),
-		svgAddr = document.createElementNS(svgNS, "tspan"),
-		svgDelay = document.createElementNS(svgNS, "tspan");
+		svgLabel = document.createElementNS(svgNS, "text");
 
 	svgDevice.setAttributeNS(null, "x", device.x);
 	svgDevice.setAttributeNS(null, "y", device.y);
@@ -368,15 +374,12 @@ function addDevice(ip) {
 	svgDevice.setAttributeNS(null, "height", "40px");
 	svgDevice.setAttributeNS(null, "transform", "translate(-20, -20)");
 	
-	svgDevice.onclick = onSelectDevice.bind(undefined, ip);
-	svgDevice.addEventListener("link", onLink.bind(undefined, ip));
+	svgDevice.onclick = onSelectDevice.bind(undefined, address);
+	svgDevice.addEventListener("link", onLink.bind(undefined, address));
 	
 	window.deviceCanvas.appendChild(svgDevice);
 	
-	svgAddr.textContent = device.ip;
-	
-	svgLabel.appendChild(svgAddr);
-	svgLabel.appendChild(svgDelay);
+	svgLabel.textContent = device.address;
 	
 	svgLabel.setAttributeNS(null, "x", device.x);
 	svgLabel.setAttributeNS(null, "y", device.y);
@@ -386,21 +389,20 @@ function addDevice(ip) {
 	
 	window.deviceCanvas.appendChild(svgLabel);
 	
-	window.deviceData[ip] = svgDevice;
-	window.labelData[ip] = svgLabel;
+	window.svgData[address] = svgDevice;
+	window.labelData[address] = svgLabel;
 	
-	resetDevice(ip);
+	resetDevice(address);
 }
 
-function resetDevice(ip) {
-	var device = getDevice(ip),
-		svgDevice = window.deviceData[ip],
-		svgDelay = window.labelData[ip].lastChild,
-		svgAlert = window.alertData[ip];
+function resetDevice(address) {
+	var device = top.getDevice(address),
+		svgDevice = window.svgData[address],
+		svgAlert = window.alertData[address];
 	
 	svgDevice.setAttributeNS(xlinkNS, "xlink:href", "/img/svg/unknown.svg");
 	
-	if (device.delay < 0) {
+	if (device.echo === false) {
 		if (!svgAlert) {
 			svgAlert = document.createElementNS(svgNS, "use");
 			
@@ -410,19 +412,19 @@ function resetDevice(ip) {
 			
 			window.deviceCanvas.appendChild(svgAlert);
 			
-			window.alertData[ip] = svgAlert;
+			window.alertData[address] = svgAlert;
 		}
-		
-		svgDelay.textContent = "";
 	}
 	else {
 		if (svgAlert) {
-			delete window.alertData[ip];
+			delete window.alertData[address];
 			
 			window.deviceCanvas.removeChild(svgAlert);
 		}
 		
-		svgDelay.textContent = getDelay(ip) && getDelay(ip).delay || "";
+		if (device.echo === null) {
+			svgDevice.setAttributeNS(xlinkNS, "xlink:href", "/img/svg/disabled/unknown.svg");
+		}
 	}
 }
 
@@ -430,16 +432,17 @@ function isDevice(node) {
 	return node.parentNode === window.deviceCanvas && node.tagName === "image";
 }
 
-function moveDevice(device, x, y) {
-	var link = window.linkData[device.ip],
-		data;
+function moveDevice(address, x, y) {
+	var device = top.getDevice(address),
+		link = window.linkData[address],
+		peerData;
 			
 	device.x = x;
 	device.y = y;		
 
-	var svgDevice = window.deviceData[device.ip],
-		svgLabel = window.labelData[device.ip],
-		svgAlert = window.alertData[device.ip];
+	var svgDevice = window.svgData[address],
+		svgLabel = window.labelData[address],
+		svgAlert = window.alertData[address];
 	
 	svgDevice.setAttributeNS(null, "x", x);
 	svgDevice.setAttributeNS(null, "y", y);
@@ -452,17 +455,17 @@ function moveDevice(device, x, y) {
 		svgAlert.setAttributeNS(null, "y", y);
 	}
 	
-	for (var peerIP in link) {
-		data = link[peerIP];
+	for (var peerAddress in link) {
+		peerData = link[peerAddress];
 	
-		moveLine(x, y, data, data.peer1 === ip);
+		moveLine(x, y, peerData, peerData.peer1 === address);
 	}
 }
 
-function onSelectDevice(ip, e) {
+function onSelectDevice(address, e) {
 	e.stopPropagation();
 	
-	selectDevice(ip);
+	selectDevice(address);
 }
 
 function topDevice(svgDevice) {
@@ -539,26 +542,26 @@ function restoreLinkAnchor() {
 	documentFragment.appendChild(linkSVG);
 }
 
-function addLine(ip) {
-	var device = getDevice(ip),
+function addLine(address) {
+	var device = top.getDevice(address),
 		ifEntry = device.ifEntry,
 		peerList = {},
-		peer, peerPos, peerIP, link, lineSvg;
+		peer, peerPos, peerAddress, link, lineSvg;
 	
-	window.linkData[ip] = peerList;
+	window.linkData[address] = peerList;
 	
-	for (var peerIP in ifEntry) {
-		peer = window.getDevice(peerIP);
+	for (var peerAddress in ifEntry) {
+		peer = top.getDevice(peerAddress);
 		
 		if (!peer) {
-			delete ifEntry[peerIP];
+			delete ifEntry[peerAddress];
 			
 			continue;
 		}
 		
 		// peer가 먼저 svg 만들었다면 공유
-		if (window.linkData[peerIP]) {
-			link = linkData[peerIP][ip];
+		if (window.linkData[peerAddress]) {
+			link = linkData[peerAddress][address];
 		}
 		else {
 			lineSvg = document.createElementNS(svgNS, "line");
@@ -569,60 +572,20 @@ function addLine(ip) {
 			lineSvg.setAttributeNS(null, "y2", peer.y);
 			
 			link = {
-				peer1: ip,
-				peer2: peerIP,
+				peer1: address,
+				peer2: peerAddress,
 				svg: lineCanvas.appendChild(lineSvg)
 			};
 		}
 		
-		peerList[peerIP] = link;
+		peerList[peerAddress] = link;
 	}
 }
 
-function initialize() {
-	resize();
+function onLink(address, e) {
+	top.link(address, e.detail.peer);
 	
-	for (var ip in getDevice()) {
-		addDevice(ip);
-		addLine(ip);
-	}
-	
-	setInterval(invalidate, 1000);
-}
-
-function invalidate() {
-	var svgDevice, delay;
-	
-	for (var ip in getDevice()) {
-		delay = getDelay(ip);
-		
-		if (delay === undefined) {
-			svgDevice = window.deviceData[ip];
-			
-			svgDevice.setAttributeNS(xlinkNS, "xlink:href", "/img/svg/disabled/unknown.svg");
-			device.delay = 0;
-		}
-		
-		resetDevice(ip);
-	}
-}
-
-function onLink(ip, e) {
-	link(ip, e.detail.peer.ip);
-	
-	location.reload();
-}
-
-//abstract
-function getDevice(ip) {	
-}
-
-//abstract
-function removeDevice(ip) {	
-}
-
-//abstract
-function link(ip, peerIP) {
+	window.location.reload();
 }
 
 clearSelectionMark();

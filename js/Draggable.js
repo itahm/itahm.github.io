@@ -26,7 +26,7 @@ function Draggable(target) {
 			return;
 		}
 			
-		if (!isDragging) {console.log(isDragging);
+		if (!isDragging) {
 			data = {
 				target: draggable
 			};

@@ -17,8 +17,6 @@
 
 .step {
 	margin: 1em;
-	display: flex;
-	flex-direction: column;
 	width: 800px;
 }
 
@@ -36,6 +34,19 @@
 	border: 1px solid #0084ff;
 }
 
+#tcp input {
+	padding: .5em;
+}
+
+#tcp input[type=number] {
+	text-align: right;
+}
+
+input[name=address] {
+	text-align: right;
+	padding: 2px;
+}
+
 .map {
 	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
 }
@@ -45,7 +56,8 @@ iframe {
 	padding: 0; margin: 0;
 }
 
-#dialog {
+#dialog,
+.trial {
 	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
 	display: flex;
 	align-items: center;
@@ -54,29 +66,91 @@ iframe {
 
 .toolbar {
 	position: absolute; top: 0; left: 0; right: 0;
+	display: flex;
+	list-style: none;
+	padding: 0;
 }
 
 .toolbar li {
+	margin-left: 1em;
 	cursor: pointer;
 }
 
-body.initialized .initialize {
-	display: none;
+#trial {
+	cursor: pointer;
 }
 
-body:not(.initialized) .map {
-	display: none;
+#trial:hover {
+	color: #0084ff;
 }
 
-body:not(.dialog) #dialog {
+.trial h1 {
+	font-size: 5em;
+	color: rgba(0, 132, 255, .2);
+	font-style: italic;
+}
+
+body.initialized .initialize,
+body:not(.initialized) .map,
+body:not(.dialog) #dialog,
+body:not(.trial) .trial {
 	display: none;
 }
 
 		</style>
+		<script>
+		
+function Connector(host, port) {
+	this.initialize(host, port);
+}
+
+Connector.prototype = {
+		
+		initialize: function (host, port) {
+			this.url = "http://"+ host +":"+ port;
+			this.timeout = 3000;
+		},
+		
+		sendRequest: function (request, onResponse) {
+			var xhr = new XMLHttpRequest();
+			
+			xhr.open(request? "POST": "GET", this.url, true);
+			if (this.timeout > 0) {
+				xhr.timeout = this.timeout;
+			}
+			
+			xhr.withCredentials = true;
+			
+			xhr.onloadend = this.onComplete.bind(xhr, onResponse);
+			
+			this.status = 0;
+			
+			xhr.send(request? JSON.stringify(request): null);
+		},
+		
+		onComplete: function (onResponse) {
+			var response;
+			
+			try {
+				response = JSON.parse(this.responseText);
+			}
+			catch(e) {
+			}
+			
+			onResponse(this.status, response);
+		}
+		
+	};
+		
+		</script>
 	</head>
 
-	<body>
+	<body class="loading">
+		<div class="trial">
+			<h1>체험하기 중입니다.</h1>
+		</div>
 		<div class="initialize">
+			<h1>서비스에 연결할 수 없습니다.</h1>
 			<div class="step">
 				<h1>Step.1</h1>
 				<div>
@@ -86,61 +160,156 @@ body:not(.dialog) #dialog {
 			</div>
 			<div class="step">
 				<h1>Step.2</h1>
-				<div id="drop_zone">
-					<h3>서비스의 Default TCP는 2015입니다. 다른 TCP로 실행한 경우 변경하십시오.</h3>
+				<div>
+					<h3>서비스의 Default TCP는 2015입니다. 다른 TCP로 실행한 경우 변경하여 연결하십시오.</h3>
 					<form id="tcp">
-						<input type="number" name="tcp">
-						<input type="submit">
+						<input type="number" name="tcp" placeholder="2015" required>
+						<input type="submit" value="변경">
 					</form>
 				</div>
 			</div>
+			<div class="step">
+				<h1>Step.3</h1>
+				<div>
+					<h3>서비스를 실행하지 않고 미리 봅니다.</h3>
+					<a id="trial" title="click">체험하기!</a>
+				</div>
+			</div>
 			<p>
-				Chrome, Firefox, Opera 최신 버전에서 테스트 되었습니다.
-				<button onclick="stop()" style="display: none;">stop</button>
+				Internet Explorer, Chrome, Firefox, Opera 최신 버전에서 테스트 되었습니다.
 			</p>
 		</div>
 		<div class="map">
-			<iframe src="map_mini.html" width="100%" height="100%" id="map"></iframe>
-			<ul class="toolbar">
-				<li>추가
-				<li>확대
-				<li>축소
-			</ul>
+			<iframe width="100%" height="100%" id="map"></iframe>
+			<form id="add_device">
+				<ul class="toolbar">
+					<li>
+						<input type="text" name="address" placeholder="host name or ip address" required>
+						<input type="submit" value="추가">
+					<li><a id="save">저장</a>
+					<li><a id="zoom_in">확대</a>
+					<li><a id="zoom_out">축소</a>
+					<li><a href="help_mini.html" target="_blank">도움말</a>
+				</ul>
+			</form>
 		</div>
+		
+		<div class="bg_loading"></div>
 	</body>
 	
 	<script>
-
+	
 var reader = new FileReader(),
-	resultData = {}, deviceData = {},
-	lastModified, timer, cancel, file, schedule, scale = 1,
-	map = document.getElementById("map"),
-	dropZone = document.getElementById("drop_zone");
+	deviceData = {},
+	lastModified, resize, scale = 1,
+	map = document.getElementById("map");
 
 window.addEventListener("resize", function () {
 	if (!window.mapWindow) {
 		return;
 	}
 	
-	clearTimeout(window.schedule);
+	clearTimeout(window.resize);
 	
-	window.schedule = setTimeout(function () {
+	window.resize = setTimeout(function () {
 		window.mapWindow.resize();
 	}, 500);
 });
 
-dropZone.ondrop = function (e) {
-	e.preventDefault();
-	e.stopPropagation();
-	
-	start(e.dataTransfer.files);
+document.onselectstart = function () {
+	return false;
 };
 
-dropZone.ondragover = function (e) {
+document.getElementById("tcp").onsubmit = function (e) {
 	e.preventDefault();
-	e.stopPropagation();
 	
-	e.dataTransfer.dropEffect = "link";
+	document.body.classList.add("loading");
+	
+	connect(this.elements.tcp.value);
+};
+
+document.getElementById("add_device").onsubmit = function (e) {
+	e.preventDefault();
+	
+	var address = this.elements.address.value;
+	
+	this.reset();
+	
+	this.elements.address.blur();
+	
+	window.deviceData[address] = {
+		address: address,
+		echo: null,
+		x: 0,
+		y: 0,
+		ifEntry: {}
+	};
+	
+	window.mapWindow.addDevice(address);
+};
+
+document.getElementById("trial").onclick = function () {
+	window.deviceData = {
+	    "127.0.0.1": {
+	        "address": "127.0.0.1",
+	        "echo": true,
+	        "x": 0,
+	        "y": 0,
+	        "ifEntry": {
+	            "itahm.com": "",
+	            "google.com": "",
+	            "211.196.32.79": ""
+	        }
+	    },
+	    "google.com": {
+	        "address": "google.com",
+	        "echo": null,
+	        "x": 100,
+	        "y": 100,
+	        "ifEntry": {
+	            "127.0.0.1": ""
+	        }
+	    },
+	    "itahm.com": {
+	        "address": "itahm.com",
+	        "echo": true,
+	        "x": 0,
+	        "y": -100,
+	        "ifEntry": {
+	            "127.0.0.1": ""
+	        }
+	    },
+	    "211.196.32.79": {
+	        "address": "211.196.32.79",
+	        "echo": false,
+	        "x": -100,
+	        "y": 100,
+	        "ifEntry": {
+	            "127.0.0.1": ""
+	        }
+	    }
+	};
+	
+	window.map.src="map_mini.html";
+	
+	window.sendRequest = function () {
+		alert("체험중에는 사용할 수 없는 기능입니다.");
+	};
+	
+	document.body.classList.add("trial");
+	document.body.classList.add("initialized");
+}
+
+document.getElementById("save").onclick = function () {
+	sendRequest(window.deviceData);
+};
+
+document.getElementById("zoom_in").onclick = function () {
+	window.mapWindow.zoom(window.scale *= 1.1);
+};
+
+document.getElementById("zoom_out").onclick = function () {
+	window.mapWindow.zoom(window.scale /= 1.1);
 };
 
 map.onload = function () {
@@ -149,83 +318,92 @@ map.onload = function () {
 	window.mapWindow.addEventListener("wheel", function (e) {
 		window.mapWindow.zoom(e.deltaY < 0? window.scale *= 1.1: window.scale /= 1.1);
 	});
-	
-	window.mapWindow.link = function (ip, peerIP) {
-		console.log("link!");
-	};
-	
-	window.mapWindow.removeDevice = function (ip) {
-		var device = window.deviceData[ip];
-		
-		for (var peerIP in device.ifEntry) {
-			delete window.deviceData[peerIP].ifEntry[ip];
-		}
-		
-		delete window.deviceData[ip];
-		
-		window.mapWindow.location.reload();
-	};
-	
-	window.mapWindow.getDevice = function (ip) {
-		return ip? window.deviceData[ip]: window.deviceData;
-	};
-	
-	window.mapWindow.getDelay = function (ip) {
-		return ip? window.resultData[ip]: window.resultData;
-	};
 }
 
-document.body.classList.remove("loading");
+connect(2015);
 
-function start(files) {
-	window.cancel = false;
-	window.file = files[0];
-	window.lastModified = window.file.lastModified;
-	
-	reader.onload = function () {
-		try {
-			window.deviceData = JSON.parse(this.result);
-		} catch (e) {
-			throw e;
-		}
-		
-		document.body.classList.add("initialized");
-		
-		window.mapWindow.initialize();
-		
-		reader.onload = parse;
-		
-		load();
-	};
-	
-	reader.readAsText(window.file, "UTF-8");
+function getDevice(address) {
+	return address? window.deviceData[address]: window.deviceData;
 }
 
-function load() {
-	if (!window.cancel) {
-		window.timer = setTimeout(function() {
-			reader.readAsText(window.file, "UTF-8");
-		}, 1000);
+function removeDevice(address) {
+	var device = window.deviceData[address];
+	
+	for (var peerTarget in device.ifEntry) {
+		delete window.deviceData[peerTarget].ifEntry[address];
 	}
+	
+	delete window.deviceData[address];
 }
 
-function parse() {
-	if (window.file.lastModified === window.lastModified) {
-		alert("itahm.exe 로부터 응답이 없습니다.\n처음부터 다시 시작하십시오.");
-		
-		window.location.reload();
+function link(address, peerAddress) {
+	var device = deviceData[address],
+		peer = deviceData[peerAddress];
+	
+	if (peerAddress in device.ifEntry) {
+		delete device.ifEntry[peerAddress];
+		delete peer.ifEntry[address];
 	}
 	else {
-		window.resultData = JSON.parse(this.result);
-		
-		load();
+		device.ifEntry[peerAddress] = "";
+		peer.ifEntry[address] = "";
 	}
 }
 
-function stop() {
-	window.cancel = true;
+function invalidate(data) {
+	var device;
 	
-	clearTimeout(window.timer);
+	for (var address in data) {
+		device = window.deviceData[address];
+		
+		if (device) {
+			device.echo = data[address].echo;
+		}
+	}
+	
+	for (var address in top.getDevice()) {
+		window.mapWindow.resetDevice(address);
+	}
+	
+	setTimeout(function () {
+		sendRequest();
+	}, 1000);
+}
+
+function connect(tcp) {
+	var xhr = new Connector("127.0.0.1", tcp);
+	
+	xhr.sendRequest(undefined, function (status, response) {				
+		if (status === 200) {
+			document.body.classList.add("initialized");
+			
+			window.sendRequest = function (request) {
+				xhr.sendRequest(request, function(status, response) {
+					if (status === 200) {
+						if (request) {
+							alert("저장 완료.");
+						}
+						else {
+							invalidate(response);
+						}
+					}
+					else {
+						window.location.reload();
+					}
+				});
+			}
+			
+			window.deviceData = response;
+			
+			window.map.src="map_mini.html";
+			
+			setTimeout(function () {
+				sendRequest();
+			}, 1000);
+		}
+		
+		document.body.classList.remove("loading");
+	});
 }
 
 	</script>
