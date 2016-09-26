@@ -27,8 +27,7 @@ text::selection {
 
 text {
 	font-family: tahoma, arial, "맑은 고딕";
-	font-size: 10px;
-	fill: #000;
+	font-size: 12px;
 	text-anchor: middle;
 }
 
@@ -37,21 +36,10 @@ text {
 	stroke-width: 2;
 }
 
-#line text {
-	font-size: 11px;
-	fill: #333;
-}
-
 #link line {
 	stroke: #800;
 	stroke-width: 2;
 	stroke-dasharray: 2, 2;
-}
-
-#device text {
-	font-size: 12px;
-	/*alignment-baseline: hanging;*/
-	fill: #000;
 }
 
 #selection_mark {
@@ -60,18 +48,18 @@ text {
 	stroke-width: 5px;
 	fill: #fff;
 }
-/*
-#tool circle {
-	stroke: #800;
-	stroke-width: 1px;
-	fill: #f00;
-}
-*/
+
 use {
 	stroke-width: 5;
 	stroke: rgba(255, 0, 0, .5);
 	fill: none;
 	animation: alert 2s infinite;
+}
+
+text.time {
+	fill: #fff;
+	font-weight: bold;
+	pointer-events: none;
 }
 
 @keyframes alert {
@@ -114,13 +102,13 @@ body:not(.ifname) #line text {
 
 		<svg id="map">
 			<defs>
-				<circle r="35" id="circle"></circle>
+				<circle r="40" id="circle"></circle>
 			</defs>
 			<g id="transform" transform="translate(0, 0) scale(1, 1) translate(0, 0)">
 				<g id="line"></g>
 				<g id="link"></g>
 				<g id="device">
-					<circle r="30" id="selection_mark"></circle>
+					<circle r="35" id="selection_mark"></circle>
 				</g>
 				<g id="tool">
 					<g id="anchor" transform="translate(0, 0)">
@@ -161,6 +149,7 @@ var mapCanvas = document.getElementById("map"),
 	linkData = {},
 	svgData = {},
 	labelData = {},
+	timeData = {},
 	alertData = {},
 	scale = 1,
 	cancelSelect = false,
@@ -180,9 +169,11 @@ document.onselectstart = function () {
 document.getElementById("remove_anchor").onclick = function (e) {
 	e.stopPropagation();
 	
-	top.removeDevice(window.selected);
-	
-	window.location.reload();
+	if (confirm("삭제 하겠습니까?")) {
+		top.removeDevice(window.selected);
+		
+		window.location.reload();
+	}
 };
 
 resize();
@@ -329,7 +320,7 @@ function selectDevice(address) {
 		
 		showSelectionMark(device.x, device.y);
 		
-		topDevice(window.svgData[address]);
+		topDevice(address);
 	}
 }
 
@@ -366,31 +357,40 @@ function moveLine(x, y, data, direct) {
 function addDevice(address) {
 	var device = top.getDevice(address),
 		svgDevice = document.createElementNS(svgNS, "image"),
-		svgLabel = document.createElementNS(svgNS, "text");
+		svgAddress = document.createElementNS(svgNS, "text"),
+		svgTime = document.createElementNS(svgNS, "text");
 
 	svgDevice.setAttributeNS(null, "x", device.x);
 	svgDevice.setAttributeNS(null, "y", device.y);
-	svgDevice.setAttributeNS(null, "width", "40px");
-	svgDevice.setAttributeNS(null, "height", "40px");
-	svgDevice.setAttributeNS(null, "transform", "translate(-20, -20)");
+	svgDevice.setAttributeNS(null, "width", "50px");
+	svgDevice.setAttributeNS(null, "height", "50px");
+	svgDevice.setAttributeNS(null, "transform", "translate(-25, -25)");
 	
 	svgDevice.onclick = onSelectDevice.bind(undefined, address);
 	svgDevice.addEventListener("link", onLink.bind(undefined, address));
 	
 	window.deviceCanvas.appendChild(svgDevice);
 	
-	svgLabel.textContent = device.address;
+	svgAddress.textContent = device.address;
 	
-	svgLabel.setAttributeNS(null, "x", device.x);
-	svgLabel.setAttributeNS(null, "y", device.y);
+	svgAddress.setAttributeNS(null, "x", device.x);
+	svgAddress.setAttributeNS(null, "y", device.y);
 	// text baseline이 글자의 밑을 기준으로 하므로 글자 크기만큼 내려준다.
-	// 아이콘 크기 + 글자 크기 = 20 + 16 = 36
-	svgLabel.setAttributeNS(null, "transform", "translate(0, 36)");
+	// 아이콘 크기 + 글자 크기 = 25 + 16 = 41
+	svgAddress.setAttributeNS(null, "transform", "translate(0, 41)");
 	
-	window.deviceCanvas.appendChild(svgLabel);
+	window.deviceCanvas.appendChild(svgAddress);
+	
+	svgTime.setAttributeNS(null, "x", device.x);
+	svgTime.setAttributeNS(null, "y", device.y);
+	svgTime.setAttributeNS(null, "transform", "translate(0, 6)");
+	svgTime.setAttributeNS(null, "class", "time");
+	
+	window.deviceCanvas.appendChild(svgTime);
 	
 	window.svgData[address] = svgDevice;
-	window.labelData[address] = svgLabel;
+	window.labelData[address] = svgAddress;
+	window.timeData[address] = svgTime;
 	
 	resetDevice(address);
 }
@@ -398,11 +398,14 @@ function addDevice(address) {
 function resetDevice(address) {
 	var device = top.getDevice(address),
 		svgDevice = window.svgData[address],
-		svgAlert = window.alertData[address];
+		svgAlert = window.alertData[address],
+		svgTime = window.timeData[address];
 	
 	svgDevice.setAttributeNS(xlinkNS, "xlink:href", "/img/svg/unknown.svg");
 	
-	if (device.echo === false) {
+	svgTime.textContent = "";
+	
+	if (device.echo < 0) {
 		if (!svgAlert) {
 			svgAlert = document.createElementNS(svgNS, "use");
 			
@@ -412,7 +415,7 @@ function resetDevice(address) {
 			
 			window.deviceCanvas.appendChild(svgAlert);
 			
-			window.alertData[address] = svgAlert;
+			window.alertData[address] = svgAlert;		
 		}
 	}
 	else {
@@ -424,6 +427,9 @@ function resetDevice(address) {
 		
 		if (device.echo === null) {
 			svgDevice.setAttributeNS(xlinkNS, "xlink:href", "/img/svg/disabled/unknown.svg");
+		}
+		else {
+			svgTime.textContent = device.echo;
 		}
 	}
 }
@@ -441,14 +447,18 @@ function moveDevice(address, x, y) {
 	device.y = y;		
 
 	var svgDevice = window.svgData[address],
-		svgLabel = window.labelData[address],
+		svgAddress = window.labelData[address],
+		svgTime = window.timeData[address],
 		svgAlert = window.alertData[address];
 	
 	svgDevice.setAttributeNS(null, "x", x);
 	svgDevice.setAttributeNS(null, "y", y);
 	
-	svgLabel.setAttributeNS(null, "x", x);
-	svgLabel.setAttributeNS(null, "y", y);
+	svgAddress.setAttributeNS(null, "x", x);
+	svgAddress.setAttributeNS(null, "y", y);
+	
+	svgTime.setAttributeNS(null, "x", x);
+	svgTime.setAttributeNS(null, "y", y);
 	
 	if (svgAlert) {
 		svgAlert.setAttributeNS(null, "x", x);
@@ -468,8 +478,9 @@ function onSelectDevice(address, e) {
 	selectDevice(address);
 }
 
-function topDevice(svgDevice) {
-	window.deviceCanvas.appendChild(svgDevice);
+function topDevice(address) {
+	window.deviceCanvas.appendChild(window.svgData[address]);
+	window.deviceCanvas.appendChild(window.timeData[address]);
 }
 
 function moveSelectionMark(x, y) {
