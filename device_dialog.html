@@ -308,7 +308,7 @@ var form = document.querySelector("form");
 		if (ip) {
 			window.device = top.databases.device[ip];
 			
-			form.elements.name.value = device.name;
+			form.elements.name.value = device.name || "";
 			
 			var ipArray = device.ip.split(".");
 			

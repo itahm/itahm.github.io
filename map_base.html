@@ -419,7 +419,7 @@ function resetDevice(ip, reset) {
 		svgDevice = window.iconData[ip],
 		svgAlert = window.alertData[ip],
 		pos = window.posData[ip],
-		icon = getIcon(device.type),
+		icon = getIcon(device.type || "unknown"),
 		snmp;
 	
 	if (reset) {
