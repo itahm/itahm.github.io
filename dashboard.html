@@ -13,6 +13,8 @@ body {
 	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
 	padding: 0; margin: 0;
 	display: flex;
+	background-color: #4d525a;
+	color: #fff;
 }
 
 aside {
@@ -57,11 +59,15 @@ section {
 
 section .title {
 	padding: .5em 2em;
-	border-radius: 1.6em 1.6em 0 0;
+	border-radius: 5px;
+	
+	border-bottom: none;
 	font-weight: bold;
 	color: #fff;
+	background-color: #0084ff;
+	text-shadow: 1px 1px 1px #00f;
 }
-
+/*
 section .title.blue {
 	background: linear-gradient(to right, rgba(0, 132, 255, 1), rgba(0, 132, 255, 1), rgba(0, 132, 255, .6), rgba(0, 132, 255, .4));
 	text-shadow: 1px 1px 1px #00f;
@@ -86,7 +92,7 @@ section .title.green {
 	background: linear-gradient(to right, rgba(0, 138, 0, 1), rgba(0, 138, 0, 1), rgba(0, 138, 0, .6), rgba(0, 138, 0, .4));
 	text-shadow: 1px 1px 1px #030;
 }
-
+*/
 section> div:last-child {
 	flex: 1;
 	overflow: auto;
@@ -266,7 +272,7 @@ ul {
 				</section>
 				<div id="counter">
 					<div>
-						Last update
+						갱신시간
 						<p id="update"></p>
 					</div>
 					<div>
