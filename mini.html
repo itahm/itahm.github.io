@@ -94,6 +94,50 @@ iframe {
 	font-style: italic;
 }
 
+.event {
+	position: fixed; right: 0; bottom: 0; left: 0;
+	background-color: #fff;
+}
+
+.title {
+	background-color: #4d525a;
+	color: #fff;
+	display: flex;
+	justify-content: space-between;
+	padding: 3px;
+}
+
+#event {
+	height: 120px;
+	overflow-y: auto;
+	margin: 0;
+	list-style: none;
+}
+
+#event li {
+	padding: 3px;
+}
+
+.title a {
+	padding: 3px;
+	cursor: pointer;
+	border: 1px solid transparent;
+}
+
+.title a:hover {
+	border-color: #ddd;
+}
+
+body:not(.event) #event,
+body.event #show,
+body:not(.event) #hide {
+	display: none;
+}
+
+#title:not(:target) .show {
+	display: none;
+}
+
 body.initialized .initialize,
 body:not(.initialized) .map,
 body:not(.dialog) #dialog,
@@ -209,7 +253,14 @@ Connector.prototype = {
 				</ul>
 			</form>
 		</div>
-		
+		<div class="event">
+			<div class="title">
+				<span>이벤트</span>
+				<a id="hide">감추기</a>
+				<a id="show">보이기</a>
+			</div>
+			<ul id="event"></ul>
+		</div>
 		<div class="bg_loading"></div>
 	
 		<script src="js/google.js"></script>
@@ -217,6 +268,10 @@ Connector.prototype = {
 	
 var reader = new FileReader(),
 	deviceData = {},
+	list = document.getElementById("event"),
+	lastEvent = {
+		count: 0
+	},
 	lastModified, resize, scale = 1,
 	map = document.getElementById("map");
 
@@ -262,6 +317,11 @@ document.getElementById("add_device").onsubmit = function (e) {
 	};
 	
 	window.mapWindow.addDevice(address);
+};
+
+document.getElementById("show").onclick =
+document.getElementById("hide").onclick = function (e) {
+	document.body.classList.toggle("event");
 };
 
 document.getElementById("trial").onclick = function () {
@@ -377,13 +437,43 @@ function invalidate(data) {
 		}
 	}
 	
-	for (var address in top.getDevice()) {
+	for (var address in window.deviceData) {
 		window.mapWindow.resetDevice(address);
+		
+		setEvent(window.deviceData[address]);
 	}
 	
 	setTimeout(function () {
 		sendRequest();
 	}, 1000);
+}
+
+function setEvent(device) {
+	var element, count;
+	
+	if (device.echo < 0) {
+		if (window.lastEvent.address === device.address) {
+			element = window.lastEvent.element;
+			
+			if (++window.lastEvent.count > 99) {
+				count = "(99회 이상 반복)";
+			}
+			else {
+				count = "("+ window.lastEvent.count +"회 반복)";
+			}
+		}
+		else {
+			element = window.list.appendChild(document.createElement("li"));
+			
+			window.lastEvent.element = element;
+			window.lastEvent.address = device.address;
+			window.lastEvent.count = 1;
+			
+			count = "";
+		}
+		
+		element.textContent = new Date() +" "+ device.address +" 응답이 없습니다. "+ count;
+	}
 }
 
 function connect(tcp) {
