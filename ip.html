@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta http-equiv="Content-Script-Type" content="text/javascript">
+		<meta http-equiv="Content-Style-Type" content="text/css">
+		<title>Event @ ITAhM</title>
+		
+		<style>
+@import "css/itahm.css";
+
+body {
+	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
+}
+
+.content_width {
+	height: 100%;
+	padding: 10px;
+	margin: 0 auto;
+	overflow: auto;
+}
+
+.network {
+	list-style: none;
+	padding: .5em 1.5em;
+	position: relative;
+}
+
+.network input[type="checkbox"] {
+	position: absolute; left: 0;
+}
+
+.network input[type="checkbox"]:not(:checked) ~ .item {
+	display: none;
+}
+
+.network:before {
+	content: attr(title);
+	font-weight: bold;
+	font-size: 1.1em;
+}
+
+.item {
+	display: flex;
+	list-style: none;
+	padding: .3em; margin: 0;
+}
+
+.item li {
+	width: 160px;
+}
+
+
+		</style>
+	<script>
+	
+function getNetwork (ip, mask) {
+	var ipArray = ip.split("."),
+		maskArray = mask.split("."),
+		length = ipArray.length;
+	
+	for (var i=0; i<length; i++) {
+		ipArray[i] = ipArray[i] & maskArray[i];
+	}
+	
+	return ipArray.join(".");
+}
+
+function createAddrItem(ip, mac) {
+	var ul = document.createElement("ul");
+	
+	ul.appendChild(document.createElement("li")).textContent = ip;
+	ul.appendChild(document.createElement("li")).textContent = mac;
+	
+	ul.className = "item";
+	
+	return ul;
+}
+
+	</script>
+	
+	</head>
+	
+	<body class="loading">
+	
+		<div class="content_width">
+			<ul id="list"></ul>
+		</div>
+		
+		<div class="bg_loading"></div>
+		
+		<script src="js/ITAhM.js"></script>
+		<script src="js/object.js"></script>
+		<script>
+
+if (top === window) {
+	location.href = "http://itahm.com";
+}
+
+var list = document.getElementById("list"),
+	documentFragment = document.createDocumentFragment(),
+	items = {};
+
+top.sendRequest({
+	command: "network"
+}, function (data){
+	var item;
+	
+	for (var network in data) {
+		item = document.createElement("li");
+		
+		item.title = network;
+		item.className = "network";
+		
+		item.appendChild(document.createElement("input")).type = "checkbox";
+		
+		items[network] = item;
+		
+		window.documentFragment.appendChild(item);
+	}
+	
+	top.sendRequest({
+		command: "arp"
+	}, function (data){
+		var address, item;
+		
+		for (var mac in data) {
+			address = data[mac];
+			
+			if (item = items[getNetwork(address.ip, address.mask)]) {
+				item.appendChild(createAddrItem(address.ip, mac));
+			}
+		}
+		
+		list.appendChild(window.documentFragment);
+		
+		document.body.classList.remove("loading");
+	});
+});
+
+		</script>
+	
+	</body>
+	
+</html>

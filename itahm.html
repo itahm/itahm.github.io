@@ -91,6 +91,14 @@ iframe[name="main"] {
 	color: #fff;
 }
 
+#signout:before {
+	content: attr(title);
+}
+
+#signout:hover:before {
+	content: "로그아웃";
+}
+
 #count {
 	width: 2em; height: 2em;
 	box-sizing: border-box;
@@ -121,6 +129,7 @@ body:not(.dialog) #dialog {
 				<ul>
 					<li><a href="dashboard.html" target="main">대쉬보드</a>
 					<li><a href="map.html" target="main">구성도</a>
+					<li><a href="ip.html" target="main">IP주소</a>
 					<li><a href="event.html" target="main">이벤트</a>
 				</ul>
 				<ul>
@@ -128,7 +137,7 @@ body:not(.dialog) #dialog {
 					<li><a href="icon.html" target="main">아이콘</a>
 					<li><a id="message">메세지</a>
 					<li><a id="reload">재시작</a>
-					<li><a id="signout">로그아웃</a>
+					<li><a id="signout"></a>
 				</ul>
 			</nav>
 		</header>
@@ -283,6 +292,8 @@ document.getElementById("signout").onclick = function () {
 				location.href = "http://itahm.com";
 			}
 		};
+		
+		document.getElementById("signout").title = sessionStorage.getItem("user");
 		
 		thread.postMessage("http://"+sessionStorage.host +":"+ sessionStorage.port);
 	}

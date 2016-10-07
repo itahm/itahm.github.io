@@ -70,7 +70,7 @@ if (window.device.shutdown) {
 		top.sendRequest({
 			command: "select",
 			ip: window.device.ip
-		}, function (response) {
+		}, function (response) {console.log(response);
 			statusWindow.onSelectResource = onSelectResource;
 			statusWindow.initialize(window.device, response);
 			

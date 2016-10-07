@@ -199,7 +199,20 @@ Array.prototype.fill = Array.prototype.fill || function (val) {
 			}
 			
 			return row.join("\n");
+		},
+		
+		getNetwork: function (ip, mask) {
+			var ipArray = ip.split("."),
+				maskArray = mask.split("."),
+				length = ipArray.length;
+			
+			for (var i=0; i<length; i++) {
+				ipArray[i] = ipArray[i] & maskArray[i];
+			}
+			
+			return ipArray[i].join(".");
 		}
+		
 	};
 	
 }) (window);
