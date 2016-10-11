@@ -51,17 +51,11 @@ iframe {
 				<div>
 					<h1>이벤트 로그</h1>
 					<h2 id="date">Date</h2>
-					<label>
-						<input type="radio" name="setting" id="log" value="log" checked>보기
-					</label>
-					<label>
-						<input type="radio" name="setting" id="critical" value="critical">설정
-					</label>
 				</div>
 				<div id="calendar"></div>
 			</header>
 			
-			<iframe></iframe>
+			<iframe src="log.html"></iframe>
 			
 		</div>
 		
@@ -77,44 +71,22 @@ if (top === window) {
 var iFrame = document.querySelector("iframe"),
 	date = document.getElementById("date");
 
-document.getElementById("log").onchange = onSelectMode;
-document.getElementById("critical").onchange = onSelectMode;
-
 top.clearLog();
 
-onSelectMode.call({value: "log"});
-
-function onSelectMode() {
-	switch(this.value) {
-	case "log":
-		iFrame.onload = onLoadLog.bind(iFrame, new Date().setHours(0, 0, 0, 0));
-		iFrame.src = "log.html";
-		
-		break;
-		
-	case "critical":
-		iFrame.onload = onLoadCritical;
-		iFrame.src = "critical.html";
-		
-		break;
-	}
+iFrame.onload = function () {
+	reset(new Date().setHours(0, 0, 0, 0));
 }
 
 new ITAhM.Calendar("calendar", function (date) {
-	document.getElementById("log").checked = true;
+	iFrame.onload = reset.bind(undefined, date.getTime());
 	
-	iFrame.onload = onLoadLog.bind(iFrame, date.getTime());
 	iFrame.src = "log.html";
 });
 
-function onLoadLog(mills) {
-	this.contentWindow.initialize(mills);
+function reset(mills) {
+	iFrame.contentWindow.initialize(mills);
 	
 	date.textContent = getDateString(mills);
-}
-
-function onLoadCritical() {
-	
 }
 
 function getDateString(mills) {

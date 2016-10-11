@@ -228,7 +228,7 @@ resize();
 
 sendRequest();
 
-setInterval(sendRequest, INTERVAL);
+window.schedule = setInterval(sendRequest, INTERVAL);
 
 function onResize() {
 	window.schedule = undefined;
@@ -277,7 +277,12 @@ function resize() {
 }
 
 function sendRequest() {
-	opener.top.sendRequest(request, onResponse);
+	try {
+		opener.top.sendRequest(request, onResponse);
+	}
+	catch (e) {
+		clearInterval(window.schedule);
+	}
 }
 
 function onRTResponse(response) {

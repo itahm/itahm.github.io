@@ -90,7 +90,8 @@ use.critical {
 }
 
 body.loading g,
-body:not(.snmp) #chart_anchor {
+body:not(.snmp) #chart_anchor,
+body:not(.snmp) #alarm_anchor {
 	display: none;
 }
 
@@ -103,10 +104,10 @@ body:not(.dialog) #dialog {
 #chart {
 	background-color: #fff;
 }
-
+/*
 body:not(.chart) #chart {
 	display: none;
-}
+}*/
 
 /* 공통 */
 .fullscreen {
@@ -148,6 +149,10 @@ body:not(.ifname) #line text {
 						<image xlink:href="img/svg/anchor.svg" id="link_anchor"
 							transform="translate(0, -34) translate(-8, -8)" width="16" height="16" cursor="pointer">
 							<title>이 앵커를 드래그하여 다른 장비와 연결합니다.</title>
+						</image>
+						<image xlink:href="img/svg/alarm.svg" id="alarm_anchor"
+							transform="translate(0, 34) translate(-8, -8)" width="16" height="16" cursor="pointer">
+							<title>성능의 임계값을 설정합니다.</title>
 						</image>
 					</g>
 				</g>
@@ -534,6 +539,7 @@ function clearSelectionMark() {
 		anchor = document.getElementById("anchor"),
 //		svgLink = document.getElementById("link_line"),
 		chartAnchor = document.getElementById("chart_anchor"),
+		alarmAnchor = document.getElementById("alarm_anchor"),
 		editAnchor = document.getElementById("edit_anchor"),
 		linkDrag = linkAnchor.transform.baseVal.getItem(0),
 		linkSVG = document.createElementNS(svgNS, "line"),
@@ -541,6 +547,12 @@ function clearSelectionMark() {
 		
 	chartAnchor.onclick = function (e) {
 		onShowChart(window.selected);
+		
+		e.stopPropagation();
+	};
+	
+	alarmAnchor.onclick = function (e) {
+		onShowAlarm(window.selected);
 		
 		e.stopPropagation();
 	};
@@ -713,6 +725,10 @@ function onEditDevice(ip) {
 
 //abstract
 function onShowChart(ip) {
+}
+
+//abstract
+function onShowAlarm(ip) {
 }
 
 resize();

@@ -21,6 +21,62 @@ body {
 	background-color: #fff;
 }
 
+ul {
+	list-style: none;
+	padding: 0; margin: 0;
+}
+
+.header {
+	padding: .5em 0;
+	border-bottom: 1px solid #aaa;
+}
+
+.header .item li {
+	font-weight: bold;
+	text-align: center;
+}
+
+.header .item li:last-child {
+	visibility: hidden;
+}
+
+.item ul {
+	display: flex;
+	cursor: pointer;
+	padding: .5em;
+	transition-duration: .3s;
+	height: 16px;
+}
+
+.item li {
+	flex: 1;
+}
+
+.item li:first-child {
+	flex: 3;
+}
+
+.item li:last-child {
+	flex: none;
+	width: 20px;
+	background: transparent url(img/remove.png) center no-repeat;
+	/*background-size: 20px;*/
+	cursor: pointer;
+}
+
+#list {
+	max-height: 120px;
+	overflow: auto;
+}
+
+#list .item li {
+	text-align: right;
+}
+
+#list .item li:first-child {
+	text-align: left;
+}
+
 input:not([type="checkbox"]),
 select {
 	width: 100%;
@@ -30,6 +86,11 @@ select {
 
 input[type="checkbox"] {
 	vertical-align: middle;
+}
+
+form {
+	border-top: 1px solid #ddd;
+	padding-top: 1em;
 }
 
 .table {
@@ -78,91 +139,30 @@ footer input {
 	display: none;
 }
 
-body:not(.removable) .remove {
+body:not(.authorized) form,
+body:not(.authorized) .item li:last-child {
 	display: none;
 }
 
 		</style>
-		
-	</head>
-	
-	<body>
-		
-		<div class="dialog dialog_width rounded">
-			<form autocomplete="off">
-				<h2>임계 설정</h2>
-				<div class="table">
-					<ul>
-						<li>IP 주소
-						<li>
-							<select name="ip" disabled required></select>
-					</ul>
-					<ul>
-						<li>대상 자원
-						<li>
-							<select name="resource" disabled required>
-								<option value="responseTime" selected>Response time
-								<option value="processor">Processor load
-								<option value="memory">Physical memory
-								<option value="storage">Storage usage
-								<option value="throughput">Interface throughput
-							</select>
-							<select name="index" disabled required></select>
-					</ul>
-					<ul>
-						<li>임계값(%)
-						<li class="critical">
-							<input name="limit" type="number" min="1" max="100" required>
-					</ul>
-				</div>
-				<label class="remove">
-					<input type="checkbox" name="remove" disabled>remove
-				</label>
-				<footer>
-					<input type="reset" class="r_button" value="cancel">
-					<input type="submit" class="r_button" value="apply" disabled>
-				</footer>
-			</form>
-		</div>
-		
-		<div class="bg_loading"></div>
-		
-		<div class="layout">
-			<select>
-				<option class="item">
-			</select>
-		</div>
-		
 		<script>
-
-if (top === window) {
-	throw "";
-}
-
-var form = document.querySelector("form"),
-	item = document.querySelector(".item");
-
-form.addEventListener("reset", onCancel);
-
-form.elements.ip.onchange = function () {
-	selectDevice(this.value);
+		
+function onRemove(resource, index, e) {
+	e.stopPropagation();
 	
-	form.elements.resource.disabled = false;
-	form.elements.index.disabled = false;
-};
-
-form.elements.resource.onchange = selectResource;
-
-if (sessionStorage.level == 0) {
-	form.addEventListener("submit", onApply);
-	document.querySelector("input[type=submit]").disabled = false;
+	if (confirm("이 설정을 삭제하겠습니까?")) {
+		var critical = top.databases.critical[window.ip];
+		
+		delete critical[resource][index];
+		
+		put();
+	}
 }
 
 function onApply(e) {
 	e.preventDefault();
 	
-	var ip = form.elements.ip.value,
-		critical = top.databases.critical[ip],
+	var critical = top.databases.critical[window.ip],
 		resource;
 	
 	if (!critical) {
@@ -184,73 +184,80 @@ function onApply(e) {
 	}
 	
 	put();
-};
-
-function onRemove(e) {
-	if (confirm("이 설정을 삭제하겠습니까?")) {
-		var critical = top.databases.critical[form.elements.ip.value];
-		
-		delete critical[form.elements.resource.value][window.selectedIndex];
-		
-		put();
-	}
-}
-
-function put() {
-	var ip = form.elements.ip.value;
-	
-	document.body.classList.add("loading");
-	
-	top.sendRequest({
-			command: "put",
-			database: "critical",
-			key: ip,
-			value: top.databases.critical[ip]
-		}, function (data) {
-			top.databases.critical = data;
-			setTimeout(function () {
-				top.closeDialog();
-			}, 1000)
-		});
 }
 
 function onCancel(e) {
 	top.closeDialog(true);
 }
 
-function selectResource() {
-	var resource = form.elements.resource.value;
+function put() {
+	document.body.classList.add("loading");
+	
+	top.sendRequest({
+			command: "put",
+			database: "critical",
+			key: window.ip,
+			value: top.databases.critical[window.ip]
+		}, function (data) {
+			top.databases.critical = data;
+			
+			window.location.reload();
+		});
+}
+
+function onSelectResource() {
+	var resource = form.elements.resource.value,
+		selectedIndex = -1;
 	
 	form.elements.index.length = 0;
 	
-	if (resource === "responseTime") {
-		form.elements.index.appendChild(createItem(0, "Response time"));
-		form.elements.index.value = 0;
-	}
-	else if (resource === "processor") {
-		var entry = window.snmp["hrProcessorEntry"];
+	form.elements.index.disabled = false;
+	
+	switch(resource) {
+	case "responseTime":
+		form.elements.index.appendChild(createOption(0, "N/A"));
+		form.elements.index.disabled = true;
 		
-		for (var index in entry) {
-			form.elements.index.appendChild(createItem(index, "Processor "+ index));
+		selectedIndex = 0;
+		
+		break;
+	case "processor":
+		for (var index in window.snmp["hrProcessorEntry"]) {
+			form.elements.index.appendChild(createOption(index, "Processor "+ index));
 		}
-	}
-	else if (resource === "memory" || resource === "storage") {
+		
+		break;
+	case "memory":
 		var entry = window.snmp["hrStorageEntry"],
 			storage;
 		
 		for (var index in entry) {
 			storage = entry[index];
 			
-			if (storage.hrStorageType === 2 && resource === "memory") {
-				form.elements.index.appendChild(createItem(index, storage.hrStorageDescr));
+			if (storage.hrStorageType === 2) {
+				form.elements.index.appendChild(createOption(index, "N/A"));
 				form.elements.index.value = index;
-			}
-			else if(storage.hrStorageType === 4 && resource === "storage") {
-				form.elements.index.appendChild(createItem(index, storage.hrStorageDescr));
+				form.elements.index.disabled = true;
 			}
 		}
-	}
-	else if (resource === "throughput") {
+		
+		selectedIndex = 0;
+		
+		break;
+	case "storage":
+		var entry = window.snmp["hrStorageEntry"],
+			storage;
+		
+		for (var index in entry) {
+			storage = entry[index];
+			
+			if(storage.hrStorageType === 4) {
+				form.elements.index.appendChild(createOption(index, storage.hrStorageDescr));
+			}
+		}
+	
+		break;
+	case "throughput":
 		var entry = window.snmp["ifEntry"],
 			throughput;
 		
@@ -258,29 +265,19 @@ function selectResource() {
 			throughput = entry[index];
 			
 			if (throughput.ifSpeed !== 0) {
-				form.elements.index.appendChild(createItem(index, throughput.ifName));
+				form.elements.index.appendChild(createOption(index, throughput.ifName));
 			}
 		}
+	
+		break;
 	}
 	
-	if (window.selectedIndex) {
-		form.elements.index.value = window.selectedIndex;
-	}
+	window.form.elements.index.selectedIndex = selectedIndex;
+	window.form.elements.limit.value = "";
 }
 
-function selectDevice(ip) {
-	top.sendRequest({
-		command: "select",
-		ip: ip
-	}, function (response) {
-		window.snmp = response;
-		
-		selectResource();
-	});
-}
-
-function createItem(value, text) {
-	var clone = window.item.cloneNode(true);
+function createOption(value, text) {
+	var clone = window.option.cloneNode(true);
 	
 	clone.value = value;
 	clone.text = text;
@@ -288,35 +285,151 @@ function createItem(value, text) {
 	return clone;
 }
 
-function initialize(ip, resource, index, limit) {
-	if (ip) {
-		window.critical = top.databases.critical[ip];
-		
-		form.elements.ip.appendChild(createItem(ip, ip));
-		
-		if (sessionStorage.level == 0) {
-			form.elements.remove.onclick = onRemove;
-			form.elements.remove.disabled = false;
-		}
-		
-		form.elements.resource.value = resource;
-		form.elements.limit.value = limit;
-		
-		window.selectedIndex = index;
-		
-		selectDevice(ip);
-		
-		document.body.classList.add("removable");
+function createItem(resource, index, critical) {
+	var clone = window.item.cloneNode(true),
+		item = clone.children[0];
+	
+	item.children[0].textContent = resourceString[resource];
+	item.children[1].textContent = index;
+	item.children[2].textContent = critical.limit;
+	item.children[3].onclick = onRemove.bind(undefined, resource, index);
+	
+	clone.onclick = onSelectCritical.bind(undefined, resource, index, critical.limit);
+	
+	if (critical.description) {
+		item.title = critical.description;
 	}
-	else {
-		for (var ip in top.databases.snmp) {
-			form.elements.ip.appendChild((createItem(ip, ip)));
-		}
+	
+	return clone;
+}
+
+function onSelectCritical(resource, index, limit) {
+	window.form.elements.resource.value = resource;
+	
+	onSelectResource();
+	
+	window.form.elements.index.value = index;
+	window.form.elements.limit.value = limit;
+}
+
+		</script>
+	</head>
+	
+	<body class="loading">
 		
-		form.elements.ip.disabled = false;
-		form.elements.ip.selectedIndex = -1;
+		<div class="dialog dialog_width rounded">
+			<h2>임계 설정</h2>
+		
+			<ul class="header">
+				<li class="item">
+				<ul>
+					<li class="resource">성능지표
+					<li class="index">구분
+					<li class="limit">임계값(%)
+					<li title="삭제">
+				</ul>
+			</ul>
+		
+			<ul id="list"></ul>
+			
+			<form autocomplete="off">
+				<div class="table">
+					<ul>
+						<li>성능 지표
+						<li>
+							<select name="resource" required>
+								<option value="responseTime" selected>Response time
+								<option value="processor">Processor load
+								<option value="memory">Physical memory
+								<option value="storage">Storage usage
+								<option value="throughput">Interface throughput
+							</select>
+					</ul>
+					<ul>
+						<li>구분
+						<li>
+							<select name="index" required></select>
+					</ul>
+					<ul>
+						<li>임계값(%)
+						<li class="critical">
+							<input name="limit" type="number" min="1" max="100" required>
+					</ul>
+				</div>
+				<footer>
+					<input type="reset" class="r_button" value="cancel">
+					<input type="submit" class="r_button" value="apply" disabled>
+				</footer>
+			</form>
+		</div>
+		
+		<div class="bg_loading"></div>
+		
+		<div class="layout">
+			<select>
+				<option class="option">
+			</select>
+		</div>
+		
+		<script>
+
+if (top === window) {
+	throw "";
+}
+
+var resourceString = {
+		"responseTime": "Rosponse time",
+		"processor": "Processor load",
+		"memory": "Physical memory",
+		"storage": "Storage usage",
+		"throughput": "Interface throughput"
+	};
+
+var form = document.querySelector("form"),
+	item = document.querySelector(".item"),
+	option = document.querySelector(".option");
+
+form.addEventListener("reset", onCancel);
+
+if (sessionStorage.level == 0) {
+	document.body.classList.add("authorized");
+	
+	form.elements.resource.onchange = onSelectResource;
+	
+	form.onsubmit = onApply;
+
+	document.querySelector("input[type=submit]").disabled = false;
+}
+
+
+window.ip = top.databases.local.selected;
+
+window.critical = top.databases.critical[window.ip];
+
+form.elements.resource.selectedIndex = -1;
+
+var list = document.getElementById("list"),
+	df = document.createDocumentFragment(),
+	criticalResource, limit;
+
+for (var resource in critical) {
+	criticalResource = critical[resource];
+	
+	for (var index in criticalResource) {
+		df.appendChild(createItem(resource, index, criticalResource[index]));
 	}
 }
+
+list.appendChild(df);
+
+top.sendRequest({
+	command: "select",
+	ip: ip
+}, function (response) {
+	window.snmp = response;
+	
+	document.body.classList.remove("loading");
+});
 
 		</script>
 	

@@ -39,7 +39,7 @@ body.shutdown #shutdown {
 
 	<body class="loading">
 		<header>
-			<h1><span id="host"></span><span id="shutdown"> (No response.)</span></h1>
+			<h1><span id="host"></span><span id="shutdown"> (응답 없음.)</span></h1>
 		</header>
 		<iframe src="status_base.html" id="status"></iframe>
 		
@@ -58,7 +58,7 @@ window.device = top.databases.device[deviceIP];
 
 document.getElementById("host").textContent = deviceIP;
 
-if (window.device.shutdown) {
+if (top.databases.snmp[deviceIP].shutdown) {
 	document.body.classList.add("shutdown");
 }
 
@@ -70,7 +70,7 @@ if (window.device.shutdown) {
 		top.sendRequest({
 			command: "select",
 			ip: window.device.ip
-		}, function (response) {console.log(response);
+		}, function (response) {
 			statusWindow.onSelectResource = onSelectResource;
 			statusWindow.initialize(window.device, response);
 			

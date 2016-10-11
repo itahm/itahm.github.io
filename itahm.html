@@ -19,27 +19,21 @@ header {
 	/*font-weight: bold;*/
 }
 
-header li {
-	margin: 0 16px;
-}
-
 header a,
 header a:visited,
 header a:link,
 header a:active,
 header a:hover {
-	color: #fff;
+	color: inherit;
 	text-decoration: none;
 	cursor: pointer;
-}
-
-header a:hover {
-	text-decoration: underline;
+	display: inline-block;
+	height: 100%;
 }
 
 nav {
 	display: flex;
-	align-items: flex-end;
+	align-items: center;
 	justify-content: space-between;
 }
 
@@ -49,15 +43,22 @@ nav ul {
 	display: flex;
 }
 
-nav ul:first-child {
-	justify-content: flex-start;
-	font-weight: bold;
-	font-size: 1.2em;
+nav h1 {
+	color: #fff;
+	font-size: 18px;
 	text-shadow: 1px 1px 1px #000;
+	padding: .2em 1em;
+	border-radius: .7em;
 }
 
-nav ul:list-child {
-	justify-content: flex-end;
+nav h1:hover {
+	color: #4d525a;
+	text-shadow: none;
+	background-color: #fff;
+}
+
+nav ul:last-child li {
+	margin: 5px;
 }
 
 section {
@@ -127,10 +128,10 @@ body:not(.dialog) #dialog {
 		<header>
 			<nav class="content_width">
 				<ul>
-					<li><a href="dashboard.html" target="main">대쉬보드</a>
-					<li><a href="map.html" target="main">구성도</a>
-					<li><a href="ip.html" target="main">IP주소</a>
-					<li><a href="event.html" target="main">이벤트</a>
+					<li><h1><a href="dashboard.html" target="main">대쉬보드</a></h1>
+					<li><h1><a href="map.html" target="main">구성도</a></h1>
+					<li><h1><a href="ip.html" target="main">IP주소</a></h1>
+					<li><h1><a href="event.html" target="main">이벤트</a></h1>
 				</ul>
 				<ul>
 					<li><a href="setting.html" target="main">설정</a>
@@ -201,32 +202,18 @@ document.getElementById("signout").onclick = function () {
 					onResponse(response);
 				}
 				else {
-					if (window.closed) {
-						return;
-					}
-					
-					window.closed = true;
-					
 					if (status === 401) {
-						alert("세션이 만료되었습니다.");
+						notifyError("세션이 만료되었습니다.");
 					}
 					else if (status === 409) { // conflict
-						alert("다른 관리자 계정이 데이터베이스를 수정하였습니다.");
-					
-						return;
+						notifyError("다른 관리자 계정이 데이터베이스를 수정하였습니다.");
 					}
 					else if (status === 400) {
-						alert("잘못된 요청입니다.\n"+ response.error);
-						
-						return;
+						notifyError("잘못된 요청입니다.\n"+ response.error);
 					}
 					else {
-						alert("에이전트가 응답하지 않습니다.");
+						notifyError("에이전트가 응답하지 않습니다.");
 					}
-					
-					window.onbeforeunload = undefined;
-					
-					location.href = "connect.html";
 				}
 			});
 		}
@@ -302,6 +289,18 @@ document.getElementById("signout").onclick = function () {
 	}
 	
 }) (window);
+
+function notifyError(error) {
+	if (window.closed) {
+		return;
+	}
+	
+	window.closed = true;
+	
+	window.onbeforeunload = undefined;
+	
+	location.href = "connect.html";
+}
 
 // dialog
 function onLoad(handler) {

@@ -54,7 +54,7 @@ body {
 		</style>
 	<script>
 	
-function getNetwork (ip, mask) {
+function getNetwork(ip, mask) {
 	var ipArray = ip.split("."),
 		maskArray = mask.split("."),
 		length = ipArray.length;
@@ -66,6 +66,41 @@ function getNetwork (ip, mask) {
 	return ipArray.join(".");
 }
 
+function getMask(mask) {
+	var maskArray = mask.split("."),
+		address = 0,
+		bits = 0;
+	
+	while(maskArray.length > 0) {
+		address <<= 8;
+		address |= maskArray.shift();
+	}
+	
+	while (!(address & 1)) {
+		address >>>= 1;
+	}
+	
+	while (address & 1) {
+		address >>>= 1;
+		
+		bits++;
+	}
+	
+	return bits;
+}
+
+function getAddressValue(ip) {
+	var ipArray = ip.split("."),
+		value = 0;
+
+	while(ipArray.length > 0) {
+		value <<= 8;
+		value |= ipArray.shift();
+	}
+	
+	return value;
+}
+
 function createAddrItem(ip, mac) {
 	var ul = document.createElement("ul");
 	
@@ -75,6 +110,33 @@ function createAddrItem(ip, mac) {
 	ul.className = "item";
 	
 	return ul;
+}
+
+function onSelectNetwork() {
+	if (!this.checked) {
+		return;
+	}
+	
+	var item = this,
+		itemArray = [],
+		df = document.createDocumentFragment(),
+		count = 0;
+	
+	while (item = item.nextSibling) {
+		itemArray.push(item);
+		
+		count++;
+	}
+	
+	itemArray.sort(function (a, b) {
+		return getAddressValue(a.firstChild.textContent) - getAddressValue(b.firstChild.textContent);
+	});
+	
+	for (var i=0; i<count; i++) {
+		df.appendChild(itemArray[i]);
+	}
+	
+	this.parentNode.appendChild(df);
 }
 
 	</script>
@@ -104,15 +166,18 @@ var list = document.getElementById("list"),
 top.sendRequest({
 	command: "network"
 }, function (data){
-	var item;
+	var item, checkbox;
 	
 	for (var network in data) {
 		item = document.createElement("li");
 		
-		item.title = network;
+		item.title = network +" /"+ getMask(data[network]);
 		item.className = "network";
 		
-		item.appendChild(document.createElement("input")).type = "checkbox";
+		checkbox = document.createElement("input");
+		
+		item.appendChild(checkbox).type = "checkbox";
+		checkbox.onclick = onSelectNetwork;
 		
 		items[network] = item;
 		
@@ -126,9 +191,12 @@ top.sendRequest({
 		
 		for (var mac in data) {
 			address = data[mac];
-			
-			if (item = items[getNetwork(address.ip, address.mask)]) {
-				item.appendChild(createAddrItem(address.ip, mac));
+			try {
+				if (item = items[getNetwork(address.ip, address.mask)]) {
+					item.appendChild(createAddrItem(address.ip, mac));
+				}
+			} catch (e) {
+				console.log(address);
 			}
 		}
 		

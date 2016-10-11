@@ -73,6 +73,11 @@ ITAhM.iconData = {
         "src": "img/svg/accesspoint.svg",
         "disabled": "img/svg/disabled/accesspoint.svg"
     },
+    "printer": {
+    	group: "etc",
+    	src: "img/svg/printer.svg",
+    	disabled: "img/svg/disabled/printer.svg"
+    },
     "office": {
         "group": "etc",
         "src": "img/svg/office.svg",

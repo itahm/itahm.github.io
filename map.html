@@ -257,6 +257,12 @@ window.map.onload = function () {
 		window.location.href = "status.html";
 	}
 	
+	mapWindow.onShowAlarm = function (ip){
+		window.top.databases.local.selected = ip;
+		
+		window.top.showDialog("critical_dialog.html");
+	}
+	
 	mapWindow.zoom(scale = window.top.databases.local.scale);
 	
 	mapWindow.initialize();
