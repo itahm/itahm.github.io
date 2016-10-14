@@ -153,11 +153,11 @@ var ip = opener.top.databases.local.selected,
 	};
 
 window.addEventListener("resize", function() {
-	if (window.schedule) {
-		clearTimeout(window.schedule);
+	if (window.timeout) {
+		clearTimeout(window.timeout);
 	}
 	
-	window.schedule = setTimeout(onResize, 500);
+	window.timeout = setTimeout(onResize, 500);
 });
 
 document.getElementById("ip").textContent = ip;
