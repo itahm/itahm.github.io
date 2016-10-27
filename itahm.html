@@ -244,8 +244,7 @@ document.getElementById("signout").onclick = function () {
 					break;
 					
 				case "event":
-					var eventData = event.value,
-						snmpData = window.databases.snmp;
+					var eventData = event.value;
 					
 					window.logCount++;
 					
@@ -256,10 +255,10 @@ document.getElementById("signout").onclick = function () {
 					
 					sendRequest({
 							command: "pull",
-							database: "snmp"
+							database: "monitor"
 						}
 						, function (data) {
-							window.databases.snmp = data;
+							window.databases.monitor = data;
 							
 							if (window.mapWindow) {
 								window.mapWindow.resetDevice(eventData.ip, true);

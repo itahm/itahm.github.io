@@ -90,8 +90,8 @@ use.critical {
 }
 
 body.loading g,
-body:not(.snmp) #chart_anchor,
-body:not(.snmp) #alarm_anchor {
+#anchor:not(.snmp) #chart_anchor,
+#anchor:not(.snmp) #alarm_anchor {
 	display: none;
 }
 
@@ -173,7 +173,7 @@ var mapCanvas = document.getElementById("map"),
 	lineCanvas = document.getElementById("line"),
 	deviceData = top.databases.device,
 	posData = top.databases.position,
-	snmpData = top.databases.snmp,
+	monitorData = top.databases.monitor,
 	selectionMark = document.getElementById("selection_mark"),
 	linkAnchor = document.getElementById("link_anchor"),
 	transform = document.getElementById("transform").transform.baseVal,
@@ -338,7 +338,7 @@ function selectDevice(ip) {
 		
 		window.selected = ip;
 		
-		showSelectionMark(pos.x, pos.y, window.snmpData[ip]);
+		showSelectionMark(pos.x, pos.y, window.monitorData[ip]);
 		
 		topDevice(window.iconData[ip]);
 	}
@@ -425,15 +425,15 @@ function resetDevice(ip, reset) {
 		svgAlert = window.alertData[ip],
 		pos = window.posData[ip],
 		icon = getIcon(device.type || "unknown"),
-		snmp;
+		monitor;
 	
 	if (reset) {
-		window.snmpData = top.databases.snmp;
+		window.monitorData = top.databases.monitor;
 	}
 	
-	snmp = window.snmpData[ip];
+	monitor = window.monitorData[ip];
 	
-	if (!snmp) {
+	if (!monitor) {
 		svgDevice.setAttributeNS(xlinkNS, "xlink:href", icon.disabled);
 		
 		return;
@@ -441,7 +441,7 @@ function resetDevice(ip, reset) {
 	
 	svgDevice.setAttributeNS(xlinkNS, "xlink:href", icon.src);
 	
-	if (snmp.shutdown || snmp.critical) {
+	if (monitor.shutdown || monitor.critical) {
 		if (!svgAlert) {
 			svgAlert = document.createElementNS(svgNS, "use");
 			
@@ -454,7 +454,7 @@ function resetDevice(ip, reset) {
 			window.alertData[ip] = svgAlert;
 		}
 		
-		svgAlert.setAttributeNS(null, "class", snmp.shutdown? "shutdown": "critical");
+		svgAlert.setAttributeNS(null, "class", monitor.shutdown? "shutdown": "critical");
 	}
 	else {
 		if (svgAlert) {
@@ -517,10 +517,10 @@ function moveSelectionMark(x, y) {
 	moveAnchor(x, y);
 }
 
-function showSelectionMark(x, y, snmp) {
+function showSelectionMark(x, y, monitor) {
 	window.deviceCanvas.appendChild(window.selectionMark);
 	
-	showTool(x, y, snmp);
+	showTool(x, y, monitor);
 	
 	moveSelectionMark(x, y);
 }
@@ -567,8 +567,8 @@ function clearSelectionMark() {
 		this.setTranslate(x, y);
 	}.bind(anchor.transform.baseVal.getItem(0));
 	
-	window.showTool = function (x, y, chart) {
-		document.body.classList[chart? "add": "remove"]("snmp");
+	window.showTool = function (x, y, monitor) {
+		anchor.setAttributeNS(null, "class", monitor? monitor.protocol: "none");
 		
 		toolCanvas.appendChild(anchor);
 		

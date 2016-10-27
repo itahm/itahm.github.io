@@ -393,9 +393,9 @@ var summaryList = document.getElementById("summary_list"),
 
 (function () {
 	var deviceData = top.databases.device,
-		snmpData = top.databases.snmp,
+		monitorData = top.databases.monitor,
 		df = document.createDocumentFragment(),
-		snmp,
+		monitor,
 		shutdown = 0,
 		critical = 0,
 		normal = 0,
@@ -404,9 +404,9 @@ var summaryList = document.getElementById("summary_list"),
 	
 	for (var ip in deviceData) {
 		device = deviceData[ip];
-		snmp = snmpData[ip];
+		monitor = monitorData[ip];
 	
-		if (!snmp) {
+		if (!monitor) {
 			continue;
 		}
 		
@@ -422,10 +422,10 @@ var summaryList = document.getElementById("summary_list"),
 					}
 				}
 				
-				if (snmp.shutdown) {
+				if (monitor.shutdown) {
 					labeled[labels[i]].shutdown++;
 				}
-				else if (snmp.critical) {
+				else if (monitor.critical) {
 					labeled[labels[i]].critical++;
 				}
 				else {
@@ -434,10 +434,10 @@ var summaryList = document.getElementById("summary_list"),
 			}
 		}
 		
-		if (snmp.shutdown) {
+		if (monitor.shutdown) {
 			shutdown++;
 		}
-		else if (snmp.critical) {
+		else if (monitor.critical) {
 			critical++;
 		}
 		else {

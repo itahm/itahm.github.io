@@ -121,9 +121,7 @@ window.cursor.onload = function () {
  * public
  */
 function onSelectDevice(ip) {
-	var snmp = top.databases.snmp[ip];
-	
-	if (snmp) {
+	if (top.databases.monitor[ip]) {
 		top.databases.local.selected = ip;
 	
 		top.sendRequest({

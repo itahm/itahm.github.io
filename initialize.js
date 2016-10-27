@@ -1,7 +1,7 @@
 "use strict" ;
 
 var url,
-	requestQ = ["icon", "profile", "account", "device", "position", "snmp", "critical"],
+	requestQ = ["icon", "profile", "account", "device", "position", "monitor", "critical"],
 	event = {
 		command: "listen"
 	},

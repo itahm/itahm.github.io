@@ -508,11 +508,12 @@ body:not(.throughput) .resource.throughput {
 			initIFace(entry[index], index)
 		}
 		
-		if (top.databases.snmp[device.ip].shutdown) {
+		if (top.databases.monitor[device.ip].shutdown) {
 			var status = document.getElementById("status");
-			console.log(snmp);
+			
 			status.textContent
 				= "Last response "+ new Date(snmp.lastResponse).toLocaleString();
+			
 			status.className = "down";
 		}
 		

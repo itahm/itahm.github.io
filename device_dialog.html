@@ -58,10 +58,7 @@ input[type="checkbox"] {
 	vertical-align: middle;
 }
 
-#snmp[disabled] ~span {
-	color: #aaa;
-}
-
+/*
 .address {
 	display: flex;
 	align-items: flex-end;
@@ -75,17 +72,18 @@ input[type="checkbox"] {
 	text-align: right;
 }
 
-#profile:hover {
-	cursor: default;
-	text-decoration: underline;
-}
-
 input[name="snmp"] +span:after {
 	content: "수집하지 않음";
 }
 
 input[name="snmp"]:checked +span:after {
 	content: "수집중";
+}
+
+*/
+#profile:hover {
+	cursor: default;
+	text-decoration: underline;
 }
 
 footer {
@@ -98,7 +96,7 @@ footer input {
 	padding: .5em;
 }
 
-body:not(.snmp) .snmp {
+body:not(.monitor) .monitor {
 	display: none;
 }
 
@@ -117,11 +115,13 @@ body:not(.removable) .remove {
 			<div class="table">
 				<ul>
 					<li>ip 주소
-					<li class="address">
+					<li>
+						<input type="text" pattern="^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$" required id="ip" autofocus>
+					<!--li class="address">
 						<span><input type="text" pattern="25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?" title="0 ~ 255" required id="ip1" autofocus></span>.
 						<span><input type="text" pattern="25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?" title="0 ~ 255" required id="ip2"></span>.
 						<span><input type="text" pattern="25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?" title="0 ~ 255" required id="ip3"></span>.
-						<span><input type="text" pattern="25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?" title="0 ~ 255" required id="ip4"></span>
+						<span><input type="text" pattern="25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?" title="0 ~ 255" required id="ip4"></span-->
 				</ul>
 				<ul>
 					<li>이름
@@ -140,13 +140,18 @@ body:not(.removable) .remove {
 						<input type="text" name="label" placeholder="separated by commas">
 					
 				</ul>
-				<ul class="snmp">
-					<li>snmp
+				<ul class="monitor">
+					<li>모니터링<!--snmp-->
 					<li>
-						<label>
+						<select name="monitor">
+							<option value="none" selected>없음
+							<option value="icmp">ICMP
+							<option value="snmp">SNMP
+						</select>
+						<!--label>
 							<input type="checkbox" name="snmp">
 							<span></span>
-						</label>
+						</label-->
 					
 				</ul>
 				<label class="remove">
@@ -165,182 +170,179 @@ body:not(.removable) .remove {
 
 if (window === top) throw "";
 
-var form = document.querySelector("form");
+var form = document.querySelector("form"),
+	monitor = "none";
+
+form.elements.type.appendChild(buildType());
+
+form.addEventListener("reset", onCancel);
+
+if (sessionStorage.level == 0) {
+	form.addEventListener("submit", onApply);
+}
+else {
+	document.querySelector("input[type=submit]").disabled = true;
+}
+
+function buildType() {
+	var df = document.createDocumentFragment(),
+		groupName, optgroup, option,
+		typeData = {},
+		group = {},
+		icon, iconData, type;
 	
-(function (window, undefined){
-	form.elements.type.appendChild(buildType());
-	
-	form.addEventListener("reset", onCancel);
-	
-	if (sessionStorage.level == 0) {
-		form.addEventListener("submit", onApply);
-	}
-	else {
-		document.querySelector("input[type=submit]").disabled = true;
-	}
-	
-	function buildType() {
-		var df = document.createDocumentFragment(),
-			groupName, optgroup, option,
-			typeData = {},
-			group = {},
-			icon, iconData, type;
-		
-		iconData = top.databases.local.icon;
-		for (type in iconData) {
-			typeData[type] = iconData[type];
-		}
-		
-		iconData = top.databases.icon;
-		for (type in iconData) {
-			typeData[type] = iconData[type];
-		}
-		
-		for (type in typeData) {
-			icon = typeData[type];
-			
-			groupName = icon.group;
-			
-			optgroup = group[groupName];
-			
-			if (!optgroup) {
-				optgroup = document.createElement("optgroup");
-				optgroup.label = groupName;
-				
-				group[groupName] = optgroup;
-				
-				df.appendChild(optgroup);
-			}
-			
-			optgroup.appendChild(document.createElement("option")).text = type;
-		}
-		
-		return df;
+	iconData = top.databases.local.icon;
+	for (type in iconData) {
+		typeData[type] = iconData[type];
 	}
 	
-	function onApply(e) {
-		e.preventDefault();
+	iconData = top.databases.icon;
+	for (type in iconData) {
+		typeData[type] = iconData[type];
+	}
+	
+	for (type in typeData) {
+		icon = typeData[type];
 		
-		var ip = [form.elements.ip1.value, form.elements.ip2.value, form.elements.ip3.value, form.elements.ip4.value].join(".");
+		groupName = icon.group;
 		
-		if (!window.device) {
-			if (ip in top.databases.device) {
-				alert("IP address already exists.");
-				
-				form.elements.ip1.select();
-				
-				return;
-			}
+		optgroup = group[groupName];
+		
+		if (!optgroup) {
+			optgroup = document.createElement("optgroup");
+			optgroup.label = groupName;
 			
-			window.device = {
-				ifEntry: {}
-			};
+			group[groupName] = optgroup;
 			
-			// 추가인 경우 position 정보는 갱신되지 않으므로 임의로 넣어준다.
-			top.databases.position[ip] = {
-				x: 0, y: 0
-			};
-			
+			df.appendChild(optgroup);
 		}
 		
-		window.device.name = form.elements.name.value;
-		window.device.ip = ip;
-		window.device.type = form.elements.type.value;
-		window.device.label = form.elements.label.value.split(",").map(function (value) {
-			return value.trim();
-		}).join(",");
+		optgroup.appendChild(document.createElement("option")).text = type;
+	}
 	
+	return df;
+}
+
+function onApply(e) {
+	e.preventDefault();
+	
+	var ip = //[form.elements.ip1.value, form.elements.ip2.value, form.elements.ip3.value, form.elements.ip4.value].join(".");
+		form.elements.ip.value;
+	if (!window.device) {
+		if (ip in top.databases.device) {
+			alert("IP address already exists.");
+			
+			//form.elements.ip1.select();
+			form.elements.ip.select();
+			
+			return;
+		}
+		
+		window.device = {
+			ifEntry: {}
+		};
+		
+		// 추가인 경우 position 정보는 갱신되지 않으므로 임의로 넣어준다.
+		top.databases.position[ip] = {
+			x: 0, y: 0
+		};
+		
+	}
+	
+	window.device.name = form.elements.name.value;
+	window.device.ip = ip;
+	window.device.type = form.elements.type.value;
+	window.device.label = form.elements.label.value.split(",").map(function (value) {
+		return value.trim();
+	}).join(",");
+
+	top.sendRequest({
+			command: "put",
+			database: "device",
+			key: ip,
+			value: window.device
+		}, function (data) {
+			top.databases.device = data;
+			
+			top.closeDialog();
+		});
+}
+
+function onCancel(e) {
+	top.closeDialog(true);
+}
+
+function onRemoveDevice() {
+	if (confirm("삭제하겠습니까?")) {
 		top.sendRequest({
 				command: "put",
 				database: "device",
-				key: ip,
-				value: window.device
+				key: window.device.ip,
+				value: null
 			}, function (data) {
 				top.databases.device = data;
+				
+				delete top.databases.monitor[window.device.ip];
+				delete top.databases.position[window.device.ip];
 				
 				top.closeDialog();
 			});
 	}
-	
-	function onCancel(e) {
-		top.closeDialog(true);
-	}
-	
-	function onRemoveDevice() {
-		if (confirm("삭제하겠습니까?")) {
-			top.sendRequest({
-					command: "put",
-					database: "device",
-					key: window.device.ip,
-					value: null
-				}, function (data) {
-					top.databases.device = data;
-					
-					delete top.databases.snmp[window.device.ip];
-					delete top.databases.position[window.device.ip];
-					
-					top.closeDialog();
-				});
-		}
-	}
-	
-	function onEnableDevice(e) {
-		var msg = this.checked? "SNMP 정보를 수집하겠습니까?": "SNMP 정보 수집을 중지 하겠습니까?";
-		
-		if (confirm(msg)) {
-			top.sendRequest({
-					command: "put",
-					database: "snmp",
-					key: window.device.ip,
-					value: this.checked? {}: null
-				}, function (data) {
-					top.databases.snmp = data;
-					
-					top.closeDialog();
-				});
-		}
-		else {
-			e.preventDefault();
-		}
-	}
-	
-	window.initialize = function (ip) {	
-		if (ip) {
-			window.device = top.databases.device[ip];
-			
-			form.elements.name.value = device.name || "";
-			
-			var ipArray = device.ip.split(".");
-			
-			form.elements.ip1.value = ipArray[0];
-			form.elements.ip1.disabled = true;
-			form.elements.ip2.value = ipArray[1];
-			form.elements.ip2.disabled = true;
-			form.elements.ip3.value = ipArray[2];
-			form.elements.ip3.disabled = true;
-			form.elements.ip4.value = ipArray[3];
-			form.elements.ip4.disabled = true;
-			
-			if (sessionStorage.level == 0) {
-				document.body.classList.add("removable");
-				form.elements.remove.onclick = onRemoveDevice;
-				
-				document.body.classList.add("snmp");	
-				form.elements.snmp.onclick = onEnableDevice;
-				form.elements.snmp.checked = top.databases.snmp[ip]? true: false;
-			}
-			
-			form.elements.type.value = device.type;
-			// 저장할때는 trim으로 다 붙여서 넣지만 보여줄때는 보기 좋게 한칸씩 띈다.
-			form.elements.label.value = device.label && (device.label.split(",")).join(", ") || "";
-		}
-		else {
-			form.elements.type.selectedIndex = -1;
-		}
-	};
-	
-}) (window);
+}
 
+function onMonitorDevice(e) {
+	if (!confirm("모니터 설정을 변경하시겠습니까?")) {
+		this.value = window.monitor;
+		
+		return;
+	}
+	
+	top.sendRequest({
+		command: "put",
+		database: "monitor",
+		key: window.device.ip,
+		value: this.value === "none"? null: {
+			protocol: this.value
+		}
+	}, function (data) {
+		top.databases.monitor = data;
+		
+		top.closeDialog();
+	});
+}
+
+window.initialize = function (ip) {	
+	if (ip) {
+		window.device = top.databases.device[ip];
+		
+		form.elements.name.value = device.name || "";
+		
+		form.elements.ip.value = ip;
+		form.elements.ip.disabled = true;
+		form.elements.type.value = device.type;
+		// 저장할때는 trim으로 다 붙여서 넣지만 보여줄때는 보기 좋게 한칸씩 띈다.
+		form.elements.label.value = device.label && (device.label.split(",")).join(", ") || "";
+		
+		var monitor = top.databases.monitor[ip];
+		
+		form.elements.monitor.value = monitor? monitor.protocol: "none";
+		
+		document.body.classList.add("monitor");
+		
+		if (sessionStorage.level == 0) {
+			document.body.classList.add("removable");
+			form.elements.remove.onclick = onRemoveDevice;
+			
+			form.elements.monitor.onchange = onMonitorDevice;
+			form.elements.monitor.onclick = function () {
+				window.monitor = this.value;
+			}
+		}
+	}
+	else {
+		form.elements.type.selectedIndex = -1;
+	}
+};
 		</script>
 	
 	</body>

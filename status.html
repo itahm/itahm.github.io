@@ -59,7 +59,7 @@ window.device = top.databases.device[deviceIP];
 
 document.getElementById("host").textContent = deviceIP;
 
-if (top.databases.snmp[deviceIP].shutdown) {
+if (top.databases.monitor[deviceIP].shutdown) {
 	document.body.classList.add("shutdown");
 }
 
@@ -90,7 +90,7 @@ function onSelectResource(resource, index) {
 	location.href = "chart.html";
 }
 
-function onSelectDevice(ip) {
+function onSelectDevice(ip) {console.log("!!!");
 	var device = top.databases.device[ip];
 	
 	if (device.snmp) {
