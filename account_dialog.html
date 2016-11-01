@@ -65,6 +65,10 @@ footer input {
 	flex: 1;
 }
 
+body:not(.removable) .remove {
+	display: none;
+}
+
 		</style>
 		
 	</head>
@@ -108,7 +112,7 @@ footer input {
 							</select>
 					</ul>
 				</div>
-				<label><input type="checkbox" name="remove" disabled>remove</label>
+				<label class="remove"><input type="checkbox" name="remove" disabled>remove</label>
 				<footer>
 					<input type="reset" class="r_button" value="cancel">
 					<input type="submit" class="r_button" value="apply" disabled>
@@ -130,6 +134,9 @@ if (sessionStorage.level == 0) {
 	form.addEventListener("submit", onApply);
 	
 	document.querySelector("input[type=submit]").disabled = false;
+	
+	form.elements.remove.onclick = onRemove;
+	form.elements.remove.disabled = false;
 }
 
 /**
@@ -212,10 +219,7 @@ function initialize(username) {
 		form.elements.password.value = account.password;
 		form.elements.level.value = account.level;
 		
-		if (sessionStorage.level == 0) {
-			form.elements.remove.onclick = onRemove;
-			form.elements.remove.disabled = false;
-		}
+		document.body.classList.add("removable");
 	}
 	else {
 		form.elements.username.focus();

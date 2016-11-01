@@ -63,15 +63,20 @@ img[src="img/plus.png"]:hover {
 	<body class="loading content_width">
 		<div class="top">
 			<div>
-				<h1>Account <img width="16" height="16" src="img/plus.png" title="Add account" id="add_account"></h1>
+				<h2>계정<img width="16" height="16" src="img/plus.png" title="계정 추가" id="add_account"></h2>
 				<ul id="account_list"></ul>
 			</div>
 			<div>
-				<h1>Profile <img width="16" height="16" src="img/plus.png" title="Add profile" id="add_profile"></h1>
+				<h2>프로파일<img width="16" height="16" src="img/plus.png" title="프로파일 추가" id="add_profile"></h2>
 				<ul id="profile_list"></ul>
 			</div>
 		</div>
 		
+		<div>
+			<h2>이벤트 알림<img width="16" height="16" src="img/plus.png" title="알림 추가" id="add_gcm"></h2>
+			<ul id="gcm_list"></ul>
+		</div>
+			
 		<div class="bg_loading"></div>
 		
 		<div class="layout">
@@ -95,6 +100,10 @@ document.getElementById("add_account").onclick = function () {
 
 document.getElementById("add_profile").onclick = function () {
 	onSelectProfile();
+};
+
+document.getElementById("add_gcm").onclick = function () {
+	onSelectGCM();
 };
 
 (function () {
@@ -123,6 +132,19 @@ document.getElementById("add_profile").onclick = function () {
 	list.appendChild(df);
 }) ();
 
+(function () {
+	var list = document.getElementById("gcm_list"),
+		alarmData = top.databases.gcm,
+		df = document.createDocumentFragment();
+	
+	for (var id in alarmData) {
+		df.appendChild(createItem("img/svg/alarm.svg", id))
+			.onclick = onSelectGCM.bind(undefined, id);
+	}
+	
+	list.appendChild(df);
+}) ();
+
 document.body.classList.remove("loading");
 
 function onSelectAccount(username) {
@@ -139,6 +161,16 @@ function onSelectProfile(name) {
 	top.showDialog("profile_dialog.html",
 		function (dialog) {
 			dialog.initialize(name);
+		},
+		function () {
+			location.reload();
+		});
+}
+
+function onSelectGCM(id) {
+	top.showDialog("gcm_dialog.html",
+		function (dialog) {
+			dialog.initialize(id);
 		},
 		function () {
 			location.reload();

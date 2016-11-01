@@ -105,7 +105,7 @@ input[name="password"] {
 						<input type="text" name="host" placeholder="IP address" required>
 					</div>
 					<div>
-						<input type="text" name="port" placeholder="TCP port" required>
+						<input type="text" name="port" value="2014" placeholder="TCP port" required>
 					</div>
 				</div>
 			</div>
@@ -180,6 +180,8 @@ input[name="password"] {
 				form.elements.username.select();
 			}
 			else {
+				console.log(response);
+			
 				comment.textContent = "Agent is not responding.";
 				
 				agent.appendChild(comment);

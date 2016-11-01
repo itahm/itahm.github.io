@@ -249,7 +249,7 @@ document.getElementById("signout").onclick = function () {
 					window.logCount++;
 					
 					window.count.textContent = window.logCount > 9? "9+": window.logCount;
-					window.log.textContent = eventData.ip +" "+ eventData.message;
+					window.log.textContent = (window.databases.device[eventData.ip].name || eventData.ip) +" "+ eventData.message;
 					
 					document.body.classList.add("log");
 					
