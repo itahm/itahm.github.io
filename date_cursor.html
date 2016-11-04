@@ -87,7 +87,8 @@ circle {
 		<script src="js/Draggable.js"></script>		
 		<script>
 var MARGIN = 16,
-	MONTH = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+	//MONTH = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+	MONTH = ["1 월", "2 월", "3 월", "4 월", "5 월", "6 월", "7 월", "8 월", "9 월", "10월", "11월", "12월"];
 
 var svg = document.querySelector("svg"),
 	base = document.getElementById("base"),
@@ -292,7 +293,7 @@ function moveCursorArea() {
 function getDateText(mills) {
 	var date = new Date(mills);
 	
-	return MONTH[date.getMonth()] +" "+ date.getDate();
+	return MONTH[date.getMonth()] +" "+ date.getDate() +"일";
 }
 
 /**

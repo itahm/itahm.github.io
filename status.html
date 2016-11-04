@@ -25,6 +25,10 @@ iframe {
 	width: 100%; height: 100%;
 }
 
+#refresh {
+	cursor: pointer;
+}
+
 #shutdown {
 	display: none;
 }
@@ -41,7 +45,7 @@ body.shutdown #shutdown {
 		<iframe src="status_base.html" id="status"></iframe>
 		
 		<header>
-			<h1><span id="host"></span><span id="shutdown"> (응답 없음.)</span></h1>
+			<h1><span id="host"></span> <a href="status.html"><img id="refresh" src="img/refresh_w.png" width="24" height="24" title="새로고침"></a><span id="shutdown"> (응답 없음.)</span></h1>
 		</header>
 		
 		<div class="bg_loading"></div>
