@@ -71,12 +71,15 @@ ul {
 	box-sizing: border-box;
 }
 
-.item .date {
-	width: 240px;
-}
-
 .item .ip {
 	width: 120px;
+	text-align: center;
+}
+
+.item .date,
+.item .facility,
+.item .severity {
+	width: 100px;
 	text-align: center;
 }
 
@@ -88,12 +91,17 @@ ul {
 	text-align: center;
 }
 
-.item.shutdown {
-	background-color: rgba(255, 0, 0, .2);
+.item.error {
+	background-color: rgba(255, 255, 0, .2);
 }
 
 .item.critical {
 	background-color: rgba(255, 255, 0, .2);
+}
+
+.item.alert {
+	background-color: #f00;
+	color: #fff;
 }
 
 		</style>
@@ -106,7 +114,7 @@ ul {
 			
 			<header>
 				<div>
-					<h1>이벤트 로그</h1>
+					<h1>시스로그</h1>
 					<h2 id="date">Date</h2>
 				</div>
 				<div id="calendar"></div>
@@ -118,6 +126,8 @@ ul {
 						<ul>
 							<li class="date">날짜
 							<li class="ip">대상
+							<li class="facility">FICILITY
+							<li class="severity">SEVERITY
 							<li class="message">이벤트 메세지 (<span id="count"></span>)
 						</ul>
 				</ul>
@@ -134,6 +144,16 @@ ul {
 if (top === window) {
 	location.href = "http://itahm.com";
 }
+var SEVERITY = [
+		"",
+		"alert",
+		"critical",
+		"error",
+		"warning",
+		"notice",
+		"informational",
+		"debug"
+	];
 
 var iFrame = document.querySelector("iframe"),
 	date = document.getElementById("date"),
@@ -160,19 +180,19 @@ function sendRequest(mills) {
 	}
 	
 	top.sendRequest({
-		command: "log",
+		command: "syslog",
 		date: mills
 	}, function (data) {
 		var df = document.createDocumentFragment(),
-			indexArray = Object.keys(data);
-			count = indexArray.length;
+			dateArray = Object.keys(data);
+			count = dateArray .length;
 		
-		indexArray = indexArray.sort(function (a, b) {
+		dateArray  = dateArray .sort(function (a, b) {
 			return parseInt(a) - parseInt(b);
 		});
 		
 		for (var i=0; i<count; i++) {
-			df.appendChild(createItem(data[indexArray[i]]));
+			df.appendChild(createItem(data[dateArray [i]]));
 		}
 		
 		window.list.appendChild(df);
@@ -189,12 +209,10 @@ function createItem(log) {
 		row = clone.children[0];
 	
 	row.children[0].textContent = toTimeString(log.date);
-	row.children[1].textContent = deviceData[log.ip].name || log.ip;
-	row.children[2].textContent = log.message;
-	
-	if (log.value && (log.type === "critical" || log.type === "shutdown")) {
-		clone.classList.add(log.type);
-	}
+	row.children[1].textContent = (deviceData[log.ip] && deviceData[log.ip].name) || log.host;
+	row.children[2].textContent = log.facility;
+	row.children[3].textContent = row.className = SEVERITY[log.severity];
+	row.children[4].textContent = log.message;
 	
 	return clone;
 }
