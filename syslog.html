@@ -124,7 +124,7 @@ ul {
 				<ul class="header">
 					<li class="item">
 						<ul>
-							<li class="date">날짜
+							<li class="date">시간
 							<li class="ip">대상
 							<li class="facility">FICILITY
 							<li class="severity">SEVERITY
@@ -223,7 +223,7 @@ function getDateString(mills) {
 		mm = date.getMonth() +1,
 		dd = date.getDate();
 	
-	return yyyy +"-"+ (mm > 9? "": "0") + mm +"-"+ (dd > 9? "": "0") + dd;
+	return yyyy +"년 "+ (mm > 9? "": "0") + mm +"월"+ (dd > 9? "": "0") + dd +"일";
 }
 
 function toTimeString(mills) {

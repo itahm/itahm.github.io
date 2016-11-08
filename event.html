@@ -72,7 +72,7 @@ ul {
 }
 
 .item .date {
-	width: 240px;
+	width: 100px;
 }
 
 .item .ip {
@@ -116,7 +116,7 @@ ul {
 				<ul class="header">
 					<li class="item">
 						<ul>
-							<li class="date">날짜
+							<li class="date">시간
 							<li class="ip">대상
 							<li class="message">이벤트 메세지 (<span id="count"></span>)
 						</ul>
@@ -191,7 +191,7 @@ function createItem(log) {
 	row.children[0].textContent = toTimeString(log.date);
 	row.children[1].textContent = deviceData[log.ip].name || log.ip;
 	row.children[2].textContent = log.message;
-	
+	console.log(log);
 	if (log.value && (log.type === "critical" || log.type === "shutdown")) {
 		clone.classList.add(log.type);
 	}
@@ -205,7 +205,7 @@ function getDateString(mills) {
 		mm = date.getMonth() +1,
 		dd = date.getDate();
 	
-	return yyyy +"-"+ (mm > 9? "": "0") + mm +"-"+ (dd > 9? "": "0") + dd;
+	return yyyy +"년 "+ (mm > 9? "": "0") + mm +"월"+ (dd > 9? "": "0") + dd +"일";
 }
 
 function toTimeString(mills) {
