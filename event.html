@@ -191,8 +191,8 @@ function createItem(log) {
 	row.children[0].textContent = toTimeString(log.date);
 	row.children[1].textContent = deviceData[log.ip].name || log.ip;
 	row.children[2].textContent = log.message;
-	console.log(log);
-	if (log.value && (log.type === "critical" || log.type === "shutdown")) {
+	
+	if (!log.status && (log.type === "critical" || log.type === "shutdown")) {
 		clone.classList.add(log.type);
 	}
 	
