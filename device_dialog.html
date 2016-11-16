@@ -104,6 +104,10 @@ body:not(.removable) .remove {
 	display: none;
 }
 
+body.initialized .search {
+	display: none;
+}
+
 		</style>
 		
 	</head>
@@ -111,7 +115,7 @@ body:not(.removable) .remove {
 	<body>
 	
 		<form class="rounded">
-			<h2>device</h2>
+			<h2>장비</h2>
 			<div class="table">
 				<ul>
 					<li>ip 주소
@@ -158,6 +162,10 @@ body:not(.removable) .remove {
 					<input type="checkbox" name="remove">
 					삭제
 				</label>
+				<label class="search">
+					<input type="checkbox" name="search">
+					자동탐색
+				</label>
 			</div>
 			
 			<footer>
@@ -174,6 +182,8 @@ var form = document.querySelector("form"),
 	monitor = "none";
 
 form.elements.type.appendChild(buildType());
+
+form.elements.search.onclick = onSearch;
 
 form.addEventListener("reset", onCancel);
 
@@ -221,6 +231,21 @@ function buildType() {
 	}
 	
 	return df;
+}
+
+function onSearch() {
+	window.top.showDialog("search_dialog.html");
+	
+	/*
+	top.sendRequest({
+		command: "search",
+		network: "192.168.0.0",
+		mask: 24
+	}, function (data) {
+		alert("자동 탐지 요청을 보냈습니다.");
+		
+		top.closeDialog();
+	});*/
 }
 
 function onApply(e) {
@@ -288,6 +313,9 @@ function onRemoveDevice() {
 				top.closeDialog();
 			});
 	}
+	else {
+		this.checked = false;
+	}
 }
 
 function onMonitorDevice(e) {
@@ -311,7 +339,7 @@ function onMonitorDevice(e) {
 	});
 }
 
-window.initialize = function (ip) {	
+function initialize(ip) {	
 	if (ip) {
 		window.device = top.databases.device[ip];
 		
@@ -338,6 +366,8 @@ window.initialize = function (ip) {
 				window.monitor = this.value;
 			}
 		}
+		
+		document.body.classList.add("initialized");
 	}
 	else {
 		form.elements.type.selectedIndex = -1;

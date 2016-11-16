@@ -184,12 +184,12 @@ function sendRequest(mills) {
 }
 
 function createItem(log) {
-	var deviceData = top.databases.device,
+	var device = top.databases.device[log.ip],
 		clone = window.item.cloneNode(true),
 		row = clone.children[0];
 	
 	row.children[0].textContent = toTimeString(log.date);
-	row.children[1].textContent = deviceData[log.ip].name || log.ip;
+	row.children[1].textContent = (device && device.name) || log.ip;
 	row.children[2].textContent = log.message;
 	
 	if (!log.status && (log.type === "critical" || log.type === "shutdown")) {

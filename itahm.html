@@ -250,7 +250,7 @@ document.getElementById("signout").onclick = function () {
 					window.logCount++;
 					
 					window.count.textContent = window.logCount > 9? "9+": window.logCount;
-					window.log.textContent = (window.databases.device[eventData.ip].name || eventData.ip) +" "+ eventData.message;
+					window.log.textContent = getDeviceName(eventData.ip) +" "+ eventData.message;
 					
 					document.body.classList.add("log");
 					
@@ -261,7 +261,7 @@ document.getElementById("signout").onclick = function () {
 						, function (data) {
 							window.databases.monitor = data;
 							
-							if (window.mapWindow) {
+							if (window.mapWindow && window.databases.device[eventData.ip]) {
 								window.mapWindow.resetDevice(eventData.ip, true);
 							}
 						});
@@ -293,6 +293,12 @@ document.getElementById("signout").onclick = function () {
 	
 }) (window);
 
+function getDeviceName(ip) {
+	var device = window.databases.device[ip];
+
+	return device? device.name: ip;
+}
+
 function notifyError(error) {
 	if (window.closed) {
 		return;
@@ -301,6 +307,8 @@ function notifyError(error) {
 	window.closed = true;
 	
 	window.onbeforeunload = undefined;
+	
+	alert(error);
 	
 	location.href = "connect.html";
 }

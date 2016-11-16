@@ -486,13 +486,55 @@ body:not(.throughput) .resource.throughput {
 		return clone;
 	}
 	
+	function initHistory(history) {/*
+		document.getElementById("response_time").textContent = "N/A";
+		document.body.classList.add("response_time");
+		
+		for (var index in history.hrProcessorLoad) {
+			processorArea.appendChild(document.createElement("p")).textContent = index;
+			
+			document.body.classList.add("processor");
+		}
+		
+		document.querySelector(".resource.processor").onclick = function () {
+			onSelectResource("processor");
+		};
+		
+		document.body.classList.remove("loading");
+		
+		return;
+		
+		entry = history.hrStorageEntry;
+		for (var index in entry) {
+			parseStorage(entry[index], index);
+		}
+		
+		entry = history.ifEntry;
+		for (var index in entry) {
+			initIFace(entry[index], index)
+		}
+		
+		document.body.classList.remove("loading");*/
+	}
+	
 	function initialize(device, snmp) {
 		var entry;
 		
 		if (!snmp.lastResponse) {
+			alert("에이전트가 실행된 이후 응답이 없는 장비입니다.\n"
+				+"성능정보를 불러올 수 없습니다.");
+			return;
+			
+			top.sendRequest({
+				command: "history",
+				ip: device.ip
+			}, function (history) {
+				initHistory(history);
+			});
+			
 			return;
 		}
-			
+		
 		document.getElementById("response_time").textContent = snmp.responseTime +"ms.";
 		document.body.classList.add("response_time");
 		
