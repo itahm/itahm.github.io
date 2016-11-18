@@ -9,9 +9,17 @@
 		<style>
 
 @import url("css/itahm.css");
-@import url("css/chart.css");
+
+body {
+	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
+	margin: 0; padding: 0;
+	display: flex;
+	flex-direction: column;
+}
 
 #chart {
+	border: none;
+	padding: 0; margin: 0;
 	flex: 1;
 }
 
@@ -24,8 +32,225 @@ nav img {
 	cursor: pointer;
 }
 
+line {
+	stroke: #0084ff;
+	stroke-width: 2;
+}
+
+rect {
+	fill: rgba(0, 132, 255, .2);
+}
+
+image:hover,
+body.move {
+	cursor: e-resize;
+}
+
+#top_text,
+#bottom_text {
+	text-anchor: start;
+}
+
+body.top_reverse #top_text,
+body.bottom_reverse #bottom_text {
+	text-anchor: end;
+}
+
+circle {
+	fill: #0084ff;
+}
 		</style>
+		<script>
 		
+function resize(initial) {
+	var rect = svg.getBoundingClientRect(),
+		max = rect.width - MARGIN *2,
+		ratio = (window.max || max) / max,
+		topX, bottomX;
+	
+	base.transform.baseVal.getItem(0).setTranslate(MARGIN, rect.height /2);
+	
+	topX = Math.round(parseInt(cursorTop.getAttributeNS(null, "x")) / ratio);
+	cursorTop.setAttributeNS(null, "x", topX);
+	topText.setAttributeNS(null, "x", topX);
+	
+	bottomX = Math.round(parseInt(cursorBottom.getAttributeNS(null, "x")) / ratio);
+	cursorBottom.setAttributeNS(null, "x", bottomX);
+	bottomText.setAttributeNS(null, "x", bottomX);
+	
+	line.setAttributeNS(null, "x2", window.max = max);
+	
+	if(!initial) {
+		window.blockWidth =  window.max / window.dayCount;
+		
+		for (var x = 0, i = 0; i <= window.dayCount; x += window.blockWidth, i++) {
+			grid.childNodes[i].setAttributeNS(null, "cx", window.posList[i] = x);
+		}
+	}
+}
+
+/**
+ * public
+ */
+function onSelectDevice(ip) {
+	if (top.databases.monitor[ip]) {
+		top.databases.local.selected = ip;
+	
+		top.sendRequest({
+			command: "select",
+			ip: ip
+		}, function (response) {
+			top.databases.local.node = response;
+		
+			location.reload();
+		});
+	}
+	else {
+		alert("SNMP is not enabled for "+ ip);
+	}
+}
+
+function calcDate(x) {
+	var date = new Date(window.start + (x / window.max) * window.period);
+	
+	return date.setHours(0, 0, 0, 0);
+}
+
+function calcPosition(mills) {
+	return window.max * (mills - window.start) / window.period;
+}
+
+function getPosition(mills) {
+	return Math.ceil(window.max * (mills - window.start) / window.period);
+}
+
+function moveCursor(dragPos) {
+	if (window.target === window.cursorTop) {
+		return moveCursorTop(clipPos(dragPos, window.topPos + dragPos));
+	}
+	else if (window.target === window.cursorBottom) {
+		return moveCursorBottom(clipPos(dragPos, window.bottomPos + dragPos));
+	}
+	else if (window.target === window.cursorArea) {
+		if (dragPos < 0) {
+			if (window.topPos < window.bottomPos) {
+				if (moveCursorTop(clipPos(dragPos, window.topPos + dragPos))) {
+					return moveCursorBottom(window.bottomPos + dragPos);
+				}
+			}
+			else {
+				if (moveCursorBottom(clipPos(dragPos, window.bottomPos + dragPos))) {
+					return moveCursorTop(window.topPos + dragPos);
+				}
+			}
+		}
+		else if (dragPos > 0) {
+			if (window.topPos < window.bottomPos) {
+				if (moveCursorBottom(clipPos(dragPos, window.bottomPos + dragPos))) {
+					return moveCursorTop(window.topPos + dragPos);
+				}
+			}
+			else {
+				if (moveCursorTop(clipPos(dragPos, window.topPos + dragPos))) {
+					return moveCursorBottom(window.bottomPos + dragPos);
+				}
+			}
+		}
+	}
+	else {
+		// throw
+	}
+	
+	return false;
+}
+
+function clipPos(direction, pos) {
+	if (direction < 0) {
+		return Math.max(0, pos);
+	}
+	else if (direction > 0) {
+		return Math.min(window.dayCount, pos);
+	}
+	
+	return pos;
+}
+
+function moveCursorTop(pos) {
+	if (pos == window.topPosLast) {
+		return false;
+	}
+	
+	window.topPosLast = pos;
+	
+	var x = window.posList[pos];
+	
+	window.topText.setAttributeNS(null, "x", x);
+	window.topText.textContent = getDateText(window.dateList[pos]);
+	
+	window.cursorTop.setAttributeNS(null, "x", x);
+	
+	document.body.classList[x > window.max /2? "add": "remove"]("top_reverse");
+	
+	return true;
+}
+
+function moveCursorBottom(pos) {
+	if (pos === window.bottomPosLast) {
+		return false;
+	}
+
+	window.bottomPosLast = pos;
+	
+	var x = window.posList[pos];
+	
+	window.bottomText.setAttributeNS(null, "x", x);
+	window.bottomText.textContent = getDateText(window.dateList[pos]);
+	
+	window.cursorBottom.setAttributeNS(null, "x", x);
+	
+	document.body.classList[x > window.max /2? "add": "remove"]("bottom_reverse");
+	
+	return true;
+}
+
+function getDateText(mills) {
+	var date = new Date(mills);
+	
+	return MONTH[date.getMonth()] +" "+ date.getDate() +"일";
+}
+
+/**
+* public
+*/
+function initialize(start, end, top, bottom) {
+	var date = new Date();
+	
+	window.day = (date.getTime() - date.setDate(date.getDate() -1));
+	
+	window.start = start;
+	window.period = end - start;
+	
+	window.dayCount = period / day;
+	window.blockWidth =  window.max / dayCount;
+	
+	window.dateList = [];
+	window.posList = [];
+	
+	for (var x = 0, i = 0, mills = start; i <= window.dayCount; x += window.blockWidth, i++, mills += day) {
+		grid.appendChild(dot.cloneNode(true))
+			.setAttributeNS(null, "cx", window.posList[i] = x);
+		
+		date = new Date(mills);
+		date.setMinutes(date.getMinutes() +30);
+		
+		window.dateList[i] = date.setMinutes(0, 0, 0);
+	}
+	
+	moveCursorTop(window.dayCount);
+	moveCursorBottom(window.dayCount -1);
+}
+
+		</script>
 	</head>
 	
 	<body>
@@ -41,27 +266,51 @@ nav img {
 		
 		<iframe id="chart" class="chart"></iframe>
 		
-		<iframe id="cursor"></iframe>
+		<svg width="100%" height="60px">
+			<def>
+				<circle id="dot" cy="0" r="2"/>
+			</def>
+			<g id="base" transform="translate(0, 0)">
+				<line x1="0" y1="0" y2="0"/>
+				<g id="grid" />
+				<rect y="-30" height="60"></rect>
+				<g>
+					<text id="top_text" transform="translate(0, -12)" />
+					<image id="top_cursor" xlink:href="img/cursor_top.png" transform="translate(-10, -12)" x="0" y="0" width="20" height="10" />
+				</g>
+				<g>
+					<text id="bottom_text" transform="translate(0, 12) translate(0, 10)" />
+					<image id="bottom_cursor" xlink:href="img/cursor_bottom.png" transform="translate(-10, 2)" x="0" y="0" width="20" height="10" />
+				</g>
+			</g>
+		</svg>
 		
 		<script src="js/ITAhM.js"></script>
+		<script src="js/Draggable.js"></script>
 		<script>
 
 if (parent === window) throw "";		
 
 var chart = document.getElementById("chart"),
 	chartWindow = chart.contentWindow,
-	cursor = document.getElementById("cursor"),
 	deviceIP = top.databases.local.selected,
 	resourceIndex = top.databases.local.resourceIndex,
 	node = top.databases.local.node;
 
-document.getElementById("save").onclick = function () {
-	chartWindow.getFile();
-};
+var MARGIN = 16,
+//MONTH = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+MONTH = ["1 월", "2 월", "3 월", "4 월", "5 월", "6 월", "7 월", "8 월", "9 월", "10월", "11월", "12월"];
 
-document.getElementById("realtime").onclick = function () {
-	open("realtime.html", "_blank", "width=600, height=300, resizable=yes", false);
-};
+var svg = document.querySelector("svg"),
+	base = document.getElementById("base"),
+	grid = document.getElementById("grid"),
+	dot = document.getElementById("dot"),
+	line = document.querySelector("line"),
+	cursorArea = document.querySelector("rect")
+	cursorTop = document.getElementById("top_cursor"),
+	topText = document.getElementById("top_text"),
+	cursorBottom = document.getElementById("bottom_cursor"),
+	bottomText = document.getElementById("bottom_text");
 
 (function (date) {
 	date.setHours(0, 0, 0, 0);
@@ -71,23 +320,76 @@ document.getElementById("realtime").onclick = function () {
 	window.start = date.setMonth(date.getMonth() -1);
 })(new Date());
 
-window.chart.onload = function () {
-	window.cursor.src = "date_cursor.html";
+document.onselectstart = function (e) {
+	return false;
+};
+
+document.getElementById("save").onclick = function () {
+	window.chartWindow.getFile();
+};
+
+document.getElementById("realtime").onclick = function () {
+	open("realtime.html", "_blank", "width=600, height=300, resizable=yes", false);
+};
+
+window.addEventListener("resize", function () {
+	if (window.resizeTimer) {
+		clearTimeout(window.resizeTimer);
+	}
 	
+	window.resizeTimer = setTimeout(resize, 300);
+});
+
+svg.addEventListener("dragon", function (e) {
+	var event = e.detail;
+	
+	window.target = event.target;
+	
+	window.topPos = window.topPosLast;
+	window.bottomPos = window.bottomPosLast;
+	
+	if (window.target === window.cursorTop || window.target === window.cursorBottom) {
+		document.body.classList.add("move");
+	}
+});
+
+svg.addEventListener("drag", function (e) {
+	if (moveCursor(Math.round(e.detail.dragX / window.blockWidth))) {
+		//moveCursorArea();
+		
+		window.chartWindow.draw(window.dateList[Math.min(window.topPosLast, window.bottomPosLast)]
+			, window.dateList[Math.max(window.topPosLast, window.bottomPosLast)]);
+	}
+});
+
+svg.addEventListener("dragoff", function (e) {
+	document.body.classList.remove("move");
+});
+
+
+/*
+document.body.ondragstart = function (e) {
+	e.stopPropagation();
+
+	return false;
+};
+*/
+
+window.chart.onload = function () {
 	window.chartWindow.initialize(window.start, window.end, window.today, window.end);
 };	
 
-window.cursor.onload = function () {
-	var cursorWindow = window.cursor.contentWindow;
-	
-	cursorWindow.onResetDate = window.chartWindow.draw;
-	cursorWindow.initialize(window.start, window.end, window.end, window.today);
-};
+new Draggable(svg);
 
-(function () {
-	document.getElementById("host").textContent = window.deviceIP;
-	
-	switch(top.databases.local.selectedResource) {
+resize(true);
+
+initialize(window.start, window.end, window.end, window.today);
+
+document.getElementById("host").textContent = window.deviceIP;
+
+initialize(window.start, window.end, window.today, window.end);
+
+switch(top.databases.local.selectedResource) {
 	case "responseTime":
 		document.getElementById("resource").textContent = "Response time";
 		
@@ -112,31 +414,9 @@ window.cursor.onload = function () {
 		document.getElementById("resource").textContent = "Interface error";
 		
 		break;
-	}
-	
-	window.chart.src = "chart_"+ top.databases.local.selectedResource +".html";
-}) ();
-
-/**
- * public
- */
-function onSelectDevice(ip) {
-	if (top.databases.monitor[ip]) {
-		top.databases.local.selected = ip;
-	
-		top.sendRequest({
-			command: "select",
-			ip: ip
-		}, function (response) {
-			top.databases.local.node = response;
-		
-			location.reload();
-		});
-	}
-	else {
-		alert("SNMP is not enabled for "+ ip);
-	}
 }
+	
+window.chart.src = "chart_"+ top.databases.local.selectedResource +".html";
 
 		</script>
 	

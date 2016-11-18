@@ -9,7 +9,49 @@
 		<style>
 		
 @import "css/itahm.css";
-@import "css/chart.css";
+
+
+body {
+	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
+	margin: 0; padding: 0;
+	display: flex;
+	flex-direction: column;
+}
+
+#chart {
+	display: flex;
+	flex: 1;
+	flex-direction: column;
+}
+
+body.row #chart {
+	flex-direction: row;
+}
+
+.chart {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+}
+
+iframe {
+	flex: 1;
+	border: none;
+	margin: 0;
+}
+
+nav {
+	text-align: right;
+}
+
+h1,
+h2 {
+	text-align: center;
+}
+
+#legend {
+	text-align: right;
+}
 
 h3 {
 	margin: 0;
@@ -34,10 +76,22 @@ h3.output {
 			<div id="legend"></div>
 		</header>
 		
-		<h3 class="input">Input</h3>
-		<iframe id="chart_in" src="chart_base.html" class="chart"></iframe>
-		<h3 class="output">Output</h3>
-		<iframe id="chart_out" src="chart_base.html" class="chart"></iframe>
+		<nav>
+			<select id="view">
+				<option value="add">가로 보기
+				<option value="remove" selected>세로 보기
+			</select>
+		</nav>
+		<div id="chart">
+			<div class="chart">
+				<h3 class="input">Input</h3>
+				<iframe id="chart_in" src="chart_base.html"></iframe>
+			</div>
+			<div class="chart">
+				<h3 class="output">Output</h3>
+				<iframe id="chart_out" src="chart_base.html"></iframe>
+			</div>
+		</div>
 		
 		<script src="js/ITAhM.js"></script>	
 		<script src="js/object.js"></script>
@@ -53,6 +107,10 @@ var chartIn = document.getElementById("chart_in"),
 
 if(!deviceIP || !window.resourceIndex || !window.node) {
 	throw "!";
+}
+
+document.getElementById("view").onchange = function () {console.log(this.value);
+	document.body.classList[this.value]("row");
 }
 
 chartIn.onload = function () {

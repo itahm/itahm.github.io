@@ -9,13 +9,47 @@
 		<style>
 
 @import "css/itahm.css";
-@import "css/chart.css";
 
+body {
+	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
+	margin: 0; padding: 0;
+	display: flex;
+	flex-direction: column;
+}
+
+#chart {
+	display: flex;
+	flex: 1;
+	flex-direction: column;
+}
+
+body.row #chart {
+	flex-direction: row;
+}
+
+iframe {
+	flex: 1;
+	border: none;
+	margin: 0;
+}
+
+nav {
+	text-align: right;
+}
 		</style>
 		
 	</head>
 	
 	<body>
+		<nav>
+			<select id="view">
+				<option value="add">가로 보기
+				<option value="remove" selected>세로 보기
+			</select>
+		</nav>
+		<div id="chart">
+		</div>
+		
 		<script src="js/ITAhM.js"></script>	
 		<script src="js/object.js"></script>
 		<script>
@@ -49,6 +83,10 @@ if(!window.deviceIP || !window.node) {
 	throw "!";
 }
 
+document.getElementById("view").onchange = function () {console.log(this.value);
+	document.body.classList[this.value]("row");
+}
+
 /**
  * public
  */
@@ -68,14 +106,14 @@ function initialize(from, to, start, end) {
 	for (var index in entry) {
 		chart = document.createElement("iframe");
 		
-		chart.className = "chart";
+		//chart.className = "chart";
 		
 		window.chartList[index] = chart;
 		
 		df.appendChild(chart);
 	}
 	
-	document.body.appendChild(df);
+	document.getElementById("chart").appendChild(df);
 	
 	for (var index in entry) {
 		request.index = index;
@@ -104,7 +142,7 @@ function onLoadChart(index) {
 	
 	chartWindow.onValueToString = onValueToString;
 	
-	chartWindow.initialize(window.summaryList[index], window.max, window.colorList[window.colorIndex++ % window.colorLength], window.lastChartIndex === index);
+	chartWindow.initialize(window.summaryList[index], window.max, window.colorList[window.colorIndex++ % window.colorLength]);
 	chartWindow.draw(window.start, window.end);
 	
 	window.detailRequest.start = window.start;

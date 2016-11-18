@@ -23,7 +23,8 @@ svg {
 }
 
 text {
-	fill: #777;
+	fill: #000;
+	font-size: 9pt;
 }
 
 #grid path {
@@ -240,14 +241,16 @@ function drawGraph() {
 	window.yRatio = window.rect.height / (high - window.low);
 	
 	strokeMax.set("stroke", window.color);
-	strokeMax.set("stroke-opacity", .5);
+	//strokeMax.set("stroke-opacity", .5);
+	strokeMax.set("stroke-width", 2);
 	strokeMax.set("fill", "none");
 	strokeAvg.set("stroke", window.color);
-	strokeAvg.set("stroke-width", 2);
+	strokeAvg.set("stroke-width", 1);
 	strokeAvg.set("fill", "none");
 	strokeMin.set("stroke", window.color);
-	strokeMin.set("stroke-opacity", .5);
+	//strokeMin.set("stroke-opacity", .5);
 	strokeMin.set("fill", "none");
+	strokeMin.set("stroke-width", 2);
 	
 	fillMax.set("fill", window.color);
 	fillMax.set("fill-opacity", .1);
@@ -413,14 +416,14 @@ function initialize(summaryData, max, color, drawDate) {
 	window.summaryData = summaryData;
 	window.max = max;
 	window.color = color;
-	
+	/*
 	if (!drawDate) {
 		window.DATE_AXIS_HEIGHT = 0;
 		
 		window.drawDateAxis = function () {
 		};
 	}
-	
+	*/
 	resize();
 }
 
