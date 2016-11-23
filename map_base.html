@@ -37,6 +37,10 @@ text {
 	stroke-width: 2;
 }
 
+body.extra #line line {
+	stroke: #f5d04c;
+}
+
 #line text {
 	font-size: 11px;
 	fill: #333;
@@ -50,8 +54,11 @@ text {
 
 #device text {
 	font-size: 12px;
-	/*alignment-baseline: hanging;*/
 	fill: #000;
+}
+
+body.extra #device text {
+	fill: #fff;
 }
 
 #selection_mark {
@@ -683,7 +690,11 @@ function addLine(ip) {
 	}
 }
 
-function initialize() {
+function initialize(extra) {
+	if (extra) {
+		document.body.classList.add("extra");
+	}
+	
 	for (var ip in window.deviceData) {
 		addDevice(ip);
 		addLine(ip);

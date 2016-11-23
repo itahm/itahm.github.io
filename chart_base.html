@@ -13,13 +13,37 @@ text {
 	font-size: 10pt;
 }
 
-svg {
+#container {
 	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
-	width: 100%;
-	height: 100%;
 	min-width: 600px;
 	min-height: 100px;
 	background-color: #fff;
+}
+
+#chart {
+	position: absolute; top: 0; right: 0; bottom: 0; left: 0;
+	width: 100%;
+	height: 100%;
+}
+
+.balloon {
+	position: absolute;
+	transform: translateX(-50%);
+	padding: 5px;
+	box-sizing: border-box;
+	font-size: 10px;
+	background-color: #555;
+	color: #fff;
+	font-weight: bold;
+	pointer-events: none;
+	transition: top .5s;
+}
+
+.balloon.value {
+	opacity: .7;
+	padding: 5px 10px;
+	border-radius: 5px;
+	font-weight: normal;
 }
 
 text {
@@ -29,7 +53,7 @@ text {
 
 #grid path {
 	stroke: rgba(0, 0, 0, .2);
-	stroke-width: .5;
+	stroke-width: .7;
 	fill: none;
 }
 
@@ -61,6 +85,11 @@ text {
 	cursor: pointer;
 }
 
+#hover line {
+	stroke-width: 1px;
+	stroke: #777;
+}
+
 nav {
 	position: fixed; right: 0; bottom: 0; left: 0;
 	display: flex;
@@ -79,7 +108,7 @@ nav input[type="checkbox"] {
 	position:absolute;
 	visibility: hidden;
 }
-	
+
 nav input[type="checkbox"]:not(:checked) ~img:not(.lock),
 nav input[type="checkbox"]:checked ~img.lock {
 	display: none;
@@ -89,17 +118,31 @@ nav input[type="checkbox"]:checked ~img.lock {
 		
 	</head>
 	
-	<body>
+	<body class="loading">
+		<section id="container">
+			<svg id="chart">
+				<g transform="translate(0, 0)" id="group">
+			        <g transform="translate(0, 0)" id="axis_date" />
+			        <g transform="translate(0, 0) scale(1 -1)" id="graph" />
+			        <g transform="translate(0, 0)" id="axis_left" />
+					<g transform="translate(0, 0)" id="axis_right" />
+			        <g transform="translate(0, 0)" id="grid" />
+			        <g id="hover">
+			        	<line id="hover_v" x1="0" y1="0" x2="0" y2="0" />
+			        	<line id="hover_h_max" x1="0" y1="0" x2="0" y2="0"/>
+			        	<line id="hover_h_avg" x1="0" y1="0" x2="0" y2="0"/>
+			        	<line id="hover_h_min" x1="0" y1="0" x2="0" y2="0"/>
+			        </g>
+			    </g>
+			</svg>
+			
+			<span id="hover_date" class="balloon"></span>
+			<span id="value_max" class="balloon value"></span>
+			<span id="value_min" class="balloon value"></span>
+			<span id="value_avg" class="balloon value"></span>
+		</section>
 		
-		<svg id="chart">
-			<g transform="translate(20, 20)">
-		        <g transform="translate(0, 0)" id="axis_date"></g>
-		        <g transform="translate(0, 0) scale(1 -1)" id="graph" />
-		        <g transform="translate(0, 0)" id="axis_left" />
-				<g transform="translate(0, 0)" id="axis_right" />
-		        <g transform="translate(0, 0)" id="grid" />
-		    </g>
-		</svg>
+		<div class="bg_loading"></div>
 		
 		<script src="js/ITAhM.js"></script>
 		<script src="js/object.js"></script>
@@ -114,12 +157,24 @@ var svgNS = "http://www.w3.org/2000/svg",
 	MARGIN = 20,
 	MARGIN_BOTTOM = 20;
 
-var chart = document.getElementById("chart"),
+var container = document.getElementById("container"),
+	chart = document.getElementById("chart"),
+	group = document.getElementById("group"),
 	leftAxis = document.getElementById("axis_left"),
 	rightAxis = document.getElementById("axis_right"),
 	dateAxis = document.getElementById("axis_date"),
 	graph = document.getElementById("graph"),
 	grid = document.getElementById("grid"),
+	hover = document.getElementById("hover"),
+	hoverV = document.getElementById("hover_v"),
+	hoverHMax = document.getElementById("hover_h_max"),
+	hoverHAvg = document.getElementById("hover_h_avg"),
+	hoverHMin = document.getElementById("hover_h_min"),
+	hoverDate = document.getElementById("hover_date"),
+	valueMax = document.getElementById("value_max"),
+	valueAvg = document.getElementById("value_avg"),
+	valueMin = document.getElementById("value_min"),
+	fragment = document.createDocumentFragment(),
 	rect = {};
 
 window.addEventListener("resize", function () {
@@ -134,6 +189,68 @@ window.addEventListener("resize", function () {
 	window.resizeTimer = setTimeout(onResize, 300);
 });
 
+window.chart.addEventListener("mouseleave", function (e) {
+	fragment.appendChild(window.hover);
+	fragment.appendChild(window.hoverDate);
+	fragment.appendChild(window.valueMax);
+	fragment.appendChild(window.valueMin);
+	fragment.appendChild(window.valueAvg);
+});
+
+window.chart.addEventListener("mousemove", function (e) {
+	var x = e.clientX - MARGIN;
+	
+	if (!window.summaryData || x < 0 || window.rect.width < x) {
+		return;
+	}
+	
+	var date = new Date(window.start + x * window.tpp),
+		mills = date.setMinutes(0, 0, 0),
+		value = summaryData.get(mills);
+	
+	if (!value) {
+		return;
+	}
+	
+	hoverV.setAttributeNS(null, "x1", x);
+	hoverV.setAttributeNS(null, "x2", x);
+	
+	var y = window.rect.height - (value.max - window.low) * window.yRatio;
+	
+	hoverHMax.setAttributeNS(null, "y1", y);
+	hoverHMax.setAttributeNS(null, "y2", y);
+	valueMax.style.top = y + "px";
+	valueMax.textContent = onValueToString(value.max);
+	
+	y = window.rect.height - (value.avg - window.low) * window.yRatio;
+	
+	hoverHAvg.setAttributeNS(null, "y1", y);
+	hoverHAvg.setAttributeNS(null, "y2", y);
+	valueAvg.style.top = y + "px";
+	valueAvg.textContent = onValueToString(value.avg);
+	
+	y = window.rect.height - (value.min - window.low) * window.yRatio;
+	
+	hoverHMin.setAttributeNS(null, "y1", y);
+	hoverHMin.setAttributeNS(null, "y2", y);
+	valueMin.style.top = y + "px";
+	valueMin.textContent = onValueToString(value.min);
+	
+	var d = date.getDate(),
+		h = date.getHours();
+	
+	x = (x + MARGIN) + "px";
+	hoverDate.style.left = x;
+	hoverDate.textContent = (d>9? "": "0")+ d +"일 "+ (h>9? "": "0")+ h +"시";
+	
+	valueMax.style.left = x;
+	valueAvg.style.left = x;
+	valueMin.style.left = x;
+	
+	window.group.appendChild(window.hover);
+	window.container.appendChild(fragment);
+});
+
 function onResize() {
 	resize();
 	
@@ -146,12 +263,19 @@ function resize() {
 		height = rect.height - MARGIN *2 - DATE_AXIS_HEIGHT,
 		reset = false;
 	
-	graph.transform.baseVal.getItem(0).setTranslate(0, height);
-		
+	window.graph.transform.baseVal.getItem(0).setTranslate(0, height);
+	
 	window.rect.height = height;
 	window.rect.width = width;
 	
 	drawGrid();
+	
+	hoverV.setAttributeNS(null, "y2", height);
+	hoverHMax.setAttributeNS(null, "x2", width);
+	hoverHAvg.setAttributeNS(null, "x2", width);
+	hoverHMin.setAttributeNS(null, "x2", width);
+	
+	hoverDate.style.top = (height + MARGIN) + "px";
 }
 
 function drawGrid() {
@@ -219,10 +343,6 @@ function createDateText(x, y, mills) {
 	return svgText;
 }
 
-function onValueToString(value) {
-	return value;
-} 
-
 function drawGraph() {
 	if (!window.chartData) {
 		return;
@@ -268,7 +388,7 @@ function drawGraph() {
 		mills = dateArray[0];
 		
 		x = (mills - start) / window.tpp;
-		y = summaryData.get(mills);
+		y = window.summaryData.get(mills);
 	
 		fillMax.moveTo(x, 0);
 		fillMin.moveTo(x, 0);
@@ -284,7 +404,7 @@ function drawGraph() {
 			mills = dateArray[j];
 			
 			x = (mills - start) / window.tpp;
-			y = summaryData.get(mills);
+			y = window.summaryData.get(mills);
 			
 			strokeMax.lineTo(x, (y.max - window.low) * window.yRatio);
 			strokeAvg.lineTo(x, (y.avg - window.low) * window.yRatio);
@@ -370,7 +490,7 @@ function draw(start, end) {
 /**
  * public
  */
-function detail(detailData, start, end) {
+function detail(detailData, start, end) {return;
 	var path = new ITAhM.Path(window.graph),
 		blocks, dateArray, mills;
 	
@@ -412,19 +532,30 @@ function detail(detailData, start, end) {
 /**
  * public
  */
-function initialize(summaryData, max, color, drawDate) {
+function initialize(summaryData, max, color) {
 	window.summaryData = summaryData;
 	window.max = max;
 	window.color = color;
-	/*
-	if (!drawDate) {
-		window.DATE_AXIS_HEIGHT = 0;
-		
-		window.drawDateAxis = function () {
-		};
-	}
-	*/
+	
+	fragment.appendChild(window.hover);
+	fragment.appendChild(window.hoverDate);
+	fragment.appendChild(window.valueMax);
+	fragment.appendChild(window.valueMin);
+	fragment.appendChild(window.valueAvg);
+	
 	resize();
+	
+	window.group.transform.baseVal.getItem(0).setTranslate(MARGIN, MARGIN);
+	
+	document.body.classList.remove("loading");
+}
+
+
+/**
+ * abstract
+ */
+ function onValueToString(value) {
+	return value;
 }
 
 		</script>

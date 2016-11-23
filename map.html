@@ -177,10 +177,6 @@ var map = document.getElementById("map"),
 	rowMap = {},
 	labels = {};
 
-window.onbeforeunload = function () {
-	window.top.mapWindow = undefined;
-};
-
 form.elements.label.addEventListener("change", onChangeLabel);
 form.addEventListener("submit", onSearch);
 
@@ -211,8 +207,7 @@ window.map.onload = function () {
 		scale;
 	
 	window.mapWindow = mapWindow;
-	top.mapWindow = mapWindow;
-
+	
 	window.addEventListener("resize", function () {
 		clearTimeout(window.schedule);
 		
@@ -438,6 +433,10 @@ function selectLabel(label) {
 	
 	list.appendChild(df);
 };
+
+function onEvent(ip) {
+	window.mapWindow.resetDevice(ip, true);
+}
 
 		</script>
 	

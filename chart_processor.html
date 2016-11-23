@@ -83,7 +83,7 @@ if(!window.deviceIP || !window.node) {
 	throw "!";
 }
 
-document.getElementById("view").onchange = function () {console.log(this.value);
+document.getElementById("view").onchange = function () {
 	document.body.classList[this.value]("row");
 }
 

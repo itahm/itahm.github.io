@@ -106,7 +106,7 @@ body.initialized .search {
 				<ul>
 					<li>네트워크 주소
 					<li>
-						<input type="text" required name="network" autofocus placeholder="n.n.n.n"
+						<input type="text" required name="network" autofocus placeholder="n.n.n.n" value="192.168.0.0"
 							pattern="^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$">
 				</ul>
 				<ul>
@@ -114,9 +114,9 @@ body.initialized .search {
 					<li>
 						<div id="mask">255.255.255.0</div>
 						<select name="mask">
-							<option value="255.255.255.0" selected>24
+							<option value="255.255.255.0">24
 							<option value="255.255.255.128">25
-							<option value="255.255.255.192">26
+							<option value="255.255.255.192" selected>26
 							<option value="255.255.255.224">27
 							<option value="255.255.255.240">28
 							<option value="255.255.255.248">29

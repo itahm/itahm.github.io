@@ -11,7 +11,7 @@
 
 body {
 	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
-	padding: 0; margin: 0;
+	padding: 1em; margin: 0;
 	display: flex;
 	background-color: #4d525a;
 	color: #fff;
@@ -30,12 +30,29 @@ article {
 	flex-direction: column;
 }
 
+.extra {
+	width: 600px;
+	box-sizing: border-box;
+	display: flex;
+	flex-direction: column;
+}
+
+@media (max-width: 1800px) {
+  .extra {
+  	display: none;
+  }
+}
+
+.extra iframe {
+	flex: 1;
+	border: none;
+}
+
 aside .head {
 	display: flex;
 }
 
 aside .agent {
-/*	flex: none;*/
 	width: 200px;
 }
 
@@ -51,13 +68,13 @@ article> :not(header) {
 }
 
 section {
-	margin: .5em;
+	margin: 0 .5em;
 	flex: 1;
 	display: flex;
 	flex-direction: column;
 }
 
-section .title {
+.title {
 	padding: .5em 2em;
 	border-radius: 5px;
 	
@@ -67,32 +84,8 @@ section .title {
 	background-color: #0084ff;
 	text-shadow: 1px 1px 1px #00f;
 }
-/*
-section .title.blue {
-	background: linear-gradient(to right, rgba(0, 132, 255, 1), rgba(0, 132, 255, 1), rgba(0, 132, 255, .6), rgba(0, 132, 255, .4));
-	text-shadow: 1px 1px 1px #00f;
-}
 
-section .title.gray {
-	background: linear-gradient(to right, rgba(119, 119, 119, 1), rgba(119, 119, 119, 1), rgba(119, 119, 119, .6), rgba(119, 119, 119, .4));
-	text-shadow: 1px 1px 1px #000;
-}
 
-section .title.wine {
-	background: linear-gradient(to right, rgba(162, 0, 37, 1), rgba(162, 0, 37, 1), rgba(162, 0, 37, .6), rgba(162, 0, 37, .4));
-	text-shadow: 1px 1px 1px #300;
-}
-
-section .title.brown {
-	background: linear-gradient(to right, rgba(130, 90, 44, 1), rgba(130, 90, 44, 1), rgba(130, 90, 44, .6), rgba(130, 90, 44, .4));
-	text-shadow: 1px 1px 1px #00f;
-}
-
-section .title.green {
-	background: linear-gradient(to right, rgba(0, 138, 0, 1), rgba(0, 138, 0, 1), rgba(0, 138, 0, .6), rgba(0, 138, 0, .4));
-	text-shadow: 1px 1px 1px #030;
-}
-*/
 section> div:last-child {
 	flex: 1;
 	overflow: auto;
@@ -249,7 +242,7 @@ ul {
 		<aside>
 			<div class="head">
 				<section class="agent">
-					<div class="title blue">에이전트</div>
+					<div class="title">에이전트</div>
 					<div class="list">
 						<ul>
 							<li>
@@ -298,19 +291,19 @@ ul {
 		<article>
 			<div class="top">
 				<section>
-					<div class="title gray">응답 시간 Top</div>
+					<div class="title">응답 시간 Top</div>
 					<div class="list">
 						<ul id="response_time"></ul>
 					</div>
 				</section>
 				<section>
-					<div class="title wine">Physical memory 사용량 Top</div>
+					<div class="title">Physical memory 사용량 Top</div>
 					<div class="list">
 						<ul id="memory"></ul>
 					</div>
 				</section>
 				<section>
-					<div class="title wine">Physical memory 사용율 Top</div>
+					<div class="title">Physical memory 사용율 Top</div>
 					<div class="list">
 						<ul id="memoryRate"></ul>
 					</div>
@@ -319,19 +312,19 @@ ul {
 			
 			<div class="top">
 				<section>
-					<div class="title gray">Processor load Top</div>
+					<div class="title">Processor load Top</div>
 					<div class="list">
 						<ul id="processor"></ul>
 					</div>
 				</section>
 				<section>
-					<div class="title brown">Storage 사용량 Top</div>
+					<div class="title">Storage 사용량 Top</div>
 					<div class="list">
 						<ul id="storage"></ul>
 					</div>
 				</section>
 				<section>
-					<div class="title brown">Storage 사용율 Top</div>
+					<div class="title">Storage 사용율 Top</div>
 					<div class="list">
 						<ul id="storageRate"></ul>
 					</div>
@@ -360,6 +353,17 @@ ul {
 			</div>
 		</article>
 		
+		<div class="extra">
+			<div class="title">이벤트</div>
+			<iframe src="event_extra.html" id="event" width="100%" height="100%"></iframe>
+			<div class="title">구성도</div>
+			<iframe src="map_extra.html" width="100%" height="100%"></iframe>
+			<ul>
+				<li>아이탐 에이전트의 최신 버전은 1.1.3.2 입니다.
+				<li>더 나은 성능과 기능을 경험하기 위해 최신 상태를 유지해 주십시오.
+			</ul>
+		</div>
+			
 		<div class="layout">
 			<ul>
 				<li class="list_item">
@@ -561,6 +565,11 @@ function createTopItem(ip, value) {
 	
 	clone.onclick = onSelectTopItem.bind(window, ip);
 	return clone;
+}
+
+// public
+function onEvent(ip) {
+	document.getElementById("event").contentWindow.location.reload();
 }
 
 		</script>
