@@ -435,7 +435,9 @@ function selectLabel(label) {
 };
 
 function onEvent(ip) {
-	window.mapWindow.resetDevice(ip, true);
+	if (top.databases.device[ip]) {
+		window.mapWindow.resetDevice(ip, true);
+	}
 }
 
 		</script>

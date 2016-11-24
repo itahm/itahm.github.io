@@ -86,6 +86,7 @@ section {
 
 .log {
 	position: fixed; right: 10px; top: 80px;
+	cursor: pointer;
 }
 
 .log span {
@@ -182,6 +183,10 @@ document.getElementById("message").onclick = function () {
 	showDialog("message.html");
 };
 
+document.querySelector('div[class="log"]').onclick = function() {
+	document.getElementById("frame").src = "event.html";
+};
+
 document.getElementById("signout").onclick = function () {
 	//if (confirm("Are you sure you want to sign out right now?")) {
 	if (confirm("로그아웃 하겠습니까?")) {
@@ -261,14 +266,10 @@ document.getElementById("signout").onclick = function () {
 						, function (data) {
 							window.databases.monitor = data;
 							
-							if (window.mapWindow && window.databases.device[eventData.ip]) {
-								window.mapWindow.resetDevice(eventData.ip, true);
-							}
+							try {
+								document.getElementById("frame").contentWindow.onEvent(eventData.ip);
+							} catch(e) {}
 						});
-					
-					try {
-						document.getElementById("frame").contentWindow.onEvent(ip);
-					} catch(e) {}
 					
 					break;
 					

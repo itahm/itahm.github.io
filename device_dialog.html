@@ -58,29 +58,6 @@ input[type="checkbox"] {
 	vertical-align: middle;
 }
 
-/*
-.address {
-	display: flex;
-	align-items: flex-end;
-}
-
-.address span {
-	flex: 1;
-}
-
-.address input {
-	text-align: right;
-}
-
-input[name="snmp"] +span:after {
-	content: "수집하지 않음";
-}
-
-input[name="snmp"]:checked +span:after {
-	content: "수집중";
-}
-
-*/
 #profile:hover {
 	cursor: default;
 	text-decoration: underline;
@@ -235,24 +212,13 @@ function buildType() {
 
 function onSearch() {
 	window.top.showDialog("search_dialog.html");
-	
-	/*
-	top.sendRequest({
-		command: "search",
-		network: "192.168.0.0",
-		mask: 24
-	}, function (data) {
-		alert("자동 탐지 요청을 보냈습니다.");
-		
-		top.closeDialog();
-	});*/
 }
 
 function onApply(e) {
 	e.preventDefault();
 	
-	var ip = //[form.elements.ip1.value, form.elements.ip2.value, form.elements.ip3.value, form.elements.ip4.value].join(".");
-		form.elements.ip.value;
+	var ip = form.elements.ip.value;
+	
 	if (!window.device) {
 		if (ip in top.databases.device) {
 			alert("IP address already exists.");
