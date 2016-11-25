@@ -19,7 +19,7 @@ body {
 
 #chart {
 	border: none;
-	padding: 0; margin: 0;
+	width: 100%; height: 100%;
 	flex: 1;
 }
 
@@ -41,7 +41,7 @@ rect {
 	fill: rgba(0, 132, 255, .2);
 }
 
-image:hover,
+svg image:hover,
 body.move {
 	cursor: e-resize;
 }
@@ -355,8 +355,6 @@ svg.addEventListener("dragon", function (e) {
 
 svg.addEventListener("drag", function (e) {
 	if (moveCursor(Math.round(e.detail.dragX / window.blockWidth))) {
-		//moveCursorArea();
-		
 		window.chartWindow.draw(window.dateList[Math.min(window.topPosLast, window.bottomPosLast)]
 			, window.dateList[Math.max(window.topPosLast, window.bottomPosLast)]);
 	}
@@ -365,15 +363,6 @@ svg.addEventListener("drag", function (e) {
 svg.addEventListener("dragoff", function (e) {
 	document.body.classList.remove("move");
 });
-
-
-/*
-document.body.ondragstart = function (e) {
-	e.stopPropagation();
-
-	return false;
-};
-*/
 
 window.chart.onload = function () {
 	window.chartWindow.initialize(window.start, window.end, window.today, window.end);

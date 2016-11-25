@@ -57,10 +57,11 @@ text {
 	fill: none;
 }
 
+/*
 #graph path:hover {
 	cursor: pointer;
 }
-
+*/
 #graph path.fill_min {
 	fill: #fff;
 }
@@ -361,14 +362,12 @@ function drawGraph() {
 	window.yRatio = window.rect.height / (high - window.low);
 	
 	strokeMax.set("stroke", window.color);
-	//strokeMax.set("stroke-opacity", .5);
 	strokeMax.set("stroke-width", 2);
 	strokeMax.set("fill", "none");
 	strokeAvg.set("stroke", window.color);
 	strokeAvg.set("stroke-width", 1);
 	strokeAvg.set("fill", "none");
 	strokeMin.set("stroke", window.color);
-	//strokeMin.set("stroke-opacity", .5);
 	strokeMin.set("fill", "none");
 	strokeMin.set("stroke-width", 2);
 	
@@ -414,6 +413,116 @@ function drawGraph() {
 			fillMin.lineTo(x, (y.min - window.low) * window.yRatio);
 		}
 	
+		fillMax.lineTo(x, 0);
+		fillMin.lineTo(x, 0);
+		
+		fillMax.closePath();
+		fillMin.closePath();
+		
+		fillMax.draw();
+		fillMin.draw();
+		
+		strokeMax.draw();
+		strokeAvg.draw();
+		strokeMin.draw();
+	}
+}
+
+function drawGraph2() {
+	if (!window.chartData) {
+		return;
+	}
+	
+	var fillMax = new ITAhM.Path(window.graph),
+		fillMin = new ITAhM.Path(window.graph),
+		strokeMax = new ITAhM.Path(window.graph),
+		strokeAvg = new ITAhM.Path(window.graph),
+		strokeMin = new ITAhM.Path(window.graph),
+		high = window.chartData.high,
+		blocks = window.chartData.keys,
+		dateArray, date, mills, yAvg, yMax, yMin;
+	
+	window.low = window.chartData.low,
+	window.yRatio = window.rect.height / (high - window.low);
+	
+	strokeMax.set("stroke", window.color);
+	strokeMax.set("stroke-width", 2);
+	strokeMax.set("fill", "none");
+	strokeAvg.set("stroke", /*window.color*/"#ff0000");
+	strokeAvg.set("stroke-width", 1);
+	strokeAvg.set("fill", "none");
+	strokeMin.set("stroke", window.color);
+	strokeMin.set("fill", "none");
+	strokeMin.set("stroke-width", 2);
+	
+	fillMax.set("fill", window.color);
+	fillMax.set("fill-opacity", .1);
+	fillMin.set("class", "fill_min");
+	
+	strokeMax.beginPath();
+	fillMax.beginPath();
+	strokeAvg.beginPath();
+	strokeMin.beginPath();
+	fillMin.beginPath();
+	
+	for (var i=0, _i=blocks.length; i<_i; i++) {
+		dateArray = blocks[i];
+	
+		mills = dateArray[0];
+		
+		x = (mills - start) / window.tpp;
+		y = window.summaryData.get(mills);
+	
+		yAvg = (y.avg - window.low) * window.yRatio;
+		yMax = (y.max - window.low) * window.yRatio;
+		yMin = (y.min - window.low) * window.yRatio;
+		
+		fillMax.moveTo(x, 0);
+		fillMax.lineTo(x, yMax);
+		
+		fillMin.moveTo(x, 0);
+		fillMin.lineTo(x, yMin);
+		
+		strokeAvg.moveTo(x, yAvg);
+		strokeMax.moveTo(x, yMax);
+		strokeMin.moveTo(x, yMin);
+		
+		for (var j=1,_j=dateArray.length; j<_j; j++) {				
+			mills = dateArray[j];
+			
+			x = (mills - start) / window.tpp;
+			y = window.summaryData.get(mills);
+			
+			strokeMax.lineTo(x, yMax);
+			strokeAvg.lineTo(x, yAvg);
+			strokeMin.lineTo(x, yMin);
+			
+			fillMax.lineTo(x, yMax);
+			fillMin.lineTo(x, yMin);
+			
+			yMax = (y.max - window.low) * window.yRatio;
+			yMin = (y.min - window.low) * window.yRatio;
+			yAvg = (y.avg - window.low) * window.yRatio;
+			
+			strokeMax.lineTo(x, yMax);
+			strokeAvg.lineTo(x, yAvg);
+			strokeMin.lineTo(x, yMin);
+			
+			fillMax.lineTo(x, yMax);
+			fillMin.lineTo(x, yMin);
+		}
+		
+		date = new Date(mills);
+	
+		x = (date.setHours(date.getHours() +1) - start) / window.tpp;
+		
+		fillMax.lineTo(x, yMax);
+		fillMin.lineTo(x, yMin);
+		
+		strokeMax.lineTo(x, yMax);
+		strokeAvg.lineTo(x, yAvg);
+		strokeMin.lineTo(x, yMin);
+		
 		fillMax.lineTo(x, 0);
 		fillMin.lineTo(x, 0);
 		
@@ -479,7 +588,7 @@ function draw(start, end) {
 	
 	clear(window.graph);
 	
-	drawGraph();
+	drawGraph2();
 	
 	clear(window.leftAxis);
 	clear(window.rightAxis);
@@ -490,7 +599,7 @@ function draw(start, end) {
 /**
  * public
  */
-function detail(detailData, start, end) {return;
+function detail(detailData, start, end) {
 	var path = new ITAhM.Path(window.graph),
 		blocks, dateArray, mills;
 	
