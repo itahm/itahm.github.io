@@ -31,47 +31,89 @@
 	flex: 1;
 }
 
-
-#response_time {
-	font-size: 2em;
-}
-
 /* title */
 .resource >h2 {
 	margin: 5px;
+	text-align: center;
 }
 
 /* body */
-/*.resource >div {
+.resource >div {
 	flex: 1;
-	display: flex;
-	justify-content: center;
-	align-items: center;
-}*/
+}
 
 .processor_item {
 	margin: 10px;
 }
 
+.circular_bar {
+	width: 100px;
+	height: 100px;
+	position: relative;
+	display: inline-block;
+}
+
+.circular_bar svg {
+	width: 100%;
+	height: 100%;
+}
+
+.circular_bar .bar {
+	fill: none;
+	stroke-width: 10;
+	stroke: rgba(128, 128, 128, .5);
+	stroke-cap: round;
+}
+
+.circular_bar .progress.bar{
+	transition: stroke-dashoffset .5s ease-out;
+}
+
+.circular_bar.green .progress.bar {
+	stroke: #0f0;
+}
+
+.circular_bar.red .progress.bar {
+	stroke: #f00;
+}
+
+.circular_bar.orange .progress.bar {
+	stroke: #f90;
+}
+
+.circular_bar::after {
+	content: attr(data-value);
+	position: absolute; top: 50px; left: 50px;
+	transform: translateX(-50%) translateY(-50%);
+	font-size: 15px;
+	font-weight: bold;
+}
+
 .memory_item .bar {
 	display: flex;
-	width: 80px;
+	width: 100px;
 	height: 100px;
 	justify-content: center;
 	align-items: center;
 	border: 1px solid #999;
-	border-radius: 10px;
+	border-radius: 50px;
 	position: relative;
 	overflow: hidden;
+}
+
+.memory_item .label {
+	font-size: 15px;
+	font-weight: bold;
 }
 
 .memory_item .color {
 	position: absolute;
 	bottom: 0;
 	left: 0;
-	width: 100%;
+	width: 100%; height: 0;
 	background-color: #b8860b;
 	z-index: -1;
+	transition: height .5s ease-out;
 }
 
 .memory_item {
@@ -125,9 +167,10 @@ ul {
 
 #storage .color {
 	position: absolute; top: 0; left: 0;
-	height: 100%;
+	width: 0; height: 100%;
 	z-index: -1;
 	background-color: #9d9789;
+	transition: width .5s ease-out;
 }
 /**/
 
@@ -230,10 +273,6 @@ ul {
 	color: #f00;
 }
 
-.response_time {
-	text-align: center;
-}
-
 li.storage_item:hover,
 li.i_face_item:hover {
 	outline: solid 3px #0084ff;
@@ -242,10 +281,22 @@ li.i_face_item:hover {
 
 #memory {
 	display: inline-block;
-	padding: 10px;
 }
 
-body:not(.response_time) .resource.response_time,
+#response {
+	position: relative;
+}
+
+#response iframe {
+	position: absolute; top: 0; right: 0; bottom:0; left: 0;
+	width: 100%; height: 100%;
+	border: none; 
+}
+
+#realtime_response {
+	pointer-events: none;
+}
+
 body:not(.processor) .resource.processor,
 body:not(.storage) .resource.storage,
 body:not(.memory) .resource.memory,
@@ -265,11 +316,8 @@ body:not(.throughput) .resource.throughput {
 		<div class="summary">
 			<section class="resource response_ime">
 				<h2>응답 속도</h2>
-				<div>
-					<h2>
-						<img src="img/synchronize.png" width="24" height="24">
-						<span id="response_time"></span>
-					</h2>
+				<div id="response">
+					<iframe id="realtime_response" src="realtime_response.html"></iframe>
 				</div>
 			</section>
 			
@@ -323,6 +371,15 @@ body:not(.throughput) .resource.throughput {
 		<div class="layout">
 			<canvas width="100" height="100" class="processor_item"></canvas>
 			
+			<div class="circular_bar" data-value="0%">
+				<svg>
+					<g transform = "translate(50, 50) rotate(-90)">
+						<circle class="bar" cx="0" cy="0" r="45" />
+						<circle class="progress bar" cx="0" cy="0" r="45" stroke-dasharray="282.74333882308139146163790449516" stroke-dashoffset="282.74333882308139146163790449516" />
+					</g>
+				</svg>
+			</div>
+			
 			<ul class="memory_item">
 				<li class="bar">
 					<span class="label"></span>
@@ -330,9 +387,7 @@ body:not(.throughput) .resource.throughput {
 				<li>
 					<ul>
 						<li>용량
-						<li>value
 						<li>사용
-						<li>value
 					</ul>
 			</ul>
 			
@@ -388,90 +443,97 @@ body:not(.throughput) .resource.throughput {
 	
 	document.querySelector(".resource.response_ime").onclick = function () {
 		onSelectResource("responseTime");
-	}
+	};
+	
+	document.getElementById("realtime_response").onload = function () {
+		this.contentWindow.initialize(top.databases.local.selected);
+	};
 	
 	function createProcGauge(value) {
-		var clone = processorGauge.cloneNode(true),
-			ctx = clone.getContext("2d"),
-			origin = Math.PI *1.5,
-			x = clone.width /2,
-			y = clone.height /2,
-			r = Math.min(x, y);
-
-		ctx.beginPath();
-		ctx.arc(x, y, r, 0, 2* Math.PI);
-		ctx.fillStyle = "#ffe63b";
-		ctx.fill();
+		var circularBar = document.querySelector(".circular_bar").cloneNode(true);
 		
-		ctx.beginPath();
-		ctx.moveTo(x, y);
-		ctx.lineTo(x, 0);
-		ctx.arc(x, y, r, origin, origin + 2* Math.PI * value /100);
-		ctx.closePath();
-
-		ctx.fillStyle = "#e60000";
-		ctx.fill();
+		if (parseInt(value) > 90) {
+			circularBar.classList.add("red");
+		}
+		else if (parseInt(value) > 70) {
+			circularBar.classList.add("orange");
+		}
+		else {
+			circularBar.classList.add("green");
+		}
 		
-		ctx.fillStyle = "#000";
-		ctx.font = "10pt arial";
-		ctx.textAlign = "center";
-		ctx.textBaseline = "middle"; 
-		ctx.fillText(value +"%", x, y);
+		circularBar.dataset.value = value +"%";
 		
-		return clone;
+		setTimeout(function () {
+			circularBar.children[0].children[0].children[1].setAttributeNS(null, "stroke-dashoffset", 2* Math.PI*(1 - value /100)*45);
+		}, 500);
+		
+		return circularBar;
 	}
 	
 	function createMemoryGuage(used, size) {
 		var clone = memoryGauge.cloneNode(true),
 			bar = clone.children[0],
-			info = clone.children[1].children[0];
+			info = clone.children[1].children[0],
+			usage = Math.round(100* used / size) +"%";
 
-		bar.children[0].textContent
-		= bar.children[1].style.height
-		= Math.round(100* used / size) +"%";
+		setTimeout(function () {
+			bar.children[1].style.height = usage;
+		}, 500);
 		
-		info.children[1].textContent = ITAhM.util.toBytesString(size);
-		info.children[3].textContent = ITAhM.util.toBytesString(used);
+		bar.children[0].textContent = usage;
+		
+		info.children[0].textContent = ITAhM.util.toBytesString(used);
+		info.children[1].textContent = "/ "+ ITAhM.util.toBytesString(size);
 		
 		return clone;
 	}
 	
 	function createStorageGuage(used, size, label) {
 		var clone = storageGauge.cloneNode(true),
-			ul = clone.children[0];
+			ul = clone.children[0],
+			usage = (100* used / size).toFixed(2) +"%";;
 		
 		ul.children[0].textContent = label;
 		ul.children[1].textContent = ITAhM.util.toBytesString(size);
 		ul.children[2].textContent = ITAhM.util.toBytesString(used);
 		
-		ul.children[3].children[0].textContent
-		= ul.children[3].children[1].style.width
-		= (100* used / size).toFixed(2) +"%";
+		ul.children[3].children[0].textContent = usage;
+		
+		setTimeout(function () {
+			ul.children[3].children[1].style.width = usage;
+		}, 500);
 		
 		return clone;
 	}
 		
 	function createIFaceGuage(status, index, name, descr, alias, bandwidth, inBPS, outBPS, inErr, outErr) {
 		var clone = iFaceGauge.cloneNode(true),
-			ul = clone.children[0];
+			ul = clone.children[0],
+			usageIn, usageOut;
 		
 		if (status !== 1) {
 			ul.classList.add("shutdown");
 		}
+		
+		usageIn = (100* inBPS / bandwidth).toFixed(2) +"%";
+		usageOut = (100* outBPS / bandwidth).toFixed(2) +"%";
 		
 		ul.children[1].textContent = name;
 		ul.children[2].textContent = alias;
 		ul.children[3].textContent = ITAhM.util.toBPSString(bandwidth);
 		ul.children[4].textContent = ITAhM.util.toBPSString(inBPS);
 		ul.children[5].textContent = ITAhM.util.toBPSString(outBPS);		
-		ul.children[6].children[0].textContent
-		= ul.children[6].children[1].style.width
-		= (100* inBPS / bandwidth).toFixed(2) +"%";
-		ul.children[7].children[0].textContent
-		= ul.children[7].children[1].style.width
-		= (100* outBPS / bandwidth).toFixed(2) +"%";
+		ul.children[6].children[0].textContent = usageIn; 
+		ul.children[7].children[0].textContent = usageOut;
 		ul.children[8].children[0].textContent = Math.round(inErr /10);
 		ul.children[8].children[1].textContent = Math.round(outErr /10);
+		
+		setTimeout(function () {
+			ul.children[6].children[1].style.width = usageIn;
+			ul.children[7].children[1].style.width = usageOut;
+		}, 500);
+		
 		
 		ul.children[8].onclick = function (index, e) {
 			onSelectResource("error", index);
@@ -524,7 +586,7 @@ body:not(.throughput) .resource.throughput {
 			alert("에이전트가 실행된 이후 응답이 없는 장비입니다.\n"
 				+"성능정보를 불러올 수 없습니다.");
 			return;
-			
+	/*		
 			top.sendRequest({
 				command: "history",
 				ip: device.ip
@@ -532,11 +594,8 @@ body:not(.throughput) .resource.throughput {
 				initHistory(history);
 			});
 			
-			return;
+			return;*/
 		}
-		
-		document.getElementById("response_time").textContent = snmp.responseTime +"ms.";
-		document.body.classList.add("response_time");
 		
 		entry = snmp.hrProcessorEntry;
 		for (var index in entry) {
