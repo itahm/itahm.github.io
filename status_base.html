@@ -13,8 +13,8 @@
 }
 
 .resource {
-	display: flex;
-	flex-direction: column;
+	/*display: flex;
+	flex-direction: column;*/
 	padding: 5px;
 	border: 1px solid #0084ff;
 	border-radius: 5px;
@@ -39,7 +39,7 @@
 
 /* body */
 .resource >div {
-	flex: 1;
+	/*flex: 1;*/
 }
 
 .processor_item {
@@ -78,7 +78,7 @@
 }
 
 .circular_bar.orange .progress.bar {
-	stroke: #f90;
+	stroke: #fc0;
 }
 
 .circular_bar::after {
@@ -283,8 +283,13 @@ li.i_face_item:hover {
 	display: inline-block;
 }
 
+section.resource.response_ime {
+	display: flex; flex-direction: column;
+}
+
 #response {
 	position: relative;
+	flex: 1;
 }
 
 #response iframe {
