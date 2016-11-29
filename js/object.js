@@ -94,7 +94,7 @@ var ITAhM = ITAhM || {};
 					
 					tmp = [];
 				}
-			} while ((mills = this.next(date)) <= end);
+			} while ((mills = this.next(date)) < end);
 			
 			// 값이 둘 이상이어야 graph를 그릴 수 있음
 			if (tmp.length > 1) {

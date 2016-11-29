@@ -9,8 +9,13 @@
 		<style>
 @import "css/itahm.css";
 
+body {
+	position: fixed; top: 0; right: 0; left: 0; bottom: 0;
+	display: flex; flex-direction: column;
+}
+
 header {
-	position: fixed; top: 0; right: 0; left: 0; height: 60px;
+	height: 60px;
 	display: flex;
 	justify-content: center;
 	background-color: #0084ff;
@@ -18,10 +23,17 @@ header {
 }
 
 article {
-	position: fixed; top: 60px; right: 0; bottom: 0; left: 0;
-	display: flex;
-	justify-content: center;
+	flex: 1;
 	overflow: auto;
+}
+
+section {
+	margin: auto;
+}
+
+footer {
+	height: 30px;
+	display: flex; justify-content: center; align-items: center;
 }
 
 nav {
@@ -42,16 +54,6 @@ li img {
 
 figure img {
 	margin: 0;
-}
-
-section {
-	display: flex;
-}
-
-div.main {
-	flex: 1;
-	margin-top: 10px;
-	padding: 10px;
 }
 
 a:visited,
@@ -173,7 +175,7 @@ div.main:empty #itahm {
 						
 						<h1>대쉬보드</h1>
 						<figure>
-							<img src="img/home/dashboard.png" width="931" height="420">
+							<img src="img/home/dashboard2.png" width="900" height="428">
 							<figcaption>대쉬보드</figcaption>
 						</figure>
 						<ul>
@@ -193,7 +195,7 @@ div.main:empty #itahm {
 						
 						<h1>성능 차트</h1>
 						<figure>
-							<img src="img/home/chart.png" width="850" height="580">
+							<img src="img/home/chart2.png" width="830" height="609">
 							<figcaption>성능 차트</figcaption>
 						</figure>
 						<ul>
@@ -263,7 +265,7 @@ div.main:empty #itahm {
 						
 						<h1>이벤트 및 시스로그</h1>
 						<figure>
-							<img src="img/home/event.png" width="905" height="370">
+							<img src="img/home/event2.png" width="720" height="420">
 							<figcaption>이벤트 목록</figcaption>
 						</figure>
 						<ul>
@@ -344,6 +346,8 @@ div.main:empty #itahm {
 				</div>
 			</section>
 		</article>
+		
+		<footer>아이탐 서울특별시 성북구 동소문로 63, 6층 10호 010-2538-6433 itahm2014@gmail.com</footer>
 		
 		<script>
 		
