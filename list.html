@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta http-equiv="Content-Script-Type" content="text/javascript">
+		<meta http-equiv="Content-Style-Type" content="text/css">
+		<title></title>
+		
+		<style>
+@import "css/itahm.css";
+
+body {
+	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
+	margin: 0; padding: 0;
+}
+
+article {
+	display: flex;
+	flex-direction: column;
+	margin: auto;
+	height: 100%;
+}
+
+form {
+	margin: 5px 0;
+	display: flex;
+	justify-content: space-between;
+}
+
+#list {
+	flex: 1;
+	overflow: auto;
+}
+
+nav {
+	margin: 5px 0;
+	background-color: #0084ff;
+	color: #fff;
+	font-weight: bold;
+}
+
+form input,
+form select {
+	padding: .5em;
+	vertical-align: bottom;
+}
+
+form input[type="text"] {
+	flex: 1;
+	min-width: 0;
+}
+
+ul {
+	margin: 0;
+	padding: 3px 0;
+	list-style: none;
+	display: flex;
+}
+
+li {
+	flex: 1;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	font-size: 12px;
+}
+
+li:first-child {
+	flex: none;
+	width: 3em;
+}
+
+ul.critical li:first-child {
+	background: transparent url("img/alarm.png") center no-repeat;
+	background-size: 16px;
+}
+
+li:nth-child(5),
+li:nth-child(6),
+li:nth-child(7),
+li:nth-child(8) {
+	flex: none;
+	width: 3em;
+	background-size: 16px;
+	background-repeat: no-repeat;
+	background-position: center;
+}
+
+#list ul:hover li:nth-child(5) {
+	background-image: url("img/location.png");
+	cursor: pointer;
+}
+
+#list ul:hover li:nth-child(6) {
+	background-image: url("img/edit.png");
+	cursor: pointer;
+}
+
+#list ul.snmp:hover li:nth-child(7) {
+	background-image: url("img/alarm.png");
+	cursor: pointer;
+}
+
+#list ul.snmp:hover li:nth-child(8) {
+	background-image: url("img/chart.png");
+	cursor: pointer;
+}
+
+#list ul:nth-child(odd) {
+	background-color: #fafafa;
+}
+
+li {
+	padding: 3px;
+}
+
+		</style>
+		
+		<script>
+
+function onEdit(ip) {
+	top.showDialog.call(window, "device_dialog.html", ip);
+}
+
+function onSetAlarm(ip){
+	top.showDialog.call(window, "critical_dialog.html", ip);
+}
+
+function onStatus(ip){
+	top.databases.local.selected = ip;
+	
+	window.location.href = "status.html";
+}
+
+function onMap(ip) {
+	top.databases.local.selected = ip;
+	
+	window.location.href = "map.html";
+}
+
+		</script>
+		
+	</head>
+	
+	<body class="loading">
+		<article class="content_width">
+			<form id="form">
+				<select name="label"></select>
+				<span>
+					<input type="text" name="keyword" placeholder="이름 또는 유형 또는 IP주소 ">
+					<input type="submit" value="찾기">
+				</span>
+			</form>
+			<nav>
+				<ul>
+					<li>
+					<li>장비 이름
+					<li>장비 유형
+					<li>IP 주소
+					<li>
+					<li>
+					<li>
+					<li>
+				</ul>
+			</nav>
+			<div id="list"></div>
+		</article>
+		
+		<div class="bg_loading"></div>
+		<script>
+
+var form = document.getElementById("form"),
+	list = document.getElementById("list"),
+	deviceMapping = {},
+	labels = {};
+
+form.elements.label.addEventListener("change", onChangeLabel);
+form.addEventListener("submit", onSearch);
+
+initList();
+
+initLabel();
+
+function initList() {
+	var df = document.createDocumentFragment(),
+		monitorData = top.databases.monitor;
+		criticalData = top.databases.critical;
+	
+	var deviceData = window.top.databases.device;
+	
+	for (var ip in deviceData) {
+		df.appendChild(createRow(deviceData[ip], monitorData[ip], criticalData[ip]));
+	}
+	
+	list.appendChild(df);
+	
+	document.body.classList.remove("loading");
+}
+
+function createRow(device, monitor, critical) {
+	var row = document.createElement("ul"),
+		location, alarm, edit, label, status;
+	
+	row.appendChild(document.createElement("li"));
+	row.appendChild(document.createElement("li")).textContent = device.name;
+	row.appendChild(document.createElement("li")).textContent = device.type;
+	row.appendChild(document.createElement("li")).textContent = device.ip;
+	
+	location = row.appendChild(document.createElement("li"));
+	edit = row.appendChild(document.createElement("li"));
+	alarm = row.appendChild(document.createElement("li"));
+	status = row.appendChild(document.createElement("li"));
+	
+	location.title = "구성도에서 장비 보기";
+	edit.title = "장비의 정보 편집";
+	
+	location.onclick = onMap.bind(undefined, device.ip);
+	edit.onclick = onEdit.bind(undefined, device.ip);
+	
+	deviceMapping[device.ip] = row;
+	
+	if (device.label) {
+		label = device.label.split(",");
+		
+		for (var i=0, length=label.length; i<length; i++) {
+			row.classList.add(label[i]);
+			
+			labels[label[i]] = null;
+		}
+	}
+	else {
+		row.classList.add("no_label");
+		
+		labels["라벨 없음"] = null;
+	}
+	
+	if (monitor && monitor.protocol === "snmp") {
+		row.classList.add("snmp");
+		
+		alarm.title = "장비의 성능 임계 설정";
+		alarm.onclick = onSetAlarm.bind(undefined, device.ip);
+		
+		status.title = "장비의 상태 보기";
+		status.onclick = onStatus.bind(undefined, device.ip);
+		
+		if (critical) {
+			row.classList.add("critical");
+		}
+	}
+	
+	return row;
+}
+
+function initLabel() {
+	var select = form.elements.label,
+		option = document.createElement("option");
+
+	// label select 초기화
+	select.length = 0;
+	
+	option.value = "";
+	option.text = "모든 라벨";
+	option.selected = true;
+	
+	select.add(option);
+	
+	for (var label in labels) {
+		option = document.createElement("option");
+		
+		option.text = label;
+		
+		select.add(option);
+	}
+}
+
+function onSearch(e) {
+	e.preventDefault();
+	
+	// search 결과를 초기화 하기 위해
+	selectLabel(form.elements.label.value);
+
+	filterDeviceList(form.elements.keyword.value);
+}
+
+function onChangeLabel(e) {
+	form.elements.keyword.value = "";
+	
+	selectLabel(form.elements.label.value);
+}
+
+function clearDeviceList() {
+	var df = document.createDocumentFragment(),
+		row;
+	
+	while (row = list.firstChild) {
+		df.appendChild(row);
+	}
+	
+	return df;
+};
+
+function filterDeviceList(keyword) {
+	var row = clearDeviceList().firstChild,
+		next, cols,
+		df = document.createDocumentFragment(),
+		device;
+	
+	while (row) {
+		next = row.nextSibling;
+		
+		cols = row.children;
+		
+		for (var i=0, length=cols.length; i<length; i++) {
+			if (cols[i].textContent.indexOf(keyword) !== -1) {
+				df.appendChild(row);
+				
+				break;
+			}
+		}
+		
+		row = next;
+	}
+	
+	list.appendChild(df);
+};
+
+function selectLabel(label) {
+	var df = document.createDocumentFragment(),
+		rows;
+	
+	for (var ip in deviceMapping) {
+		df.appendChild(deviceMapping[ip]);
+	}
+	
+	if (label) {
+		rows = [].slice.call(df.querySelectorAll("."+ label), 0);
+		
+		df = document.createDocumentFragment();
+		
+		for (var i=0, length=rows.length; i<length; i++) {
+			df.appendChild(rows[i]);
+		}
+	}
+	
+	list.appendChild(df);
+};
+
+		</script>
+	
+	</body>
+	
+</html>

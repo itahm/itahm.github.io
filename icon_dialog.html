@@ -147,10 +147,12 @@ function onReset(e) {
 }
  
 function onCancel(e) {
-	top.closeDialog(true);
+	top.closeDialog();
 }
 
 window.initialize = function (type) {
+	window.opener = this && this.location;
+	
 	if (type) {
 		window.icon = top.databases.icon[type];
 		
@@ -188,6 +190,10 @@ function put(name, icon) {
 		value: icon
 	}, function (data) {
 		top.databases.icon = data;
+		
+		if (window.opener) {
+			window.opener.reload();
+		}
 		
 		top.closeDialog();
 	});

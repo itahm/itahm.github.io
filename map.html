@@ -12,46 +12,11 @@
 body {
 	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
 	margin: 0; padding: 0;
-	display: flex;
 }
 
-aside,
-section {
-	position: relative;
-}
-
-aside {
-	width: 399px; height: 100%;
-	border-right: 1px solid #0084ff;
-	display: flex;
-	flex-direction: column;
-	padding: 5px;
-	box-sizing: border-box;
-	overflow: hidden;
-}
-
-body.maximized aside {
-	padding: 0;
-	width: 0;
-}
-
-form {
-	display: flex;
-	margin: 10px 0;
-}
-
-form> * {
-	padding: .5em;
-}
-
-aside input[type="text"] {
-	flex: 1;
-	min-width: 0;
-}
-
-section {
-	flex: 1;
-	height: 100%;
+iframe {
+	border: none;
+	width: 100%; height: 100%;
 }
 
 nav {
@@ -79,114 +44,23 @@ nav {
 	font-size: 9pt;
 }
 
-#list {
-	flex: 1;
-	overflow: auto;
-}
-
-#list ul {
-	margin: 0;
-	padding: 3px 0;
-	list-style: none;
-	display: flex;
-	cursor: pointer;
-}
-
-#list li {
-	flex: 1;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-	font-size: 12px;
-}
-
-#list ul:hover li:nth-child(1) {
-	text-decoration: underline;
-	color: #0084ff;
-}
-
-#list ul:nth-child(odd) {
-	background-color: #fafafa;
-}
-
-#list li {
-	padding: 3px;
-}
-
-.handle {
-	position: absolute; top: 0; bottom: 0; left: 0;
-	display: flex;
-	align-items: center;
-}
-
-.handle div {
-	width: 1em;
-	height: 2em;
-	border-radius: 0 1em 1em 0;
-	background-color: #0084ff;
-	cursor: pointer;
-}
-
-iframe {
-	border: none;
-	width: 100%; height: 100%;
-}
-
 		</style>
 		
-	</head>
-	
-	<body class="loading maximized">
-		
-		<aside>
-			<form id="form">
-				<select name="label"></select>
-				<input type="text" name="keyword">
-				<input type="submit" value="search">
-			</form>
-			<div id="list"></div>
-		</aside>
-		
-		<section>
-			<iframe id="map"></iframe>
-			
-			<div class="handle">
-				<div id="handle"></div>
-			</div>
-			
-			<nav class="left">
-				<img src="img/add_device.png" width="16px" height="16px" title="장비 추가" id="add">
-				<img src="img/save.png" width="16px" height="16px" title="저장" id="save">
-				<img src="img/zoomin.png" width="16px" height="16px" title="확대" id="zoom_in">
-				<img src="img/zoomout.png" width="16px" height="16px" title="축소" id="zoom_out">
-			</nav>
-			
-			<nav class="right">	
-				<label title="인터페이스명 표시/감추기"><input type="checkbox" id="ifname" checked>interface</label>
- 				<label title="장비명 표시"><input type="radio" name="display" id="name" value="false" checked>name</label>
-				<label title="IP 표시"><input type="radio" name="display" id="address" value="true">ip address</label>
-			</nav>
-		</section>
-			
-		<div class="bg_loading"></div>
 		<script>
 
-var map = document.getElementById("map"),
-	form = document.getElementById("form"),
-	list = document.getElementById("list"),
-	rowMap = {},
-	labels = {};
+function resize() {
+	window.mapWindow.resize();
+}
 
-form.elements.label.addEventListener("change", onChangeLabel);
-form.addEventListener("submit", onSearch);
+function editDevice(ip) {
+	top.showDialog.call(window, "device_dialog.html", ip);
+}
 
-document.getElementById("handle").onclick = function () {
-	document.body.classList.toggle("maximized");
-	
-	resize();
-};
+function onEdit() {
+	editDevice();
+}
 
-document.getElementById("save").onclick = function () {
+function onSave() {
 	var request = {
 			command: "push",
 			database: "position",
@@ -196,15 +70,52 @@ document.getElementById("save").onclick = function () {
 	top.sendRequest(request, function (response) {
 		alert("구성의 변경사항을 저장하였습니다.");
 	});
-};
+}
 
-document.getElementById("add").onclick = function () {
-	editDevice();
-};
+function onEvent(ip) {
+	if (top.databases.device[ip]) {
+		window.mapWindow.resetDevice(ip, true);
+	}
+}		
+
+function onSetAlarm(ip){
+	top.showDialog.call(undefined, "critical_dialog.html", ip);
+}
+
+		</script>
+		
+		
+	</head>
+	
+	<body class="loading">
+		
+		<iframe id="map" src="map_base.html"></iframe>
+		
+		<nav class="left">
+			<img src="img/add_device.png" width="16px" height="16px" title="장비 추가" id="add">
+			<img src="img/save.png" width="16px" height="16px" title="저장" id="save">
+			<img src="img/zoomin.png" width="16px" height="16px" title="확대" id="zoom_in">
+			<img src="img/zoomout.png" width="16px" height="16px" title="축소" id="zoom_out">
+		</nav>
+		
+		<nav class="right">	
+			<label title="인터페이스명 표시/감추기"><input type="checkbox" id="ifname" checked>interface</label>
+				<label title="장비명 표시"><input type="radio" name="display" id="name" value="false" checked>name</label>
+			<label title="IP 표시"><input type="radio" name="display" id="address" value="true">ip address</label>
+		</nav>
+				
+		<div class="bg_loading"></div>
+		<script>
+
+var map = document.getElementById("map");
+
+document.getElementById("save").onclick = onSave;
+
+document.getElementById("add").onclick = onEdit;
 
 window.map.onload = function () {
 	var mapWindow = window.map.contentWindow,
-		scale;
+		scale, ip;
 	
 	window.mapWindow = mapWindow;
 	
@@ -252,192 +163,22 @@ window.map.onload = function () {
 		window.location.href = "status.html";
 	}
 	
-	mapWindow.onShowAlarm = function (ip){
-		window.top.databases.local.selected = ip;
-		
-		window.top.showDialog("critical_dialog.html");
-	}
+	mapWindow.onShowAlarm = onSetAlarm;
 	
 	mapWindow.zoom(scale = window.top.databases.local.scale);
 	
 	mapWindow.initialize();
 	
+	if (ip = top.databases.local.selected) {
+		var pos = window.top.databases.position[ip];
+		
+		top.databases.local.selected = undefined;
+		
+		mapWindow.moveAllDevice(- pos.x, - pos.y);
+		mapWindow.selectDevice(ip);
+	}
+	
 	document.body.classList.remove("loading");
-}
-
-initList();
-
-initLabel();
-
-window.map.src = "map_base.html";
-
-function resize() {
-	window.mapWindow.resize();
-}
-
-function initList() {
-	var df = document.createDocumentFragment();
-	
-	var deviceData = window.top.databases.device;
-	
-	for (var ip in deviceData) {
-		df.appendChild(createRow(deviceData[ip]));
-	}
-	
-	list.appendChild(df);
-}
-
-function createRow(device) {
-	var row = document.createElement("ul"),
-		label;
-	
-	row.appendChild(document.createElement("li")).textContent = device.name;
-	row.appendChild(document.createElement("li")).textContent = device.type;
-	row.appendChild(document.createElement("li")).textContent = device.ip;
-	
-	row.onclick = onSelectDevice.bind(undefined, device.ip);
-	
-	rowMap[device.ip] = row;
-	
-	if (device.label) {
-		label = device.label.split(",");
-		
-		for (var i=0, length=label.length; i<length; i++) {
-			row.classList.add(label[i]);
-			
-			labels[label[i]] = null;
-		}
-	}
-	else {
-		row.classList.add("unlabeled");
-		
-		labels["unlabeled"] = null;
-	}
-	
-	return row;
-}
-
-function initLabel() {
-	var select = form.elements.label,
-		option = document.createElement("option");
-
-	// label select 초기화
-	select.length = 0;
-	
-	option.value = "";
-	option.text = "all labels";
-	option.selected = true;
-	
-	select.add(option);
-	
-	for (var label in labels) {
-		option = document.createElement("option");
-		
-		option.text = label;
-		
-		select.add(option);
-	}
-}
-
-function editDevice(ip) {
-	window.top.showDialog("device_dialog.html",
-		function (dialog) {
-			dialog.initialize(ip);
-		},
-		function () {
-			window.location.reload();
-		}
-	);
-}
-
-function onSelectDevice(ip) {	
-	var device = window.top.databases.device[ip],
-		pos = window.top.databases.position[ip];
-	
-	window.mapWindow.moveAllDevice(- pos.x, - pos.y);
-	window.mapWindow.selectDevice(ip);
-}
-
-function onStopPropagation(e) {
-	e.stopPropagation();
-}
-
-function onSearch(e) {
-	e.preventDefault();
-	
-	// search 결과를 초기화 하기 위해
-	selectLabel(form.elements.label.value);
-
-	filterDeviceList(form.elements.keyword.value);
-}
-
-function onChangeLabel(e) {
-	form.elements.keyword.value = "";
-	
-	selectLabel(form.elements.label.value);
-}
-
-function clearDeviceList() {
-	var df = document.createDocumentFragment(),
-		row;
-	
-	while (row = list.firstChild) {
-		df.appendChild(row);
-	}
-	
-	return df;
-};
-
-function filterDeviceList(keyword) {
-	var row = clearDeviceList().firstChild,
-		next, cols,
-		df = document.createDocumentFragment(),
-		device;
-	
-	while (row) {
-		next = row.nextSibling;
-		
-		cols = row.children;
-		
-		for (var i=0, length=cols.length; i<length; i++) {
-			if (cols[i].textContent.indexOf(keyword) !== -1) {
-				df.appendChild(row);
-				
-				break;
-			}
-		}
-		
-		row = next;
-	}
-	
-	list.appendChild(df);
-};
-
-function selectLabel(label) {
-	var df = document.createDocumentFragment(),
-		rows;
-	
-	for (var ip in rowMap) {
-		df.appendChild(rowMap[ip]);
-	}
-	
-	if (label) {
-		rows = [].slice.call(df.querySelectorAll("."+ label), 0);
-		
-		df = document.createDocumentFragment();
-		
-		for (var i=0, length=rows.length; i<length; i++) {
-			df.appendChild(rows[i]);
-		}
-	}
-	
-	list.appendChild(df);
-};
-
-function onEvent(ip) {
-	if (top.databases.device[ip]) {
-		window.mapWindow.resetDevice(ip, true);
-	}
 }
 
 		</script>

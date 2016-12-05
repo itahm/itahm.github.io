@@ -148,13 +148,7 @@ document.getElementById("add_gcm").onclick = function () {
 document.body.classList.remove("loading");
 
 function onSelectAccount(username) {
-	top.showDialog("account_dialog.html",
-		function (dialog) {
-			dialog.initialize(username);
-		},
-		function () {
-			location.reload();
-		});
+	top.showDialog.call(window, "account_dialog.html", username);
 }
 
 function onSelectProfile(name) {

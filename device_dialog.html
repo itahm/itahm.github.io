@@ -211,7 +211,7 @@ function buildType() {
 }
 
 function onSearch() {
-	window.top.showDialog("search_dialog.html");
+	top.showDialog.call(window, "search_dialog.html");
 }
 
 function onApply(e) {
@@ -255,12 +255,16 @@ function onApply(e) {
 		}, function (data) {
 			top.databases.device = data;
 			
+			if (window.opener) {
+				window.opener.reload();
+			}
+			
 			top.closeDialog();
 		});
 }
 
 function onCancel(e) {
-	top.closeDialog(true);
+	top.closeDialog();
 }
 
 function onRemoveDevice() {
@@ -275,6 +279,10 @@ function onRemoveDevice() {
 				
 				delete top.databases.monitor[window.device.ip];
 				delete top.databases.position[window.device.ip];
+				
+				if (window.opener) {
+					window.opener.reload();
+				}
 				
 				top.closeDialog();
 			});
@@ -301,11 +309,17 @@ function onMonitorDevice(e) {
 	}, function (data) {
 		top.databases.monitor = data;
 		
+		if (window.opener) {
+			window.opener.reload();
+		}
+		
 		top.closeDialog();
 	});
 }
 
-function initialize(ip) {	
+function initialize(ip) {
+	window.opener = this && this.location;
+	
 	if (ip) {
 		window.device = top.databases.device[ip];
 		

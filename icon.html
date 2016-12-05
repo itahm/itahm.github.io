@@ -107,13 +107,7 @@ var list = document.getElementById("list"),
 }) ();
 
 function onSelectIcon(type) {
-	top.showDialog("icon_dialog.html",
-		function (dialog) {
-			dialog.initialize(type);
-		},
-		function () {
-			location.reload();
-		});
+	top.showDialog.call(window, "icon_dialog.html", type);
 }
 
 function createGroup(name) {

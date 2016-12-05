@@ -191,7 +191,7 @@ function onRemove(e) {
 }
 
 function onCancel(e) {
-	top.closeDialog(true);
+	top.closeDialog();
 }
 
 function put(username, account) {
@@ -205,11 +205,15 @@ function put(username, account) {
 	}, function (data) {
 		top.databases.account = data;
 		
+		window.opener.reload();
+		
 		top.closeDialog();
 	});
 }
 
 function initialize(username) {
+	window.opener = this.location;
+	
 	if (username) {
 		window.account = top.databases.account[username];
 		

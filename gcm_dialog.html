@@ -140,10 +140,12 @@ function onRemove(e) {
 }
 
 function onCancel(e) {
-	top.closeDialog(true);
+	top.closeDialog();
 }
 
 function initialize(id) {
+	window.opener = this && this.location;
+	
 	if (id) {
 		var gcm = top.databases.gcm[id];
 		
@@ -169,6 +171,10 @@ function put(id, gcm) {
 		value: gcm
 	}, function (data) {
 		top.databases.gcm = data;
+		
+		if (window.opener) {
+			window.opener.reload();
+		}
 		
 		top.closeDialog();
 	});

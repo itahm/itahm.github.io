@@ -234,6 +234,10 @@ function draw() {
 	
 	y = window.height + window.OY - y;
 	
+	if (isNaN(y)) {
+		throw "!";
+	}
+	
 	window.curText.setAttribute("y", y);
 	window.point.setAttribute("cy", y);
 }

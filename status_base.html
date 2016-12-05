@@ -198,38 +198,47 @@ ul {
 	white-space: nowrap;
 }
 
-#i_face .i_face_item li:last-child {
-	display: flex;
-}
-
-#i_face .i_face_item li:first-child {
-	flex: .2;
-}
-
-#i_face .i_face_item li:last-child:hover {
-	background-color: rgba(0, 132, 255, .2);
-}
-
-#i_face .i_face_item li:last-child div{
-	flex: 1;
-}
-
-#i_face .i_face_item li:first-child {
-	background: transparent url("img/ball_green.png") center no-repeat;
-}
-
-#i_face .i_face_item li:first-child.shutdown {
-	background: transparent url("img/ball_orange.png") center no-repeat; 
-}
-
 #i_face .title {
 	border-bottom: 1px solid #ddd;
 	margin-bottom: 3px;
 }
 
-#i_face .title li:nth-child(1) {
+.i_face_item li:last-child {
+	display: flex;
+}
+
+.i_face_item li:first-child {
 	flex: .2;
 }
+
+.i_face_item li:last-child:hover {
+	background-color: rgba(0, 132, 255, .2);
+}
+
+.i_face_item li:last-child div{
+	flex: 1;
+}
+
+.i_face_item li:first-child {
+	background: transparent url("img/ball_green.png") center no-repeat;
+}
+
+.i_face_item ul.shutdown li:first-child {
+	background: transparent url("img/ball_orange.png") center no-repeat; 
+}
+
+.i_face_item ul.disabled {
+	color: #aaa;
+}
+
+.i_face_item ul.disabled li:first-child {
+	background: transparent url("img/ball_gray.png") center no-repeat; 
+}
+
+#i_face li:nth-child(1) {
+	flex: .2;
+}
+
 #i_face .title li:nth-child(5),
 #i_face .title li:nth-child(6) {
 	flex: 2;
@@ -512,17 +521,23 @@ body:not(.throughput) .resource.throughput {
 		return clone;
 	}
 		
-	function createIFaceGuage(status, index, name, descr, alias, bandwidth, inBPS, outBPS, inErr, outErr) {
+	function createIFaceGuage(admin, oper, index, name, descr, alias, bandwidth, inBPS, outBPS, inErr, outErr) {
 		var clone = iFaceGauge.cloneNode(true),
 			ul = clone.children[0],
 			usageIn, usageOut;
 		
-		if (status !== 1) {
+		if (admin != 1) {
+			ul.classList.add("disabled");
+		}
+		else if (oper !== 1) {
 			ul.classList.add("shutdown");
 		}
 		
-		usageIn = (100* inBPS / bandwidth).toFixed(2) +"%";
-		usageOut = (100* outBPS / bandwidth).toFixed(2) +"%";
+		usageIn = 100* inBPS / bandwidth;
+		usageOut = 100* outBPS / bandwidth;
+		
+		usageIn = (isNaN(usageIn)? 0: usageIn).toFixed(2) +"%";
+		usageOut = (isNaN(usageOut)? 0: usageOut).toFixed(2) +"%";
 		
 		ul.children[1].textContent = name;
 		ul.children[2].textContent = alias;
@@ -680,16 +695,27 @@ body:not(.throughput) .resource.throughput {
 	}
 	
 	function initIFace(iFace, index) {
-		var bandwidth = iFace.ifHighSpeed || iFace.ifSpeed;
-		
-		if (bandwidth > 0) {
-			var inBPS = iFace.ifInBPS || 0,
-				outBPS = iFace.ifOutBPS || 0;
-			
-			interfaceArea
-				.appendChild(createIFaceGuage(iFace.ifAdminStatus, index, iFace.ifName, iFace.ifDescr, iFace.ifAlias, bandwidth, inBPS, outBPS, iFace.ifInErrors, iFace.ifOutErrors));
-				
+		/*
+		if (iFace.ifType == 24) {// loopback
+			return;
 		}
+		else if (iFace.ifType == 1) {// other
+			return;
+		}*/
+		
+		interfaceArea
+			.appendChild(createIFaceGuage(
+					iFace.ifAdminStatus,
+					iFace.ifOperStatus,
+					index,
+					iFace.ifName,
+					iFace.ifDescr,
+					iFace.ifAlias,
+					iFace.ifHighSpeed || iFace.ifSpeed,
+					iFace.ifInBPS || 0,
+					iFace.ifOutBPS || 0,
+					iFace.ifInErrors,
+					iFace.ifOutErrors));
 		
 		document.body.classList.add("throughput");
 	}

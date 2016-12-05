@@ -120,6 +120,11 @@ section {
 
 body:not(.log) .log,
 body:not(.dialog) #dialog {
+	
+}
+
+body:not(.log) .log,
+body:not(.dialog) #dialog {
 	display: none;
 }
 
@@ -133,6 +138,7 @@ body:not(.dialog) #dialog {
 			<nav class="content_width">
 				<ul>
 					<li><h1><a href="dashboard.html" target="main">대쉬보드</a></h1>
+					<li><h1><a href="list.html" target="main">장비목록</a></h1>
 					<li><h1><a href="map.html" target="main">구성도</a></h1>
 					<li><h1><a href="ip.html" target="main">IP주소</a></h1>
 					<li><h1><a href="event.html" target="main">이벤트</a></h1>
@@ -180,7 +186,8 @@ document.getElementById("reload").onclick = function () {
 };
 
 document.getElementById("message").onclick = function () {
-	showDialog("message.html");
+	window.dialog.onload = undefined;
+	window.dialog.src = "message.html";
 };
 
 document.querySelector('div[class="log"]').onclick = function() {
@@ -318,33 +325,22 @@ function notifyError(error) {
 	location.href = "connect.html";
 }
 
-// dialog
-function onLoad(handler) {
-	document.body.classList.add("dialog");
+function showDialog() {
+	var opener = this,
+		url = Array.prototype.shift.call(arguments),
+		args = arguments;
 	
-	handler(window.dialog.contentWindow);
+	window.dialog.onload = function () {
+		this.contentWindow.initialize.apply(opener, args);
+		
+		document.body.classList.add("dialog");
+	};
+	
+	window.dialog.src = url;
 }
 
-function onUnLoad(handler) {
-	handler();
-	
+function closeDialog() {
 	document.body.classList.remove("dialog");
-}
-
-function showDialog(url, load, unload) {
-	window.dialog.onload = onLoad.bind(window.dialog, load || function () {});
-	window.dialog.onunload = onUnLoad.bind(window.dialog, unload || function () {});
-	
-	window.dialog.src = url; 
-}
-
-function closeDialog(cancel) {
-	if (cancel) {
-		document.body.classList.remove("dialog");
-	}
-	else {
-		window.dialog.onunload();
-	}
 }
 
 function clearLog() {

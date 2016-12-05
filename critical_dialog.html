@@ -19,11 +19,21 @@ body {
 .dialog {
 	padding: 20px;
 	background-color: #fff;
+	position: relative;
 }
 
 ul {
 	list-style: none;
 	padding: 0; margin: 0;
+}
+
+#name {
+	margin-left: 1em;
+}
+
+#ip {
+	margin-left: 2em;
+	float: right;
 }
 
 .header {
@@ -155,6 +165,14 @@ function onRemove(resource, index, e) {
 		
 		delete critical[resource][index];
 		
+		if (Object.keys(critical[resource]).length === 0) {
+			delete critical[resource];
+			
+			if (Object.keys(critical).length === 0) {
+				delete top.databases.critical[window.ip];
+			}
+		}
+		
 		put();
 	}
 }
@@ -168,7 +186,7 @@ function onApply(e) {
 	if (!critical) {
 		critical = {};
 		
-		top.databases.critical[ip] = critical;
+		top.databases.critical[window.ip] = critical;
 	}
 	
 	resource = critical[form.elements.resource.value];
@@ -187,7 +205,7 @@ function onApply(e) {
 }
 
 function onCancel(e) {
-	top.closeDialog(true);
+	top.closeDialog();
 }
 
 function put() {
@@ -197,9 +215,13 @@ function put() {
 			command: "put",
 			database: "critical",
 			key: window.ip,
-			value: top.databases.critical[window.ip]
+			value: top.databases.critical[window.ip] || null
 		}, function (data) {
 			top.databases.critical = data;
+			
+			if (window.opener) {
+				window.opener.reload();
+			}
 			
 			window.location.reload();
 		});
@@ -312,14 +334,52 @@ function onSelectCritical(resource, index, limit) {
 	window.form.elements.limit.value = limit;
 }
 
+function initialize(ip) {
+	window.opener = this && this.location;
+	window.ip = ip;
+
+	window.critical = top.databases.critical[ip];
+
+	form.elements.resource.selectedIndex = -1;
+
+	var list = document.getElementById("list"),
+		df = document.createDocumentFragment(),
+		criticalResource, limit;
+
+	for (var resource in critical) {
+		criticalResource = critical[resource];
+		
+		for (var index in criticalResource) {
+			df.appendChild(createItem(resource, index, criticalResource[index]));
+		}
+	}
+
+	list.appendChild(df);
+
+	document.getElementById("name").textContent = top.databases.device[ip].name;
+	document.getElementById("ip").textContent = ip;
+	
+	top.sendRequest({
+		command: "select",
+		ip: ip
+	}, function (response) {
+		window.snmp = response;
+		
+		document.body.classList.remove("loading");
+	});
+
+}
+
 		</script>
 	</head>
 	
 	<body class="loading">
 		
 		<div class="dialog dialog_width rounded">
+			<h3 id="ip">IP주소</h3>
 			<h2>임계 설정</h2>
-		
+			<h3 id="name">이름</h3>
+			
 			<ul class="header">
 				<li class="item">
 				<ul>
@@ -400,36 +460,6 @@ if (sessionStorage.level == 0) {
 
 	document.querySelector("input[type=submit]").disabled = false;
 }
-
-
-window.ip = top.databases.local.selected;
-
-window.critical = top.databases.critical[window.ip];
-
-form.elements.resource.selectedIndex = -1;
-
-var list = document.getElementById("list"),
-	df = document.createDocumentFragment(),
-	criticalResource, limit;
-
-for (var resource in critical) {
-	criticalResource = critical[resource];
-	
-	for (var index in criticalResource) {
-		df.appendChild(createItem(resource, index, criticalResource[index]));
-	}
-}
-
-list.appendChild(df);
-
-top.sendRequest({
-	command: "select",
-	ip: ip
-}, function (response) {
-	window.snmp = response;
-	
-	document.body.classList.remove("loading");
-});
 
 		</script>
 	
