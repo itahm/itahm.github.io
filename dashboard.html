@@ -400,7 +400,7 @@ var summaryList = document.getElementById("summary_list"),
 		shutdown = 0,
 		critical = 0,
 		normal = 0,
-		labeled = {},
+		labelData = {},
 		device, count;
 	
 	for (var ip in deviceData) {
@@ -415,8 +415,8 @@ var summaryList = document.getElementById("summary_list"),
 			labels = device.label.split(",");
 			
 			for (var i=0, length=labels.length; i<length; i++) {
-				if (!labeled[labels[i]]) {
-					labeled[labels[i]] = {
+				if (!labelData[labels[i]]) {
+					labelData[labels[i]] = {
 						shutdown: 0,
 						critical: 0,
 						normal: 0
@@ -424,13 +424,13 @@ var summaryList = document.getElementById("summary_list"),
 				}
 				
 				if (monitor.shutdown) {
-					labeled[labels[i]].shutdown++;
+					labelData[labels[i]].shutdown++;
 				}
 				else if (monitor.critical) {
-					labeled[labels[i]].critical++;
+					labelData[labels[i]].critical++;
 				}
 				else {
-					labeled[labels[i]].normal++;
+					labelData[labels[i]].normal++;
 				}
 			}
 		}
@@ -449,8 +449,8 @@ var summaryList = document.getElementById("summary_list"),
 	df.appendChild(createStatusItem("전체", critical, shutdown, normal, critical + shutdown + normal));
 	
 	var ls //labeledSummary;
-	for (var label in labeled) {
-		ls = labeled[label];
+	for (var label in labelData) {
+		ls = labelData[label];
 		
 		df.appendChild(createStatusItem(label, ls.critical, ls.shutdown, ls.normal, ls.critical + ls.shutdown + ls.normal));
 	}

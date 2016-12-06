@@ -169,10 +169,13 @@ function onMap(ip) {
 		<div class="bg_loading"></div>
 		<script>
 
+		
+var NO_LABEL = "라벨없음";
+
 var form = document.getElementById("form"),
 	list = document.getElementById("list"),
 	deviceMapping = {},
-	labels = {};
+	labelData = {};
 
 form.elements.label.addEventListener("change", onChangeLabel);
 form.addEventListener("submit", onSearch);
@@ -199,7 +202,7 @@ function initList() {
 
 function createRow(device, monitor, critical) {
 	var row = document.createElement("ul"),
-		location, alarm, edit, label, status;
+		location, alarm, edit, status, labels, label;
 	
 	row.appendChild(document.createElement("li"));
 	row.appendChild(document.createElement("li")).textContent = device.name;
@@ -220,18 +223,20 @@ function createRow(device, monitor, critical) {
 	deviceMapping[device.ip] = row;
 	
 	if (device.label) {
-		label = device.label.split(",");
+		labels = device.label.split(",");
 		
-		for (var i=0, length=label.length; i<length; i++) {
-			row.classList.add(label[i]);
+		for (var i=0, length=labels.length; i<length; i++) {
+			label = labels[i];
 			
-			labels[label[i]] = null;
+			row.classList.add(label);
+			
+			window.labelData[label] = null;
 		}
 	}
 	else {
-		row.classList.add("no_label");
+		row.classList.add(NO_LABEL);
 		
-		labels["라벨 없음"] = null;
+		window.labelData[NO_LABEL] = null;
 	}
 	
 	if (monitor && monitor.protocol === "snmp") {
@@ -264,7 +269,7 @@ function initLabel() {
 	
 	select.add(option);
 	
-	for (var label in labels) {
+	for (var label in window.labelData) {
 		option = document.createElement("option");
 		
 		option.text = label;

@@ -63,6 +63,10 @@ input[type="checkbox"] {
 	text-decoration: underline;
 }
 
+u {
+	cursor: default;
+}
+
 footer {
 	margin-top: 5px;
 	display: flex;
@@ -107,7 +111,7 @@ body.initialized .search {
 				<ul>
 					<li>이름
 					<li>
-						<input type="text" name="name" placeholder="device name">
+						<input type="text" name="name" placeholder="장비 이름">
 				</ul>
 				<ul>
 					<li>타입
@@ -116,9 +120,9 @@ body.initialized .search {
 					
 				</ul>
 				<ul>
-					<li>라벨
+					<li title="콤마(,)로 구분하며 공백을 허용하지 않습니다."><u>*라벨</u>
 					<li>
-						<input type="text" name="label" placeholder="separated by commas">
+						<input type="text" name="label" placeholder="라벨1 ,[라벨2 ...]">
 					
 				</ul>
 				<ul class="monitor">
@@ -244,7 +248,7 @@ function onApply(e) {
 	window.device.ip = ip;
 	window.device.type = form.elements.type.value;
 	window.device.label = form.elements.label.value.split(",").map(function (value) {
-		return value.trim();
+		return value.replace(/\s+/g, "");
 	}).join(",");
 
 	top.sendRequest({
