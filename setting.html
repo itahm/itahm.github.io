@@ -152,23 +152,11 @@ function onSelectAccount(username) {
 }
 
 function onSelectProfile(name) {
-	top.showDialog("profile_dialog.html",
-		function (dialog) {
-			dialog.initialize(name);
-		},
-		function () {
-			location.reload();
-		});
+	top.showDialog.call(window, "profile_dialog.html", name);
 }
 
 function onSelectGCM(id) {
-	top.showDialog("gcm_dialog.html",
-		function (dialog) {
-			dialog.initialize(id);
-		},
-		function () {
-			location.reload();
-		});
+	top.showDialog(window, "gcm_dialog.html", id);
 }
 
 function createItem(src, label) {
