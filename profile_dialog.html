@@ -156,6 +156,8 @@ function onCancel(e) {
 }
 
 function initialize(name) {
+	window.opener = this && this.location;
+	
 	if (name) {
 		window.profile = top.databases.profile[name];
 		
@@ -181,6 +183,10 @@ function put(name, profile) {
 		value: profile
 	}, function (data) {
 		top.databases.profile = data;
+		
+		if (window.opener) {
+			window.opener.reload();
+		}
 		
 		top.closeDialog();
 	});
