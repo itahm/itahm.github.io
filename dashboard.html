@@ -56,9 +56,14 @@ aside .agent {
 	width: 200px;
 }
 
-aside .main {
+aside .statistic {
 	flex: 1;
 	overflow: auto;
+}
+
+.statistic ul {
+	background-color: #fff;
+	color: #000;
 }
 
 article> :not(header) {
@@ -102,7 +107,6 @@ ul {
 
 .summary {
 	display: flex;
-	font-weight: bold;
 }
 
 .summary li {
@@ -111,26 +115,27 @@ ul {
 	text-align: center;
 }
 
+.summary:first-child,
+.summary li:first-child {
+	font-weight: bold;
+}
+
 .summary li:nth-child(1) {
 	flex: 1.5;
-	border-right: 1px solid #999;
-	color: #000;
+	border-right: 1px solid #fff;
 	background-color: #ddd;
 }
 
 .summary li:nth-child(2) {
-	background-color: #fc0;
-	color: #fff;
+	background-color: rgba(255, 204, 0, .5);
 }
 
 .summary li:nth-child(3) {
-	background-color: #f00;
-	color: #fff;
+	background-color: rgba(255, 0, 0, .5);
 }
 
 .summary li:nth-child(4) {
-	background-color: #7d7;
-	color: #fff;
+	background-color: rgba(119, 221, 119, .5);
 }
 
 .summary li:last-child {
@@ -139,7 +144,16 @@ ul {
 }
 
 .summary:first-child {
-	border-bottom: 1px solid #999; 
+	border-bottom: 1px solid #fff; 
+}
+
+#summary_list {
+	transform: scaleY(0);
+	transition: transform .5s cubic-bezier(.9, .1, .9, .1);
+}
+
+#summary_list.initialized {
+	transform: scaleY(1);
 }
 
 .list_item ul {
@@ -237,6 +251,182 @@ ul {
 
 		</style>
 		
+		<script>
+
+		
+function update() {
+	top.sendRequest({
+		command: "top",
+		ip: "127.0.0.1"
+	}, function (response) {
+		window.updateTime.textContent = getTime();
+		
+		setTop(response.responseTime, window.responseTime, toMillsString);
+		setTop(response.processor, window.processor, toPercentageString);
+		setTop(response.memory, window.memory, ITAhM.util.toBytesString);
+		setTop(response.memoryRate, window.memoryRate, toPercentageString);
+		setTop(response.storage, window.storage, ITAhM.util.toBytesString);
+		setTop(response.storageRate, window.storageRate, toPercentageString);
+		setTop(response.throughput, window.throughput, ITAhM.util.toBPSString);
+		setTop(response.throughputRate, window.throughputRate, toPercentageString);
+		setTop(response.throughputErr, window.throughputErr, toErrorString);
+	});
+	
+	top.sendRequest({
+		command: "agent",
+	}, function (response) {
+		connections.textContent = response.connections;
+		waiters.textContent = response.waiters;
+		space.textContent = ITAhM.util.toBytesString(response.space);
+	});
+}
+
+function initStats() {
+	var deviceData = top.databases.device,
+		monitorData = top.databases.monitor,
+		df = document.createDocumentFragment(),
+		monitor,
+		shutdown = 0,
+		critical = 0,
+		normal = 0,
+		labelData = {},
+		device, count;
+	
+	for (var ip in deviceData) {
+		device = deviceData[ip];
+		monitor = monitorData[ip];
+	
+		if (!monitor) {
+			continue;
+		}
+		
+		if (device.label) {
+			labels = device.label.split(",");
+			
+			for (var i=0, length=labels.length; i<length; i++) {
+				if (!labelData[labels[i]]) {
+					labelData[labels[i]] = {
+						shutdown: 0,
+						critical: 0,
+						normal: 0
+					}
+				}
+				
+				if (monitor.shutdown) {
+					labelData[labels[i]].shutdown++;
+				}
+				else if (monitor.critical) {
+					labelData[labels[i]].critical++;
+				}
+				else {
+					labelData[labels[i]].normal++;
+				}
+			}
+		}
+		
+		if (monitor.shutdown) {
+			shutdown++;
+		}
+		else if (monitor.critical) {
+			critical++;
+		}
+		else {
+			normal++;
+		}		
+	}
+	
+	df.appendChild(createStatusItem("전체", critical, shutdown, normal, critical + shutdown + normal));
+	
+	var ls //labeledSummary;
+	for (var label in labelData) {
+		ls = labelData[label];
+		
+		df.appendChild(createStatusItem(label, ls.critical, ls.shutdown, ls.normal, ls.critical + ls.shutdown + ls.normal));
+	}
+	
+	summaryList.appendChild(df);
+}
+
+function toErrorString(value) {
+	return (value /10).toFixed(0);
+}
+
+function toMillsString(value) {
+	return value +"ms";
+}
+
+function toPercentageString(value) {
+	return value +"%";
+}
+
+function clear(list) {
+	var child;
+	
+	while(child = list.firstChild) {
+		list.removeChild(child);
+	}
+}
+
+function getTime() {
+	var date = new Date(),
+		h = date.getHours(),
+		m = date.getMinutes(),
+		s = date.getSeconds();
+	
+	return (h > 9? "": "0") + h +" : "+ (m > 9? "": "0") + m +" : "+ (s > 9? "": "0") + s;
+}
+
+function setTop(top, list, toString) {
+	var ipList = Object.keys(top).sort(function (a, b) {
+			return top[b] - top[a];
+		}),
+		ip;
+	
+	clear(list);
+	
+	for (var i=0, length=ipList.length; i< length; i++) {
+		ip = ipList[i];
+		
+		list.appendChild(createTopItem(ip, toString(top[ip])));
+	}
+}
+
+function onSelectTopItem(ip) {
+	top.databases.local.selected = ip;
+	
+	location.href = "status.html";
+}
+
+function createStatusItem(label, critical, shutdown, normal, sum) {
+	var clone = summaryItem.cloneNode(true);
+	
+	clone.children[0].textContent = label;
+	clone.children[1].textContent = critical;
+	clone.children[2].textContent = shutdown;
+	clone.children[3].textContent = normal;
+	clone.children[4].textContent = sum;
+	
+	return clone;
+}
+
+function createTopItem(ip, value) {
+	var clone = listItem.cloneNode(true),
+		item = clone.children[0];
+	
+	item.children[0].textContent = ip;
+	item.children[1].textContent = value;
+	
+	clone.onclick = onSelectTopItem.bind(window, ip);
+	return clone;
+}
+
+// public
+function onEvent(ip) {
+	document.getElementById("event").contentWindow.location.reload();
+}
+		
+		</script>
+		
 	</head>
 	
 	<body class="loading">
@@ -277,7 +467,7 @@ ul {
 					</div>
 				</div>
 			</div>
-			<div class="main">
+			<div class="statistic">
 				<ul class="summary">
 					<li>구분
 					<li>임계 초과
@@ -392,71 +582,7 @@ var summaryList = document.getElementById("summary_list"),
 	waiters = document.getElementById("waiters"),
 	space = document.getElementById("space");
 
-(function () {
-	var deviceData = top.databases.device,
-		monitorData = top.databases.monitor,
-		df = document.createDocumentFragment(),
-		monitor,
-		shutdown = 0,
-		critical = 0,
-		normal = 0,
-		labelData = {},
-		device, count;
-	
-	for (var ip in deviceData) {
-		device = deviceData[ip];
-		monitor = monitorData[ip];
-	
-		if (!monitor) {
-			continue;
-		}
-		
-		if (device.label) {
-			labels = device.label.split(",");
-			
-			for (var i=0, length=labels.length; i<length; i++) {
-				if (!labelData[labels[i]]) {
-					labelData[labels[i]] = {
-						shutdown: 0,
-						critical: 0,
-						normal: 0
-					}
-				}
-				
-				if (monitor.shutdown) {
-					labelData[labels[i]].shutdown++;
-				}
-				else if (monitor.critical) {
-					labelData[labels[i]].critical++;
-				}
-				else {
-					labelData[labels[i]].normal++;
-				}
-			}
-		}
-		
-		if (monitor.shutdown) {
-			shutdown++;
-		}
-		else if (monitor.critical) {
-			critical++;
-		}
-		else {
-			normal++;
-		}		
-	}
-	
-	df.appendChild(createStatusItem("전체", critical, shutdown, normal, critical + shutdown + normal));
-	
-	var ls //labeledSummary;
-	for (var label in labelData) {
-		ls = labelData[label];
-		
-		df.appendChild(createStatusItem(label, ls.critical, ls.shutdown, ls.normal, ls.critical + ls.shutdown + ls.normal));
-	}
-	
-	summaryList.appendChild(df);
-}) ();
+initStats();
 
 update();
 
@@ -464,110 +590,9 @@ document.getElementById("counter").addEventListener("animationiteration", update
 
 document.body.classList.remove("loading");
 
-function update() {
-	top.sendRequest({
-		command: "top",
-		ip: "127.0.0.1"
-	}, function (response) {
-		window.updateTime.textContent = getTime();
-		
-		setTop(response.responseTime, window.responseTime, toMillsString);
-		setTop(response.processor, window.processor, toPercentageString);
-		setTop(response.memory, window.memory, ITAhM.util.toBytesString);
-		setTop(response.memoryRate, window.memoryRate, toPercentageString);
-		setTop(response.storage, window.storage, ITAhM.util.toBytesString);
-		setTop(response.storageRate, window.storageRate, toPercentageString);
-		setTop(response.throughput, window.throughput, ITAhM.util.toBPSString);
-		setTop(response.throughputRate, window.throughputRate, toPercentageString);
-		setTop(response.throughputErr, window.throughputErr, toErrorString);
-	});
-	
-	top.sendRequest({
-		command: "agent",
-	}, function (response) {
-		connections.textContent = response.connections;
-		waiters.textContent = response.waiters;
-		space.textContent = ITAhM.util.toBytesString(response.space);
-	});
-}
-
-function toErrorString(value) {
-	return (value /10).toFixed(0);
-}
-
-function toMillsString(value) {
-	return value +"ms";
-}
-
-function toPercentageString(value) {
-	return value +"%";
-}
-
-function clear(list) {
-	var child;
-	
-	while(child = list.firstChild) {
-		list.removeChild(child);
-	}
-}
-
-function getTime() {
-	var date = new Date(),
-		h = date.getHours(),
-		m = date.getMinutes(),
-		s = date.getSeconds();
-	
-	return (h > 9? "": "0") + h +" : "+ (m > 9? "": "0") + m +" : "+ (s > 9? "": "0") + s;
-}
-
-function setTop(top, list, toString) {
-	var ipList = Object.keys(top).sort(function (a, b) {
-			return top[b] - top[a];
-		}),
-		ip;
-	
-	clear(list);
-	
-	for (var i=0, length=ipList.length; i< length; i++) {
-		ip = ipList[i];
-		
-		list.appendChild(createTopItem(ip, toString(top[ip])));
-	}
-}
-
-function onSelectTopItem(ip) {
-	top.databases.local.selected = ip;
-	
-	location.href = "status.html";
-}
-
-function createStatusItem(label, critical, shutdown, normal, sum) {
-	var clone = summaryItem.cloneNode(true);
-	
-	clone.children[0].textContent = label;
-	clone.children[1].textContent = critical;
-	clone.children[2].textContent = shutdown;
-	clone.children[3].textContent = normal;
-	clone.children[4].textContent = sum;
-	
-	return clone;
-}
-
-function createTopItem(ip, value) {
-	var clone = listItem.cloneNode(true),
-		item = clone.children[0];
-	
-	item.children[0].textContent = ip;
-	item.children[1].textContent = value;
-	
-	clone.onclick = onSelectTopItem.bind(window, ip);
-	return clone;
-}
-
-// public
-function onEvent(ip) {
-	document.getElementById("event").contentWindow.location.reload();
-}
+setTimeout(function () {
+	summaryList.classList.add("initialized");
+}, 500);
 
 		</script>
 	

@@ -188,6 +188,8 @@ document.getElementById("reload").onclick = function () {
 document.getElementById("message").onclick = function () {
 	window.dialog.onload = undefined;
 	window.dialog.src = "message.html";
+	
+	document.body.classList.add("dialog");
 };
 
 document.querySelector('div[class="log"]').onclick = function() {

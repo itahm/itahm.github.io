@@ -7,17 +7,24 @@
 		<style>
 @import "css/itahm.css";
 
-body {
+body,
+section {
 	margin: 0;
 	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
 }
 
-header {
-	position: absolute; top: 1em; left: 1em; 
+nav {
+	position: absolute; top: 1em; right: 1em;
+	padding: .5em;
+	border-radius: 2em;
 	background-color: #0084ff;
-	color: #fff;
-	padding: 0 2em;
-	border-radius: 1em;
+}
+
+section {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
 }
 
 iframe {
@@ -33,72 +40,26 @@ h1 {
 	cursor: pointer;
 }
 
-#shutdown {
+body:not(.shutdown) section {
 	display: none;
 }
 
-body.shutdown #shutdown {
-	color: #e51400;
-	display: inline;
+body.shutdown nav {
+	display: none;
 }
 
 		</style>
-	</head>
-
-	<body class="loading">
-		<iframe src="status_base.html" id="status"></iframe>
 		
-		<header>
-			<h1><span id="host"></span> <a href="status.html"><img id="refresh" src="img/refresh_w.png" width="24" height="24" title="새로고침"></a><span id="shutdown"> (응답 없음.)</span></h1>
-		</header>
+		<script>
 		
-		<div class="bg_loading"></div>
-	</body>
-	
-	<script>
-
-var deviceIP = window.top.databases.local.selected;
-
-if (!deviceIP) {
-	throw "!";
-}
-
-window.device = top.databases.device[deviceIP];
-
-document.getElementById("host").textContent = deviceIP;
-
-if (top.databases.monitor[deviceIP].shutdown) {
-	document.body.classList.add("shutdown");
-}
-
-(function () {
-	var status = document.getElementById("status"),
-		statusWindow = status.contentWindow;
-
-	status.onload = function () {
-		top.sendRequest({
-			command: "select",
-			ip: window.device.ip
-		}, function (response) {
-			statusWindow.onSelectResource = onSelectResource;
-			statusWindow.initialize(window.device, response);
-			
-			top.databases.local.node = response;
-			
-			document.body.classList.remove("loading");
-		});
-	};
-
-})();	
-
 function onSelectResource(resource, index) {
 	top.databases.local.selectedResource = resource;
 	top.databases.local.resourceIndex = index;
 	
 	location.href = "chart.html";
 }
-
-function onSelectDevice(ip) {console.log("!!!");
+/*
+function onSelectDevice(ip) {
 	var device = top.databases.device[ip];
 	
 	if (device.snmp) {
@@ -110,6 +71,63 @@ function onSelectDevice(ip) {console.log("!!!");
 		alert("SNMP is not enabled for "+ ip);
 	}
 }
+*/
+		</script>
+		
+	</head>
 
+	<body class="loading">
+		<iframe id="status"></iframe>
+		
+		<nav><img id="refresh" src="img/refresh_w.png" width="24" height="24" title="새로고침"></nav>
+		
+		<section>
+			<h1 id="host"></h1>
+			<p>에이전트가 실행된 이후로 응답이 없는 장비입니다.</p>
+			<p>성능 정보를 불러올 수 없습니다.</p>
+		</section>
+		
+		<div class="bg_loading"></div>
+	</body>
+	
+	<script>
+
+var deviceIP = window.top.databases.local.selected,
+	frame = document.getElementById("status");
+
+if (!deviceIP) {
+	throw "!";
+}
+
+window.device = top.databases.device[deviceIP];
+
+document.getElementById("host").textContent = deviceIP;
+
+document.getElementById("refresh").onclick = function () {
+	window.location.reload();	
+};
+
+top.sendRequest({
+	command: "select",
+	ip: window.device.ip
+}, function (snmp) {
+	if (!snmp.lastResponse) {
+		document.body.classList.add("shutdown");
+	}
+	else {
+		top.databases.local.node = snmp;
+		
+		frame.src = "status_base.html";		
+	}
+	
+	document.body.classList.remove("loading");
+});
+
+frame.onload = function () {
+	var statusWindow = this.contentWindow;
+	
+	statusWindow.onSelectResource = onSelectResource;
+	statusWindow.initialize(window.device.ip);
+};
 	</script>
 </html>

@@ -156,7 +156,7 @@ function onSelectProfile(name) {
 }
 
 function onSelectGCM(id) {
-	top.showDialog(window, "gcm_dialog.html", id);
+	top.showDialog.call(window, "gcm_dialog.html", id);
 }
 
 function createItem(src, label) {

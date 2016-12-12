@@ -22,22 +22,36 @@ body {
 
 .network {
 	list-style: none;
-	padding: .5em 1.5em;
+	padding: .5em 2.5em .5em 2.5em;
 	position: relative;
+	border-radius: 2em;
+	background-color: #0084ff;
+	margin: 3px 0;
 }
 
 .network input[type="checkbox"] {
-	position: absolute; left: 0;
+	position: absolute; left: 1em; top: 1em;
 }
 
-.network input[type="checkbox"]:not(:checked) ~ .item {
+.network input[type="checkbox"]:not(:checked) +div{
 	display: none;
+}
+
+.network div {
+	padding: 1em;
+	background-color: #fdfdff;
+	overflow: auto;
+	max-height: 400px;
+	border-radius: 1em;
 }
 
 .network:before {
 	content: attr(id);
 	font-weight: bold;
-	font-size: 1.1em;
+	font-size: 1.2em;
+	color: #fff;
+	display: inline-block;
+	padding: .5em;
 }
 
 .item {
@@ -117,15 +131,13 @@ function onSelectNetwork() {
 		return;
 	}
 	
-	var item = this,
+	var item = this.nextSibling.firstChild,
 		itemArray = [],
 		df = document.createDocumentFragment(),
 		count = 0;
 	
-	while (item = item.nextSibling) {
+	for (; item; item = item.nextSibling, count++) {
 		itemArray.push(item);
-		
-		count++;
 	}
 	
 	itemArray.sort(function (a, b) {
@@ -136,7 +148,7 @@ function onSelectNetwork() {
 		df.appendChild(itemArray[i]);
 	}
 	
-	this.parentNode.appendChild(df);
+	this.nextSibling.appendChild(df);
 }
 
 	</script>
@@ -161,7 +173,7 @@ if (top === window) {
 
 var list = document.getElementById("list"),
 	documentFragment = document.createDocumentFragment(),
-	items = {};
+	networkData = {};
 
 top.sendRequest({
 	command: "network"
@@ -177,9 +189,10 @@ top.sendRequest({
 		checkbox = document.createElement("input");
 		
 		item.appendChild(checkbox).type = "checkbox";
+		
 		checkbox.onclick = onSelectNetwork;
 		
-		items[network] = item;
+		networkData[network] = item.appendChild(document.createElement("div"));
 		
 		window.documentFragment.appendChild(item);
 	}
@@ -192,7 +205,7 @@ top.sendRequest({
 		for (var mac in data) {
 			address = data[mac];
 			try {
-				if (item = items[getNetwork(address.ip, address.mask)]) {
+				if (item = networkData[getNetwork(address.ip, address.mask)]) {
 					item.appendChild(createAddrItem(address.ip, mac));
 				}
 			} catch (e) {

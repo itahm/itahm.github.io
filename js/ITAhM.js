@@ -101,7 +101,7 @@ Array.prototype.fill = Array.prototype.fill || function (val) {
 					hour = date.getHours();
 				
 				if (month === 0 && day === 1 && hour === 0) {
-					return gate.getFullYear();
+					return date.getFullYear();
 				}
 				else {
 					var min = date.getMinutes();

@@ -12,7 +12,8 @@
 	flex-wrap: wrap;
 }
 
-.resource {
+.resource,
+.information {
 	/*display: flex;
 	flex-direction: column;*/
 	padding: 5px;
@@ -27,7 +28,7 @@
 	cursor: pointer;
 }
 
-.summary >.resource:first-child {
+.resource.response_time {
 	flex: 1;
 }
 
@@ -274,14 +275,6 @@ ul {
 	display: none;
 }
 
-#status {
-	color: #0084ff;
-}
-
-#status.down {
-	color: #f00;
-}
-
 li.storage_item:hover,
 li.i_face_item:hover {
 	outline: solid 3px #0084ff;
@@ -292,7 +285,7 @@ li.i_face_item:hover {
 	display: inline-block;
 }
 
-section.resource.response_ime {
+.resource.response_time {
 	display: flex; flex-direction: column;
 }
 
@@ -311,6 +304,38 @@ section.resource.response_ime {
 	pointer-events: none;
 }
 
+ul.table {
+	margin: 0;
+	list-style: none;
+}
+
+ul.table ul {
+	margin: 0;
+	list-style: none;
+	display: flex;
+}
+
+ul.table ul li {
+	padding: 5px;
+}
+
+ul.table ul li:first-child {
+	width: 80px;
+	border-right: 1px solid #ddd;
+	text-align: right;
+}
+
+#status::after {
+	font-weight: bold;
+	color: #0f0;
+	content: "정상";
+}
+
+body.shutdown #status::after {
+	color: #f00;
+	content: "응답 없음";
+}
+
 body:not(.processor) .resource.processor,
 body:not(.storage) .resource.storage,
 body:not(.memory) .resource.memory,
@@ -323,12 +348,38 @@ body:not(.throughput) .resource.throughput {
 
 	<body class="loading">
 		
-		<header>
-			<h3 id="status"></h3>
-		</header>
-		
 		<div class="summary">
-			<section class="resource response_ime">
+			<section class="information">
+				<ul class="table">
+					<li>
+						<ul>
+							<li>장비명
+							<li id="sys_name">
+						</ul>
+					<li>
+						<ul>
+							<li>제조사
+							<li id="sys_enterprise">
+						</ul>
+					<li>
+						<ul>
+							<li>IP 주소
+							<li id="ip">
+						</ul>
+					<li>
+						<ul>
+							<li>마지막 응답
+							<li id="last_response">
+						</ul>
+					<li>
+						<ul>
+							<li>상태
+							<li id="status">
+						</ul>
+				</ul>
+			</section>
+			
+			<section class="resource response_time">
 				<h2>응답 속도</h2>
 				<div id="response">
 					<iframe id="realtime_response" src="realtime_response.html"></iframe>
@@ -443,6 +494,7 @@ body:not(.throughput) .resource.throughput {
 	</body>
 	
 	<script src="js/ITAhM.js"></script>
+	<script src="js/snmp.js"></script>
 	<script>
 
 	var processorArea = document.getElementById("processor"),
@@ -455,7 +507,7 @@ body:not(.throughput) .resource.throughput {
 		storageGauge = document.querySelector(".storage_item"),
 		iFaceGauge = document.querySelector(".i_face_item");
 	
-	document.querySelector(".resource.response_ime").onclick = function () {
+	document.querySelector(".resource.response_time").onclick = function () {
 		onSelectResource("responseTime");
 	};
 	
@@ -599,22 +651,55 @@ body:not(.throughput) .resource.throughput {
 		document.body.classList.remove("loading");*/
 	}
 	
-	function initialize(device, snmp) {
-		var entry;
+	function initialize(ip) {
+		var snmp = top.databases.local.node,
+			entry;
 		
-		if (!snmp.lastResponse) {
-			alert("에이전트가 실행된 이후 응답이 없는 장비입니다.\n"
-				+"성능정보를 불러올 수 없습니다.");
-			return;
-	/*		
-			top.sendRequest({
-				command: "history",
-				ip: device.ip
-			}, function (history) {
-				initHistory(history);
-			});
+		document.getElementById("sys_name").textContent = snmp.sysName;
+		document.getElementById("sys_name").title = snmp.sysDescr;
+		document.getElementById("sys_enterprise").textContent = ITAhM.util.enterpriseFromOID(snmp.sysObjectID);
+		document.getElementById("ip").textContent = ip;
+		document.getElementById("last_response").textContent = (function (date) {
+			var text = date.getFullYear() +"-",
+				month = date.getMonth() +1,
+				d = date.getDate(),
+				h = date.getHours(),
+				m = date.getMinutes()
+				s = date.getSeconds();
 			
-			return;*/
+			if (month < 10) {
+				text += "0";
+			}
+			
+			text += (month +"-");
+			
+			if (d < 10) {
+				text += "0";
+			}
+			
+			text += (d +" ");
+			
+			if (h < 10) {
+				text += "0";
+			}
+			
+			text += (h +":");
+			
+			if (m < 10) {
+				text += "0";
+			}
+			
+			text += (m +":");
+			
+			if (s < 10) {
+				text += "0";
+			}
+			
+			return text + s;
+		})(new Date(snmp.lastResponse));
+		
+		if (top.databases.monitor[ip].shutdown) {
+			document.body.classList.add("shutdown");
 		}
 		
 		entry = snmp.hrProcessorEntry;
@@ -634,15 +719,6 @@ body:not(.throughput) .resource.throughput {
 		entry = snmp.ifEntry;
 		for (var index in entry) {
 			initIFace(entry[index], index)
-		}
-		
-		if (top.databases.monitor[device.ip].shutdown) {
-			var status = document.getElementById("status");
-			
-			status.textContent
-				= "Last response "+ new Date(snmp.lastResponse).toLocaleString();
-			
-			status.className = "down";
 		}
 		
 		document.body.classList.remove("loading");
