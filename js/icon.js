@@ -92,5 +92,15 @@ ITAhM.iconData = {
         "group": "etc",
         "src": "img/svg/unknown.svg",
         "disabled": "img/svg/disabled/unknown.svg"
+    },
+    "phone": {
+        "group": "etc",
+        "src": "img/svg/phone.svg",
+        "disabled": "img/svg/disabled/phone.svg"
+    },
+    "laptop": {
+        "group": "etc",
+        "src": "img/svg/laptop.svg",
+        "disabled": "img/svg/disabled/laptop.svg"
     }
 };
