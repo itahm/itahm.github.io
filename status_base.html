@@ -382,7 +382,7 @@ body:not(.throughput) .resource.throughput {
 			<section class="resource response_time">
 				<h2>응답 속도</h2>
 				<div id="response">
-					<iframe id="realtime_response" src="realtime_response.html"></iframe>
+					<iframe id="realtime_response"></iframe>
 				</div>
 			</section>
 			
@@ -700,6 +700,9 @@ body:not(.throughput) .resource.throughput {
 		
 		if (top.databases.monitor[ip].shutdown) {
 			document.body.classList.add("shutdown");
+		}
+		else {
+			document.getElementById("realtime_response").src="realtime_response.html"
 		}
 		
 		entry = snmp.hrProcessorEntry;
