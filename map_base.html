@@ -22,7 +22,6 @@ body, input, button {
 }
 
 /* svg*/
-
 text::selection {
 	background: none;
 }
@@ -134,7 +133,8 @@ body:not(.chart) #chart {
 
 body.name tspan:last-child,
 body:not(.name) tspan:first-child,
-body:not(.ifname) #line text {
+body:not(.ifname) #line text,
+body:not(.root) .root {
 	display: none;
 }
 
@@ -672,11 +672,11 @@ function onShowAlarm(ip) {
 							transform="translate(34, 0) translate(-8, -8)" width="16" height="16" cursor="pointer">
 							<title>이 장비의 정보를 수정합니다.</title>
 						</image>
-						<image xlink:href="img/svg/anchor.svg" id="link_anchor"
+						<image xlink:href="img/svg/anchor.svg" id="link_anchor" class="root"
 							transform="translate(0, -34) translate(-8, -8)" width="16" height="16" cursor="pointer">
 							<title>이 앵커를 드래그하여 다른 장비와 연결합니다.</title>
 						</image>
-						<image xlink:href="img/svg/alarm.svg" id="alarm_anchor"
+						<image xlink:href="img/svg/alarm.svg" id="alarm_anchor" class="root"
 							transform="translate(0, 34) translate(-8, -8)" width="16" height="16" cursor="pointer">
 							<title>성능의 임계값을 설정합니다.</title>
 						</image>
@@ -690,6 +690,10 @@ function onShowAlarm(ip) {
 		<script src="js/Communicator.js"></script>
 		<script>
 
+if (sessionStorage.level == 0) {
+	document.body.classList.add("root");
+}
+		
 var svgNS = "http://www.w3.org/2000/svg",
 	xlinkNS = "http://www.w3.org/1999/xlink";
 

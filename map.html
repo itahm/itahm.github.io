@@ -44,6 +44,10 @@ nav {
 	font-size: 9pt;
 }
 
+body:not(.root) .root {
+	display: none;
+}
+
 		</style>
 		
 		<script>
@@ -92,8 +96,8 @@ function onSetAlarm(ip){
 		<iframe id="map" src="map_base.html"></iframe>
 		
 		<nav class="left">
-			<img src="img/add_device.png" width="16px" height="16px" title="장비 추가" id="add">
-			<img src="img/save.png" width="16px" height="16px" title="저장" id="save">
+			<img src="img/add_device.png" width="16px" height="16px" title="장비 추가" id="add" class="root">
+			<img src="img/save.png" width="16px" height="16px" title="저장" id="save"  class="root">
 			<img src="img/zoomin.png" width="16px" height="16px" title="확대" id="zoom_in">
 			<img src="img/zoomout.png" width="16px" height="16px" title="축소" id="zoom_out">
 		</nav>
@@ -106,6 +110,10 @@ function onSetAlarm(ip){
 				
 		<div class="bg_loading"></div>
 		<script>
+
+if (sessionStorage.level == 0) {
+	document.body.classList.add("root");
+}
 
 var map = document.getElementById("map");
 
