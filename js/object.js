@@ -82,7 +82,9 @@ var ITAhM = ITAhM || {};
 			do {
 				value = this.data[mills];
 				
-				if (value) {
+				//if (value)
+				// TODO 안정화되면 지워도 됨
+				if (value && !isNaN(value.max) && !isNaN(value.min)) {
 					tmp[tmp.length] = mills;
 					
 					max[max.length] = value.max;

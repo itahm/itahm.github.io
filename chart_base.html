@@ -212,6 +212,11 @@ window.chart.addEventListener("mousemove", function (e) {
 	if (!value) {
 		return;
 	}
+
+	// TODO 안정화 되면 지워도 됨.
+	if (isNaN(value.max) || isNaN(value.min)) {
+		return;
+	}
 	
 	hoverV.setAttributeNS(null, "x1", x);
 	hoverV.setAttributeNS(null, "x2", x);
@@ -476,7 +481,9 @@ function drawGraph2() {
 		yAvg = (y.avg - window.low) * window.yRatio;
 		yMax = (y.max - window.low) * window.yRatio;
 		yMin = (y.min - window.low) * window.yRatio;
-		
+		if (isNaN(yAvg) || isNaN(yMin) || isNaN(yMax)) {
+			console.log(y, low, yRatio);
+		}
 		fillMax.moveTo(x, 0);
 		fillMax.lineTo(x, yMax);
 		
