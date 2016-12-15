@@ -40,7 +40,7 @@ nav {
 }
 
 nav li {
-	border: 1px solid transparent;
+	
 }
 
 nav li:nth-child(2),
@@ -73,6 +73,7 @@ li {
 	text-overflow: ellipsis;
 	white-space: nowrap;
 	font-size: 12px;
+	border: 1px solid transparent;
 }
 
 li:first-child {
@@ -147,52 +148,6 @@ function onMap(ip) {
 	
 	window.location.href = "map.html";
 }
-
-		</script>
-		
-	</head>
-	
-	<body class="loading">
-		<article class="content_width">
-			<form id="form">
-				<select name="label"></select>
-				<span>
-					<input type="text" name="keyword" placeholder="이름 또는 유형 또는 IP주소 ">
-					<input type="submit" value="찾기">
-				</span>
-			</form>
-			<nav>
-				<ul>
-					<li>
-					<li>장비 이름
-					<li>장비 유형
-					<li>IP 주소
-					<li>
-					<li>
-					<li>
-					<li>
-				</ul>
-			</nav>
-			<div id="list"></div>
-		</article>
-		
-		<div class="bg_loading"></div>
-		<script>
-
-		
-var NO_LABEL = "라벨없음";
-
-var form = document.getElementById("form"),
-	list = document.getElementById("list"),
-	deviceMapping = {},
-	labelData = {};
-
-form.elements.label.addEventListener("change", onChangeLabel);
-form.addEventListener("submit", onSearch);
-
-initList();
-
-initLabel();
 
 function initList() {
 	var df = document.createDocumentFragment(),
@@ -291,16 +246,28 @@ function initLabel() {
 function onSearch(e) {
 	e.preventDefault();
 	
-	// search 결과를 초기화 하기 위해
-	selectLabel(form.elements.label.value);
+	search();
+}
 
-	filterDeviceList(form.elements.keyword.value);
+function onReset(e) {
+	e.preventDefault();
+	
+	this.elements.keyword.value = "";
+	
+	search();
 }
 
 function onChangeLabel(e) {
 	form.elements.keyword.value = "";
 	
 	selectLabel(form.elements.label.value);
+}
+
+function search() {
+	// search 결과를 초기화 하기 위해
+	selectLabel(form.elements.label.value);
+
+	filterDeviceList(form.elements.keyword.value);
 }
 
 function clearDeviceList() {
@@ -312,7 +279,7 @@ function clearDeviceList() {
 	}
 	
 	return df;
-};
+}
 
 function filterDeviceList(keyword) {
 	var row = clearDeviceList().firstChild,
@@ -337,7 +304,7 @@ function filterDeviceList(keyword) {
 	}
 	
 	list.appendChild(df);
-};
+}
 
 function selectLabel(label) {
 	var df = document.createDocumentFragment(),
@@ -358,7 +325,55 @@ function selectLabel(label) {
 	}
 	
 	list.appendChild(df);
-};
+}
+
+		</script>
+		
+	</head>
+	
+	<body class="loading">
+		<article class="content_width">
+			<form id="form">
+				<select name="label"></select>
+				<span>
+					<input type="text" name="keyword" placeholder="이름, 유형, IP주소 ">
+					<input type="submit" value="찾기">
+					<input type="reset" value="초기화">
+				</span>
+			</form>
+			<nav>
+				<ul>
+					<li>
+					<li>장비 이름
+					<li>장비 유형
+					<li>IP 주소
+					<li>
+					<li>
+					<li>
+					<li>
+				</ul>
+			</nav>
+			<div id="list"></div>
+		</article>
+		
+		<div class="bg_loading"></div>
+		<script>
+
+		
+var NO_LABEL = "라벨없음";
+
+var form = document.getElementById("form"),
+	list = document.getElementById("list"),
+	deviceMapping = {},
+	labelData = {};
+
+form.elements.label.addEventListener("change", onChangeLabel);
+form.addEventListener("submit", onSearch);
+form.addEventListener("reset", onReset);
+
+initList();
+
+initLabel();
 
 		</script>
 	

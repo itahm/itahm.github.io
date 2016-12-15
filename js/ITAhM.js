@@ -141,20 +141,15 @@ Array.prototype.fill = Array.prototype.fill || function (val) {
 				window.navigator.msSaveBlob(blob, fileName);
 			}
 			else {
-				var a = document.createElement("a");
+				var a = document.createElement("a"),
+					event = document.createEvent("MouseEvent");
 					
 				a.setAttribute("download", fileName);
 				a.setAttribute("href", URL.createObjectURL(blob));
 				
-				ITAhM.util.fireEvent("click", a);
+				event.initEvent("click", true, true);
+				a.dispatchEvent(event);
 			}
-		},
-		
-		fireEvent: function (type, element) {
-			var event = document.createEvent("Event");
-			
-			event.initEvent(type, true, true);
-			element.dispatchEvent(event);
 		},
 		
 		createCustomEvent: function (type, data) {
