@@ -423,6 +423,7 @@ function createTopItem(ip, value) {
 // public
 function onEvent(ip) {
 	document.getElementById("event").contentWindow.location.reload();
+	document.getElementById("map").contentWindow.location.reload();
 }
 		
 		</script>
@@ -450,6 +451,11 @@ function onEvent(ip) {
 								<ul class="agent_status">
 									<li>저장공간 여유
 									<li id="space">
+								</ul>
+							<li>
+								<ul class="agent_status">
+									<li>에이전트 버전
+									<li id="version">
 								</ul>
 						</ul>
 					</div>
@@ -548,7 +554,7 @@ function onEvent(ip) {
 			<div class="title">이벤트</div>
 			<iframe src="event_extra.html" id="event" width="100%" height="100%"></iframe>
 			<div class="title">구성도</div>
-			<iframe src="map_extra.html" width="100%" height="100%"></iframe>
+			<iframe src="map_extra.html" id="map" width="100%" height="100%"></iframe>
 		</div>
 			
 		<div class="layout">
@@ -587,6 +593,8 @@ initStats();
 update();
 
 document.getElementById("counter").addEventListener("animationiteration", update);
+
+document.getElementById("version").textContent = sessionStorage.version;
 
 document.body.classList.remove("loading");
 
