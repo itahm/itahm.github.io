@@ -90,18 +90,14 @@ var ITAhM = ITAhM || {};
 					max[max.length] = value.max;
 					min[min.length] = value.min;
 				}
-				// 값이 둘 이상이어야 graph를 그릴 수 있음
-				else if (tmp.length > 1) {
+				else if (tmp.length > 0){
 					keys[keys.length] = tmp;
 					
 					tmp = [];
 				}
-				else {
-				}
 			} while ((mills = this.next(date)) < end);
 			
-			// 값이 둘 이상이어야 graph를 그릴 수 있음
-			if (tmp.length > 1) {
+			if (tmp.length > 0) {
 				keys[keys.length] = tmp;
 			}
 			
@@ -150,16 +146,14 @@ var ITAhM = ITAhM || {};
 				if (value) {
 					tmp[tmp.length] = mills;
 				}
-				// 값이 둘 이상이어야 graph를 그릴 수 있음
-				else if (tmp.length > 1) {
+				else if (tmp.length > 0) {
 					keys[keys.length] = tmp;
 					
 					tmp = [];
 				}
 			} while ((mills = this.next(date)) <= end);
 			
-			// 값이 둘 이상이어야 graph를 그릴 수 있음
-			if (tmp.length > 1) {
+			if (tmp.length > 0) {
 				keys[keys.length] = tmp;
 			}
 			

@@ -361,7 +361,7 @@ function drawGraph() {
 		strokeMin = new ITAhM.Path(window.graph),
 		high = window.chartData.high,
 		blocks = window.chartData.keys,
-		dateArray, mills;
+		dateArray, date, mills, yAvg, yMax, yMin;
 	
 	window.low = window.chartData.low,
 	window.yRatio = window.rect.height / (high - window.low);
@@ -385,7 +385,7 @@ function drawGraph() {
 	strokeAvg.beginPath();
 	strokeMin.beginPath();
 	fillMin.beginPath();
-	
+	var z=0;
 	for (var i=0, _i=blocks.length; i<_i; i++) {
 		dateArray = blocks[i];
 	
@@ -394,30 +394,56 @@ function drawGraph() {
 		x = (mills - start) / window.tpp;
 		y = window.summaryData.get(mills);
 	
+		yAvg = (y.avg - window.low) * window.yRatio;
+		yMax = (y.max - window.low) * window.yRatio;
+		yMin = (y.min - window.low) * window.yRatio;
+		
 		fillMax.moveTo(x, 0);
+		fillMax.lineTo(x, yMax);
+		
 		fillMin.moveTo(x, 0);
+		fillMin.lineTo(x, yMin);
 		
-		strokeAvg.moveTo(x, (y.avg - window.low) * window.yRatio);
-		strokeMax.moveTo(x, (y.max - window.low) * window.yRatio);
-		strokeMin.moveTo(x, (y.min - window.low) * window.yRatio);
+		strokeAvg.moveTo(x, yAvg);
+		strokeMax.moveTo(x, yMax);
+		strokeMin.moveTo(x, yMin);
 		
-		fillMax.lineTo(x, (y.max - window.low) * window.yRatio);
-		fillMin.lineTo(x, (y.min - window.low) * window.yRatio);
-	
-		for (var j=1,_j=dateArray.length; j<_j; j++) {				
+		for (var j=1,_j=dateArray.length; j<_j; j++) {console.log(z++);
 			mills = dateArray[j];
 			
 			x = (mills - start) / window.tpp;
 			y = window.summaryData.get(mills);
 			
-			strokeMax.lineTo(x, (y.max - window.low) * window.yRatio);
-			strokeAvg.lineTo(x, (y.avg - window.low) * window.yRatio);
-			strokeMin.lineTo(x, (y.min - window.low) * window.yRatio);
+			strokeMax.lineTo(x, yMax);
+			strokeAvg.lineTo(x, yAvg);
+			strokeMin.lineTo(x, yMin);
 			
-			fillMax.lineTo(x, (y.max - window.low) * window.yRatio);
-			fillMin.lineTo(x, (y.min - window.low) * window.yRatio);
+			fillMax.lineTo(x, yMax);
+			fillMin.lineTo(x, yMin);
+			
+			yMax = (y.max - window.low) * window.yRatio;
+			yMin = (y.min - window.low) * window.yRatio;
+			yAvg = (y.avg - window.low) * window.yRatio;
+			
+			strokeMax.lineTo(x, yMax);
+			strokeAvg.lineTo(x, yAvg);
+			strokeMin.lineTo(x, yMin);
+			
+			fillMax.lineTo(x, yMax);
+			fillMin.lineTo(x, yMin);
 		}
+		
+		date = new Date(mills);
 	
+		x = (date.setHours(date.getHours() +1) - start) / window.tpp;
+		
+		fillMax.lineTo(x, yMax);
+		fillMin.lineTo(x, yMin);
+		
+		strokeMax.lineTo(x, yMax);
+		strokeAvg.lineTo(x, yAvg);
+		strokeMin.lineTo(x, yMin);
+		
 		fillMax.lineTo(x, 0);
 		fillMin.lineTo(x, 0);
 		
@@ -469,21 +495,19 @@ function drawGraph2() {
 	strokeAvg.beginPath();
 	strokeMin.beginPath();
 	fillMin.beginPath();
-	
+	var z=0;
 	for (var i=0, _i=blocks.length; i<_i; i++) {
 		dateArray = blocks[i];
 	
 		mills = dateArray[0];
-		
+		console.log(dateArray, mills, start, tpp);
 		x = (mills - start) / window.tpp;
 		y = window.summaryData.get(mills);
 	
 		yAvg = (y.avg - window.low) * window.yRatio;
 		yMax = (y.max - window.low) * window.yRatio;
 		yMin = (y.min - window.low) * window.yRatio;
-		if (isNaN(yAvg) || isNaN(yMin) || isNaN(yMax)) {
-			console.log(y, low, yRatio);
-		}
+		console.log(x);
 		fillMax.moveTo(x, 0);
 		fillMax.lineTo(x, yMax);
 		
@@ -494,7 +518,7 @@ function drawGraph2() {
 		strokeMax.moveTo(x, yMax);
 		strokeMin.moveTo(x, yMin);
 		
-		for (var j=1,_j=dateArray.length; j<_j; j++) {				
+		for (var j=1,_j=dateArray.length; j<_j; j++) {console.log(z++);
 			mills = dateArray[j];
 			
 			x = (mills - start) / window.tpp;
