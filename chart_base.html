@@ -408,7 +408,7 @@ function drawGraph() {
 		strokeMax.moveTo(x, yMax);
 		strokeMin.moveTo(x, yMin);
 		
-		for (var j=1,_j=dateArray.length; j<_j; j++) {console.log(z++);
+		for (var j=1,_j=dateArray.length; j<_j; j++) {
 			mills = dateArray[j];
 			
 			x = (mills - start) / window.tpp;
@@ -500,14 +500,14 @@ function drawGraph2() {
 		dateArray = blocks[i];
 	
 		mills = dateArray[0];
-		console.log(dateArray, mills, start, tpp);
+		
 		x = (mills - start) / window.tpp;
 		y = window.summaryData.get(mills);
 	
 		yAvg = (y.avg - window.low) * window.yRatio;
 		yMax = (y.max - window.low) * window.yRatio;
 		yMin = (y.min - window.low) * window.yRatio;
-		console.log(x);
+		
 		fillMax.moveTo(x, 0);
 		fillMax.lineTo(x, yMax);
 		
@@ -518,7 +518,7 @@ function drawGraph2() {
 		strokeMax.moveTo(x, yMax);
 		strokeMin.moveTo(x, yMin);
 		
-		for (var j=1,_j=dateArray.length; j<_j; j++) {console.log(z++);
+		for (var j=1,_j=dateArray.length; j<_j; j++) {
 			mills = dateArray[j];
 			
 			x = (mills - start) / window.tpp;
