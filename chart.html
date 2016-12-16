@@ -84,7 +84,7 @@ function resize(initial) {
 		window.blockWidth =  window.max / window.dayCount;
 		
 		for (var x = 0, i = 0; i <= window.dayCount; x += window.blockWidth, i++) {
-			grid.childNodes[i].setAttributeNS(null, "cx", window.posList[i] = x);
+			window.grid.childNodes[i].setAttributeNS(null, "cx", window.posList[i] = x);
 		}
 	}
 }
@@ -219,9 +219,6 @@ function getDateText(mills) {
 	return MONTH[date.getMonth()] +" "+ date.getDate() +"일";
 }
 
-/**
-* public
-*/
 function initialize(start, end, top, bottom) {
 	var date = new Date();
 	
@@ -372,11 +369,9 @@ new Draggable(svg);
 
 resize(true);
 
-initialize(window.start, window.end, window.end, window.today);
-
 document.getElementById("host").textContent = window.deviceIP;
 
-initialize(window.start, window.end, window.today, window.end);
+initialize(window.start, window.end);
 
 switch(top.databases.local.selectedResource) {
 	case "responseTime":

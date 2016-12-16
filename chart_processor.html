@@ -140,16 +140,14 @@ function onSummaryResponse(index, data) {
 function onLoadChart(index) {
 	var chartWindow = window.chartList[index].contentWindow;
 	
-	chartWindow.onValueToString = onValueToString;
-	
-	chartWindow.initialize(window.summaryList[index], window.max, window.colorList[window.colorIndex++ % window.colorLength]);
-	chartWindow.draw(window.start, window.end);
-	
-	window.detailRequest.start = window.start;
-	window.detailRequest.end = window.end;
-	window.detailRequest.index = index;
-	
-	top.sendRequest(window.detailRequest, onDetailResponse.bind(undefined, index));
+	chartWindow.initialize(window.summaryList[index], window.max, window.colorList[window.colorIndex++ % window.colorLength], onValueToString);
+	if (chartWindow.draw(window.start, window.end)) {
+		window.detailRequest.start = window.start;
+		window.detailRequest.end = window.end;
+		window.detailRequest.index = index;
+		
+		top.sendRequest(window.detailRequest, onDetailResponse.bind(undefined, index));
+	}
 }
 
 function onValueToString(value) {
@@ -162,8 +160,7 @@ function onValueToString(value) {
 function onDetailResponse(index, data) {
 	window.detailList = window.detailList || {};
 	
-	window.detailList[index] = new ITAhM.ChartData(data);
-	window.chartList[index].contentWindow.detail(window.detailList[index], window.start, window.end);
+	window.chartList[index].contentWindow.detail(window.detailList[index] = new ITAhM.ChartData(data));
 }
 
 /**

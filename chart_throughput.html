@@ -112,14 +112,6 @@ document.getElementById("view").onchange = function () {
 	document.body.classList[this.value]("row");
 }
 
-chartIn.onload = function () {
-	window.chartInWindow.onValueToString = onValueToString;
-};
-
-chartOut.onload = function () {
-	window.chartOutWindow.onValueToString = onValueToString;
-};
-
 function initialize(from, to, start, end) {
 	var entry = window.node.ifEntry[window.resourceIndex],
 		request = {
@@ -148,19 +140,19 @@ function initialize(from, to, start, end) {
 }
 
 function onSummaryInResponse(data) {
-	window.summaryInData = new ITAhM.ChartSummaryData(data);
-	window.chartInWindow.initialize(window.summaryInData, window.max, "#7d7");
-	window.chartInWindow.draw(window.start, window.end);
+	window.chartInWindow.initialize(window.summaryInData = new ITAhM.ChartSummaryData(data), window.max, "#7d7", onValueToString);
 	
-	sendDetailRequest("ifInOctets", onDetailInResponse);
+	if (window.chartInWindow.draw(window.start, window.end)) {
+		sendDetailRequest("ifInOctets", onDetailInResponse);
+	}
 }
 
 function onSummaryOutResponse(data) {
-	window.summaryOutData = new ITAhM.ChartSummaryData(data);
-	window.chartOutWindow.initialize(window.summaryOutData, window.max, "#f60", true);
-	window.chartOutWindow.draw(window.start, window.end);
+	window.chartOutWindow.initialize(window.summaryOutData = new ITAhM.ChartSummaryData(data), window.max, "#f60", onValueToString);
 	
-	sendDetailRequest("ifOutOctets", onDetailOutResponse);
+	if (window.chartOutWindow.draw(window.start, window.end)) {
+		sendDetailRequest("ifOutOctets", onDetailOutResponse);
+	}
 }
 
 function onValueToString(value) {
@@ -189,16 +181,14 @@ function sendDetailRequest(database, callback) {
  * private
  */
 function onDetailInResponse(data) {
-	window.detailInData = new ITAhM.ChartData(data);
-	window.chartInWindow.detail(window.detailInData, window.start, window.end);
+	window.chartInWindow.detail(window.detailInData = new ITAhM.ChartData(data));
 }
 
 /**
  * private
  */
 function onDetailOutResponse(data) {
-	window.detailOutData = new ITAhM.ChartData(data);
-	window.chartOutWindow.detail(window.detailOutData, window.start, window.end);
+	window.chartOutWindow.detail(window.detailOutData = new ITAhM.ChartData(data));
 }
 
 /**

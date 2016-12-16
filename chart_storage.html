@@ -38,9 +38,6 @@ if(!deviceIP || !window.node) {
 	throw "!";
 }
 
-window.chart.onload = function () {
-	window.chartWindow.onValueToString = onValueToString;
-};
 /**
  * public
  */
@@ -71,19 +68,18 @@ function initialize(from, to, start, end) {
  * private
  */
 function onSummaryResponse(data) {
-	window.summaryData = new ITAhM.ChartSummaryData(data);
-	chartWindow.initialize(window.summaryData, window.max, "#9d9789", true);
-	chartWindow.draw(window.start, window.end);
+	chartWindow.initialize(window.summaryData = new ITAhM.ChartSummaryData(data), window.max, "#9d9789", onValueToString);
 	
-	sendDetailRequest();
+	if (chartWindow.draw(window.start, window.end)) {
+		sendDetailRequest();
+	}
 }
 
 /**
  * private
  */
 function onDetailResponse(data) {
-	window.detailData = new ITAhM.ChartData(data);
-	window.chartWindow.detail(window.detailData, window.start, window.end);
+	window.chartWindow.detail(window.detailData = new ITAhM.ChartData(data));
 }
 
 function onValueToString(value) {

@@ -260,7 +260,11 @@ window.chart.addEventListener("mousemove", function (e) {
 function onResize() {
 	resize();
 	
-	draw(window.start, window.end);
+	drawChart();
+	
+	if (window.detailData) {
+		drawDetail();
+	}
 }
 
 function resize() {
@@ -391,7 +395,7 @@ function drawGraph() {
 	
 		mills = dateArray[0];
 		
-		x = (mills - start) / window.tpp;
+		x = (mills - window.start) / window.tpp;
 		y = window.summaryData.get(mills);
 	
 		yAvg = (y.avg - window.low) * window.yRatio;
@@ -411,7 +415,7 @@ function drawGraph() {
 		for (var j=1,_j=dateArray.length; j<_j; j++) {
 			mills = dateArray[j];
 			
-			x = (mills - start) / window.tpp;
+			x = (mills - window.start) / window.tpp;
 			y = window.summaryData.get(mills);
 			
 			strokeMax.lineTo(x, yMax);
@@ -435,117 +439,7 @@ function drawGraph() {
 		
 		date = new Date(mills);
 	
-		x = (date.setHours(date.getHours() +1) - start) / window.tpp;
-		
-		fillMax.lineTo(x, yMax);
-		fillMin.lineTo(x, yMin);
-		
-		strokeMax.lineTo(x, yMax);
-		strokeAvg.lineTo(x, yAvg);
-		strokeMin.lineTo(x, yMin);
-		
-		fillMax.lineTo(x, 0);
-		fillMin.lineTo(x, 0);
-		
-		fillMax.closePath();
-		fillMin.closePath();
-		
-		fillMax.draw();
-		fillMin.draw();
-		
-		strokeMax.draw();
-		strokeAvg.draw();
-		strokeMin.draw();
-	}
-}
-
-function drawGraph2() {
-	if (!window.chartData) {
-		return;
-	}
-	
-	var fillMax = new ITAhM.Path(window.graph),
-		fillMin = new ITAhM.Path(window.graph),
-		strokeMax = new ITAhM.Path(window.graph),
-		strokeAvg = new ITAhM.Path(window.graph),
-		strokeMin = new ITAhM.Path(window.graph),
-		high = window.chartData.high,
-		blocks = window.chartData.keys,
-		dateArray, date, mills, yAvg, yMax, yMin;
-	
-	window.low = window.chartData.low,
-	window.yRatio = window.rect.height / (high - window.low);
-	
-	strokeMax.set("stroke", window.color);
-	strokeMax.set("stroke-width", 2);
-	strokeMax.set("fill", "none");
-	strokeAvg.set("stroke", window.color);
-	strokeAvg.set("stroke-width", 1);
-	strokeAvg.set("fill", "none");
-	strokeMin.set("stroke", window.color);
-	strokeMin.set("fill", "none");
-	strokeMin.set("stroke-width", 2);
-	
-	fillMax.set("fill", window.color);
-	fillMax.set("fill-opacity", .1);
-	fillMin.set("class", "fill_min");
-	
-	strokeMax.beginPath();
-	fillMax.beginPath();
-	strokeAvg.beginPath();
-	strokeMin.beginPath();
-	fillMin.beginPath();
-	var z=0;
-	for (var i=0, _i=blocks.length; i<_i; i++) {
-		dateArray = blocks[i];
-	
-		mills = dateArray[0];
-		
-		x = (mills - start) / window.tpp;
-		y = window.summaryData.get(mills);
-	
-		yAvg = (y.avg - window.low) * window.yRatio;
-		yMax = (y.max - window.low) * window.yRatio;
-		yMin = (y.min - window.low) * window.yRatio;
-		
-		fillMax.moveTo(x, 0);
-		fillMax.lineTo(x, yMax);
-		
-		fillMin.moveTo(x, 0);
-		fillMin.lineTo(x, yMin);
-		
-		strokeAvg.moveTo(x, yAvg);
-		strokeMax.moveTo(x, yMax);
-		strokeMin.moveTo(x, yMin);
-		
-		for (var j=1,_j=dateArray.length; j<_j; j++) {
-			mills = dateArray[j];
-			
-			x = (mills - start) / window.tpp;
-			y = window.summaryData.get(mills);
-			
-			strokeMax.lineTo(x, yMax);
-			strokeAvg.lineTo(x, yAvg);
-			strokeMin.lineTo(x, yMin);
-			
-			fillMax.lineTo(x, yMax);
-			fillMin.lineTo(x, yMin);
-			
-			yMax = (y.max - window.low) * window.yRatio;
-			yMin = (y.min - window.low) * window.yRatio;
-			yAvg = (y.avg - window.low) * window.yRatio;
-			
-			strokeMax.lineTo(x, yMax);
-			strokeAvg.lineTo(x, yAvg);
-			strokeMin.lineTo(x, yMin);
-			
-			fillMax.lineTo(x, yMax);
-			fillMin.lineTo(x, yMin);
-		}
-		
-		date = new Date(mills);
-	
-		x = (date.setHours(date.getHours() +1) - start) / window.tpp;
+		x = (date.setHours(date.getHours() +1) - window.start) / window.tpp;
 		
 		fillMax.lineTo(x, yMax);
 		fillMin.lineTo(x, yMin);
@@ -605,12 +499,22 @@ function drawValueAxis() {
  * public
  */
 function draw(start, end) {
-	var x, y, dateArray, date;
-
-	window.chartData = window.summaryData.parseData(start, end);
-	window.detailData = undefined;
 	window.start = start;
 	window.end = end;
+	
+	window.detailData = undefined;
+	
+	return drawChart();
+}
+
+/**
+ * private
+ */
+function drawChart() {
+	var x, y, dateArray, date;
+
+	window.chartData = window.summaryData.parseData(window.start, window.end);
+	
 	window.tpp = (window.end - window.start) / window.rect.width;
 	
 	clear(window.dateAxis);
@@ -619,27 +523,37 @@ function draw(start, end) {
 	
 	clear(window.graph);
 	
-	drawGraph2();
-	
 	clear(window.leftAxis);
 	clear(window.rightAxis);
 	
+	if (!window.chartData) {
+		return false;
+	}
+	
+	drawGraph();
+	
 	drawValueAxis();
+	
+	return true;
 }
 
 /**
  * public
  */
-function detail(detailData, start, end) {
+function detail(detailData) {
+	window.detailData = detailData;
+	
+	drawDetail();
+}
+
+/**
+ * private
+ */
+function drawDetail() {
 	var path = new ITAhM.Path(window.graph),
 		blocks, dateArray, mills;
 	
-	window.chartData = detailData.parseData(start, end);
-	if (!window.chartData) {
-		return;
-	}
-	
-	blocks = window.chartData.keys;
+	blocks = window.detailData.parseData(window.start, window.end).keys;
 	
 	path.set("stroke", window.color);
 	path.set("stroke-width", .5);
@@ -651,7 +565,7 @@ function detail(detailData, start, end) {
 	
 		mills = dateArray[0];
 		
-		x = (mills - start) / window.tpp;
+		x = (mills - window.start) / window.tpp;
 		y = detailData.get(mills);
 		
 		path.moveTo(x, (y - window.low) * window.yRatio);
@@ -659,8 +573,8 @@ function detail(detailData, start, end) {
 		for (var j=1,_j=dateArray.length; j<_j; j++) {				
 			mills = dateArray[j];
 			
-			x = (mills - start) / window.tpp;
-			y = detailData.get(mills);
+			x = (mills - window.start) / window.tpp;
+			y = window.detailData.get(mills);
 			
 			path.lineTo(x, (y - window.low) * window.yRatio);
 		}
@@ -672,10 +586,11 @@ function detail(detailData, start, end) {
 /**
  * public
  */
-function initialize(summaryData, max, color) {
+function initialize(summaryData, max, color, onValueToString) {
 	window.summaryData = summaryData;
 	window.max = max;
 	window.color = color;
+	window.onValueToString = onValueToString;
 	
 	fragment.appendChild(window.hover);
 	fragment.appendChild(window.hoverDate);

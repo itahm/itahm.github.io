@@ -55,10 +55,6 @@ if(!window.deviceIP) {
 
 document.getElementById("legend").textContent = "Timeout : "+ max +"ms";
 
-window.chart.onload = function () {
-	window.chartWindow.onValueToString = onValueToString;
-};
-
 /**
  * public
  */
@@ -83,18 +79,18 @@ function initialize(from, to, start, end) {
 function onSummaryResponse(data) {
 	window.summaryData = new ITAhM.ChartSummaryData(data);
 	
-	window.chartWindow.initialize(window.summaryData, window.max, "#0084ff", true);
-	window.chartWindow.draw(window.start, window.end);
+	window.chartWindow.initialize(window.summaryData, window.max, "#0084ff", onValueToString);
 	
-	sendDetailRequest();
+	if (window.chartWindow.draw(window.start, window.end)) {
+		sendDetailRequest();
+	}
 }
 
 /**
  * private
  */
 function onDetailResponse(data) {
-	window.detailData = new ITAhM.ChartData(data);
-	window.chartWindow.detail(window.detailData, window.start, window.end);
+	window.chartWindow.detail(window.detailData = new ITAhM.ChartData(data));
 }
 
 /**

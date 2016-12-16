@@ -141,9 +141,7 @@ var ITAhM = ITAhM || {};
 			mills = date.setSeconds(0, 0);
 			
 			do {
-				value = this.data[mills];
-				
-				if (value) {
+				if (!isNaN(this.data[mills])) {
 					tmp[tmp.length] = mills;
 				}
 				else if (tmp.length > 0) {
