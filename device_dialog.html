@@ -122,7 +122,7 @@ body.initialized .search {
 				<ul>
 					<li title="콤마(,)로 구분하며 공백을 허용하지 않습니다."><u>*라벨</u>
 					<li>
-						<input type="text" name="label" placeholder="라벨1 ,[라벨2 ...]">
+						<input type="text" name="label" placeholder="라벨1 [,라벨2 ...]">
 					
 				</ul>
 				<ul class="monitor">
@@ -247,9 +247,7 @@ function onApply(e) {
 	window.device.name = form.elements.name.value;
 	window.device.ip = ip;
 	window.device.type = form.elements.type.value;
-	window.device.label = form.elements.label.value.split(",").map(function (value) {
-		return value.replace(/\s+/g, "");
-	}).join(",");
+	window.device.label = trimLabel(form.elements.label.value);
 
 	top.sendRequest({
 			command: "put",
@@ -319,6 +317,21 @@ function onMonitorDevice(e) {
 		
 		top.closeDialog();
 	});
+}
+
+function trimLabel(labels) {
+	var array = labels.split(","),
+		label, result = [];
+	
+	for (var i=0, _i=array.length; i<_i; i++) {
+		label = array[i].replace(/\s+/g, "");
+		
+		if (label) {
+			result[result.length] = label;
+		}
+	}
+	
+	return result.join(",");
 }
 
 function initialize(ip) {
