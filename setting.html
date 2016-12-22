@@ -17,35 +17,25 @@ body {
 ul {
 	list-style: none;
 	padding: 0;
-	margin: 0;
 }
 
 .item {
 	display: flex;
 	align-items: center;
-	padding: 10px;
-	border: 1px solid transparent;
-}
-
-.item:hover {
-	text-decoration: underline;
-	cursor: pointer;
-	border-color: #0084ff;
-	border-radius: 5px;
-	background-color: #fafaff;
 }
 
 .item span {
-	font-size: 1.2em;
-	margin-left: 1em;
+	margin-left: 10px;
+	padding: .5em 1em;
+	border: 1px solid transparent;
 }
 
-.top {
-	display: flex;
-}
-
-.top> div {
-	flex: 1;
+.item span:hover {
+	cursor: pointer;
+	text-decoration: underline;
+	border-radius: 1em;
+	background-color: #0084ff;
+	color: #fff;
 }
 
 .layout {
@@ -56,96 +46,60 @@ img[src="img/plus.png"]:hover {
 	cursor: pointer;
 }
 
-		</style>
-		
-	</head>
-	
-	<body class="loading content_width">
-		<div class="top">
-			<div>
-				<h2>계정<img width="16" height="16" src="img/plus.png" title="계정 추가" id="add_account"></h2>
-				<ul id="account_list"></ul>
-			</div>
-			<div>
-				<h2>프로파일<img width="16" height="16" src="img/plus.png" title="프로파일 추가" id="add_profile"></h2>
-				<ul id="profile_list"></ul>
-			</div>
-		</div>
-		
-		<div>
-			<h2>이벤트 알림<img width="16" height="16" src="img/plus.png" title="알림 추가" id="add_gcm"></h2>
-			<ul id="gcm_list"></ul>
-		</div>
-			
-		<div class="bg_loading"></div>
-		
-		<div class="layout">
-			<ul>
-				<li class="item">
-					<img width="24" height="24">
-					<span></span>
-			</ul>
-		</div>
-		
-		<script>
-if (top === window) {
-	location.href = "http://itahm.com";
+.list {
+	max-height: 100px;
+	overflow: auto;
+	padding: 1em;
+	border: 1px solid #ddd;
+	background-color: #fdfdfd;
 }
 
-var listItem = document.querySelector(".item");
+form input {
+	padding: 3px;
+}
 
-document.getElementById("add_account").onclick = function () {
-	onSelectAccount();
-};
+input[name="timeout"] {
+	width: 50px;
+	text-align: right;
+}
 
-document.getElementById("add_profile").onclick = function () {
-	onSelectProfile();
-};
-
-document.getElementById("add_gcm").onclick = function () {
-	onSelectGCM();
-};
-
-(function () {
+		</style>
+		<script>
+		
+function initAccount() {
 	var list = document.getElementById("account_list"),
 		accountData = top.databases.account,
 		df = document.createDocumentFragment();
 	
 	for (var username in accountData) {
-		df.appendChild(createItem(accountData[username].level === 0? "img/svg/root.svg": "img/svg/user.svg", username))
-			.onclick = onSelectAccount.bind(undefined, username);
+		df.appendChild(createItem(accountData[username].level === 0? "img/svg/root.svg": "img/svg/user.svg", username, onSelectAccount));
 	}
 	
 	list.appendChild(df);
-}) ();
-
-(function () {
+}
+function initProfile() {
 	var list = document.getElementById("profile_list"),
 		profileData = top.databases.profile,
 		df = document.createDocumentFragment();
 	
 	for (var name in profileData) {
-		df.appendChild(createItem("img/svg/list.svg", name))
-			.onclick = onSelectProfile.bind(undefined, name);
+		df.appendChild(createItem("img/svg/list.svg", name, onSelectProfile));
 	}
 	
 	list.appendChild(df);
-}) ();
+}
 
-(function () {
+function initGCM() {
 	var list = document.getElementById("gcm_list"),
 		alarmData = top.databases.gcm,
 		df = document.createDocumentFragment();
 	
 	for (var id in alarmData) {
-		df.appendChild(createItem("img/svg/alarm.svg", id))
-			.onclick = onSelectGCM.bind(undefined, id);
+		df.appendChild(createItem("img/svg/alarm.svg", id, onSelectGCM));
 	}
 	
 	list.appendChild(df);
-}) ();
-
-document.body.classList.remove("loading");
+}
 
 function onSelectAccount(username) {
 	top.showDialog.call(window, "account_dialog.html", username);
@@ -159,15 +113,100 @@ function onSelectGCM(id) {
 	top.showDialog.call(window, "gcm_dialog.html", id);
 }
 
-function createItem(src, label) {
+function createItem(src, key, func) {
 	var clone = window.listItem.cloneNode(true);
 	
 	clone.children[0].src = src;
-	clone.children[1].textContent = label;
+	clone.children[1].textContent = key;
+	clone.children[1].onclick = func.bind(undefined, key);
 	
 	return clone;
 }
+		
+		</script>
+	</head>
+	
+	<body class="loading content_width">
+		
+		<div>
+			<h2>일반</h2>
+			<form id="timeout">
+				<ul>
+					<li>타임아웃 (초): <input type="number" min="1" max="10" name="timeout"><input type="submit" value="적용">
+				</ul>
+			</form>
+		</div>
+		
+		<div>
+			<h2>계정 <img width="16" height="16" src="img/plus.png" title="계정 추가" id="add_account"></h2>
+			<ul id="account_list" class="list"></ul>
+		</div>
+		
+		<div>
+			<h2>프로파일 <img width="16" height="16" src="img/plus.png" title="프로파일 추가" id="add_profile"></h2>
+			<ul id="profile_list" class="list"></ul>
+		</div>
+		
+		<div>
+			<h2>이벤트 알림 <img width="16" height="16" src="img/plus.png" title="알림 추가" id="add_gcm"></h2>
+			<ul id="gcm_list" class="list"></ul>
+		</div>
+			
+		<div class="bg_loading"></div>
+		
+		<div class="layout">
+			<ul>
+				<li class="item">
+					<img width="16" height="16">
+					<span></span>
+			</ul>
+		</div>
+		
+		<script>
+if (top === window) {
+	location.href = "http://itahm.com";
+}
 
+var listItem = document.querySelector(".item");
+
+document.getElementById("timeout").elements.timeout.value = top.databases.config.timeout /1000;
+
+document.getElementById("add_account").onclick = function () {
+	onSelectAccount();
+};
+
+document.getElementById("add_profile").onclick = function () {
+	onSelectProfile();
+};
+
+document.getElementById("add_gcm").onclick = function () {
+	onSelectGCM();
+};
+
+document.getElementById("timeout").onsubmit = function (e) {
+	e.preventDefault();
+	
+	document.body.classList.add("loading");
+	
+	top.sendRequest({
+		command: "config",
+		timeout: this.elements.timeout.value *1000
+	}, function (config) {
+		top.databases.config = config;
+		
+		document.body.classList.remove("loading");
+		
+		alert("변경사항을 적용하였습니다!");
+	});
+};
+
+initAccount();
+
+initProfile();
+
+initGCM();
+
+document.body.classList.remove("loading");
 
 		</script>
 	

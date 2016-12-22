@@ -236,13 +236,6 @@ function onSelectResource() {
 	form.elements.index.disabled = false;
 	
 	switch(resource) {
-	case "responseTime":
-		form.elements.index.appendChild(createOption(0, "N/A"));
-		form.elements.index.disabled = true;
-		
-		selectedIndex = 0;
-		
-		break;
 	case "processor":
 		for (var index in window.snmp["hrProcessorEntry"]) {
 			form.elements.index.appendChild(createOption(index, "Processor "+ index));
@@ -398,7 +391,6 @@ function initialize(ip) {
 						<li>성능 지표
 						<li>
 							<select name="resource" required>
-								<option value="responseTime" selected>Response time
 								<option value="processor">Processor load
 								<option value="memory">Physical memory
 								<option value="storage">Storage usage
@@ -438,7 +430,6 @@ if (top === window) {
 }
 
 var resourceString = {
-		"responseTime": "Rosponse time",
 		"processor": "Processor load",
 		"memory": "Physical memory",
 		"storage": "Storage usage",

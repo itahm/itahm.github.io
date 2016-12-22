@@ -144,11 +144,12 @@ if (sessionStorage.level == 0) {
 }
 
 function onRemove(e) {
-	if (!confirm("계정을 삭제하겠습니까?")) {
-		return;
+	if (confirm("사용중인 프로파일을 삭제하면 해당 프로파일을 사용하는 장비가 응답하지 않을 수 있습니다.\n\n프로파일을 삭제하겠습니까?")) {
+		put(form.elements.name.value, null);
 	}
-	
-	put(form.elements.name.value, null);
+	else {
+		this.checked = false;
+	}	
 }
 
 function onCancel(e) {

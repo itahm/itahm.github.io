@@ -183,11 +183,12 @@ function onRemove(e) {
 		return;
 	}
 	
-	if (!confirm("계정을 삭제하겠습니까?")) {
-		return;
+	if (confirm("계정을 삭제하겠습니까?")) {
+		put(form.elements.username.value, null);
 	}
-	
-	put(form.elements.username.value, null);
+	else {
+		this.checked = false;
+	}
 }
 
 function onCancel(e) {

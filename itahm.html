@@ -301,6 +301,11 @@ document.getElementById("signout").onclick = function () {
 				}
 			}
 			else {
+				window.onbeforeunload = undefined;
+			
+				alert("에이전트가 올바르게 응답하지 않습니다.\n\n"
+						+"에이전트의 버전을 확인하십시오.");
+				
 				location.href = "http://itahm.com";
 			}
 		};
