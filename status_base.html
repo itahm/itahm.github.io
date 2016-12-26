@@ -325,15 +325,15 @@ ul.table ul li:first-child {
 	text-align: right;
 }
 
-#status::after {
+#status::before {
 	font-weight: bold;
 	color: #0f0;
-	content: "정상";
+	content: "정상 ";
 }
 
-body.shutdown #status::after {
+body.shutdown #status::before {
 	color: #f00;
-	content: "응답 없음";
+	content: "응답 없음 ";
 }
 
 body:not(.processor) .resource.processor,
@@ -344,6 +344,309 @@ body:not(.throughput) .resource.throughput {
 }
 
 		</style>
+		
+		<script>
+		
+function createProcGauge(value) {
+	var circularBar = document.querySelector(".circular_bar").cloneNode(true);
+	
+	if (parseInt(value) > 90) {
+		circularBar.classList.add("red");
+	}
+	else if (parseInt(value) > 70) {
+		circularBar.classList.add("orange");
+	}
+	else {
+		circularBar.classList.add("green");
+	}
+	
+	circularBar.dataset.value = value +"%";
+	
+	setTimeout(function () {
+		circularBar.children[0].children[0].children[1].setAttributeNS(null, "stroke-dashoffset", 2* Math.PI*(1 - value /100)*45);
+	}, 500);
+	
+	return circularBar;
+}
+
+function createMemoryGuage(used, size) {
+	var clone = memoryGauge.cloneNode(true),
+		bar = clone.children[0],
+		info = clone.children[1].children[0],
+		usage = Math.round(100* used / size) +"%";
+
+	setTimeout(function () {
+		bar.children[1].style.height = usage;
+	}, 500);
+	
+	bar.children[0].textContent = usage;
+	
+	info.children[0].textContent = ITAhM.util.toBytesString(used);
+	info.children[1].textContent = "/ "+ ITAhM.util.toBytesString(size);
+	
+	return clone;
+}
+
+function createStorageGuage(used, size, label) {
+	var clone = storageGauge.cloneNode(true),
+		ul = clone.children[0],
+		usage = (100* used / size).toFixed(2) +"%";;
+	
+	ul.children[0].textContent = label;
+	ul.children[1].textContent = ITAhM.util.toBytesString(size);
+	ul.children[2].textContent = ITAhM.util.toBytesString(used);
+	
+	ul.children[3].children[0].textContent = usage;
+	
+	setTimeout(function () {
+		ul.children[3].children[1].style.width = usage;
+	}, 500);
+	
+	return clone;
+}
+	
+function createIFaceGuage(admin, oper, index, name, descr, alias, bandwidth, inBPS, outBPS, inErr, outErr) {
+	var clone = iFaceGauge.cloneNode(true),
+		ul = clone.children[0],
+		usageIn, usageOut;
+	
+	if (admin != 1) {
+		ul.classList.add("disabled");
+	}
+	else if (oper !== 1) {
+		ul.classList.add("shutdown");
+	}
+	
+	usageIn = 100* inBPS / bandwidth;
+	usageOut = 100* outBPS / bandwidth;
+	
+	usageIn = (isNaN(usageIn)? 0: usageIn).toFixed(2) +"%";
+	usageOut = (isNaN(usageOut)? 0: usageOut).toFixed(2) +"%";
+	
+	ul.children[1].textContent = name;
+	ul.children[2].textContent = alias;
+	ul.children[3].textContent = ITAhM.util.toBPSString(bandwidth);
+	ul.children[4].textContent = ITAhM.util.toBPSString(inBPS);
+	ul.children[5].textContent = ITAhM.util.toBPSString(outBPS);		
+	ul.children[6].children[0].textContent = usageIn; 
+	ul.children[7].children[0].textContent = usageOut;
+	ul.children[8].children[0].textContent = Math.round(inErr /10);
+	ul.children[8].children[1].textContent = Math.round(outErr /10);
+	
+	setTimeout(function () {
+		ul.children[6].children[1].style.width = usageIn;
+		ul.children[7].children[1].style.width = usageOut;
+	}, 500);
+	
+	
+	ul.children[8].onclick = function (index, e) {
+		onSelectResource("error", index);
+		
+		e.stopPropagation();
+	}.bind(undefined, index);
+	
+	ul.title = descr;
+	
+	clone.onclick = onSelectResource.bind(undefined, "throughput", index);
+	
+	return clone;
+}
+
+function initHistory(history) {/*
+	document.getElementById("response_time").textContent = "N/A";
+	document.body.classList.add("response_time");
+	
+	for (var index in history.hrProcessorLoad) {
+		processorArea.appendChild(document.createElement("p")).textContent = index;
+		
+		document.body.classList.add("processor");
+	}
+	
+	document.querySelector(".resource.processor").onclick = function () {
+		onSelectResource("processor");
+	};
+	
+	document.body.classList.remove("loading");
+	
+	return;
+	
+	entry = history.hrStorageEntry;
+	for (var index in entry) {
+		parseStorage(entry[index], index);
+	}
+	
+	entry = history.ifEntry;
+	for (var index in entry) {
+		initIFace(entry[index], index)
+	}
+	
+	document.body.classList.remove("loading");*/
+}
+
+function initialize(ip) {
+	var snmp = top.databases.local.node,
+		entry;
+	
+	document.getElementById("reset").onclick = function () {
+		top.sendRequest({
+			command: "extra",
+			extra: "reset",
+			ip: ip
+		}, function () {
+			parent.location.reload();
+		});
+	};
+	
+	document.getElementById("sys_name").textContent = snmp.sysName;
+	document.getElementById("sys_name").title = snmp.sysDescr;
+	document.getElementById("sys_enterprise").textContent = ITAhM.util.enterpriseFromOID(snmp.sysObjectID);
+	document.getElementById("ip").textContent = ip;
+	document.getElementById("failure").textContent = 100 - snmp.failure;
+	document.getElementById("last_response").textContent = (function (date) {
+		var text = date.getFullYear() +"-",
+			month = date.getMonth() +1,
+			d = date.getDate(),
+			h = date.getHours(),
+			m = date.getMinutes()
+			s = date.getSeconds();
+		
+		if (month < 10) {
+			text += "0";
+		}
+		
+		text += (month +"-");
+		
+		if (d < 10) {
+			text += "0";
+		}
+		
+		text += (d +" ");
+		
+		if (h < 10) {
+			text += "0";
+		}
+		
+		text += (h +":");
+		
+		if (m < 10) {
+			text += "0";
+		}
+		
+		text += (m +":");
+		
+		if (s < 10) {
+			text += "0";
+		}
+		
+		return text + s;
+	})(new Date(snmp.lastResponse));
+	
+	if (top.databases.monitor[ip].shutdown) {
+		document.body.classList.add("shutdown");
+	}
+	else {
+		document.getElementById("realtime_response").src="realtime_response.html"
+	}
+	
+	entry = snmp.hrProcessorEntry;
+	for (var index in entry) {
+		initProcessor(entry[index]);
+	}
+	
+	document.querySelector(".resource.processor").onclick = function () {
+		onSelectResource("processor");
+	};
+	
+	entry = snmp.hrStorageEntry;
+	for (var index in entry) {
+		parseStorage(entry[index], index);
+	}
+	
+	entry = snmp.ifEntry;
+	for (var index in entry) {
+		initIFace(entry[index], index)
+	}
+	
+	document.body.classList.remove("loading");
+}
+
+function initProcessor(load) {
+	processorArea.appendChild(createProcGauge(load));
+	
+	document.body.classList.add("processor");
+}
+
+function parseStorage(storage, index) {
+	switch(storage.hrStorageType) {
+	case 4:
+		if (storage.hrStorageSize > 0) {
+			initStorage(storage, index);
+		}
+		
+		break;
+	case 2:
+		initMemory(storage);
+		document.querySelector(".resource.memory").onclick = function () {
+			onSelectResource("memory", index);
+		};
+		
+		return true;
+	}
+	
+	return false;
+}
+
+function initStorage(storage, index) {
+	storageArea.appendChild(
+		createStorageGuage(storage.hrStorageUsed * storage.hrStorageAllocationUnits
+			, storage.hrStorageSize * storage.hrStorageAllocationUnits, storage.hrStorageDescr)
+		).onclick = function () {
+			onSelectResource("storage", index);
+		};
+	
+	document.body.classList.add("storage");
+}
+
+function initMemory(memory) {
+	var used = memory.hrStorageUsed * memory.hrStorageAllocationUnits,
+		size = memory.hrStorageSize * memory.hrStorageAllocationUnits;
+	
+	memoryArea.appendChild(createMemoryGuage(used, size));
+	
+	document.body.classList.add("memory");
+}
+
+function initIFace(iFace, index) {
+	/*
+	if (iFace.ifType == 24) {// loopback
+		return;
+	}
+	else if (iFace.ifType == 1) {// other
+		return;
+	}*/
+	
+	interfaceArea
+		.appendChild(createIFaceGuage(
+				iFace.ifAdminStatus,
+				iFace.ifOperStatus,
+				index,
+				iFace.ifName,
+				iFace.ifDescr,
+				iFace.ifAlias,
+				iFace.ifHighSpeed || iFace.ifSpeed,
+				iFace.ifInBPS || 0,
+				iFace.ifOutBPS || 0,
+				iFace.ifInErrors,
+				iFace.ifOutErrors));
+	
+	document.body.classList.add("throughput");
+}
+
+// abstract
+function onSelectResource(resource, index) {
+}
+		
+		</script>
 	</head>
 
 	<body class="loading">
@@ -374,7 +677,7 @@ body:not(.throughput) .resource.throughput {
 					<li>
 						<ul>
 							<li>상태
-							<li id="status">
+							<li id="status">(<span id="failure"></span>%) <input type="button" id="reset" value="초기화">
 						</ul>
 				</ul>
 			</section>
@@ -514,294 +817,6 @@ body:not(.throughput) .resource.throughput {
 	document.getElementById("realtime_response").onload = function () {
 		this.contentWindow.initialize(top.databases.local.selected);
 	};
-	
-	function createProcGauge(value) {
-		var circularBar = document.querySelector(".circular_bar").cloneNode(true);
-		
-		if (parseInt(value) > 90) {
-			circularBar.classList.add("red");
-		}
-		else if (parseInt(value) > 70) {
-			circularBar.classList.add("orange");
-		}
-		else {
-			circularBar.classList.add("green");
-		}
-		
-		circularBar.dataset.value = value +"%";
-		
-		setTimeout(function () {
-			circularBar.children[0].children[0].children[1].setAttributeNS(null, "stroke-dashoffset", 2* Math.PI*(1 - value /100)*45);
-		}, 500);
-		
-		return circularBar;
-	}
-	
-	function createMemoryGuage(used, size) {
-		var clone = memoryGauge.cloneNode(true),
-			bar = clone.children[0],
-			info = clone.children[1].children[0],
-			usage = Math.round(100* used / size) +"%";
-
-		setTimeout(function () {
-			bar.children[1].style.height = usage;
-		}, 500);
-		
-		bar.children[0].textContent = usage;
-		
-		info.children[0].textContent = ITAhM.util.toBytesString(used);
-		info.children[1].textContent = "/ "+ ITAhM.util.toBytesString(size);
-		
-		return clone;
-	}
-	
-	function createStorageGuage(used, size, label) {
-		var clone = storageGauge.cloneNode(true),
-			ul = clone.children[0],
-			usage = (100* used / size).toFixed(2) +"%";;
-		
-		ul.children[0].textContent = label;
-		ul.children[1].textContent = ITAhM.util.toBytesString(size);
-		ul.children[2].textContent = ITAhM.util.toBytesString(used);
-		
-		ul.children[3].children[0].textContent = usage;
-		
-		setTimeout(function () {
-			ul.children[3].children[1].style.width = usage;
-		}, 500);
-		
-		return clone;
-	}
-		
-	function createIFaceGuage(admin, oper, index, name, descr, alias, bandwidth, inBPS, outBPS, inErr, outErr) {
-		var clone = iFaceGauge.cloneNode(true),
-			ul = clone.children[0],
-			usageIn, usageOut;
-		
-		if (admin != 1) {
-			ul.classList.add("disabled");
-		}
-		else if (oper !== 1) {
-			ul.classList.add("shutdown");
-		}
-		
-		usageIn = 100* inBPS / bandwidth;
-		usageOut = 100* outBPS / bandwidth;
-		
-		usageIn = (isNaN(usageIn)? 0: usageIn).toFixed(2) +"%";
-		usageOut = (isNaN(usageOut)? 0: usageOut).toFixed(2) +"%";
-		
-		ul.children[1].textContent = name;
-		ul.children[2].textContent = alias;
-		ul.children[3].textContent = ITAhM.util.toBPSString(bandwidth);
-		ul.children[4].textContent = ITAhM.util.toBPSString(inBPS);
-		ul.children[5].textContent = ITAhM.util.toBPSString(outBPS);		
-		ul.children[6].children[0].textContent = usageIn; 
-		ul.children[7].children[0].textContent = usageOut;
-		ul.children[8].children[0].textContent = Math.round(inErr /10);
-		ul.children[8].children[1].textContent = Math.round(outErr /10);
-		
-		setTimeout(function () {
-			ul.children[6].children[1].style.width = usageIn;
-			ul.children[7].children[1].style.width = usageOut;
-		}, 500);
-		
-		
-		ul.children[8].onclick = function (index, e) {
-			onSelectResource("error", index);
-			
-			e.stopPropagation();
-		}.bind(undefined, index);
-		
-		ul.title = descr;
-		
-		clone.onclick = onSelectResource.bind(undefined, "throughput", index);
-		
-		return clone;
-	}
-	
-	function initHistory(history) {/*
-		document.getElementById("response_time").textContent = "N/A";
-		document.body.classList.add("response_time");
-		
-		for (var index in history.hrProcessorLoad) {
-			processorArea.appendChild(document.createElement("p")).textContent = index;
-			
-			document.body.classList.add("processor");
-		}
-		
-		document.querySelector(".resource.processor").onclick = function () {
-			onSelectResource("processor");
-		};
-		
-		document.body.classList.remove("loading");
-		
-		return;
-		
-		entry = history.hrStorageEntry;
-		for (var index in entry) {
-			parseStorage(entry[index], index);
-		}
-		
-		entry = history.ifEntry;
-		for (var index in entry) {
-			initIFace(entry[index], index)
-		}
-		
-		document.body.classList.remove("loading");*/
-	}
-	
-	function initialize(ip) {
-		var snmp = top.databases.local.node,
-			entry;
-		
-		document.getElementById("sys_name").textContent = snmp.sysName;
-		document.getElementById("sys_name").title = snmp.sysDescr;
-		document.getElementById("sys_enterprise").textContent = ITAhM.util.enterpriseFromOID(snmp.sysObjectID);
-		document.getElementById("ip").textContent = ip;
-		document.getElementById("last_response").textContent = (function (date) {
-			var text = date.getFullYear() +"-",
-				month = date.getMonth() +1,
-				d = date.getDate(),
-				h = date.getHours(),
-				m = date.getMinutes()
-				s = date.getSeconds();
-			
-			if (month < 10) {
-				text += "0";
-			}
-			
-			text += (month +"-");
-			
-			if (d < 10) {
-				text += "0";
-			}
-			
-			text += (d +" ");
-			
-			if (h < 10) {
-				text += "0";
-			}
-			
-			text += (h +":");
-			
-			if (m < 10) {
-				text += "0";
-			}
-			
-			text += (m +":");
-			
-			if (s < 10) {
-				text += "0";
-			}
-			
-			return text + s;
-		})(new Date(snmp.lastResponse));
-		
-		if (top.databases.monitor[ip].shutdown) {
-			document.body.classList.add("shutdown");
-		}
-		else {
-			document.getElementById("realtime_response").src="realtime_response.html"
-		}
-		
-		entry = snmp.hrProcessorEntry;
-		for (var index in entry) {
-			initProcessor(entry[index]);
-		}
-		
-		document.querySelector(".resource.processor").onclick = function () {
-			onSelectResource("processor");
-		};
-		
-		entry = snmp.hrStorageEntry;
-		for (var index in entry) {
-			parseStorage(entry[index], index);
-		}
-		
-		entry = snmp.ifEntry;
-		for (var index in entry) {
-			initIFace(entry[index], index)
-		}
-		
-		document.body.classList.remove("loading");
-	}
-	
-	function initProcessor(load) {
-		processorArea.appendChild(createProcGauge(load));
-		
-		document.body.classList.add("processor");
-	}
-	
-	function parseStorage(storage, index) {
-		switch(storage.hrStorageType) {
-		case 4:
-			if (storage.hrStorageSize > 0) {
-				initStorage(storage, index);
-			}
-			
-			break;
-		case 2:
-			initMemory(storage);
-			document.querySelector(".resource.memory").onclick = function () {
-				onSelectResource("memory", index);
-			};
-			
-			return true;
-		}
-		
-		return false;
-	}
-	
-	function initStorage(storage, index) {
-		storageArea.appendChild(
-			createStorageGuage(storage.hrStorageUsed * storage.hrStorageAllocationUnits
-				, storage.hrStorageSize * storage.hrStorageAllocationUnits, storage.hrStorageDescr)
-			).onclick = function () {
-				onSelectResource("storage", index);
-			};
-		
-		document.body.classList.add("storage");
-	}
-	
-	function initMemory(memory) {
-		var used = memory.hrStorageUsed * memory.hrStorageAllocationUnits,
-			size = memory.hrStorageSize * memory.hrStorageAllocationUnits;
-		
-		memoryArea.appendChild(createMemoryGuage(used, size));
-		
-		document.body.classList.add("memory");
-	}
-	
-	function initIFace(iFace, index) {
-		/*
-		if (iFace.ifType == 24) {// loopback
-			return;
-		}
-		else if (iFace.ifType == 1) {// other
-			return;
-		}*/
-		
-		interfaceArea
-			.appendChild(createIFaceGuage(
-					iFace.ifAdminStatus,
-					iFace.ifOperStatus,
-					index,
-					iFace.ifName,
-					iFace.ifDescr,
-					iFace.ifAlias,
-					iFace.ifHighSpeed || iFace.ifSpeed,
-					iFace.ifInBPS || 0,
-					iFace.ifOutBPS || 0,
-					iFace.ifInErrors,
-					iFace.ifOutErrors));
-		
-		document.body.classList.add("throughput");
-	}
-	
-	// abstract
-	function onSelectResource(resource, index) {
-	}
 	
 	</script>
 </html>

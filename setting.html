@@ -57,11 +57,11 @@ img[src="img/plus.png"]:hover {
 form input {
 	padding: 3px;
 }
-
+/*
 input[name="timeout"] {
 	width: 50px;
 	text-align: right;
-}
+}*/
 
 		</style>
 		<script>
@@ -128,14 +128,14 @@ function createItem(src, key, func) {
 	
 	<body class="loading content_width">
 		
-		<div>
+		<!--div>
 			<h2>일반</h2>
 			<form id="timeout">
 				<ul>
 					<li>타임아웃 (초): <input type="number" min="1" max="10" name="timeout"><input type="submit" value="적용">
 				</ul>
 			</form>
-		</div>
+		</div-->
 		
 		<div>
 			<h2>계정 <img width="16" height="16" src="img/plus.png" title="계정 추가" id="add_account"></h2>
@@ -169,7 +169,7 @@ if (top === window) {
 
 var listItem = document.querySelector(".item");
 
-document.getElementById("timeout").elements.timeout.value = top.databases.config.timeout /1000;
+//document.getElementById("timeout").elements.timeout.value = top.databases.config.timeout /1000;
 
 document.getElementById("add_account").onclick = function () {
 	onSelectAccount();
@@ -182,7 +182,7 @@ document.getElementById("add_profile").onclick = function () {
 document.getElementById("add_gcm").onclick = function () {
 	onSelectGCM();
 };
-
+/*
 document.getElementById("timeout").onsubmit = function (e) {
 	e.preventDefault();
 	
@@ -199,7 +199,7 @@ document.getElementById("timeout").onsubmit = function (e) {
 		alert("변경사항을 적용하였습니다!");
 	});
 };
-
+*/
 initAccount();
 
 initProfile();

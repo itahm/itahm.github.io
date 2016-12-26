@@ -47,7 +47,7 @@ var chart = document.getElementById("chart"),
 	chartWindow = chart.contentWindow,
 	cursor = document.getElementById("cursor"),
 	deviceIP = top.databases.local.selected,
-	max = top.databases.config.timeout;
+	max = 10000;
 	
 if(!window.deviceIP) {
 	throw "!";

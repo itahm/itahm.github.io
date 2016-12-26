@@ -23,6 +23,16 @@ aside {
 	flex-direction: column;
 }
 
+aside .aside {
+	flex: 2;
+	display: flex;
+	flex-direction: column;
+}
+
+aside section {
+	flex: 1;
+}
+
 article {
 	flex: 1;
 	height: 100%;
@@ -160,15 +170,24 @@ ul {
 	display: flex;
 	cursor: pointer;
 	padding: .5em;
+}
+
+.list_item ul.default {
 	transition-duration: .5s;
 }
 
-.list_item ul:hover {
+.list_item ul.default:hover {
 	text-decoration: underline;
 	border-radius: 0 0 .5em .5em;
 	box-shadow: 0 .3em #999;
 	padding: .2em .5em .5em .5em;
 	margin-bottom: .3em;
+}
+
+.list_item ul.simple:hover {
+	background-color: #fff;
+	color: #0084ff;
+	border-radius: 1em;
 }
 
 .list_item li {
@@ -262,6 +281,7 @@ function update() {
 		window.updateTime.textContent = getTime();
 		
 		setTop(response.responseTime, window.responseTime, toMillsString);
+		setTop(response.failureRate, window.responseRate, toPercentageString);
 		setTop(response.processor, window.processor, toPercentageString);
 		setTop(response.memory, window.memory, ITAhM.util.toBytesString);
 		setTop(response.memoryRate, window.memoryRate, toPercentageString);
@@ -415,8 +435,10 @@ function createTopItem(ip, value) {
 	
 	item.children[0].textContent = ip;
 	item.children[1].textContent = value;
+	item.title = top.databases.device[ip].name || ip;
 	
 	clone.onclick = onSelectTopItem.bind(window, ip);
+	
 	return clone;
 }
 
@@ -432,58 +454,66 @@ function onEvent(ip) {
 	
 	<body class="loading">
 		<aside>
-			<div class="head">
-				<section class="agent">
-					<div class="title">에이전트</div>
-					<div class="list">
-						<ul>
-							<li>
-								<ul class="agent_status">
-									<li>접속 연결수
-									<li id="connections">
-								</ul>
-							<li>
-								<ul class="agent_status">
-									<li>이벤트 대기
-									<li id="waiters">
-								</ul>
-							<li>
-								<ul class="agent_status">
-									<li>저장공간 여유
-									<li id="space">
-								</ul>
-							<li>
-								<ul class="agent_status">
-									<li>에이전트 버전
-									<li id="version">
-								</ul>
-						</ul>
-					</div>
-				</section>
-				<div id="counter">
-					<div>
-						갱신시간
-						<p id="update"></p>
-					</div>
-					<div>
-						<hr></hr>
-					</div>
-					<div>
-						<span></span>
+			<div class="aside">
+				<div class="head">
+					<section class="agent">
+						<div class="title">에이전트</div>
+						<div class="list">
+							<ul>
+								<li>
+									<ul class="agent_status">
+										<li>접속 연결수
+										<li id="connections">
+									</ul>
+								<li>
+									<ul class="agent_status">
+										<li>이벤트 대기
+										<li id="waiters">
+									</ul>
+								<li>
+									<ul class="agent_status">
+										<li>저장공간 여유
+										<li id="space">
+									</ul>
+								<li>
+									<ul class="agent_status">
+										<li>에이전트 버전
+										<li id="version">
+									</ul>
+							</ul>
+						</div>
+					</section>
+					<div id="counter">
+						<div>
+							갱신시간
+							<p id="update"></p>
+						</div>
+						<div>
+							<hr></hr>
+						</div>
+						<div>
+							<span></span>
+						</div>
 					</div>
 				</div>
+				<div class="statistic">
+					<ul class="summary">
+						<li>구분
+						<li>임계 초과
+						<li>응답 없음
+						<li>정상
+						<li>합계
+					</ul>
+					<ul id="summary_list">
+					</ul>
+				</div>
 			</div>
-			<div class="statistic">
-				<ul class="summary">
-					<li>구분
-					<li>임계 초과
-					<li>응답 없음
-					<li>정상
-					<li>합계
-				</ul>
-				<ul id="summary_list">
-				</ul>
-			</div>
+			<section>
+				<div class="title">응답 실패 Top</div>
+				<div class="list">
+					<ul id="failure_rate"></ul>
+				</div>
+			</section>
 		</aside>
 		<article>
 			<div class="top">
@@ -560,7 +590,7 @@ function onEvent(ip) {
 		<div class="layout">
 			<ul>
 				<li class="list_item">
-					<ul>
+					<ul class="simple">
 						<li>
 						<li>
 					</ul>
@@ -575,6 +605,7 @@ var summaryList = document.getElementById("summary_list"),
 	summaryItem = document.querySelector(".summary"),
 	listItem = document.querySelector(".list_item"),
 	responseTime = document.getElementById("response_time"),
+	responseRate = document.getElementById("failure_rate"),
 	processor = document.getElementById("processor"),
 	memory = document.getElementById("memory"),
 	memoryRate = document.getElementById("memoryRate"),
