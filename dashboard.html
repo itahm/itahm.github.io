@@ -281,7 +281,6 @@ function update() {
 		window.updateTime.textContent = getTime();
 		
 		setTop(response.responseTime, window.responseTime, toMillsString);
-		setTop(response.failureRate, window.responseRate, toPercentageString);
 		setTop(response.processor, window.processor, toPercentageString);
 		setTop(response.memory, window.memory, ITAhM.util.toBytesString);
 		setTop(response.memoryRate, window.memoryRate, toPercentageString);
@@ -290,6 +289,10 @@ function update() {
 		setTop(response.throughput, window.throughput, ITAhM.util.toBPSString);
 		setTop(response.throughputRate, window.throughputRate, toPercentageString);
 		setTop(response.throughputErr, window.throughputErr, toErrorString);
+		
+		if ("failureRate" in response) {
+			setTop(response.failureRate, window.responseRate, toPercentageString);
+		}
 	});
 	
 	top.sendRequest({
