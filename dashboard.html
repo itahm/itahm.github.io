@@ -299,7 +299,7 @@ function update() {
 		command: "agent",
 	}, function (response) {
 		connections.textContent = response.connections;
-		waiters.textContent = response.waiters;
+		java.textContent = response.java;
 		space.textContent = ITAhM.util.toBytesString(response.space);
 	});
 }
@@ -468,12 +468,6 @@ function onEvent(ip) {
 										<li>접속 연결수
 										<li id="connections">
 									</ul>
-								<li>
-									<ul class="agent_status">
-										<li>이벤트 대기
-										<li id="waiters">
-									</ul>
-								<li>
 									<ul class="agent_status">
 										<li>저장공간 여유
 										<li id="space">
@@ -483,6 +477,12 @@ function onEvent(ip) {
 										<li>에이전트 버전
 										<li id="version">
 									</ul>
+								<li>
+									<ul class="agent_status">
+										<li>자바 버전
+										<li id="java">
+									</ul>
+								<li>
 							</ul>
 						</div>
 					</section>
@@ -619,7 +619,7 @@ var summaryList = document.getElementById("summary_list"),
 	throughputErr = document.getElementById("throughputErr"),
 	updateTime = document.getElementById("update"),
 	connections = document.getElementById("connections"),
-	waiters = document.getElementById("waiters"),
+	java = document.getElementById("java"),
 	space = document.getElementById("space");
 
 initStats();

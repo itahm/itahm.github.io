@@ -36,11 +36,24 @@ iframe {
 nav {
 	text-align: right;
 }
+
+h1 {
+	font-size: 16px;
+	margin: .5em;
+	padding: .5em 1em;
+	background-color: #0084ff;
+	color: #fff;
+	display: inline-block;
+	border-radius: 1em;
+}
 		</style>
 		
 	</head>
 	
 	<body>
+		<header>
+			<h1>프로세서 로드 @ <span id="host"></span></h1>
+		</header>
 		<nav>
 			<select id="view">
 				<option value="add">가로 보기
@@ -82,6 +95,8 @@ var deviceIP = top.databases.local.selected,
 if(!window.deviceIP || !window.node) {
 	throw "!";
 }
+
+document.getElementById("host").textContent = window.deviceIP;
 
 document.getElementById("view").onchange = function () {
 	document.body.classList[this.value]("row");

@@ -11,6 +11,16 @@
 @import "css/itahm.css";
 @import "css/chart.css";
 
+h1 {
+	font-size: 16px;
+	margin: .5em;
+	padding: .5em 1em;
+	background-color: #0084ff;
+	color: #fff;
+	display: inline-block;
+	border-radius: 1em;
+}
+
 		</style>
 		
 	</head>
@@ -18,6 +28,7 @@
 	<body>
 		
 		<header>
+			<h1>스토리지 사용 @ <span id="host"></span></h1>
 			<h2 id="storage_name"></h2>
 			<div id="legend"></div>
 		</header>
@@ -37,6 +48,8 @@ var chart = document.getElementById("chart"),
 if(!deviceIP || !window.node) {
 	throw "!";
 }
+
+document.getElementById("host").textContent = window.deviceIP;
 
 /**
  * public

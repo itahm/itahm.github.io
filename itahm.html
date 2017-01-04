@@ -326,7 +326,7 @@ function getDeviceName(ip) {
 	return device? device.name: ip;
 }
 
-function notifyError(error) {
+function notifyError(error) {console.log(error); throw "";
 	if (window.closed) {
 		return;
 	}

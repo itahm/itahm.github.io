@@ -27,13 +27,23 @@ iframe {
 	text-align: right;
 }
 
+h1 {
+	font-size: 16px;
+	margin: .5em;
+	padding: .5em 1em;
+	background-color: #0084ff;
+	color: #fff;
+	display: inline-block;
+	border-radius: 1em;
+}
+
 		</style>
 		
 	</head>
 	
 	<body>
-		
 		<header>
+			<h1>응답 시간 @ <span id="host"></span></h1>
 			<div id="legend"></div>
 		</header>
 		
@@ -52,6 +62,8 @@ var chart = document.getElementById("chart"),
 if(!window.deviceIP) {
 	throw "!";
 }
+
+document.getElementById("host").textContent = window.deviceIP;
 
 document.getElementById("legend").textContent = "Timeout : "+ max +"ms";
 

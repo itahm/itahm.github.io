@@ -43,7 +43,16 @@ nav {
 	text-align: right;
 }
 
-h1,
+h1 {
+	font-size: 16px;
+	margin: .5em;
+	padding: .5em 1em;
+	background-color: #0084ff;
+	color: #fff;
+	display: inline-block;
+	border-radius: 1em;
+}
+
 h2 {
 	text-align: center;
 }
@@ -71,6 +80,7 @@ h3.output {
 	
 	<body>
 		<header>
+			<h1>통신 에러 @ <span id="host"></span></h1>
 			<h2 id="if_name"></h2>
 		</header>
 		
@@ -106,6 +116,8 @@ var chartIn = document.getElementById("chart_in"),
 if(!deviceIP || !window.resourceIndex || !node) {
 	throw "!";
 }
+
+document.getElementById("host").textContent = window.deviceIP;
 
 document.getElementById("view").onchange = function () {
 	document.body.classList[this.value]("row");
