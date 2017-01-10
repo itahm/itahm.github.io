@@ -7,10 +7,6 @@ function Draggable(target) {
 		draggable;
 	
 	function onMouseDown(e) {
-		if (e.button !== 0) {
-			return;
-		}
-		
 		originX = lastX = e.clientX;
 		originY = lastY = e.clientY;
 		
@@ -78,6 +74,19 @@ function Draggable(target) {
 		target.addEventListener("mousedown", onMouseDown, false);
 		target.addEventListener("mousemove", onMouseMove, false);
 		target.addEventListener("mouseup", onMouseUp, false);
+		target.addEventListener('touchstart', function (e) {
+			onMouseDown(e.touches[0]);
+			
+			//e.preventDefault();
+		});
+
+		target.addEventListener('touchmove', function (e) {
+			onMouseMove(e.touches[0]);		
+		});
+
+		target.addEventListener('touchend', function (e) {
+			if (e.touches.length === 0) onMouseUp(e.changedTouches[0]);
+		});
 	}
 	
 	function createEvent(type, data) {
