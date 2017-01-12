@@ -325,18 +325,14 @@ function getDeviceName(ip) {
 	return device? device.name: ip;
 }
 
-function notifyError(error) {console.log(error); throw "";
-	if (window.closed) {
-		return;
-	}
-	
-	window.closed = true;
-	
+function notifyError(error) {
 	window.onbeforeunload = undefined;
 	
 	alert(error);
 	
 	location.href = "connect.html";
+	
+	throw "";
 }
 
 function showDialog() {

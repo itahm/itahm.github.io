@@ -116,7 +116,8 @@ var chartIn = document.getElementById("chart_in"),
 	chartOutWindow = chartOut.contentWindow,
 	deviceIP = top.databases.local.selected,
 	resourceIndex = top.databases.local.resourceIndex,
-	node = top.databases.local.node;
+	node = top.databases.local.node,
+	detail;
 
 if(!deviceIP || !window.resourceIndex || !window.node) {
 	throw "!";
@@ -142,6 +143,8 @@ function initialize(from, to, start, end) {
 	window.max = entry.ifSpeed;
 	window.start = start;
 	window.end = end;
+	
+	testDetail();
 	
 	document.getElementById("if_name").textContent = entry.ifName;
 	
@@ -206,13 +209,10 @@ function onDetailOutResponse(data) {
  * private
  */
 function drawIn() {
-	var date = new Date(window.start);
+	window.detailInData = undefined;
 	
-	if (window.chartInWindow.draw(window.start, window.end) && date.setDate(date.getDate() +1) === window.end) {
+	if (window.chartInWindow.draw(window.start, window.end) && window.detail) {
 		sendDetailRequest("ifInOctets", onDetailInResponse);
-	}
-	else {
-		window.detailInData = undefined;
 	}
 }
 
@@ -220,14 +220,17 @@ function drawIn() {
  * private
  */
 function drawOut() {
-	var date = new Date(window.start);
+	window.detailOutData = undefined;
 	
-	if (window.chartOutWindow.draw(window.start, window.end) && date.setDate(date.getDate() +1) === window.end) {
+	if (window.chartOutWindow.draw(window.start, window.end) && window.detail) {
 		sendDetailRequest("ifOutOctets", onDetailOutResponse);
 	}
-	else {
-		window.detailOutData = undefined;
-	}
+}
+
+function testDetail() {
+	var date = new Date(window.start);
+	
+	window.detail = date.setDate(date.getDate() +1) === window.end;
 }
 
 /**
@@ -236,6 +239,8 @@ function drawOut() {
 function draw(start, end) {
 	window.start = start;
 	window.end = end;
+	
+	testDetail();
 	
 	drawIn();
 	drawOut();
@@ -247,12 +252,12 @@ function draw(start, end) {
 function getFile() {
 	var buildFunc, dataIn, dataOut;
 	
-	if (window.detailInData) {
+	if (window.detailInData) {console.log("O");
 		buildFunc = buildDetailFile;
 		dataIn = window.detailInData;
 		dataOut = window.detailOutData;
 	}
-	else {
+	else {console.log("X");
 		buildFunc = buildSummaryFile;
 		dataIn = window.summaryInData;
 		dataOut = window.summaryOutData;
