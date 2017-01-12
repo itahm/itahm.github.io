@@ -89,9 +89,7 @@ function initialize(from, to, start, end) {
  * private
  */
 function onSummaryResponse(data) {
-	window.summaryData = new ITAhM.ChartSummaryData(data);
-	
-	window.chartWindow.initialize(window.summaryData, window.max, "#0084ff", onValueToString);
+	window.chartWindow.initialize(new ITAhM.ChartSummaryData(data), window.max, "#0084ff", onValueToString);
 	
 	drawResponse();
 }
@@ -100,7 +98,7 @@ function onSummaryResponse(data) {
  * private
  */
 function onDetailResponse(data) {
-	window.chartWindow.detail(window.detailData = new ITAhM.ChartData(data));
+	window.chartWindow.detail(new ITAhM.ChartData(data));
 }
 
 /**
@@ -129,20 +127,21 @@ function sendDetailRequest() {
  * private
  */
 function buildSummaryFile() {
-	var chartData = window.chartWindow.chartData,
-		blocks = chartData.keys,
+	var summaryData = window.chartWindow.summaryData,
+		chartSummary = window.chartWindow.chartSummary,
+		blocks = chartSummary.keys,
 		date = new Date(window.start),
 		row, block, date, mills, value, k = 0;
 	
 	row = ["index,date,max,avg,min"];
 	
-	if (chartData) {
+	if (chartSummary) {
 		for (var i=0, _i=blocks.length; i<_i; i++) {
 			block = blocks[i];
 			
 			for (var j=0, _j=block.length; j<_j; j++) {
 				mills = block[j];
-				value = window.summaryData.get(mills);
+				value = summaryData.get(mills);
 				
 				date = new Date(mills);
 				
@@ -158,22 +157,22 @@ function buildSummaryFile() {
  * private
  */
 function buildDetailFile() {
-	var chartData = window.chartWindow.chartData,
-		blocks = chartData.keys,
-		row, block, date, mills, value, k = 0;
+	var detailData = window.chartWindow.detailData,
+		chartDetail = window.chartWindow.chartDetail,
+		blocks,	row, block, mills, value, k = 0;
 	
 	row = ["index,date,response time(ms)"];
 	
-	if (chartData) {
+	if (chartDetail) {
+		blocks = chartDetail.keys;
+		 
 		for (var i=0, _i=blocks.length; i<_i; i++) {
 			block = blocks[i];
 			
 			for (var j=0, _j=block.length; j<_j; j++) {
 				mills = block[j];
 				
-				date = new Date(mills);
-				
-				row[row.length] = [k++, ITAhM.util.toDateTimeString(date), window.detailData.get(mills)].join(",");
+				row[row.length] = [k++, ITAhM.util.toDateTimeString(new Date(mills)), detailData.get(mills)].join(",");
 			}
 		}
 	}
@@ -189,9 +188,6 @@ function drawResponse() {
 	
 	if (window.chartWindow.draw(window.start, window.end) && date.setDate(date.getDate() +1) === window.end) {
 		sendDetailRequest();
-	}
-	else {
-		window.detailData = undefined;
 	}
 }
 
@@ -212,7 +208,7 @@ function draw(start, end) {
 function getFile() {
 	var rowArray;
 	
-	if (window.detailData) {
+	if (window.chartWindow.detailData) {
 		rowArray = buildDetailFile();
 	}
 	else {

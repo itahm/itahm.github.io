@@ -89,16 +89,27 @@ footer #selector {
 	border-width: 0 5px;
 }
 
+footer .label {
+	position: absolute;
+}
+
 #area span:first-child {
-	position: absolute;	top: 0; right: 0;
+	top: 0; right: 0;
 }
 
 #area span:last-child {
-	position: absolute;	bottom: 0; left: 0;
+	bottom: 0; left: 0;
 }
 
-#area span:first-child::after,
-#area span:last-child::after {
+#start {
+	bottom: 0; left: 5px;
+}
+
+#end {
+	right: 5px; top: 0;
+}
+
+footer .label::after {
 	content: attr(title);
 }
 
@@ -160,6 +171,9 @@ function initialize() {
 	
 	window.leftPos = window.dateList.indexOf(window.today);
 	window.rightPos = window.dateList.indexOf(window.end);
+	
+	window.startDate.title = getDateText(window.start);
+	window.endDate.title = getDateText(window.end);
 	
 	resize();
 }
@@ -276,8 +290,8 @@ function resetArea() {
 	window.area.style.left = window.leftPos * blockWidth + "px";
 	window.area.style.right = (window.dayCount -1 - window.rightPos) * blockWidth + "px";
 	
-	window.startDate.title = getDateText(window.dateList[window.leftPos]);
-	window.endDate.title = getDateText(window.dateList[window.rightPos]);
+	window.areaStartDate.title = getDateText(window.dateList[window.leftPos]);
+	window.areaEndDate.title = getDateText(window.dateList[window.rightPos]);
 }
 
 function reload(start, end) {
@@ -306,14 +320,20 @@ function reload(start, end) {
 		
 		<header>
 			<nav>
-				<button id="set">기간설정</button>
+				<button id="set">
+					<img width="16" height="16" src="img/calendar.png">기간설정
+				</button>
 				<button id="realtime">
-					<img width="16" height="16" src="img/realtime.png" id="realtime"> 실시간 그래프
+					<img width="16" height="16" src="img/realtime.png"> 실시간 그래프
 				</button>
 				<button id="save" title="CSV 파일로 저장">
 					<img width="16" height="16" src="img/save.png"> 저장
 				</button>
-				<a href="status.html"><img width="16" height="16" src="img/close.png" title="차트 닫기"></a>
+				<a href="status.html">
+					<button>
+						<img width="16" height="16" src="img/close.png">닫기
+					</button>
+				</a>
 			</nav>
 		</header>
 		
@@ -321,11 +341,13 @@ function reload(start, end) {
 		
 		<footer>
 			<div id="grid">
+				<span class="label" id="start"></span>
+				<span class="label" id="end"></span>
 			</div>
 			<div id="selector">
 				<div id="area">
-					<span></span>
-					<span></span>
+					<span class="label"></span>
+					<span class="label"></span>
 				</div>
 			</div>
 		</footer>
@@ -360,8 +382,10 @@ var svg = document.querySelector("svg"),
 	left, right, dayCount, blockWidth, sRect,
 	selector = document.getElementById("selector"),
 	area = document.getElementById("area"),
-	endDate = document.querySelector("#area>:first-child"),
-	startDate = document.querySelector("#area>:last-child");
+	startDate = document.getElementById("start"),
+	endDate = document.getElementById("end"),
+	areaEndDate = document.querySelector("#area>:first-child"),
+	areaStartDate = document.querySelector("#area>:last-child");
 
 (function (date) {
 	date.setHours(0, 0, 0, 0);

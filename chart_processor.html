@@ -47,7 +47,173 @@ h1 {
 	border-radius: 1em;
 }
 		</style>
+		<script>
 		
+/**
+ * public
+ */
+function initialize(from, to, start, end) {
+	var entry = window.node.hrProcessorEntry,
+		df = document.createDocumentFragment(),
+		request = {
+			command: "query",
+			ip: window.deviceIP,
+			summary: true,
+			database: "hrProcessorLoad",
+			start: from,
+			end: to
+		};
+	
+	for (var index in entry) {
+		window.chartList[index] = df.appendChild(document.createElement("iframe"));
+	}
+	
+	document.getElementById("chart").appendChild(df);
+	
+	for (var index in entry) {
+		request.index = index;
+		
+		top.sendRequest(request, onSummaryResponse.bind(undefined, index));
+	}
+	
+	window.start = start;
+	window.end = end;
+	
+	testDetail();
+}
+
+function onSummaryResponse(index, data) {
+	var chart = window.chartList[index];
+	
+	window.summaryList[index] = new ITAhM.ChartSummaryData(data);
+	
+	chart.onload = onLoadChart.bind(undefined, index);
+	
+	chart.src = "chart_base.html";
+}
+
+function onLoadChart(index) {
+	var chartWindow = window.chartList[index].contentWindow;
+	
+	chartWindow.initialize(window.summaryList[index], window.max, window.colorList[window.colorIndex++ % window.colorLength], onValueToString);
+	
+	drawProcessor(index);
+}
+
+function onValueToString(value) {
+	return value.toFixed(2) +"%";
+}
+
+/**
+ * private
+ */
+function onDetailResponse(index, data) {
+	window.chartList[index].contentWindow.detail(new ITAhM.ChartData(data));
+}
+
+
+/**
+ * private
+ */
+function drawProcessor(index) {	
+	if (window.chartList[index].contentWindow.draw(window.start, window.end) && window.detail) {
+		window.detailRequest.index = index;
+		
+		top.sendRequest(window.detailRequest, onDetailResponse.bind(undefined, index));
+	}
+}
+
+function testDetail() {
+	var date = new Date(window.start);
+	
+	window.detail = date.setDate(date.getDate() +1) === window.end;
+	
+	if (window.detail) {
+		window.detailRequest.start = window.start;
+		window.detailRequest.end = window.end;
+	}
+}
+
+/**
+ * public
+ */
+function draw(start, end) {
+	window.start = start;
+	window.end = end;
+	
+	testDetail();
+	
+	for (var index in window.chartList) {
+		drawProcessor(index);
+	}
+}
+
+/**
+ * public
+ */
+function getFile() {
+	var chartWindow;
+	
+	for (var index in window.chartList) {
+		chartWindow = window.chartList[index].contentWindow;
+		
+		ITAhM.util.download(new Blob([(chartWindow.detailData? buildDetailFile: buildSummaryFile)(chartWindow).join("\n")] ,{
+			type: "text/csv;charset=utf-8;"
+		}), "chart_processor_"+ index +".csv");
+	}
+}
+
+function buildDetailFile(chartWindow) {
+	var detailData = chartWindow.detailData,
+		chartDetail = chartWindow.chartDetail,
+		row = ["index,date,processor load(%)"],
+		blocks, block, date, mills, k = 0;
+	
+	if (detailData) {
+		blocks = chartDetail.keys;
+		for (var i=0, _i=blocks.length; i<_i; i++) {
+			block = blocks[i];
+			
+			for (var j=0, _j=block.length; j<_j; j++) {
+				mills = block[j];
+				
+				date = new Date(mills);
+				
+				row[row.length] = [k++, ITAhM.util.toDateTimeString(date), detailData.get(mills)].join(",");
+			}
+		}
+	}
+	
+	return row;
+}
+
+function buildSummaryFile(chartWindow) {
+	var summaryData = chartWindow.summaryData,
+		chartSummary = chartWindow.chartSummary,
+		row = ["index,date,max,avg,min"],
+		blocks, row, block, date, mills, value, k = 0;
+	
+	if (chartSummary) {
+		blocks = chartSummary.keys;
+		
+		for (var i=0, _i=blocks.length; i<_i; i++) {
+			block = blocks[i];
+			
+			for (var j=0, _j=block.length; j<_j; j++) {
+				mills = block[j];
+				value = summaryData.get(mills);
+				
+				date = new Date(mills);
+				
+				row[row.length] = [k++, ITAhM.util.toDateTimeString(date), value.max, value.avg, value.min].join(",");
+			}
+		}
+	}
+	
+	return row;
+}
+		
+		</script>
 	</head>
 	
 	<body>
@@ -103,181 +269,7 @@ document.getElementById("view").onchange = function () {
 	document.body.classList[this.value]("row");
 }
 
-/**
- * public
- */
-function initialize(from, to, start, end) {
-	var entry = window.node.hrProcessorEntry,
-		df = document.createDocumentFragment(),
-		request = {
-			command: "query",
-			ip: window.deviceIP,
-			summary: true,
-			database: "hrProcessorLoad",
-			start: from,
-			end: to
-		},
-		chart;
-	
-	for (var index in entry) {
-		chart = document.createElement("iframe");
-		
-		window.chartList[index] = chart;
-		
-		df.appendChild(chart);
-	}
-	
-	document.getElementById("chart").appendChild(df);
-	
-	for (var index in entry) {
-		request.index = index;
-		
-		top.sendRequest(request, onSummaryResponse.bind(undefined, index));
-	}
-	
-	window.start = start;
-	window.end = end;
-	
-	testDetail();
-}
-
-function onSummaryResponse(index, data) {
-	var chart = window.chartList[index];
-	
-	window.summaryList[index] = new ITAhM.ChartSummaryData(data);
-	
-	chart.onload = onLoadChart.bind(undefined, index);
-	
-	chart.src = "chart_base.html";
-}
-
-function onLoadChart(index) {
-	var chartWindow = window.chartList[index].contentWindow;
-	
-	chartWindow.initialize(window.summaryList[index], window.max, window.colorList[window.colorIndex++ % window.colorLength], onValueToString);
-	
-	drawProcessor(index);
-}
-
-function onValueToString(value) {
-	return value.toFixed(2) +"%";
-}
-
-/**
- * private
- */
-function onDetailResponse(index, data) {
-	window.chartList[index].contentWindow.detail(window.detailList[index] = new ITAhM.ChartData(data));
-}
-
-
-/**
- * private
- */
-function drawProcessor(index) {	
-	if (window.chartList[index].contentWindow.draw(window.start, window.end) && window.detail) {
-		window.detailRequest.index = index;
-		
-		top.sendRequest(window.detailRequest, onDetailResponse.bind(undefined, index));
-	}
-}
-
-function testDetail() {
-	var date = new Date(window.start);
-	
-	window.detail = date.setDate(date.getDate() +1) === window.end;
-	
-	if (window.detail) {
-		window.detailList = {};
-		
-		window.detailRequest.start = window.start;
-		window.detailRequest.end = window.end;
-	}
-	else {
-		window.detailList = undefined;
-	}
-}
-
-/**
- * public
- */
-function draw(start, end) {
-	window.start = start;
-	window.end = end;
-	
-	testDetail();
-	
-	for (var index in window.chartList) {
-		drawProcessor(index);
-	}
-}
-
-/**
- * public
- */
-function getFile() {
-	var list, buildFunction, rowArray;
-	
-	if (window.detailList) {
-		list = window.detailList;
-		buildFunction = buildDetailFile;
-	}
-	else {
-		list = window.summaryList;
-		buildFunction = buildSummaryFile;
-	}
-	
-	for (var index in list) {
-		rowArray = buildFunction(list[index], window.chartList[index].contentWindow.chartData);
-		
-		ITAhM.util.download(new Blob([rowArray.join("\n")] ,{
-			type: "text/csv;charset=utf-8;"
-		}), "chart_processor_"+ index +".csv");
-	}
-}
-
-function buildDetailFile(detailData, chartData) {
-	var blocks = chartData.keys,
-		row, block, date, mills, k = 0;
-	
-	row = ["index,date,processor load(%)"];
-	
-	for (var i=0, _i=blocks.length; i<_i; i++) {
-		block = blocks[i];
-		
-		for (var j=0, _j=block.length; j<_j; j++) {
-			mills = block[j];
-			
-			date = new Date(mills);
-			
-			row[row.length] = [k++, ITAhM.util.toDateTimeString(date), detailData.get(mills)].join(",");
-		}
-	}
-	
-	return row;
-}
-
-function buildSummaryFile(summaryData, chartData) {
-	var blocks = chartData.keys,
-		row, block, date, mills, value, k = 0;
-	
-	row = ["index,date,max,avg,min"];
-	
-	for (var i=0, _i=blocks.length; i<_i; i++) {
-		block = blocks[i];
-		
-		for (var j=0, _j=block.length; j<_j; j++) {
-			mills = block[j];
-			value = summaryData.get(mills);
-			
-			date = new Date(mills);
-			
-			row[row.length] = [k++, ITAhM.util.toDateTimeString(date), value.max, value.avg, value.min].join(",");
-		}
-	}
-	
-	return row;
-}
+console.log("last");
 
 		</script>
 	

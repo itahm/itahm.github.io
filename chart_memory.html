@@ -22,34 +22,8 @@ h1 {
 }
 
 		</style>
-		
-	</head>
-	
-	<body>
-	
-		<header>
-			<h1>메모리 사용 @ <span id="host"></span></h1>
-			<div id="legend"></div>
-		</header>
-		
-		<iframe id="chart" src="chart_base.html" class="chart"></iframe>
-		
-		<script src="js/ITAhM.js"></script>	
-		<script src="js/object.js"></script>
 		<script>
-
-var chart = document.getElementById("chart"),
-	chartWindow = chart.contentWindow,
-	deviceIP = top.databases.local.selected,
-	resourceIndex = top.databases.local.resourceIndex,
-	node = top.databases.local.node;
-
-if(!deviceIP || !node) {
-	throw "!";
-}
-
-document.getElementById("host").textContent = window.deviceIP;
-
+		
 /**
  * public
  */
@@ -76,7 +50,7 @@ function initialize(from, to, start, end) {
 }
 
 function onSummaryResponse(data) {
-	chartWindow.initialize(window.summaryData = new ITAhM.ChartSummaryData(data), window.max, "#b8860b", onValueToString);
+	chartWindow.initialize(new ITAhM.ChartSummaryData(data), window.max, "#b8860b", onValueToString);
 	
 	drawMemory();
 }
@@ -85,7 +59,7 @@ function onSummaryResponse(data) {
  * private
  */
 function onDetailResponse(data) {
-	window.chartWindow.detail(window.detailData = new ITAhM.ChartData(data));
+	window.chartWindow.detail(new ITAhM.ChartData(data));
 }
 
 function onValueToString(value) {
@@ -112,24 +86,23 @@ function sendDetailRequest() {
  * private
  */
 function buildSummaryFile() {
-	var chartData = window.chartWindow.chartData,
-		blocks = chartData.keys,
-		date = new Date(window.start),
-		row, block, date, mills, value, k = 0;
+	var summaryData = window.chartWindow.summaryData,
+		chartSummary = window.chartWindow.chartSummary,
+		blocks, row, block, mills, value, k = 0;
 	
 	row = ["index,date,max,avg,min"];
 	
-	if (chartData) {
+	if (chartSummary) {
+		blocks = chartSummary.keys;
+		
 		for (var i=0, _i=blocks.length; i<_i; i++) {
 			block = blocks[i];
 			
 			for (var j=0, _j=block.length; j<_j; j++) {
 				mills = block[j];
-				value = window.summaryData.get(mills);
+				value = summaryData.get(mills);
 				
-				date = new Date(mills);
-				
-				row[row.length] = [k++, ITAhM.util.toDateTimeString(date), value.max, value.avg, value.min].join(",");
+				row[row.length] = [k++, ITAhM.util.toDateTimeString(new Date(mills)), value.max, value.avg, value.min].join(",");
 			}
 		}
 	}
@@ -141,22 +114,22 @@ function buildSummaryFile() {
  * private
  */
 function buildDetailFile() {
-	var chartData = window.chartWindow.chartData,
-		blocks = chartData.keys,
-		row, block, date, mills, value, k = 0;
+	var detailData = window.chartWindow.detailData,
+		chartDetail = window.chartWindow.chartDetail,
+		blocks, row, block, mills, value, k = 0;
 	
 	row = ["index,date,physical memory(bytes)"];
 	
-	if (chartData) {
+	if (chartDetail) {
+		blocks = chartDetail.keys;
+		
 		for (var i=0, _i=blocks.length; i<_i; i++) {
 			block = blocks[i];
 			
 			for (var j=0, _j=block.length; j<_j; j++) {
 				mills = block[j];
 				
-				date = new Date(mills);
-				
-				row[row.length] = [k++, ITAhM.util.toDateTimeString(date), window.detailData.get(mills)].join(",");
+				row[row.length] = [k++, ITAhM.util.toDateTimeString(new Date(mills)), detailData.get(mills)].join(",");
 			}
 		}
 	}
@@ -172,9 +145,6 @@ function drawMemory() {
 	
 	if (window.chartWindow.draw(window.start, window.end) && date.setDate(date.getDate() +1) === window.end) {
 		sendDetailRequest();
-	}
-	else {
-		window.detailData = undefined;
 	}
 }
 
@@ -194,7 +164,7 @@ function draw(start, end) {
 function getFile() {
 	var rowArray;
 	
-	if (window.detailData) {
+	if (window.chartWindow.detailData) {
 		rowArray = buildDetailFile();
 	}
 	else {
@@ -205,6 +175,34 @@ function getFile() {
 		type: "text/csv;charset=utf-8;"
 	}), "chart_memory.csv");
 }
+		
+		</script>
+	</head>
+	
+	<body>
+	
+		<header>
+			<h1>메모리 사용 @ <span id="host"></span></h1>
+			<div id="legend"></div>
+		</header>
+		
+		<iframe id="chart" src="chart_base.html" class="chart"></iframe>
+		
+		<script src="js/ITAhM.js"></script>	
+		<script src="js/object.js"></script>
+		<script>
+
+var chart = document.getElementById("chart"),
+	chartWindow = chart.contentWindow,
+	deviceIP = top.databases.local.selected,
+	resourceIndex = top.databases.local.resourceIndex,
+	node = top.databases.local.node;
+
+if(!deviceIP || !node) {
+	throw "!";
+}
+
+document.getElementById("host").textContent = window.deviceIP;
 
 		</script>
 	
