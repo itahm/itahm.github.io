@@ -67,11 +67,10 @@ function initialize(from, to, start, end) {
 		};
 	
 	window.max = entry.hrStorageSize * entry.hrStorageAllocationUnits;
-	
-	top.sendRequest(request, onSummaryResponse);
-	
 	window.start = start;
 	window.end = end;
+	
+	top.sendRequest(request, onSummaryResponse);
 	
 	document.getElementById("storage_name").textContent = entry.hrStorageDescr;
 	document.getElementById("legend").textContent = "Storage volume : "+ ITAhM.util.toBytesString(max);
@@ -83,9 +82,7 @@ function initialize(from, to, start, end) {
 function onSummaryResponse(data) {
 	chartWindow.initialize(window.summaryData = new ITAhM.ChartSummaryData(data), window.max, "#9d9789", onValueToString);
 	
-	if (chartWindow.draw(window.start, window.end)) {
-		sendDetailRequest();
-	}
+	drawStorage();
 }
 
 /**
@@ -142,26 +139,27 @@ function sendDetailRequest() {
 }
 
 /**
- * public
+ * private
  */
-function draw(start, end) {
-	if (start === end || (start === window.start && end === window.end)) {
-		return;
-	}
+function drawStorage() {
+	var date = new Date(window.start);
 	
-	var date = new Date(start);
-	
-	window.start = start;
-	window.end = end;
-	
-	window.chartWindow.draw(window.start, window.end);
-	
-	if (date.setDate(date.getDate() +1) === window.end) {
+	if (window.chartWindow.draw(window.start, window.end) && date.setDate(date.getDate() +1) === window.end) {
 		sendDetailRequest();
 	}
 	else {
 		window.detailData = undefined;
 	}
+}
+
+/**
+ * public
+ */
+function draw(start, end) {
+	window.start = start;
+	window.end = end;
+	
+	drawStorage();
 }
 
 /**

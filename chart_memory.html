@@ -76,12 +76,9 @@ function initialize(from, to, start, end) {
 }
 
 function onSummaryResponse(data) {
-	window.summaryData = new ITAhM.ChartSummaryData(data);
-	chartWindow.initialize(window.summaryData, window.max, "#b8860b", onValueToString);
+	chartWindow.initialize(window.summaryData = new ITAhM.ChartSummaryData(data), window.max, "#b8860b", onValueToString);
 	
-	if (chartWindow.draw(window.start, window.end)) {
-		sendDetailRequest();
-	}
+	drawMemory();
 }
 
 /**
@@ -168,26 +165,27 @@ function buildDetailFile() {
 }
 
 /**
- * public
+ * private
  */
-function draw(start, end) {
-	if (start === end || (start === window.start && end === window.end)) {
-		return;
-	}
+function drawMemory() {
+	var date = new Date(this.start);
 	
-	var date = new Date(start);
-	
-	window.start = start;
-	window.end = end;
-	
-	window.chartWindow.draw(window.start, window.end);
-	
-	if (date.setDate(date.getDate() +1) === window.end) {
+	if (window.chartWindow.draw(window.start, window.end) && date.setDate(date.getDate() +1) === window.end) {
 		sendDetailRequest();
 	}
 	else {
 		window.detailData = undefined;
 	}
+}
+
+/**
+ * public
+ */
+function draw(start, end) {
+	window.start = start;
+	window.end = end;
+	
+	drawMemory();
 }
 
 /**

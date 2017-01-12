@@ -140,6 +140,8 @@ function initialize(from, to, start, end) {
 		};
 	
 	window.max = entry.ifSpeed;
+	window.start = start;
+	window.end = end;
 	
 	document.getElementById("if_name").textContent = entry.ifName;
 	
@@ -149,26 +151,19 @@ function initialize(from, to, start, end) {
 	request.database = "ifOutOctets";
 	top.sendRequest(request, onSummaryOutResponse);
 	
-	window.start = start;
-	window.end = end;
-	
 	document.getElementById("legend").textContent = "bandwidth : "+ ITAhM.util.toBPSString(max);
 }
 
 function onSummaryInResponse(data) {
 	window.chartInWindow.initialize(window.summaryInData = new ITAhM.ChartSummaryData(data), window.max, "#7d7", onValueToString);
 	
-	if (window.chartInWindow.draw(window.start, window.end)) {
-		sendDetailRequest("ifInOctets", onDetailInResponse);
-	}
+	drawIn();
 }
 
 function onSummaryOutResponse(data) {
 	window.chartOutWindow.initialize(window.summaryOutData = new ITAhM.ChartSummaryData(data), window.max, "#f60", onValueToString);
 	
-	if (window.chartOutWindow.draw(window.start, window.end)) {
-		sendDetailRequest("ifOutOctets", onDetailOutResponse);
-	}
+	drawOut();
 }
 
 function onValueToString(value) {
@@ -208,28 +203,42 @@ function onDetailOutResponse(data) {
 }
 
 /**
- * public
+ * private
  */
-function draw(start, end) {
-	if (start === end || (start === window.start && end === window.end)) {
-		return;
-	}
+function drawIn() {
+	var date = new Date(window.start);
 	
-	var date = new Date(start);
-	
-	window.start = start;
-	window.end = end;
-	
-	window.chartInWindow.draw(window.start, window.end);
-	window.chartOutWindow.draw(window.start, window.end);
-	
-	if (date.setDate(date.getDate() +1) === window.end) {
+	if (window.chartInWindow.draw(window.start, window.end) && date.setDate(date.getDate() +1) === window.end) {
 		sendDetailRequest("ifInOctets", onDetailInResponse);
-		sendDetailRequest("ifOutOctets", onDetailOutResponse);
 	}
 	else {
 		window.detailInData = undefined;
 	}
+}
+
+/**
+ * private
+ */
+function drawOut() {
+	var date = new Date(window.start);
+	
+	if (window.chartOutWindow.draw(window.start, window.end) && date.setDate(date.getDate() +1) === window.end) {
+		sendDetailRequest("ifOutOctets", onDetailOutResponse);
+	}
+	else {
+		window.detailOutData = undefined;
+	}
+}
+
+/**
+ * public
+ */
+function draw(start, end) {
+	window.start = start;
+	window.end = end;
+	
+	drawIn();
+	drawOut();
 }
 
 /**

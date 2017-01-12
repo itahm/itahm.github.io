@@ -237,7 +237,7 @@ document.getElementById("signout").onclick = function () {
 						notifyError("잘못된 요청입니다.\n"+ response.error);
 					}
 					else {
-						notifyError("에이전트가 응답하지 않습니다.");
+						notifyError("에이전트가 응답하지 않습니다.\nstatus: "+ status);
 					}
 				}
 			});

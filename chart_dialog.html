@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>dialog</title>
+		
+		<style>
+@import "css/itahm.css";
+@import "css/calendar.css";
+
+body {
+	margin: 0; padding: 0;
+	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	background-color: rgba(0, 0, 0, .8);
+}
+
+.dialog {
+	padding: 20px;
+	background-color: #fff;
+}
+
+.selector {
+	display: flex;
+}
+
+.middle {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	width: 100px;
+}
+
+.middle>span {
+	position: relative;
+}
+
+.middle>span::after {
+	content: "";
+	position: absolute; top: 0;
+	transform: translateY(-50%);
+	border: 16px solid transparent;
+}
+
+.middle>:first-child::after {
+	left: 0;
+	border-right-color: #0084ff;
+}
+
+.middle>:last-child::after {
+	right: 0;
+	border-left-color: #0084ff;
+}
+
+footer form {
+	display: flex;
+}
+
+footer input {
+	flex: 1;
+}
+
+body:not(.removable) .remove {
+	display: none;
+}
+
+		</style>
+		
+	</head>
+	
+	<body>
+	
+		<div class="dialog rounded">
+			<h2>차트 기간 선택</h2>
+			<div class="selector">
+				<div id="start"></div>
+				<div class="middle">
+					<span></span>
+					<span></span>
+				</div>
+				<div id="end"></div>
+			</div>
+			<footer>
+				<form autocomplete="off">
+					<input type="reset" class="r_button" value="cancel">
+					<input type="submit" class="r_button" value="apply">
+				</form>
+			</footer>
+			
+		</div>
+		
+		<script src="js/ITAhM.js"></script>
+		<script src="js/object.js"></script>
+		<script>
+	
+if (top === window) {
+	//throw "";
+}
+
+var form = document.querySelector("form"),
+	start = new Date().setHours(0, 0, 0, 0),
+	end = new Date();
+
+end.setHours(0, 0, 0, 0);
+end = end.setDate(end.getDate() +1);
+
+form.addEventListener("submit", onApply);
+form.addEventListener("reset", onCancel);
+
+new ITAhM.Calendar("start", function (date) {
+	window.start = date.setHours(0, 0, 0, 0);
+});
+
+new ITAhM.Calendar("end", function (date) {
+	date.setHours(0, 0, 0, 0);
+
+	window.end = date.setDate(date.getDate() +1);
+});
+
+/**
+ * callback method
+ */
+ function onApply(e) {
+	e.preventDefault();
+	
+	if (window.start == window.end) {
+		return alert("시작 날짜와 끝 날짜는 같을 수 없습니다.");
+	}
+	
+	window.opener.reload(Math.min(window.start, window.end), Math.max(window.start, window.end));
+	
+	top.closeDialog();
+}
+
+function onCancel(e) {
+	top.closeDialog();
+}
+
+function initialize() {
+	window.opener = this;
+}
+
+		</script>
+	
+	</body>
+	
+</html>

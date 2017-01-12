@@ -15,7 +15,7 @@ text {
 
 #container {
 	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
-	min-width: 600px;
+	min-width: 200px;
 	min-height: 100px;
 	background-color: #fff;
 }
@@ -550,10 +550,16 @@ function detail(detailData) {
  * private
  */
 function drawDetail() {
+	var data = window.detailData.parseData(window.start, window.end);
+	
+	if (!data) {
+		return;
+	}
+	
 	var path = new ITAhM.Path(window.graph),
 		blocks, dateArray, mills;
 	
-	blocks = window.detailData.parseData(window.start, window.end).keys;
+	blocks = data.keys;
 	
 	path.set("stroke", window.color);
 	path.set("stroke-width", .5);

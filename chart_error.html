@@ -147,21 +147,15 @@ function initialize(from, to, start, end) {
 }
 
 function onSummaryInResponse(data) {
-	window.summaryInData = new ITAhM.ChartSummaryData(data);
-	window.chartInWindow.initialize(window.summaryInData, undefined, "#7d7", onValueToString);
+	window.chartInWindow.initialize(window.summaryInData = new ITAhM.ChartSummaryData(data), undefined, "#7d7", onValueToString);
 	
-	if (window.chartInWindow.draw(window.start, window.end)) {	
-		sendDetailRequest("ifInErrors", onDetailInResponse);
-	}
+	drawIn();
 }
 
 function onSummaryOutResponse(data) {
-	window.summaryOutData = new ITAhM.ChartSummaryData(data);
-	window.chartOutWindow.initialize(window.summaryOutData, undefined, "#f60", onValueToString);
+	window.chartOutWindow.initialize(window.summaryOutData = new ITAhM.ChartSummaryData(data), undefined, "#f60", onValueToString);
 	
-	if (window.chartOutWindow.draw(window.start, window.end)) {
-		sendDetailRequest("ifOutErrors", onDetailOutResponse);
-	}
+	drawOut();
 }
 
 function onValueToString(value) {
@@ -201,28 +195,42 @@ function onDetailOutResponse(data) {
 }
 
 /**
- * public
+ * private
  */
-function draw(start, end) {
-	if (start === end || (start === window.start && end === window.end)) {
-		return;
-	}
+function drawIn() {
+	var date = new Date(window.start);
 	
-	var date = new Date(start);
-	
-	window.start = start;
-	window.end = end;
-	
-	window.chartInWindow.draw(window.start, window.end);
-	window.chartOutWindow.draw(window.start, window.end);
-	
-	if (date.setDate(date.getDate() +1) === window.end) {
-		sendDetailRequest("ifInOctets", onDetailInResponse);
-		sendDetailRequest("ifOutOctets", onDetailOutResponse);
+	if (window.chartInWindow.draw(window.start, window.end) && date.setDate(date.getDate() +1) === window.end) {
+		sendDetailRequest("ifInErrors", onDetailInResponse);
 	}
 	else {
 		window.detailInData = undefined;
 	}
+}
+
+/**
+ * private
+ */
+function drawOut() {
+	var date = new Date(window.start);
+	
+	if (window.chartOutWindow.draw(window.start, window.end) && date.setDate(date.getDate() +1) === window.end) {
+		sendDetailRequest("ifOutErrors", onDetailOutResponse);
+	}
+	else {
+		window.detailOutData = undefined;
+	}
+}
+
+/**
+ * public
+ */
+function draw(start, end) {
+	window.start = start;
+	window.end = end;
+	
+	drawIn();
+	drawOut();
 }
 
 /**

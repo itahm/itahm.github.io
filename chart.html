@@ -32,7 +32,7 @@ nav {
 }
 
 nav img {
-	cursor: pointer;
+	vertical-align: middle;
 }
 
 circle {
@@ -119,7 +119,7 @@ function resize() {
 /**
  * public
  */
-function onSelectDevice(ip) {
+function _onSelectDevice(ip) {
 	if (top.databases.monitor[ip]) {
 		top.databases.local.selected = ip;
 	
@@ -158,8 +158,8 @@ function initialize() {
 		window.dayCount++;
 	}
 	
-	window.leftPos = window.dayCount -2;
-	window.rightPos = window.dayCount -1;
+	window.leftPos = window.dateList.indexOf(window.today);
+	window.rightPos = window.dateList.indexOf(window.end);
 	
 	resize();
 }
@@ -180,6 +180,10 @@ function onSelectStart(e) {
 }
 
 function onSelect(e) {
+	if (!window.isDragging) {
+		return;
+	}
+	
 	switch(window.move) {
 	case "left":
 		var x = window.left + e.detail.dragX;
@@ -276,6 +280,25 @@ function resetArea() {
 	window.endDate.title = getDateText(window.dateList[window.rightPos]);
 }
 
+function reload(start, end) {
+	var date = new Date(end);
+	
+	window.start = start;
+	window.end = end;
+	window.today = start;
+	
+	window.chartWindow.location.reload();
+	
+	while(window.grid.firstChild) {
+		window.grid.removeChild(window.grid.firstChild);
+	}
+	
+	window.leftPos = window.dayCount -2;
+	window.rightPos = 0;
+	
+	initialize();
+}
+
 		</script>
 	</head>
 	
@@ -283,8 +306,13 @@ function resetArea() {
 		
 		<header>
 			<nav>
-				<img width="16" height="16" src="img/realtime.png" id="realtime" title="실시간 차트">
-				<img width="16" height="16" src="img/save.png" id="save" title="CSV 파일로 저장">
+				<button id="set">기간설정</button>
+				<button id="realtime">
+					<img width="16" height="16" src="img/realtime.png" id="realtime"> 실시간 그래프
+				</button>
+				<button id="save" title="CSV 파일로 저장">
+					<img width="16" height="16" src="img/save.png"> 저장
+				</button>
 				<a href="status.html"><img width="16" height="16" src="img/close.png" title="차트 닫기"></a>
 			</nav>
 		</header>
@@ -339,8 +367,8 @@ var svg = document.querySelector("svg"),
 	date.setHours(0, 0, 0, 0);
 	
 	window.today = date.getTime();
-	window.end = date.setDate(date.getDate() +1);
-	window.start = date.setMonth(date.getMonth() -1);
+	window.start = date.setDate(date.getDate() -6);
+	window.end = date.setDate(date.getDate() +7);
 })(new Date());
 
 document.onselectstart = function (e) {
@@ -349,6 +377,10 @@ document.onselectstart = function (e) {
 
 document.getElementById("save").onclick = function () {
 	window.chartWindow.getFile();
+};
+
+document.getElementById("set").onclick = function () {
+	top.showDialog.call(window, "chart_dialog.html");
 };
 
 document.getElementById("realtime").onclick = function () {

@@ -71,6 +71,7 @@ var deviceIP = top.databases.local.selected,
 	node = top.databases.local.node,
 	chartList = {},
 	summaryList = {},
+	detail,
 	colorList = [
 		"#6d8764",
 		"#f0a30a",
@@ -121,8 +122,6 @@ function initialize(from, to, start, end) {
 	for (var index in entry) {
 		chart = document.createElement("iframe");
 		
-		//chart.className = "chart";
-		
 		window.chartList[index] = chart;
 		
 		df.appendChild(chart);
@@ -136,10 +135,10 @@ function initialize(from, to, start, end) {
 		top.sendRequest(request, onSummaryResponse.bind(undefined, index));
 	}
 	
-	window.lastChartIndex = index;
-	
 	window.start = start;
 	window.end = end;
+	
+	testDetail();
 }
 
 function onSummaryResponse(index, data) {
@@ -156,13 +155,8 @@ function onLoadChart(index) {
 	var chartWindow = window.chartList[index].contentWindow;
 	
 	chartWindow.initialize(window.summaryList[index], window.max, window.colorList[window.colorIndex++ % window.colorLength], onValueToString);
-	if (chartWindow.draw(window.start, window.end)) {
-		window.detailRequest.start = window.start;
-		window.detailRequest.end = window.end;
-		window.detailRequest.index = index;
-		
-		top.sendRequest(window.detailRequest, onDetailResponse.bind(undefined, index));
-	}
+	
+	drawProcessor(index);
 }
 
 function onValueToString(value) {
@@ -173,40 +167,48 @@ function onValueToString(value) {
  * private
  */
 function onDetailResponse(index, data) {
-	window.detailList = window.detailList || {};
-	
 	window.chartList[index].contentWindow.detail(window.detailList[index] = new ITAhM.ChartData(data));
+}
+
+
+/**
+ * private
+ */
+function drawProcessor(index) {	
+	if (window.chartList[index].contentWindow.draw(window.start, window.end) && window.detail) {
+		window.detailRequest.index = index;
+		
+		top.sendRequest(window.detailRequest, onDetailResponse.bind(undefined, index));
+	}
+}
+
+function testDetail() {
+	var date = new Date(window.start);
+	
+	window.detail = date.setDate(date.getDate() +1) === window.end;
+	
+	if (window.detail) {
+		window.detailList = {};
+		
+		window.detailRequest.start = window.start;
+		window.detailRequest.end = window.end;
+	}
+	else {
+		window.detailList = undefined;
+	}
 }
 
 /**
  * public
  */
- function draw(start, end) {
-	if (start === end || (start === window.start && end === window.end)) {
-		return;
-	}
-	
-	var date = new Date(start);
-	
+function draw(start, end) {
 	window.start = start;
 	window.end = end;
 	
-	for (var index in window.chartList) {
-		window.chartList[index].contentWindow.draw(window.start, window.end);
-	}
+	testDetail();
 	
-	if (date.setDate(date.getDate() +1) === window.end) {
-		window.detailRequest.start = window.start;
-		window.detailRequest.end = window.end;
-		
-		for (var index in window.chartList) {
-			window.detailRequest.index = index;
-			
-			top.sendRequest(window.detailRequest, onDetailResponse.bind(undefined, index));
-		}
-	}
-	else {
-		window.detailList = undefined;
+	for (var index in window.chartList) {
+		drawProcessor(index);
 	}
 }
 

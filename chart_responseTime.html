@@ -93,9 +93,7 @@ function onSummaryResponse(data) {
 	
 	window.chartWindow.initialize(window.summaryData, window.max, "#0084ff", onValueToString);
 	
-	if (window.chartWindow.draw(window.start, window.end)) {
-		sendDetailRequest();
-	}
+	drawResponse();
 }
 
 /**
@@ -186,24 +184,26 @@ function buildDetailFile() {
 /**
  * public
  */
-function draw(start, end) {
-	if (start === end || (start === window.start && end === window.end)) {
-		return;
-	}
+function drawResponse() {
+	var date = new Date(window.start);
 	
-	var date = new Date(start);
-	
-	window.start = start;
-	window.end = end;
-	
-	window.chartWindow.draw(window.start, window.end);
-	
-	if (date.setDate(date.getDate() +1) === window.end) {
+	if (window.chartWindow.draw(window.start, window.end) && date.setDate(date.getDate() +1) === window.end) {
 		sendDetailRequest();
 	}
 	else {
 		window.detailData = undefined;
 	}
+}
+
+
+/**
+ * public
+ */
+function draw(start, end) {
+	window.start = start;
+	window.end = end;
+	
+	drawResponse();
 }
 
 /**

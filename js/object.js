@@ -205,19 +205,19 @@ var ITAhM = ITAhM || {};
 	};
 	
 	ITAhM.Calendar.prototype = {
-		header: document.createElement("div"),
-		body: document.createElement("div"),
-		date: document.createElement("div"),
-		button: document.createElement("div"),
-		year: document.createElement("span"),
-		month: document.createElement("select"),
-		btnPrev: document.createElement("button"),
-		btnCur: document.createElement("button"),
-		btnNext: document.createElement("button"),
 		initialize: function (id, handler) {
 			this.calendar = document.getElementById(id);
-			this.callback = handler;
+			this.body = document.createElement("div");
+			this.date = document.createElement("div");
+			this.button = document.createElement("div");
+			this.year = document.createElement("span");
+			this.month = document.createElement("select");
+			this.btnPrev = document.createElement("button");
+			this.btnCur = document.createElement("button");
+			this.btnNext = document.createElement("button");
 			
+			this.callback = handler;
+			this.header = document.createElement("div");
 			this.calendar.classList.add("calendar");
 			
 			//event
