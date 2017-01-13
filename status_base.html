@@ -28,7 +28,8 @@
 	cursor: pointer;
 }
 
-.resource.response_time {
+.resource.response_time,
+.resource.storage {
 	flex: 1;
 }
 
@@ -695,7 +696,22 @@ function onSelectResource(resource, index) {
 					<div id="processor"></div>
 				</div>
 			</section>
-			
+		</div>
+		
+		<div class="summary">
+			<section class="resource storage">
+				<h2>스토리지 사용</h2>
+				<div>
+					<ul id="storage">
+						<li class="title">
+							<ul>
+								<li>이름
+								<li>크기
+								<li class="usage">사용
+							</ul>
+					</ul>
+				</div>
+			</section>
 			<section class="resource memory">
 				<h2>물리적 메모리</h2>
 				<div>
@@ -703,21 +719,6 @@ function onSelectResource(resource, index) {
 				</div>
 			</section>
 		</div>
-		
-		<section class="resource storage">
-			<h2>스토리지 사용</h2>
-			<div>
-				<ul id="storage">
-					<li class="title">
-						<ul>
-							<li>이름
-							<li>크기
-							<li class="usage">사용
-						</ul>
-				</ul>
-			</div>
-		</section>
-	
 		<section class="resource throughput">
 			<h2>통신</h2>
 			<div>
