@@ -197,6 +197,13 @@ ul {
 .list_item li:last-child {
 	text-align: right;
 	flex: 2;
+	overflow: hidden;
+}
+
+.list_item li:last-child::after {
+	content: attr(data-value);
+	display: inline-block;
+	animation: flow 1s;
 }
 
 .agent_status {
@@ -256,12 +263,21 @@ ul {
 }
 
 @keyframes count {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
+	0% {
+		transform: rotate(0deg);
+	}
+	100% {
+		transform: rotate(360deg);
+	}
+}
+
+@keyframes flow {
+	0% {
+		transform: translateY(0);
+	}
+	100% {
+		transform: translateY(-100%);
+	}
 }
 
 .layout {
@@ -437,7 +453,7 @@ function createTopItem(ip, value) {
 		item = clone.children[0];
 	
 	item.children[0].textContent = ip;
-	item.children[1].textContent = value;
+	item.children[1].dataset.value = value;
 	item.title = top.databases.device[ip].name || ip;
 	
 	clone.onclick = onSelectTopItem.bind(window, ip);
