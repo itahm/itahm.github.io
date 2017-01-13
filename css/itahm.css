@@ -9,26 +9,27 @@ body  {
 	width: 360px;
 }
 
-.content_width.small {
-	width: 360px;
+.content_width {
+	width: 768px;
 }
 
-@media all and (max-width: 320px) {
-	.content_width {
-		width: 320px;
-	}
+@media (max-width: 319px) {
 }
-@media all and (min-width: 321px) and (max-width: 768px) {
+
+@media (min-width: 320px) and (max-width: 767px) {
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
 	.content_width {
 		width: 768px;
 	}
 }
-@media all and (min-width: 769px) {
+
+@media (min-width: 1024px) {
 	.content_width {
 		width: 1024px;
 	}
 }
-@media all and (min-width: 1025px) {}
 
 .rounded {
 	border-radius: 5px 5px 5px 5px;
