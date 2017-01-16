@@ -71,20 +71,23 @@ function Draggable(target) {
 	}
 	
 	function initEvent() {
-		target.addEventListener("mousedown", onMouseDown, false);
-		target.addEventListener("mousemove", onMouseMove, false);
-		target.addEventListener("mouseup", onMouseUp, false);
+		target.addEventListener("mousedown", function(e) {
+			onMouseDown(e);
+			
+			e.preventDefault();
+		});
+		target.addEventListener("mousemove", onMouseMove);
+		document.addEventListener("mouseup", onMouseUp);
+		
 		target.addEventListener('touchstart', function (e) {
 			onMouseDown(e.touches[0]);
 			
-			//e.preventDefault();
+			e.preventDefault();
 		});
-
 		target.addEventListener('touchmove', function (e) {
 			onMouseMove(e.touches[0]);		
 		});
-
-		target.addEventListener('touchend', function (e) {
+		document.addEventListener('touchend', function (e) {
 			if (e.touches.length === 0) onMouseUp(e.changedTouches[0]);
 		});
 	}

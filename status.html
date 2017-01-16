@@ -15,9 +15,9 @@ section {
 
 nav {
 	position: absolute; top: 1em; right: 1em;
-	padding: .5em;
-	border-radius: 2em;
-	background-color: #0084ff;
+	/*padding: .5em;
+	border-radius: 50%;
+	background-color: #0084ff;*/
 }
 
 section {
@@ -36,7 +36,7 @@ h1 {
 	font-size: 20px;
 }
 
-#refresh {
+nav img {
 	cursor: pointer;
 }
 
@@ -66,7 +66,10 @@ function onSelectResource(resource, index) {
 	<body class="loading">
 		<iframe id="status"></iframe>
 		
-		<nav><img id="refresh" src="img/refresh_w.png" width="24" height="24" title="새로고침"></nav>
+		<nav>
+			<img id="print" src="img/printer.png" width="24" height="24" title="인쇄">
+			<img id="refresh" src="img/refresh.png" width="24" height="24" title="새로고침">
+		</nav>
 		
 		<section>
 			<h1 id="host"></h1>
@@ -94,6 +97,10 @@ document.getElementById("refresh").onclick = function () {
 	window.location.reload();	
 };
 
+document.getElementById("print").onclick = function () {
+	window.statusWindow.print();	
+};
+
 top.sendRequest({
 	command: "select",
 	ip: window.device.ip
@@ -111,10 +118,10 @@ top.sendRequest({
 });
 
 frame.onload = function () {
-	var statusWindow = this.contentWindow;
+	window.statusWindow = this.contentWindow;
 	
-	statusWindow.onSelectResource = onSelectResource;
-	statusWindow.initialize(window.device.ip);
+	window.statusWindow.onSelectResource = onSelectResource;
+	window.statusWindow.initialize(window.device.ip);
 };
 	</script>
 </html>

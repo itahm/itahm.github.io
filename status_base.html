@@ -2,10 +2,14 @@
 <html>
 	<head>
 		<meta charset="UTF-8">
-		<title>@ ITAhM</title>
+		<title>Status @ ITAhM</title>
 
 		<style>
 @import "css/itahm.css";
+
+article {
+	page-break-inside: avoid;
+}
 
 .summary {
 	display: flex;
@@ -14,13 +18,10 @@
 
 .resource,
 .information {
-	/*display: flex;
-	flex-direction: column;*/
 	padding: 5px;
 	border: 1px solid #0084ff;
 	border-radius: 5px;
 	margin: 5px;
-	flex: none;
 }
 
 .resource:hover {
@@ -29,7 +30,8 @@
 }
 
 .resource.response_time,
-.resource.storage {
+.resource.storage,
+.information {
 	flex: 1;
 }
 
@@ -37,11 +39,6 @@
 .resource >h2 {
 	margin: 5px;
 	text-align: center;
-}
-
-/* body */
-.resource >div {
-	/*flex: 1;*/
 }
 
 .processor_item {
@@ -98,7 +95,7 @@
 	justify-content: center;
 	align-items: center;
 	border: 1px solid #999;
-	border-radius: 50px;
+	border-radius: 50%;
 	position: relative;
 	overflow: hidden;
 }
@@ -109,13 +106,10 @@
 }
 
 .memory_item .color {
-	position: absolute;
-	bottom: 0;
-	left: 0;
+	position: absolute; bottom: 0; left: 0;
 	width: 100%; height: 0;
-	background-color: #b8860b;
-	z-index: -1;
 	transition: height .5s ease-out;
+	z-index: -1;
 }
 
 .memory_item {
@@ -131,62 +125,60 @@ ul {
 	margin: .5em;
 }
 
-/* storage 영역 css */
-#storage,
-#storage ul {
-	list-style: none;
-	padding: 0;
-}
-
-#storage ul {
-	display: flex;
-}
-
-#storage ul> li {
+.resource li {
 	text-align: center;
 	padding: .5em; margin: 3px;
 	flex: 1;
 }
 
-#storage .title {
+.title {
 	border-bottom: 1px solid #ddd;
 	margin-bottom: 3px;
 }
 
-#storage .title .usage {
+.resource.storage.title .usage {
 	flex: 2;
 }
 
-#storage .title li {
+.title li {
 	font-weight: bold;
 }
 
-#storage .bar {
+.resource.storage .bar {
 	position: relative;
 	border: 1px solid #999;
 	box-sizing: border-box;
 }
 
-#storage .color {
+.resource.storage .color {
 	position: absolute; top: 0; left: 0;
 	width: 0; height: 100%;
 	z-index: -1;
-	background-color: #9d9789;
 	transition: width .5s ease-out;
 }
-/**/
+/*
+#storage {
+	max-height: 72px;
+	overflow: auto;
+}
+
+@media print {
+	#storage {
+		max-height: none;
+	}
+}
+*/
+.resource.response_time {
+	min-width: 250px;
+	min-height: 150px;
+}
+/*
 
 #storage,
 #i_face {
 	width: 100%;
 }
-
-#i_face,
-#i_face ul {
-	list-style: none;
-	padding: 0;
-}
-
+*/
 #i_face ul {
 	display: flex;
 }
@@ -198,11 +190,6 @@ ul {
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
-}
-
-#i_face .title {
-	border-bottom: 1px solid #ddd;
-	margin-bottom: 3px;
 }
 
 .i_face_item li:last-child {
@@ -221,20 +208,20 @@ ul {
 	flex: 1;
 }
 
-.i_face_item li:first-child {
-	background: transparent url("img/ball_green.png") center no-repeat;
+.i_face_item li:first-child::after {
+	content: url("img/ball_green.png");
 }
 
-.i_face_item ul.shutdown li:first-child {
-	background: transparent url("img/ball_orange.png") center no-repeat; 
+.i_face_item.shutdown li:first-child::after {
+	content: url("img/ball_orange.png"); 
 }
 
-.i_face_item ul.disabled {
+.i_face_item.disabled {
 	color: #aaa;
 }
 
-.i_face_item ul.disabled li:first-child {
-	background: transparent url("img/ball_gray.png") center no-repeat; 
+.i_face_item.disabled li:first-child::after {
+	content: url("img/ball_gray.png"); 
 }
 
 #i_face li:nth-child(1) {
@@ -259,15 +246,8 @@ ul {
 #i_face .color {
 	position: absolute; top: 0; left: 0;
 	height: 100%;
+	transition: width .5s ease-out;
 	z-index: -1;
-}
-
-#i_face .color.input {
-	background-color: #7d7;
-}
-
-#i_face .color.output {
-	background-color: #f60;
 }
 
 /**/
@@ -276,10 +256,16 @@ ul {
 	display: none;
 }
 
-li.storage_item:hover,
-li.i_face_item:hover {
+.storage_item:hover,
+.i_face_item:hover {
 	outline: solid 3px #0084ff;
 	cursor: pointer;
+}
+
+.i_face_item,
+.storage_item,
+.title {
+	display: flex;
 }
 
 #memory {
@@ -305,14 +291,7 @@ li.i_face_item:hover {
 	pointer-events: none;
 }
 
-ul.table {
-	margin: 0;
-	list-style: none;
-}
-
 ul.table ul {
-	margin: 0;
-	list-style: none;
 	display: flex;
 }
 
@@ -377,10 +356,10 @@ function createMemoryGuage(used, size) {
 		usage = Math.round(100* used / size) +"%";
 
 	setTimeout(function () {
-		bar.children[1].style.height = usage;
+		bar.children[0].style.height = usage;
 	}, 500);
 	
-	bar.children[0].textContent = usage;
+	bar.children[1].textContent = usage;
 	
 	info.children[0].textContent = ITAhM.util.toBytesString(used);
 	info.children[1].textContent = "/ "+ ITAhM.util.toBytesString(size);
@@ -390,17 +369,16 @@ function createMemoryGuage(used, size) {
 
 function createStorageGuage(used, size, label) {
 	var clone = storageGauge.cloneNode(true),
-		ul = clone.children[0],
 		usage = (100* used / size).toFixed(2) +"%";;
 	
-	ul.children[0].textContent = label;
-	ul.children[1].textContent = ITAhM.util.toBytesString(size);
-	ul.children[2].textContent = ITAhM.util.toBytesString(used);
+	clone.children[0].textContent = label;
+	clone.children[1].textContent = ITAhM.util.toBytesString(size);
+	clone.children[2].textContent = ITAhM.util.toBytesString(used);
 	
-	ul.children[3].children[0].textContent = usage;
+	clone.children[3].children[0].textContent = usage;
 	
 	setTimeout(function () {
-		ul.children[3].children[1].style.width = usage;
+		clone.children[3].children[1].style.width = usage;
 	}, 500);
 	
 	return clone;
@@ -408,14 +386,13 @@ function createStorageGuage(used, size, label) {
 	
 function createIFaceGuage(admin, oper, index, name, descr, alias, bandwidth, inBPS, outBPS, inErr, outErr) {
 	var clone = iFaceGauge.cloneNode(true),
-		ul = clone.children[0],
 		usageIn, usageOut;
 	
 	if (admin != 1) {
-		ul.classList.add("disabled");
+		clone.classList.add("disabled");
 	}
 	else if (oper !== 1) {
-		ul.classList.add("shutdown");
+		clone.classList.add("shutdown");
 	}
 	
 	usageIn = 100* inBPS / bandwidth;
@@ -424,29 +401,29 @@ function createIFaceGuage(admin, oper, index, name, descr, alias, bandwidth, inB
 	usageIn = (isNaN(usageIn)? 0: usageIn).toFixed(2) +"%";
 	usageOut = (isNaN(usageOut)? 0: usageOut).toFixed(2) +"%";
 	
-	ul.children[1].textContent = name;
-	ul.children[2].textContent = alias;
-	ul.children[3].textContent = ITAhM.util.toBPSString(bandwidth);
-	ul.children[4].textContent = ITAhM.util.toBPSString(inBPS);
-	ul.children[5].textContent = ITAhM.util.toBPSString(outBPS);		
-	ul.children[6].children[0].textContent = usageIn; 
-	ul.children[7].children[0].textContent = usageOut;
-	ul.children[8].children[0].textContent = Math.round(inErr /10);
-	ul.children[8].children[1].textContent = Math.round(outErr /10);
+	clone.children[1].textContent = name;
+	clone.children[2].textContent = alias;
+	clone.children[3].textContent = ITAhM.util.toBPSString(bandwidth);
+	clone.children[4].textContent = ITAhM.util.toBPSString(inBPS);
+	clone.children[5].textContent = ITAhM.util.toBPSString(outBPS);		
+	clone.children[6].children[0].textContent = usageIn; 
+	clone.children[7].children[0].textContent = usageOut;
+	clone.children[8].children[0].textContent = Math.round(inErr /10);
+	clone.children[8].children[1].textContent = Math.round(outErr /10);
 	
 	setTimeout(function () {
-		ul.children[6].children[1].style.width = usageIn;
-		ul.children[7].children[1].style.width = usageOut;
+		clone.children[6].children[1].style.width = usageIn;
+		clone.children[7].children[1].style.width = usageOut;
 	}, 500);
 	
 	
-	ul.children[8].onclick = function (index, e) {
+	clone.children[8].onclick = function (index, e) {
 		onSelectResource("error", index);
 		
 		e.stopPropagation();
 	}.bind(undefined, index);
 	
-	ul.title = descr;
+	clone.title = descr;
 	
 	clone.onclick = onSelectResource.bind(undefined, "throughput", index);
 	
@@ -565,6 +542,7 @@ function initialize(ip) {
 	
 	entry = snmp.ifEntry;
 	for (var index in entry) {
+		initIFace(entry[index], index);
 		initIFace(entry[index], index)
 	}
 	
@@ -652,7 +630,7 @@ function onSelectResource(resource, index) {
 
 	<body class="loading">
 		
-		<div class="summary">
+		<article class="summary">
 			<section class="information">
 				<ul class="table">
 					<li>
@@ -683,6 +661,13 @@ function onSelectResource(resource, index) {
 				</ul>
 			</section>
 			
+			<section class="resource processor">
+				<h2>프로세서 로드</h2>
+				<div>
+					<div id="processor"></div>
+				</div>
+			</section>
+			
 			<section class="resource response_time">
 				<h2>응답 속도</h2>
 				<div id="response">
@@ -690,26 +675,19 @@ function onSelectResource(resource, index) {
 				</div>
 			</section>
 			
-			<section class="resource processor">
-				<h2>프로세서 로드</h2>
-				<div>
-					<div id="processor"></div>
-				</div>
-			</section>
-		</div>
+		</article>
 		
-		<div class="summary">
+		<article class="summary">
 			<section class="resource storage">
 				<h2>스토리지 사용</h2>
 				<div>
-					<ul id="storage">
-						<li class="title">
-							<ul>
-								<li>이름
-								<li>크기
-								<li class="usage">사용
-							</ul>
+					<ul class="storage title">
+						<li>이름
+						<li>크기
+						<li class="usage">사용
 					</ul>
+					<div id="storage">
+					</div>
 				</div>
 			</section>
 			<section class="resource memory">
@@ -718,24 +696,23 @@ function onSelectResource(resource, index) {
 					<div id="memory"></div>
 				</div>
 			</section>
-		</div>
-		<section class="resource throughput">
+		</article>
+		<article class="resource throughput">
 			<h2>통신</h2>
 			<div>
-				<ul id="i_face">
-					<li class="title">
-						<ul>
-							<li>상태
-							<li>이름
-							<li>설명
-							<li>대역폭
-							<li>사용량(송신/수신)
-							<li>사용률(송신/수신)
-							<li>초당에러량(송신/수신)
-						</ul>
+				<ul class="throughput title">
+					<li>상태
+					<li>이름
+					<li>설명
+					<li>대역폭
+					<li>사용량(송신/수신)
+					<li>사용률(송신/수신)
+					<li>초당에러량(송신/수신)
 				</ul>
+				<div id="i_face">
+				</div>
 			</div>
-		</section>
+		</article>
 		
 		<div class="layout">
 			<canvas width="100" height="100" class="processor_item"></canvas>
@@ -751,8 +728,8 @@ function onSelectResource(resource, index) {
 			
 			<ul class="memory_item">
 				<li class="bar">
+					<img src="img/dot_blue.png" class="color">
 					<span class="label"></span>
-					<div class="color"></div>
 				<li>
 					<ul>
 						<li>용량
@@ -760,37 +737,31 @@ function onSelectResource(resource, index) {
 					</ul>
 			</ul>
 			
-			<ul>
-				<li class="storage_item">
-					<ul>
-						<li>
-						<li>
-						<li>
-						<li class="bar">
-							<span class="label"></span>
-							<div class="color"></div>
-					</ul>
-			</ul>
-			
-			<ul>
-				<li class="i_face_item">
-					<ul>
-						<li>
-						<li>
-						<li>
-						<li>
-						<li>
-						<li>
-						<li class="bar">
-							<span class="label"></span>
-							<div class="color input"></div>
-						<li class="bar">
-							<span class="label"></span>
-							<div class="color output"></div>
-						<li>
-							<div></div>
-							<div></div>
-					</ul>
+			<ul class="storage_item">
+				<li>
+				<li>
+				<li>
+				<li class="bar">
+					<span class="label"></span>
+					<img src="img/dot_gray.png" class="color">
+			</ul>		
+	
+			<ul class="i_face_item">
+				<li>
+				<li>
+				<li>
+				<li>
+				<li>
+				<li>
+				<li class="bar">
+					<span class="label"></span>
+					<img src="img/dot_green.png" width="0" height="0" class="color">
+				<li class="bar">
+					<span class="label"></span>
+					<img src="img/dot_orange.png" width="0" height="0" class="color">
+				<li>
+					<div></div>
+					<div></div>
 			</ul>
 		</div>
 		
