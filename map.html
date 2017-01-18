@@ -100,6 +100,7 @@ function onSetAlarm(ip){
 			<img src="img/save.png" width="16px" height="16px" title="저장" id="save"  class="root">
 			<img src="img/zoomin.png" width="16px" height="16px" title="확대" id="zoom_in">
 			<img src="img/zoomout.png" width="16px" height="16px" title="축소" id="zoom_out">
+			<img src="img/printer16.png" width="16px" height="16px" title="인쇄" id="print">
 		</nav>
 		
 		<nav class="right">	
@@ -145,6 +146,10 @@ window.map.onload = function () {
 		window.top.databases.local.scale = scale;
 	}
 
+	document.getElementById("print").onclick = function () {
+		mapWindow.print();
+	}
+	
 	document.getElementById("name").onchange = function () {
 		mapWindow.displayIPAddress(false);
 	};

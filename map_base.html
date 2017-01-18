@@ -635,6 +635,18 @@ function getIcon(type) {
 	return window.top.databases.icon[type] || window.top.databases.local.icon[type];
 }
 
+(function(print) {
+	window.print = function() {
+		var r = window.mapCanvas.getBoundingClientRect();
+		
+		window.mapCanvas.setAttribute("viewBox", [0, 0, r.width, r.height].join(" "));
+		
+		print();
+		
+		window.mapCanvas.removeAttribute("viewBox");
+	};
+})(window.print);
+
 //abstract
 function onEditDevice(ip) {	
 }

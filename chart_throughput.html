@@ -43,9 +43,18 @@ nav {
 	text-align: right;
 }
 
+@media print {
+	nav {
+		display: none;
+	}
+}
+
+h1, h2 {
+	margin: 0;
+}
+
 h1 {
 	font-size: 16px;
-	margin: .5em;
 	padding: .5em 1em;
 	background-color: #0084ff;
 	color: #fff;
@@ -257,14 +266,29 @@ function buildSummaryFile(chartWindow, fileName) {
 		type: "text/csv;charset=utf-8;"
 	}), fileName);
 }
+
+/**
+ * public
+ */
+(function(print) {
+	window.print = function() {
+		window.chartInWindow.beforePrint();
+		window.chartOutWindow.beforePrint();
 		
+		print();
+		
+		window.chartInWindow.afterPrint();
+		window.chartOutWindow.afterPrint();
+	};
+})(window.print);
+
 		</script>
 	</head>
 	
 	<body>
 		<header>
 			<h1>통신 사용 @ <span id="host"></span></h1>
-			<h2 id="if_name"></h2>
+			<h2>인터페이스 : <span id="if_name"></span></h2>
 			<div id="legend"></div>
 		</header>
 		

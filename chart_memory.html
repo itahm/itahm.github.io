@@ -13,7 +13,7 @@
 
 h1 {
 	font-size: 16px;
-	margin: .5em;
+	margin: 0;
 	padding: .5em 1em;
 	background-color: #0084ff;
 	color: #fff;
@@ -175,7 +175,20 @@ function getFile() {
 		type: "text/csv;charset=utf-8;"
 	}), "chart_memory.csv");
 }
+
+/**
+ * public
+ */
+(function(print) {
+	window.print = function() {
+		window.chartWindow.beforePrint();
 		
+		print();
+		
+		window.chartWindow.afterPrint();
+	};
+})(window.print);
+
 		</script>
 	</head>
 	

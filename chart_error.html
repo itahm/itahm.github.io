@@ -43,14 +43,23 @@ nav {
 	text-align: right;
 }
 
+@media print {
+	nav {
+		display: none;
+	}
+}
+
+h1, h2 {
+	margin: 0;
+}
+
 h1 {
 	font-size: 16px;
-	margin: .5em;
 	padding: .5em 1em;
 	background-color: #0084ff;
 	color: #fff;
-	display: inline-block;
 	border-radius: 1em;
+	display: inline-block;
 }
 
 h2 {
@@ -253,14 +262,29 @@ function buildSummaryFile(chartWindow, fileName) {
 		type: "text/csv;charset=utf-8;"
 	}), fileName);
 }
+
+/**
+ * public
+ */
+(function(print) {
+	window.print = function() {
+		window.chartInWindow.beforePrint();
+		window.chartOutWindow.beforePrint();
 		
+		print();
+		
+		window.chartInWindow.afterPrint();
+		window.chartOutWindow.afterPrint();
+	};
+})(window.print);
+
 		</script>
 	</head>
 	
 	<body>
 		<header>
 			<h1>통신 에러 @ <span id="host"></span></h1>
-			<h2 id="if_name"></h2>
+			<h2>인터페이스 : <span id="if_name"></span></h2>
 		</header>
 		
 		<nav>
@@ -270,7 +294,7 @@ function buildSummaryFile(chartWindow, fileName) {
 			</select>
 		</nav>
 		<div id="chart">
-		<div class="chart">
+			<div class="chart">
 				<h3 class="input">Input</h3>
 				<iframe id="chart_in" src="chart_base.html"></iframe>
 			</div>

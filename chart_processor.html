@@ -37,14 +37,20 @@ nav {
 	text-align: right;
 }
 
+@media print {
+	nav {
+		display: none;
+	}
+}
+
 h1 {
 	font-size: 16px;
-	margin: .5em;
 	padding: .5em 1em;
 	background-color: #0084ff;
 	color: #fff;
 	display: inline-block;
 	border-radius: 1em;
+	margin: 0;
 }
 		</style>
 		<script>
@@ -212,7 +218,24 @@ function buildSummaryFile(chartWindow) {
 	
 	return row;
 }
+
+/**
+ * public
+ */
+(function(print) {
+	window.print = function() {
+		for (var index in window.chartList) {
+			window.chartList[index].contentWindow.beforePrint();
+		}
 		
+		print();
+		
+		for (var index in window.chartList) {
+			window.chartList[index].contentWindow.afterPrint();
+		}
+	};
+})(window.print);
+
 		</script>
 	</head>
 	
@@ -268,8 +291,6 @@ document.getElementById("host").textContent = window.deviceIP;
 document.getElementById("view").onchange = function () {
 	document.body.classList[this.value]("row");
 }
-
-console.log("last");
 
 		</script>
 	

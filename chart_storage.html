@@ -11,9 +11,12 @@
 @import "css/itahm.css";
 @import "css/chart.css";
 
+h1, h2 {
+	margin: 0;
+}
+
 h1 {
 	font-size: 16px;
-	margin: .5em;
 	padding: .5em 1em;
 	background-color: #0084ff;
 	color: #fff;
@@ -178,7 +181,20 @@ function getFile() {
 		type: "text/csv;charset=utf-8;"
 	}), "chart_storage.csv");
 }
+
+/**
+ * public
+ */
+(function(print) {
+	window.print = function() {
+		window.chartWindow.beforePrint();
 		
+		print();
+		
+		window.chartWindow.afterPrint();
+	};
+})(window.print);
+
 		</script>
 	</head>
 	
@@ -186,7 +202,7 @@ function getFile() {
 		
 		<header>
 			<h1>스토리지 사용 @ <span id="host"></span></h1>
-			<h2 id="storage_name"></h2>
+			<h2>볼륨 : <span id="storage_name"></span></h2>
 			<div id="legend"></div>
 		</header>
 		
@@ -207,7 +223,7 @@ if(!deviceIP || !window.node) {
 }
 
 document.getElementById("host").textContent = window.deviceIP;
-console.log("updated!2");
+
 		</script>
 	
 	</body>

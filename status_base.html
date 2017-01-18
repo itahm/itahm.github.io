@@ -11,6 +11,10 @@ article {
 	page-break-inside: avoid;
 }
 
+h2 {
+	margin: 0;
+	text-align: center;
+}
 .summary {
 	display: flex;
 	flex-wrap: wrap;
@@ -30,15 +34,8 @@ article {
 }
 
 .resource.response_time,
-.resource.storage,
-.information {
+.resource.storage {
 	flex: 1;
-}
-
-/* title */
-.resource >h2 {
-	margin: 5px;
-	text-align: center;
 }
 
 .processor_item {
@@ -156,29 +153,12 @@ ul {
 	z-index: -1;
 	transition: width .5s ease-out;
 }
-/*
-#storage {
-	max-height: 72px;
-	overflow: auto;
-}
 
-@media print {
-	#storage {
-		max-height: none;
-	}
-}
-*/
 .resource.response_time {
 	min-width: 250px;
 	min-height: 150px;
 }
-/*
 
-#storage,
-#i_face {
-	width: 100%;
-}
-*/
 #i_face ul {
 	display: flex;
 }
@@ -543,7 +523,6 @@ function initialize(ip) {
 	entry = snmp.ifEntry;
 	for (var index in entry) {
 		initIFace(entry[index], index);
-		initIFace(entry[index], index)
 	}
 	
 	document.body.classList.remove("loading");
@@ -728,7 +707,7 @@ function onSelectResource(resource, index) {
 			
 			<ul class="memory_item">
 				<li class="bar">
-					<img src="img/dot_blue.png" class="color">
+					<img src="img/line_y.png" width="100px" class="color">
 					<span class="label"></span>
 				<li>
 					<ul>

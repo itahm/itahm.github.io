@@ -9,11 +9,7 @@
 		<style>
 @import url("css/itahm.css");
 
-text {
-	font-size: 10pt;
-}
-
-#container {
+body {
 	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
 	min-width: 200px;
 	min-height: 100px;
@@ -57,11 +53,6 @@ text {
 	fill: none;
 }
 
-/*
-#graph path:hover {
-	cursor: pointer;
-}
-*/
 #graph path.fill_min {
 	fill: #fff;
 }
@@ -72,7 +63,14 @@ text {
 
 #axis_date text {
 	text-anchor: middle;
-	/*alignment-baseline: text-after-edge;*/
+}
+
+#axis_date text:first-child {
+	text-anchor: start;
+}
+
+#axis_date text:last-child {
+	text-anchor: end;
 }
 
 #date_text tspan:first-child,
@@ -141,10 +139,10 @@ function resize() {
 	
 	drawGrid();
 	
-	hoverV.setAttributeNS(null, "y2", height);
-	hoverHMax.setAttributeNS(null, "x2", width);
-	hoverHAvg.setAttributeNS(null, "x2", width);
-	hoverHMin.setAttributeNS(null, "x2", width);
+	hoverV.setAttribute("y2", height);
+	hoverHMax.setAttribute("x2", width);
+	hoverHAvg.setAttribute("x2", width);
+	hoverHMin.setAttribute("x2", width);
 	
 	hoverDate.style.top = (height + MARGIN) + "px";
 }
@@ -187,29 +185,59 @@ function clear(svgElement) {
 	}
 }
 
-function createText(x, y, text) {
-	var svgText = document.createElementNS(svgNS, "text");
-	
-	svgText.setAttributeNS(null, "x", x);
-	svgText.setAttributeNS(null, "y", y);
-	svgText.textContent = text;
-	
-	return svgText;
-}
-
-function createDateText(x, y, mills) {
-	var date = new Date(mills),
+function createDateText(x, y, date, pY, pM, pD) {
+	var svgText = document.createElementNS(svgNS, "text"),
+		yy = date.getFullYear(),	
+		m = date.getMonth(),
 		d = date.getDate(),
 		h = date.getHours(),
-		svgText;
+		b, svgText;
 	
-	if (h > 0) {
-		svgText = createText(x, y, d + "일"+ (h<9? "0": "") + h +"시");
+	if (yy !== pY) {
+		yy = yy.toString().substring(2) +"년";
 	}
 	else {
-		svgText = createText(x, y, d +"일");
-		svgText.setAttributeNS(null, "font-weight", "bold");
+		yy = "";
 	}
+	
+	if (m != pM) {
+		m += 1;
+		
+		if (m < 10) {
+			m = "0"+ m;
+		}
+		
+		m += "월";
+	}
+	else {
+		m = "";
+	}
+	
+	if (d != pD) {
+		if (d < 10) {
+			d = "0"+ d;
+		}
+		
+		d += "일";
+	}
+	else {
+		d = "";
+	}
+	
+	if (h === 0) {
+		h = "";
+	}
+	else {
+		if (h < 10) {
+			h = "0"+ h;
+		}
+		
+		h += "시";
+	}
+	
+	svgText.setAttribute("x", x);	
+	svgText.setAttribute("y", y);
+	svgText.textContent = yy + m + d + h;
 	
 	return svgText;
 }
@@ -325,13 +353,32 @@ function drawGraph() {
 }
 
 function drawDateAxis() {
-	var text, date, h;
+	var text, date, h, pY, pM, pD;
 	
-	for (var x = 0, grow = 0; x <= window.rect.width; x += window.blockWidth ) {
-		window.dateAxis.appendChild(createDateText(x, 0, window.start + x * window.tpp));
+	for (var x = 0, grow = 0; x <= window.rect.width; x += window.blockWidth) {
+		date = new Date(window.start + Math.round(x * window.tpp));
+		
+		window.dateAxis.appendChild(createDateText(x, 0, date, pY, pM, pD));
+		
+		pY = date.getFullYear();
+		pM = date.getMonth();
+		pD = date.getDate();
 	}
 	
 	window.dateAxis.transform.baseVal.getItem(0).setTranslate(0, rect.height + MARGIN);
+}
+
+/**
+ * private
+ */
+function createValueText(x, y, value) {
+	var svgText = document.createElementNS(svgNS, "text");		
+	
+	svgText.setAttribute("x", x);
+	svgText.setAttribute("y", y);
+	svgText.textContent = value;
+	
+	return svgText;
 }
 
 function drawValueAxis() {
@@ -345,10 +392,10 @@ function drawValueAxis() {
 	for (var y = 0, grow = 0; y <= window.rect.height; y += window.blockHeight, grow += diff) {
 		value = window.chartSummary.high - grow;
 		
-		leftAxis.appendChild(createText(0, y, onValueToString(value)));
+		leftAxis.appendChild(createValueText(0, y, onValueToString(value)));
 		
 		if (window.max) {
-			rightAxis.appendChild(createText(0, y, (value *100 / window.max).toFixed(2) + "%"));
+			rightAxis.appendChild(createValueText(0, y, (value *100 / window.max).toFixed(2) + "%"));
 		}
 	}
 	
@@ -468,11 +515,20 @@ function initialize(summaryData, max, color, onValueToString) {
 	document.body.classList.remove("loading");
 }
 
+function beforePrint() {
+	var r = window.chart.getBoundingClientRect();
+	
+	window.chart.setAttribute("viewBox", [0, 0, r.width, r.height].join(" "));
+}
+
+function afterPrint() {
+	window.chart.removeAttribute("viewBox");
+}
 
 /**
  * abstract
  */
- function onValueToString(value) {
+function onValueToString(value) {
 	return value;
 }
 		
@@ -480,28 +536,26 @@ function initialize(summaryData, max, color, onValueToString) {
 	</head>
 	
 	<body class="loading">
-		<section id="container">
-			<svg id="chart">
-				<g transform="translate(0, 0)" id="group">
-			        <g transform="translate(0, 0)" id="axis_date" />
-			        <g transform="translate(0, 0) scale(1 -1)" id="graph" />
-			        <g transform="translate(0, 0)" id="axis_left" />
-					<g transform="translate(0, 0)" id="axis_right" />
-			        <g transform="translate(0, 0)" id="grid" />
-			        <g id="hover">
-			        	<line id="hover_v" x1="0" y1="0" x2="0" y2="0" />
-			        	<line id="hover_h_max" x1="0" y1="0" x2="0" y2="0"/>
-			        	<line id="hover_h_avg" x1="0" y1="0" x2="0" y2="0"/>
-			        	<line id="hover_h_min" x1="0" y1="0" x2="0" y2="0"/>
-			        </g>
-			    </g>
-			</svg>
-			
-			<span id="hover_date" class="balloon"></span>
-			<span id="value_max" class="balloon value"></span>
-			<span id="value_min" class="balloon value"></span>
-			<span id="value_avg" class="balloon value"></span>
-		</section>
+		<svg id="chart">
+			<g transform="translate(0, 0)" id="group">
+		        <g transform="translate(0, 0)" id="axis_date" />
+		        <g transform="translate(0, 0) scale(1 -1)" id="graph" />
+		        <g transform="translate(0, 0)" id="axis_left" />
+				<g transform="translate(0, 0)" id="axis_right" />
+		        <g transform="translate(0, 0)" id="grid" />
+		        <g id="hover">
+		        	<line id="hover_v" x1="0" y1="0" x2="0" y2="0" />
+		        	<line id="hover_h_max" x1="0" y1="0" x2="0" y2="0"/>
+		        	<line id="hover_h_avg" x1="0" y1="0" x2="0" y2="0"/>
+		        	<line id="hover_h_min" x1="0" y1="0" x2="0" y2="0"/>
+		        </g>
+		    </g>
+		</svg>
+		
+		<span id="hover_date" class="balloon"></span>
+		<span id="value_max" class="balloon value"></span>
+		<span id="value_min" class="balloon value"></span>
+		<span id="value_avg" class="balloon value"></span>
 		
 		<div class="bg_loading"></div>
 		
@@ -513,13 +567,12 @@ var svgNS = "http://www.w3.org/2000/svg",
 	xlinkNS = "http://www.w3.org/1999/xlink",
 	MONTH_NAME = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
 	MIN_AXIS_VSPACE = 50,
-	MIN_AXIS_HSPACE = 60,
+	MIN_AXIS_HSPACE = 100,
 	DATE_AXIS_HEIGHT = 6,
 	MARGIN = 20,
 	MARGIN_BOTTOM = 20;
 
-var container = document.getElementById("container"),
-	chart = document.getElementById("chart"),
+var chart = document.getElementById("chart"),
 	group = document.getElementById("group"),
 	leftAxis = document.getElementById("axis_left"),
 	rightAxis = document.getElementById("axis_right"),
@@ -579,27 +632,27 @@ window.chart.addEventListener("mousemove", function (e) {
 		return;
 	}
 	
-	hoverV.setAttributeNS(null, "x1", x);
-	hoverV.setAttributeNS(null, "x2", x);
+	hoverV.setAttribute("x1", x);
+	hoverV.setAttribute("x2", x);
 	
 	var y = window.rect.height - (value.max - window.low) * window.yRatio;
 	
-	hoverHMax.setAttributeNS(null, "y1", y);
-	hoverHMax.setAttributeNS(null, "y2", y);
+	hoverHMax.setAttribute("y1", y);
+	hoverHMax.setAttribute("y2", y);
 	valueMax.style.top = y + "px";
 	valueMax.textContent = onValueToString(value.max);
 	
 	y = window.rect.height - (value.avg - window.low) * window.yRatio;
 	
-	hoverHAvg.setAttributeNS(null, "y1", y);
-	hoverHAvg.setAttributeNS(null, "y2", y);
+	hoverHAvg.setAttribute("y1", y);
+	hoverHAvg.setAttribute("y2", y);
 	valueAvg.style.top = y + "px";
 	valueAvg.textContent = onValueToString(value.avg);
 	
 	y = window.rect.height - (value.min - window.low) * window.yRatio;
 	
-	hoverHMin.setAttributeNS(null, "y1", y);
-	hoverHMin.setAttributeNS(null, "y2", y);
+	hoverHMin.setAttribute("y1", y);
+	hoverHMin.setAttribute("y2", y);
 	valueMin.style.top = y + "px";
 	valueMin.textContent = onValueToString(value.min);
 	
@@ -615,7 +668,7 @@ window.chart.addEventListener("mousemove", function (e) {
 	valueMin.style.left = x;
 	
 	window.group.appendChild(window.hover);
-	window.container.appendChild(fragment);
+	document.body.appendChild(fragment);
 });
 
 		</script>

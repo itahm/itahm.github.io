@@ -329,6 +329,9 @@ function reload(start, end) {
 				<button id="save" title="CSV 파일로 저장">
 					<img width="16" height="16" src="img/save.png"> 저장
 				</button>
+				<button id="print" title="인쇄">
+					<img width="16" height="16" src="img/printer16.png"> 인쇄
+				</button>
 				<a href="status.html">
 					<button>
 						<img width="16" height="16" src="img/close.png">닫기
@@ -401,6 +404,10 @@ document.onselectstart = function (e) {
 
 document.getElementById("save").onclick = function () {
 	window.chartWindow.getFile();
+};
+
+document.getElementById("print").onclick = function () {
+	window.chartWindow.print();
 };
 
 document.getElementById("set").onclick = function () {
