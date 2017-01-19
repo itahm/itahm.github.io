@@ -118,6 +118,10 @@ top.sendRequest({
 });
 
 frame.onload = function () {
+	if (this.contentWindow.location.href === "about:blank") {
+		return;
+	}
+	
 	window.statusWindow = this.contentWindow;
 	
 	window.statusWindow.onSelectResource = onSelectResource;

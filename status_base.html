@@ -86,15 +86,24 @@ h2 {
 }
 
 .memory_item .bar {
-	display: flex;
 	width: 100px;
 	height: 100px;
-	justify-content: center;
-	align-items: center;
 	border: 1px solid #999;
+	box-sizing: border-box;
 	border-radius: 50%;
 	position: relative;
 	overflow: hidden;
+}
+
+.memory_item .bar::after {
+	content: attr(data-value);
+	position: absolute; top: 50%; left: 50%;
+	transform: translateX(-50%) translateY(-50%);
+}
+
+.memory_item li {
+	display: inline-block;
+	vertical-align: top;
 }
 
 .memory_item .label {
@@ -109,10 +118,6 @@ h2 {
 	z-index: -1;
 }
 
-.memory_item {
-	display: flex;
-}
-
 ul {
 	list-style: none;
 	margin: 0; padding: 0;
@@ -120,6 +125,7 @@ ul {
 
 .memory_item ul li {
 	margin: .5em;
+	display: inline-block;
 }
 
 .resource li {
@@ -247,11 +253,11 @@ ul {
 .title {
 	display: flex;
 }
-
+/*
 #memory {
 	display: inline-block;
 }
-
+*/
 .resource.response_time {
 	display: flex; flex-direction: column;
 }
@@ -323,7 +329,7 @@ function createProcGauge(value) {
 	circularBar.dataset.value = value +"%";
 	
 	setTimeout(function () {
-		circularBar.children[0].children[0].children[1].setAttributeNS(null, "stroke-dashoffset", 2* Math.PI*(1 - value /100)*45);
+		circularBar.children[0].childNodes[1].childNodes[3].setAttribute("stroke-dashoffset", 2* Math.PI*(1 - value /100)*45);
 	}, 500);
 	
 	return circularBar;
@@ -332,14 +338,14 @@ function createProcGauge(value) {
 function createMemoryGuage(used, size) {
 	var clone = memoryGauge.cloneNode(true),
 		bar = clone.children[0],
-		info = clone.children[1].children[0],
+		info = clone.children[1],
 		usage = Math.round(100* used / size) +"%";
 
 	setTimeout(function () {
 		bar.children[0].style.height = usage;
 	}, 500);
 	
-	bar.children[1].textContent = usage;
+	bar.dataset.value = usage;
 	
 	info.children[0].textContent = ITAhM.util.toBytesString(used);
 	info.children[1].textContent = "/ "+ ITAhM.util.toBytesString(size);
@@ -708,12 +714,9 @@ function onSelectResource(resource, index) {
 			<ul class="memory_item">
 				<li class="bar">
 					<img src="img/line_y.png" width="100px" class="color">
-					<span class="label"></span>
 				<li>
-					<ul>
-						<li>용량
-						<li>사용
-					</ul>
+					<p>용량</p>
+					<p>사용</p>
 			</ul>
 			
 			<ul class="storage_item">
