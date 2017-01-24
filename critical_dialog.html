@@ -220,7 +220,7 @@ function put() {
 			top.databases.critical = data;
 			
 			if (window.opener) {
-				window.opener.reload();
+				window.opener.location.reload();
 			}
 			
 			window.location.reload();
@@ -280,7 +280,7 @@ function onSelectResource() {
 			throughput = entry[index];
 			
 			if (throughput.ifSpeed !== 0) {
-				form.elements.index.appendChild(createOption(index, throughput.ifName));
+				form.elements.index.appendChild(createOption(index, throughput.ifName, throughput.ifAlias));
 			}
 		}
 	
@@ -291,11 +291,15 @@ function onSelectResource() {
 	window.form.elements.limit.value = "";
 }
 
-function createOption(value, text) {
+function createOption(value, text, alias) {
 	var clone = window.option.cloneNode(true);
 	
 	clone.value = value;
 	clone.text = text;
+	
+	if (alias) {
+		clone.title = alias;
+	}
 	
 	return clone;
 }
@@ -328,7 +332,7 @@ function onSelectCritical(resource, index, limit) {
 }
 
 function initialize(ip) {
-	window.opener = this && this.location;
+	window.opener = this;
 	window.ip = ip;
 
 	window.critical = top.databases.critical[ip];

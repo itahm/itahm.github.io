@@ -165,11 +165,11 @@ ul {
 	min-height: 150px;
 }
 
-#i_face ul {
+.i_face_item {
 	display: flex;
 }
 
-#i_face ul> li {
+.i_face_item> li {
 	text-align: center;
 	padding: .5em; margin: 3px;
 	flex: 1;
@@ -210,16 +210,17 @@ ul {
 	content: url("img/ball_gray.png"); 
 }
 
+.throughput.title li:nth-child(1),
 #i_face li:nth-child(1) {
 	flex: .2;
 }
 
-#i_face .title li:nth-child(5),
-#i_face .title li:nth-child(6) {
+.throughput.title li:nth-child(5),
+.throughput.title li:nth-child(6) {
 	flex: 2;
 }
 
-#i_face .title li {
+.title li {
 	font-weight: bold;
 }
 
@@ -297,9 +298,25 @@ ul.table ul li:first-child {
 	content: "정상 ";
 }
 
+label.filter {
+	float: right;
+	font-wegith: normal;
+	font-size: 12px;
+}
+
+@media print {
+	label.filter {
+		display: none;
+	}
+}
+
 body.shutdown #status::before {
 	color: #f00;
 	content: "응답 없음 ";
+}
+
+body.filter .i_face_item.disabled {
+	display: none;
 }
 
 body:not(.processor) .resource.processor,
@@ -416,40 +433,11 @@ function createIFaceGuage(admin, oper, index, name, descr, alias, bandwidth, inB
 	return clone;
 }
 
-function initHistory(history) {/*
-	document.getElementById("response_time").textContent = "N/A";
-	document.body.classList.add("response_time");
-	
-	for (var index in history.hrProcessorLoad) {
-		processorArea.appendChild(document.createElement("p")).textContent = index;
-		
-		document.body.classList.add("processor");
-	}
-	
-	document.querySelector(".resource.processor").onclick = function () {
-		onSelectResource("processor");
-	};
-	
-	document.body.classList.remove("loading");
-	
-	return;
-	
-	entry = history.hrStorageEntry;
-	for (var index in entry) {
-		parseStorage(entry[index], index);
-	}
-	
-	entry = history.ifEntry;
-	for (var index in entry) {
-		initIFace(entry[index], index)
-	}
-	
-	document.body.classList.remove("loading");*/
-}
-
 function initialize(ip) {
 	var snmp = top.databases.local.node,
 		entry;
+	
+	window.ip = ip;
 	
 	document.getElementById("reset").onclick = function () {
 		top.sendRequest({
@@ -597,7 +585,9 @@ function initIFace(iFace, index) {
 				iFace.ifName,
 				iFace.ifDescr,
 				iFace.ifAlias,
-				iFace.ifHighSpeed || iFace.ifSpeed,
+				(function (device) {
+					return device.ifSpeed && device.ifSpeed[index];
+				})(top.databases.device[window.ip]) || iFace.ifHighSpeed || iFace.ifSpeed,
 				iFace.ifInBPS || 0,
 				iFace.ifOutBPS || 0,
 				iFace.ifInErrors,
@@ -613,7 +603,7 @@ function onSelectResource(resource, index) {
 		</script>
 	</head>
 
-	<body class="loading">
+	<body class="loading filter">
 		
 		<article class="summary">
 			<section class="information">
@@ -683,7 +673,12 @@ function onSelectResource(resource, index) {
 			</section>
 		</article>
 		<article class="resource throughput">
-			<h2>통신</h2>
+			<h2>통신
+				<label class="filter">
+					<input id="filter" type="checkbox" checked>
+					<span>비활성 인터페이스 감추기</span>
+				</label>
+			</h2>
 			<div>
 				<ul class="throughput title">
 					<li>상태
@@ -754,7 +749,8 @@ function onSelectResource(resource, index) {
 	<script src="js/snmp.js"></script>
 	<script>
 
-	var processorArea = document.getElementById("processor"),
+	var ip,
+		processorArea = document.getElementById("processor"),
 		storageArea = document.getElementById("storage"),
 		memoryArea = document.getElementById("memory"),
 		interfaceArea = document.getElementById("i_face"),
@@ -772,5 +768,8 @@ function onSelectResource(resource, index) {
 		this.contentWindow.initialize(top.databases.local.selected);
 	};
 	
+	document.getElementById("filter").onclick = function () {
+		document.body.classList[this.checked? "add": "remove"]("filter");
+	};
 	</script>
 </html>

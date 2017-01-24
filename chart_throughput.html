@@ -66,8 +66,12 @@ h2 {
 	text-align: center;
 }
 
-#legend {
+.legend {
 	text-align: right;
+}
+
+#legend::before {
+	content: "bandwidth: ";
 }
 
 #if_name {
@@ -91,17 +95,17 @@ h3.output {
 		<script>
 		
 function initialize(from, to, start, end) {
-	var entry = window.node.ifEntry[window.resourceIndex],
+	var entry = window.node.ifEntry[window.index],
 		request = {
 			command: "query",
 			ip: window.deviceIP,
 			summary: true,
-			index: window.resourceIndex,
+			index: window.index,
 			start: from,
 			end: to
 		};
 	
-	window.max = entry.ifSpeed;
+	window.max = (device.ifSpeed && device.ifSpeed[index]) || entry.ifSpeed;
 	window.start = start;
 	window.end = end;
 	
@@ -115,7 +119,7 @@ function initialize(from, to, start, end) {
 	request.database = "ifOutOctets";
 	top.sendRequest(request, onSummaryOutResponse);
 	
-	document.getElementById("legend").textContent = "bandwidth : "+ ITAhM.util.toBPSString(max);
+	document.getElementById("legend").textContent = ITAhM.util.toBPSString(max);
 }
 
 function onSummaryInResponse(data) {
@@ -142,7 +146,7 @@ function sendDetailRequest(database, callback) {
 			command: "query",
 			ip: window.deviceIP,
 			summary: false,
-			index: window.resourceIndex,
+			index: window.index,
 			start: window.start,
 			end: window.end
 		};
@@ -289,7 +293,7 @@ function buildSummaryFile(chartWindow, fileName) {
 		<header>
 			<h1>통신 사용 @ <span id="host"></span></h1>
 			<h2>인터페이스 : <span id="if_name"></span></h2>
-			<div id="legend"></div>
+			<div class="legend"><span id="legend"></span> <button id="edit">수정</button></div>
 		</header>
 		
 		<nav>
@@ -318,11 +322,12 @@ var chartIn = document.getElementById("chart_in"),
 	chartOut = document.getElementById("chart_out"),
 	chartOutWindow = chartOut.contentWindow,
 	deviceIP = top.databases.local.selected,
-	resourceIndex = top.databases.local.resourceIndex,
+	device = top.databases.device[deviceIP],
+	index = top.databases.local.resourceIndex,
 	node = top.databases.local.node,
 	detail;
 
-if(!deviceIP || !window.resourceIndex || !window.node) {
+if(!deviceIP || !window.index || !window.node) {
 	throw "!";
 }
 
@@ -330,6 +335,10 @@ document.getElementById("host").textContent = window.deviceIP;
 
 document.getElementById("view").onchange = function () {
 	document.body.classList[this.value]("row");
+}
+
+document.getElementById("edit").onclick = function () {
+	top.showDialog.call(window, "chart_throughput_dialog.html", window.deviceIP, window.index, window.max);
 }
 
 		</script>
