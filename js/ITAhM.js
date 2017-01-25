@@ -40,6 +40,10 @@ Array.prototype.fill = Array.prototype.fill || function (val) {
 		},
 		
 		toBPSString: function (bandwidth) {
+			if (isNaN(bandwidth)) {
+				return "0bps";
+			}
+			
 			var unit = ["bps", "Kbps", "Mbps", "Gbps", "Tbps"];
 			
 			for(var i=0, _i=unit.length; i<_i; i++) {
