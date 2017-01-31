@@ -105,14 +105,14 @@ top.sendRequest({
 	command: "select",
 	ip: window.device.ip
 }, function (snmp) {
-	if (!snmp.lastResponse) {
+	/*if (!snmp.lastResponse) {
 		document.body.classList.add("shutdown");
 	}
-	else {
+	else {*/
 		top.databases.local.node = snmp;
 		
 		frame.src = "status_base.html";		
-	}
+	/*}*/
 	
 	document.body.classList.remove("loading");
 });

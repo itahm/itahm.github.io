@@ -454,8 +454,14 @@ function initialize(ip) {
 	document.getElementById("sys_enterprise").textContent = ITAhM.util.enterpriseFromOID(snmp.sysObjectID);
 	document.getElementById("ip").textContent = ip;
 	document.getElementById("failure").textContent = 100 - snmp.failure;
-	document.getElementById("last_response").textContent = (function (date) {
-		var text = date.getFullYear() +"-",
+	document.getElementById("last_response").textContent = (function (lastResponse) {
+		if (!lastResponse) {
+			return "";
+		}
+		
+		var 
+			date = new Date(lastResponse),
+			text = date.getFullYear() +"-",
 			month = date.getMonth() +1,
 			d = date.getDate(),
 			h = date.getHours(),
@@ -491,7 +497,7 @@ function initialize(ip) {
 		}
 		
 		return text + s;
-	})(new Date(snmp.lastResponse));
+	})(snmp.lastResponse);
 	
 	if (top.databases.monitor[ip].shutdown) {
 		document.body.classList.add("shutdown");
