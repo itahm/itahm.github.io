@@ -53,8 +53,11 @@ footer {
 	border-width: 1px 0;
 }
 
-footer #grid {
+footer >div {
 	position: absolute; top: 0; bottom: 0; left: 0; right: 0;
+}
+
+footer #grid {
 	width: 100%;
 	display: flex;
 	justify-content: space-between;
@@ -74,7 +77,6 @@ footer .dot::after {
 }
 
 footer #selector {
-	position: absolute; top: 0; bottom: 0; left: 0; right: 0;
 	overflow: hidden;
 }
 
@@ -109,7 +111,7 @@ footer .label {
 	right: 5px; top: 0;
 }
 
-footer .label::after {
+footer span.label::after {
 	content: attr(title);
 }
 
@@ -343,7 +345,8 @@ function reload(start, end) {
 		<iframe id="chart" class="chart"></iframe>
 		
 		<footer>
-			<div id="grid">
+			<div id="grid"></div>
+			<div class="label">
 				<span class="label" id="start"></span>
 				<span class="label" id="end"></span>
 			</div>
