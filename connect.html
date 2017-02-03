@@ -8,7 +8,10 @@
 @import "css/itahm.css";
 
 body {
-	margin: 0 auto;
+	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
+	display: flex;
+	justify-content: center;
+	align-items: center;
 	background-color: #f9f9f9;
 }
 
@@ -58,7 +61,7 @@ input[type="submit"] {
 	color: #911;
 }
 
-.hidden {
+#comment:empty {
 	display: none;
 }
 
@@ -98,40 +101,39 @@ input[name="password"] {
 		
 	</head>
 	
-	<body class="content_width">
-	
-		<h1>Connect to agent</h1>
-		<form id="form" class="rounded">
-			<div id="agent">
-				<p>Agent address</p>
-				<div class="flex">
-					<div>
-						<input type="text" name="host" placeholder="IP address" required>
-					</div>
-					<div>
-						<input type="text" name="port" value="2014" placeholder="TCP port" required>
+	<body>
+		<section class="content_width">
+			<h1>Connect to agent</h1>
+			<form id="form" class="rounded">
+				<div id="agent">
+					<p>Agent address</p>
+					<div class="flex">
+						<div>
+							<input type="text" name="host" placeholder="IP address" required>
+						</div>
+						<div>
+							<input type="text" name="port" value="2014" placeholder="TCP port" required>
+						</div>
 					</div>
 				</div>
-			</div>
-			<div id="account">
-				<p>Username</p>
-				<input type="text" name="username" required>
-			</div>
-			<div>
-				<p>Password</p>
-				<input type="password" name="password" required>
-			</div>
-			<input type="submit" value="Connect">
-		</form>
-		<h1>
-			<a href="http://itahm.com">
-				<img width="64" height="64" src="img/favicon.png">
-			</a>
-		</h1>
+				<div id="account">
+					<p>Username</p>
+					<input type="text" name="username" required>
+					<p id="comment"></p>
+				</div>
+				<div>
+					<p>Password</p>
+					<input type="password" name="password" required>
+				</div>
+				<input type="submit" value="Connect">
+			</form>
+			<h1>
+				<a href="http://itahm.com">
+					<img width="64" height="64" src="img/favicon.png">
+				</a>
+			</h1>
+		</section>
 		
-		<div class="hidden">
-			<p id="comment">comment</p>
-		</div>
 		<script src="js/ITAhM.js"></script>
 		<script src="js/object.js"></script>
 		<script>
@@ -199,16 +201,12 @@ var MAJOR = 1,
 			else if (status === 401) {
 				comment.textContent = "Incorrect username or password.";
 				
-				account.appendChild(comment);
-				
 				form.elements.username.select();
 			}
 			else {
 				console.log(response);
 			
 				comment.textContent = "Agent is not responding.";
-				
-				agent.appendChild(comment);
 				
 				form.elements.host.select();
 			}
