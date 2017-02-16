@@ -57,12 +57,27 @@ input[type="checkbox"] {
 .table li:last-child {
 	flex: 3;
 }
+
+body .v2c,
+body .v3 {
+	display: none;
+}
+
+body.v2c .v2c,
+body.v3 .v3 {
+	display: flex;
+}
+
 footer{
 	display: flex;
 }
 
 footer input {
 	flex: 1;
+}
+
+body:not(.removable) .remove {
+	display: none;
 }
 
 		</style>
@@ -76,33 +91,51 @@ footer input {
 				<h2>snmp profile</h2>
 				<div class="table">
 					<ul>
-						<li>profile name: 
+						<li>profile name 
 						<li>
 							<input type="text" name="name" class="table text"
 								placeholder="snmp profile name" required autofocus>
 						
 					</ul>
 					<ul>
-						<li>udp port: 
+						<li>udp port 
 						<li>
 							<input type="number" min="1" step="1" value="161" name="udp" class="table text"
 								placeholder="snmp udp port" pattern="\d*" required>
 					</ul>
 					<ul>
-						<li>snmp version: 
+						<li>snmp version 
 						<li>
 							<label><input type="radio" value="v1" name="version" disabled>v1</label>
 							<label><input type="radio" value="v2c" name="version" checked>v2c</label>
-							<label><input type="radio" value="v3" name="version" disabled>v3</label>
+							<label><input type="radio" value="v3" name="version">v3</label>
 					</ul>
-					<ul>
-						<li>community: 
+					<ul class="v2c">
+						<li>community 
 						<li>
-							<input type="text" name="community" value="public" class="table text"
-								placeholder="snmp community string" required>
+							<input type="text" name="community" class="table text"
+								placeholder="snmp community string">
+					</ul>
+					<ul class="v3">
+						<li>user 
+						<li>
+							<input type="text" name="user" class="table text"
+								placeholder="user name">
+					</ul>
+					<ul class="v3">
+						<li><label><input type="checkbox" name="en_auth">authentication</label> 
+						<li>
+							<input type="text" name="authentication" class="table text"
+								placeholder="user password" disabled>
+					</ul>
+					<ul class="v3">
+						<li><label><input type="checkbox" name="en_priv">privacy</label>
+						<li>
+							<input type="text" name="privacy" class="table text"
+								placeholder="encription password" disabled>
 					</ul>
 				</div>
-				<label><input type="checkbox" name="remove" disabled>remove</label>
+				<label class="remove"><input type="checkbox" name="remove" disabled>remove</label>
 				<footer>
 					<input type="reset" class="r_button" value="cancel">
 					<input type="submit" class="r_button" value="apply" disabled>
@@ -116,16 +149,35 @@ if (top === window) {
 	throw "";
 }
 
-var form = document.querySelector("form");
-
+var form = document.querySelector("form"),
+	version = document.querySelectorAll("input[name=version]");
+	
 form.addEventListener("reset", onCancel);
+
+[].forEach.call(version, function (version) {
+	version.onchange = onSelectVersion;
+});
+
+form.elements["en_auth"].onclick = function () {
+	enableElement(window.form.elements["authentication"], this.checked);
+	
+	if (!this.checked) {
+		form.elements["en_priv"].checked = this.checked;
+		enableElement(window.form.elements["privacy"], this.checked);
+	}
+};
+
+form.elements["en_priv"].onclick = function () {
+	enableElement(window.form.elements["privacy"], this.checked);
+};
 
 if (sessionStorage.level == 0) {
 	form.addEventListener("submit", onApply);
-	form.elements.remove.onclick = onRemove;
-	form.elements.remove.disabled = false;
+	form.elements["remove"].onclick = onRemove;
+	form.elements["remove"].disabled = false;
 	document.querySelector("input[type=submit]").disabled = false;
 }
+
 
 /**
  * callback method
@@ -133,19 +185,96 @@ if (sessionStorage.level == 0) {
  function onApply(e) {
 	e.preventDefault();
 	
-	var name = form.elements.name.value;
-	
-	put(name, {
+	var name = form.elements["name"].value,
+		version = document.querySelector("input[name=version]:checked").value,
+		request = {
 			name: name,
-			udp: form.elements.udp.value,
-			version: form.elements.version.value,
-			community: form.elements.community.value
-		});
+			udp: form.elements["udp"].value,
+			version: version
+		};
+	
+	if (version === "v3") {
+		var element = form.elements["user"];
+		
+		if (!element.value) {
+			return element.focus();
+		}
+		
+		request["user"] = element.value;
+		
+		if (form.elements["en_auth"].checked) {
+			element = form.elements["authentication"];
+			
+			if (!element.value) {
+				return element.focus();
+			}
+			else if (getByteLength(element.value) < 8) {
+				alert("USM 규격에 따라 authentication passphrase는 8자 이상입니다.");
+				
+				return element.select();
+			}
+		
+			request["authentication"] = element.value;
+		}
+		
+		if (form.elements["en_priv"].checked) {
+			element = form.elements["privacy"];
+			
+			if (!element.value) {
+				return element.focus();
+			}
+			else if (getByteLength(element.value) < 8) {
+				alert("USM 규격에 따라 privacy는 passphrase는 8자 이상입니다.");
+				
+				return element.select();
+			}
+			
+			request["privacy"] = element.value;
+		}
+	}
+	else {
+		var element = form.elements["community"];
+		
+		if (!element.value) {
+			return element.focus();
+		}
+		
+		request.community = form.elements["community"].value;
+	}
+	
+	sendRequest(name, request);
 }
+ 
+function enableElement(element, enable) {
+	if (enable) {
+		element.disabled = false;
+		element.focus();
+	}
+	else {
+		element.value = "";
+		element.disabled = true;
+	}
+}
+
+function getByteLength(s) {
+	var length = 0;
+	
+	for (var i=0, ch; ch=s.charCodeAt(i++); length+=ch>>11? 3: ch>>7? 2: 1);
+	
+	return length;
+}
+
+function onSelectVersion(e) {
+	[].forEach.call(window.version, function (version) {
+		document.body.classList.remove(version.value);
+	});
+	
+	document.body.classList.add(this.value);
+};
 
 function onRemove(e) {
 	if (confirm("사용중인 프로파일을 삭제하면 해당 프로파일을 사용하는 장비가 응답하지 않을 수 있습니다.\n\n프로파일을 삭제하겠습니까?")) {
-		put(form.elements.name.value, null);
+		sendRequest(form.elements["name"].value, null);
 	}
 	else {
 		this.checked = false;
@@ -162,19 +291,61 @@ function initialize(name) {
 	if (name) {
 		window.profile = top.databases.profile[name];
 		
-		form.elements.name.value = name;
-		form.elements.name.disabled = true;
+		form.elements["name"].value = name;
+		form.elements["name"].disabled = true;
 		
-		form.elements.udp.value = profile.udp;
-		form.elements.version.value = profile.version;
-		form.elements.community.value = profile.community;
+		form.elements["udp"].value = profile.udp;
+		document.querySelector("input[name=version][value="+ profile.version +"]").checked = true;
+		
+		if (profile.version === "v2c") {
+			form.elements["community"].value = profile.community;
+		}
+		else if (profile.version === "v3") {
+			form.elements["user"].value = profile.user;
+			
+			if ("authentication" in profile) {
+				form.elements["authentication"].value = profile.authentication;
+				form.elements["authentication"].disabled = false;
+				form.elements["en_auth"].checked = true;
+			}
+			
+			if ("privacy" in profile) {
+				form.elements["privacy"].value = profile.privacy;
+				form.elements["privacy"].disabled = false;
+				form.elements["en_priv"].checked = true;
+			}
+		}
+		
+		document.body.classList.add(profile.version);
+		
+		if (isIdleProfile(name)){
+			document.body.classList.add("removable");
+		}
+		
+		document.querySelector("input[type=submit]").disabled = true;
 	}
 	else {
-		form.elements.name.focus();
+		document.body.classList.add("v2c");
+		
+		form.elements["name"].focus();
 	}
 }
 
-function put(name, profile) {
+function isIdleProfile(name) {
+	var monitorData = top.databases.monitor;
+
+	for (var ip in monitorData) {
+		monitor = monitorData[ip];
+		
+		if (monitor.profile === name) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
+function sendRequest(name, profile) {
 	document.body.classList.add("loading");
 	
 	top.sendRequest({

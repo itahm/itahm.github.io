@@ -57,7 +57,8 @@ if (sessionStorage.level == 0) {
 		e.preventDefault();
 		
 		top.sendRequest({
-			command: "message",
+			command: "extra",
+			extra: "message",
 			message: form.elements.message.value
 		}, function() {
 			form.reset();

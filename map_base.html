@@ -612,7 +612,8 @@ function onLink(ip, e) {
 	document.body.classList.add("loading");	
 	
 	top.sendRequest({
-			command: "link",
+			command: "extra",
+			extra: "link",
 			peer1: ip,
 			peer2: peerIP,
 			link: peerIP in window.deviceData[ip].ifEntry? false: true

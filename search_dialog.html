@@ -154,13 +154,16 @@ function onSelect(e) {
 
 function onApply(e) {
 	e.preventDefault();
-	var mask = form.elements.mask;
 	
-	top.sendRequest({
-		command: "search",
-		network: form.elements.network.value,
-		mask: mask[mask.selectedIndex].text
-	}, function (data) {
+	var mask = form.elements.mask,
+		request = {
+			command: "extra",
+			extra: "search",
+			network: form.elements.network.value,
+			mask: mask[mask.selectedIndex].text
+		};
+	
+	top.sendRequest(request, function (data) {
 		alert("자동 탐지 요청을 보냈습니다.\n탐지된 장비를 확인하려면 재시작 하십시오.");
 		
 		top.closeDialog(true);
@@ -169,6 +172,9 @@ function onApply(e) {
 
 function onCancel(e) {
 	top.closeDialog(true);
+}
+
+function initialize() {
 }
 
 		</script>

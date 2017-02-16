@@ -291,7 +291,8 @@ ul {
 		
 function update() {
 	top.sendRequest({
-		command: "top",
+		command: "extra",
+		extra: "top",
 		ip: "127.0.0.1"
 	}, function (response) {
 		window.updateTime.textContent = getTime();

@@ -2,7 +2,7 @@
 <html>
 	<head>
 		<meta charset="UTF-8">
-		<title>dialog</title>
+		<title>Critical Dialog @ ITAhM</title>
 		
 		<style>
 @import "css/itahm.css";
@@ -204,13 +204,19 @@ function onApply(e) {
 	put();
 }
 
-function onCancel(e) {
+function onClose(e) {
+	if (top.databases.local.isModified) {
+		top.databases.local.isModified = false;
+		
+		opener.location.reload();
+	}
+	
 	top.closeDialog();
 }
 
 function put() {
 	document.body.classList.add("loading");
-	
+	console.log(window.document.title);
 	top.sendRequest({
 			command: "put",
 			database: "critical",
@@ -219,9 +225,7 @@ function put() {
 		}, function (data) {
 			top.databases.critical = data;
 			
-			if (window.opener) {
-				window.opener.location.reload();
-			}
+			top.databases.local.isModified = true;
 			
 			window.location.reload();
 		});
@@ -413,7 +417,7 @@ function initialize(ip) {
 					</ul>
 				</div>
 				<footer>
-					<input type="reset" class="r_button" value="cancel">
+					<input type="reset" class="r_button" value="close">
 					<input type="submit" class="r_button" value="apply" disabled>
 				</footer>
 			</form>
@@ -444,7 +448,7 @@ var form = document.querySelector("form"),
 	item = document.querySelector(".item"),
 	option = document.querySelector(".option");
 
-form.addEventListener("reset", onCancel);
+form.addEventListener("reset", onClose);
 
 if (sessionStorage.level == 0) {
 	document.body.classList.add("authorized");

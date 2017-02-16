@@ -160,7 +160,8 @@ function sendRequest(mills) {
 	}
 	
 	top.sendRequest({
-		command: "log",
+		command: "extra",
+		extra: "log",
 		date: mills
 	}, function (data) {
 		var df = document.createDocumentFragment(),

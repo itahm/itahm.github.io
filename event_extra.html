@@ -100,7 +100,8 @@ var date = document.getElementById("date"),
 	today = new Date().setHours(0, 0, 0, 0);
 
 top.sendRequest({
-	command: "log",
+	command: "extra",
+	extra: "log",
 	date: today
 }, function (data) {
 	var df = document.createDocumentFragment(),

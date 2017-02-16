@@ -90,91 +90,8 @@ body.initialized .search {
 }
 
 		</style>
-		
-	</head>
-	
-	<body>
-	
-		<form class="rounded">
-			<h2>장비</h2>
-			<div class="table">
-				<ul>
-					<li>ip 주소
-					<li>
-						<input type="text" pattern="^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$" required id="ip" autofocus>
-					<!--li class="address">
-						<span><input type="text" pattern="25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?" title="0 ~ 255" required id="ip1" autofocus></span>.
-						<span><input type="text" pattern="25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?" title="0 ~ 255" required id="ip2"></span>.
-						<span><input type="text" pattern="25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?" title="0 ~ 255" required id="ip3"></span>.
-						<span><input type="text" pattern="25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?" title="0 ~ 255" required id="ip4"></span-->
-				</ul>
-				<ul>
-					<li>이름
-					<li>
-						<input type="text" name="name" placeholder="장비 이름">
-				</ul>
-				<ul>
-					<li>타입
-					<li>
-						<select name="type" required></select>
-					
-				</ul>
-				<ul>
-					<li title="콤마(,)로 구분하며 공백을 허용하지 않습니다."><u>*라벨</u>
-					<li>
-						<input type="text" name="label" placeholder="라벨1 [,라벨2 ...]">
-					
-				</ul>
-				<ul class="monitor">
-					<li>모니터링<!--snmp-->
-					<li>
-						<select name="monitor">
-							<option value="none" selected>없음
-							<option value="icmp">ICMP
-							<option value="snmp">SNMP
-						</select>
-						<!--label>
-							<input type="checkbox" name="snmp">
-							<span></span>
-						</label-->
-					
-				</ul>
-				<label class="remove">
-					<input type="checkbox" name="remove">
-					삭제
-				</label>
-				<label class="search">
-					<input type="checkbox" name="search">
-					자동탐색
-				</label>
-			</div>
-			
-			<footer>
-				<input type="reset" class="r_button" value="Cancel">
-				<input type="submit" class="r_button" value="Apply">
-			</footer>
-		</form>
-		
 		<script>
-
-if (window === top) throw "";
-
-var form = document.querySelector("form"),
-	monitor = "none";
-
-form.elements.type.appendChild(buildType());
-
-form.elements.search.onclick = onSearch;
-
-form.addEventListener("reset", onCancel);
-
-if (sessionStorage.level == 0) {
-	form.addEventListener("submit", onApply);
-}
-else {
-	document.querySelector("input[type=submit]").disabled = true;
-}
-
+		
 function buildType() {
 	var df = document.createDocumentFragment(),
 		groupName, optgroup, option,
@@ -215,7 +132,12 @@ function buildType() {
 }
 
 function onSearch() {
-	top.showDialog.call(window, "search_dialog.html");
+	if (Object.keys(top.databases.profile).length > 0) {
+		top.showDialog.call(window, "search_dialog.html");
+	}
+	else {
+		alert("사용 가능한 프로파일이 존재하지 않습니다.\n"+ "\n" +"먼저 프로파일을 생성하십시오.");
+	}
 }
 
 function onApply(e) {
@@ -295,28 +217,31 @@ function onRemoveDevice() {
 }
 
 function onMonitorDevice(e) {
-	if (!confirm("모니터 설정을 변경하시겠습니까?")) {
-		this.value = window.monitor;
-		
-		return;
+	if (confirm("모니터 설정을 변경하시겠습니까?")) {
+		if (this.value === "snmp" && Object.keys(top.databases.profile).length === 0) {
+			alert("사용 가능한 프로파일이 존재하지 않습니다.\n"+ "\n" +"먼저 프로파일을 생성하십시오.");
+		}
+		else {console.log(this.value === "snmp", top.databases.profile);
+			return top.sendRequest({
+				command: "put",
+				database: "monitor",
+				key: window.device.ip,
+				value: this.value === "none"? null: {
+					protocol: this.value
+				}
+			}, function (data) {
+				top.databases.monitor = data;
+				
+				if (window.opener) {
+					window.opener.reload();
+				}
+				
+				top.closeDialog();
+			});
+		}
 	}
 	
-	top.sendRequest({
-		command: "put",
-		database: "monitor",
-		key: window.device.ip,
-		value: this.value === "none"? null: {
-			protocol: this.value
-		}
-	}, function (data) {
-		top.databases.monitor = data;
-		
-		if (window.opener) {
-			window.opener.reload();
-		}
-		
-		top.closeDialog();
-	});
+	this.value = window.monitor;
 }
 
 function trimLabel(labels) {
@@ -369,8 +294,84 @@ function initialize(ip) {
 	else {
 		form.elements.type.selectedIndex = -1;
 	}
-};
+}
+		
 		</script>
+	</head>
+	
+	<body>
+	
+		<form class="rounded">
+			<h2>장비</h2>
+			<div class="table">
+				<ul>
+					<li>ip 주소
+					<li>
+						<input type="text" pattern="^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$" required id="ip" autofocus>
+				</ul>
+				<ul>
+					<li>이름
+					<li>
+						<input type="text" name="name" placeholder="장비 이름">
+				</ul>
+				<ul>
+					<li>타입
+					<li>
+						<select name="type" required></select>
+					
+				</ul>
+				<ul>
+					<li title="콤마(,)로 구분하며 공백을 허용하지 않습니다."><i>*라벨</i>
+					<li>
+						<input type="text" name="label" placeholder="라벨1 [,라벨2 ...]">
+					
+				</ul>
+				<ul class="monitor">
+					<li>모니터링
+					<li>
+						<select name="monitor">
+							<option value="none" selected>없음
+							<option value="icmp">ICMP
+							<option value="snmp">SNMP
+						</select>					
+				</ul>
+				<label class="remove">
+					<input type="checkbox" name="remove">
+					삭제
+				</label>
+				<label class="search">
+					<input type="checkbox" name="search">
+					자동탐색
+				</label>
+			</div>
+			
+			<footer>
+				<input type="reset" class="r_button" value="Cancel">
+				<input type="submit" class="r_button" value="Apply">
+			</footer>
+		</form>
+		
+		<script>
+
+if (window === top) throw "";
+
+var form = document.querySelector("form"),
+	monitor = "none";
+
+form.elements.type.appendChild(buildType());
+
+form.elements.search.onclick = onSearch;
+
+form.addEventListener("reset", onCancel);
+
+if (sessionStorage.level == 0) {
+	form.addEventListener("submit", onApply);
+}
+else {
+	document.querySelector("input[type=submit]").disabled = true;
+}
+
+	</script>
 	
 	</body>
 	

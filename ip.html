@@ -181,7 +181,8 @@ var list = document.getElementById("list"),
 	networkData = {};
 
 top.sendRequest({
-	command: "network"
+	command: "extra",
+	extra: "network"
 }, function (data){
 	var item, checkbox;
 	
@@ -203,7 +204,8 @@ top.sendRequest({
 	}
 	
 	top.sendRequest({
-		command: "arp"
+		command: "extra",
+		extra: "arp"
 	}, function (data){
 		var address, item;
 		
