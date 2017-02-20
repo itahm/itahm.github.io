@@ -37,37 +37,38 @@ input[type="checkbox"] {
 	vertical-align: middle;
 }
 
-.table {
+div.table {
 	margin-bottom: 10px;
 }
 
-.table ul {
+div.table ul {
 	display: flex;
+	align-items: center;
 	list-style: none;
-	padding: 0;
+	padding: 1px;
 	margin: 0;
 }
 
-.table li:first-child {
+div.table li:first-child {
 	text-align: right;
 	padding: .5em;
 	flex: 2;
 }
 
-.table li:last-child {
+div.table li:last-child {
 	flex: 3;
 }
 
-body .v2c,
-body .v3 {
+body:not(.v2c) .v2c,
+body:not(.v3) .v3 {
 	display: none;
 }
-
+/*
 body.v2c .v2c,
 body.v3 .v3 {
 	display: flex;
 }
-
+*/
 footer{
 	display: flex;
 }
@@ -123,15 +124,17 @@ body:not(.removable) .remove {
 								placeholder="user name">
 					</ul>
 					<ul class="v3">
-						<li><label><input type="checkbox" name="en_auth">authentication</label> 
+						<li><div>authentication</div>
+							<label><input type="checkbox" name="en_auth">MD5</label>
 						<li>
-							<input type="text" name="authentication" class="table text"
+							<input type="password" name="authentication" class="table text"
 								placeholder="user password" disabled>
 					</ul>
 					<ul class="v3">
-						<li><label><input type="checkbox" name="en_priv">privacy</label>
+						<li><div>privacy</div>
+							<label><input type="checkbox" name="en_priv">DES</label>
 						<li>
-							<input type="text" name="privacy" class="table text"
+							<input type="password" name="privacy" class="table text"
 								placeholder="encription password" disabled>
 					</ul>
 				</div>
@@ -214,22 +217,22 @@ if (sessionStorage.level == 0) {
 				return element.select();
 			}
 		
-			request["authentication"] = element.value;
-		}
-		
-		if (form.elements["en_priv"].checked) {
-			element = form.elements["privacy"];
+			request["md5"] = element.value;
 			
-			if (!element.value) {
-				return element.focus();
-			}
-			else if (getByteLength(element.value) < 8) {
-				alert("USM 규격에 따라 privacy는 passphrase는 8자 이상입니다.");
+			if (form.elements["en_priv"].checked) {
+				element = form.elements["privacy"];
 				
-				return element.select();
+				if (!element.value) {
+					return element.focus();
+				}
+				else if (getByteLength(element.value) < 8) {
+					alert("USM 규격에 따라 privacy는 passphrase는 8자 이상입니다.");
+					
+					return element.select();
+				}
+				
+				request["des"] = element.value;
 			}
-			
-			request["privacy"] = element.value;
 		}
 	}
 	else {
@@ -303,16 +306,16 @@ function initialize(name) {
 		else if (profile.version === "v3") {
 			form.elements["user"].value = profile.user;
 			
-			if ("authentication" in profile) {
+			if ("md5" in profile) {
 				form.elements["authentication"].value = profile.authentication;
 				form.elements["authentication"].disabled = false;
 				form.elements["en_auth"].checked = true;
-			}
-			
-			if ("privacy" in profile) {
-				form.elements["privacy"].value = profile.privacy;
-				form.elements["privacy"].disabled = false;
-				form.elements["en_priv"].checked = true;
+				
+				if ("des" in profile) {
+					form.elements["privacy"].value = profile.privacy;
+					form.elements["privacy"].disabled = false;
+					form.elements["en_priv"].checked = true;
+				}
 			}
 		}
 		

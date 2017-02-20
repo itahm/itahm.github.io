@@ -225,22 +225,26 @@ document.getElementById("signout").onclick = function () {
 		var xhr = new ITAhM.Communicator(sessionStorage.host, sessionStorage.port, 12000);
 		
 		window.sendRequest = function (request, onResponse) {
-			xhr.sendRequest(request, function (status, response) {				
+			xhr.sendRequest(request, function (status, response) {		
 				if (status === 200) {
 					onResponse(response);
 				}
 				else {
 					if (status === 401) {
-						notifyError("세션이 만료되었습니다.");
+						window.onbeforeunload = undefined;
+					
+						alert("세션이 만료되었습니다.");
+						
+						location.href = "connect.html";
 					}
 					else if (status === 409) { // conflict
-						notifyError("다른 관리자 계정이 데이터베이스를 수정하였습니다.");
+						alert("다른 관리자 계정이 데이터베이스를 수정하였습니다.");
 					}
-					else if (status === 400) {
-						notifyError("잘못된 요청입니다.\n"+ response.error);
+					else if (status === 400) { // bad request
+						alert("잘못된 요청입니다.");
 					}
 					else {
-						notifyError("에이전트가 응답하지 않습니다.\nstatus: "+ status);
+						alert("에이전트가 응답하지 않습니다.\nstatus: "+ status);
 					}
 				}
 			});
@@ -326,16 +330,6 @@ function getDeviceName(ip) {
 	var device = window.databases.device[ip];
 
 	return device? device.name: ip;
-}
-
-function notifyError(error) {
-	window.onbeforeunload = undefined;
-	
-	alert(error);
-	
-	location.href = "connect.html";
-	
-	throw "";
 }
 
 function showDialog() {

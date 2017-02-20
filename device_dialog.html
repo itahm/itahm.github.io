@@ -221,7 +221,7 @@ function onMonitorDevice(e) {
 		if (this.value === "snmp" && Object.keys(top.databases.profile).length === 0) {
 			alert("사용 가능한 프로파일이 존재하지 않습니다.\n"+ "\n" +"먼저 프로파일을 생성하십시오.");
 		}
-		else {console.log(this.value === "snmp", top.databases.profile);
+		else {
 			return top.sendRequest({
 				command: "put",
 				database: "monitor",

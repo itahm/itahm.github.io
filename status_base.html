@@ -186,7 +186,7 @@ ul {
 	flex: .2;
 }
 
-.i_face_item li:last-child:hover {
+.i_face_item:not(.no_select) li:last-child:hover {
 	background-color: rgba(0, 132, 255, .2);
 }
 
@@ -244,7 +244,7 @@ ul {
 }
 
 .storage_item:hover,
-.i_face_item:hover {
+.i_face_item:not(.no_select):hover {
 	outline: solid 3px #0084ff;
 	cursor: pointer;
 }
@@ -317,6 +317,10 @@ body.shutdown #status::before {
 
 body.filter .i_face_item.disabled {
 	display: none;
+}
+
+.i_face_item.no_select {
+	cursor: not-allowed;
 }
 
 body:not(.processor) .resource.processor,
@@ -419,16 +423,20 @@ function createIFaceGuage(admin, oper, index, name, descr, alias, bandwidth, inB
 		clone.children[7].children[1].style.width = usageOut;
 	}, 500);
 	
-	
-	clone.children[8].onclick = function (index, e) {
-		onSelectResource("error", index);
-		
-		e.stopPropagation();
-	}.bind(undefined, index);
-	
 	clone.title = descr;
 	
-	clone.onclick = onSelectResource.bind(undefined, "throughput", index);
+	if (bandwidth > 0) {
+		clone.onclick = onSelectResource.bind(undefined, "throughput", index);
+		
+		clone.children[8].onclick = function (index, e) {
+			onSelectResource("error", index);
+			
+			e.stopPropagation();
+		}.bind(undefined, index);
+	}
+	else {
+		clone.classList.add("no_select");
+	}
 	
 	return clone;
 }
