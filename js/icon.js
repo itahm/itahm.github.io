@@ -28,6 +28,11 @@ ITAhM.iconData = {
         "src": "img/svg/network.svg",
         "disabled": "img/svg/disabled/network.svg"
     },
+    "nms": {
+        "group": "network",
+        "src": "img/svg/nms.svg",
+        "disabled": "img/svg/disabled/nms.svg"
+    },
     "workgroup switch": {
         "group": "network",
         "src": "img/svg/workgroup.svg",

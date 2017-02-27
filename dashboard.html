@@ -76,7 +76,11 @@ aside .statistic {
 	color: #000;
 }
 
-article> :not(header) {
+article> div:first-child {
+	text-align: right;
+}
+
+article> .top {
 	display: flex;
 	flex: 1;
 	overflow-y: auto;
@@ -192,6 +196,11 @@ ul {
 
 .list_item li {
 	flex: 1;
+}
+
+body:not(.name) .list_item li:nth-child(1),
+body.name .list_item li:nth-child(2) {
+	display: none;
 }
 
 .list_item li:last-child {
@@ -453,9 +462,9 @@ function createTopItem(ip, value) {
 	var clone = listItem.cloneNode(true),
 		item = clone.children[0];
 	
-	item.children[0].textContent = ip;
-	item.children[1].dataset.value = value;
-	item.title = top.databases.device[ip].name || ip;
+	item.children[0].textContent = top.databases.device[ip].name || ip;
+	item.children[1].textContent = ip;
+	item.children[2].dataset.value = value;
 	
 	clone.onclick = onSelectTopItem.bind(window, ip);
 	
@@ -472,7 +481,7 @@ function onEvent(ip) {
 		
 	</head>
 	
-	<body class="loading">
+	<body class="loading name">
 		<aside>
 			<div class="aside">
 				<div class="head">
@@ -536,6 +545,11 @@ function onEvent(ip) {
 			</section>
 		</aside>
 		<article>
+			<div>
+				<label><input type="radio" name="option" value="name" checked>name</label>
+				<label><input type="radio" name="option" value="address">address</label>
+			</div>
+			
 			<div class="top">
 				<section>
 					<div class="title">응답 시간 Top</div>
@@ -613,6 +627,7 @@ function onEvent(ip) {
 					<ul class="simple">
 						<li>
 						<li>
+						<li>
 					</ul>
 			</ul>
 		</div>
@@ -646,6 +661,14 @@ update();
 document.getElementById("counter").addEventListener("animationiteration", update);
 
 document.getElementById("version").textContent = sessionStorage.version;
+
+document.querySelector("input[name=option][value=name]").onclick = function () {
+	document.body.classList.add("name");
+};
+
+document.querySelector("input[name=option][value=address]").onclick = function () {
+	document.body.classList.remove("name");
+};
 
 document.body.classList.remove("loading");
 
