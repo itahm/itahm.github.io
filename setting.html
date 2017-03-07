@@ -57,11 +57,15 @@ img[src="img/plus.png"]:hover {
 form input {
 	padding: 3px;
 }
-/*
-input[name="timeout"] {
+
+input[name="clean"] {
 	width: 50px;
 	text-align: right;
-}*/
+}
+
+.common li {
+	margin: .5em 0;
+}
 
 		</style>
 		<script>
@@ -122,20 +126,37 @@ function createItem(src, key, func) {
 	
 	return clone;
 }
+
+function initConfig() {
+	top.sendRequest({
+		command: "pull",
+		database: "config"
+	}, function (response) {
+		document.querySelector("input[name=clean]").value = response.clean;
+		document.getElementById("java").textContent = response.java;
+		document.getElementById("version").textContent = response.version;
+		document.getElementById("space").textContent = ITAhM.util.toBytesString(response.space);
+	});
+}
 		
 		</script>
 	</head>
 	
 	<body class="loading content_width">
 		
-		<!--div>
+		<div class="common">
 			<h2>일반</h2>
-			<form id="timeout">
 				<ul>
-					<li>타임아웃 (초): <input type="number" min="1" max="10" name="timeout"><input type="submit" value="적용">
+					<li>자바 버전 : <span id="java"></span>
+					<li>에이전트 버전 : <span id="version"></span>
+					<li>에이전트 저장공간 여유 : <span id="space"></span>
+					<li>
+						<form id=clean>
+							데이터 보관 기간 : <input type="number" min="0" max="365" name="clean"> 일 <input type="submit" value="적용">
+							<i>(데이터 정리 기능을 사용하지 않는 경우 0)</i>
+						</form>
 				</ul>
-			</form>
-		</div-->
+		</div>
 		
 		<div>
 			<h2>계정 <img width="16" height="16" src="img/plus.png" title="계정 추가" id="add_account"></h2>
@@ -163,6 +184,7 @@ function createItem(src, key, func) {
 			</ul>
 		</div>
 		
+		<script src="js/ITAhM.js"></script>
 		<script>
 if (top === window) {
 	location.href = "http://itahm.com";
@@ -181,6 +203,25 @@ document.getElementById("add_profile").onclick = function () {
 document.getElementById("add_gcm").onclick = function () {
 	onSelectGCM();
 };
+
+document.getElementById("clean").onsubmit = function (e) {
+	e.preventDefault();
+	
+	document.body.classList.add("loading");
+	
+	top.sendRequest({
+		command: "config",
+		key: "clean",
+		value: parseInt(this.elements["clean"].value)
+	}, function (response) {
+		document.body.classList.remove("loading");
+		
+		alert("데이터 보관 기간을 설정하였습니다.");
+	});
+	
+};
+
+initConfig();
 
 initAccount();
 
