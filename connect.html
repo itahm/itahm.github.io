@@ -140,7 +140,7 @@ input[name="password"] {
 
 var MAJOR = 1,
 	MINOR = 3,
-	REVISION = 9;
+	REVISION = 10;
 		
 (function (window, undefined){
 	
@@ -175,29 +175,17 @@ var MAJOR = 1,
 		
 		xhr.sendRequest(request, function (status, response) {
 			if (status === 200) {
-				var version = response.version.split(".");
-				
-				if (parseInt(version[1]) < MINOR) {
-					alert("에이전트의 최신 버전은 "+ [MAJOR, MINOR, 3, REVISION].join(".") +" 입니다.\n"
-						+"에이전트의 업데이트가 필요합니다.\n"
-						+"중요한 변화가 반영되었으니 반드시 에이전트를 업데이트 하십시오.\n"
-						+"그렇지 않은 경우 오작동할 수 있습니다.");
-				}
-				else if (parseInt(version[3]) < REVISION) {
-					alert("에이전트의 최신 버전은 "+ [MAJOR, MINOR, 3, REVISION].join(".") +" 입니다.\n"
-						+"2017년 02월16일 일부 변경사항이 적용되었습니다.\n"
-						+"SNMP v3를 지원합니다. 인증은 MD5만 지원합니다.\n"
-						+"자세한 내용은 http://itahm.com/download.html 페이지를 참고하십시길 바랍니다.\n"
-						+"에이전트를 업데이트하지 않으면 오작동 할 수 있습니다.");
-				}
-				
 				sessionStorage.host = form.elements.host.value;
 				sessionStorage.port = form.elements.port.value;
 				sessionStorage.user = form.elements.username.value;
 				sessionStorage.level = response.level;
 				sessionStorage.version = response.version;
 				
-				location.href = "itahm.html";
+				if ([MAJOR, MINOR, 3, REVISION].join(".") !== response.version) {
+					alert("에이전트가 최신의 버전이 아닙니다.\n에이전트를 업데이트하지 않으면 오동작 할 수 있습니다.");
+				}
+				
+				window.location.href = "itahm.html";
 			}
 			else if (status === 401) {
 				comment.textContent = "Incorrect username or password.";

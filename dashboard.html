@@ -11,10 +11,30 @@
 
 body {
 	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
-	padding: 1em; margin: 0;
+	padding: 0; margin: 0;
 	display: flex;
+	flex-direction: column;
 	background-color: #4d525a;
 	color: #fff;
+}
+
+div.bar {
+	height: 2px;
+	background-color: navy;
+	background: linear-gradient(to right, #fff, navy);
+	position: relative;
+}
+
+#counter {
+	position: absolute; top: 0; right: 0; bottom: 0;
+	background-color: #4d525a;
+	animation: count 10s infinite linear;
+}
+
+div.body {
+	flex: 1;
+	display: flex;
+	padding: 1em;
 }
 
 aside {
@@ -58,14 +78,6 @@ article {
 	border: none;
 }
 
-aside .head {
-	display: flex;
-}
-
-aside .agent {
-	width: 200px;
-}
-
 aside .statistic {
 	flex: 1;
 	overflow: auto;
@@ -74,10 +86,6 @@ aside .statistic {
 .statistic ul {
 	background-color: #fff;
 	color: #000;
-}
-
-article> div:first-child {
-	text-align: right;
 }
 
 article> .top {
@@ -103,7 +111,6 @@ section {
 	background-color: #0084ff;
 	text-shadow: 1px 1px 1px #00f;
 }
-
 
 section> div:last-child {
 	flex: 1;
@@ -198,6 +205,14 @@ ul {
 	flex: 1;
 }
 
+select[name=option] {
+	background-color: #0084ff;
+	border: none;
+	outline: none;
+	color: #fff;
+	float: right;
+}
+
 body:not(.name) .list_item li:nth-child(1),
 body.name .list_item li:nth-child(2) {
 	display: none;
@@ -217,11 +232,15 @@ body.name .list_item li:nth-child(2) {
 
 .agent_status {
 	display: flex;
+	padding: .5em;
 }
 
-.agent_status li {
+.agent_status li:first-child {
+	flex: none;
+}
+
+.agent_status li:last-child {
 	flex: 1;
-	padding: .5em;
 	text-align: right;
 }
 
@@ -229,54 +248,12 @@ body.name .list_item li:nth-child(2) {
 	text-align: center;
 }
 
-#counter {
-	margin: 1em;
-	position: relative;
-	width: 10em;
-	height: 10em;
-}
-
-#counter div {
-	position: absolute; top: 0; left: 0;
-	width: 10em; height: 10em;
-}
-
-#counter div:nth-child(1) {
-	border-radius: 50%;
-	border: 1em solid #00f;
-	box-sizing: border-box;
-	display: flex;
-	flex-direction: column;
-	justify-content: center;
-	align-items: center;
-}
-
-#counter div:nth-child(3) {
- 	transform-origin: 5em 5em;
- 	animation: count 10s infinite linear;
-}
-
-#counter span {
-	margin: 0 auto;
-	display: block;
-	width: 1em; height: 1em;
-	border-radius: 50%;
-	background-color: #fff;
-}
-
-#counter hr {
-	margin: 0 auto;
-	width: 4px; height: 1em;
-	background-color: #fff;
-	border: none;
-}
-
 @keyframes count {
-	0% {
-		transform: rotate(0deg);
+	from {
+		width: 100%;
 	}
-	100% {
-		transform: rotate(360deg);
+	to {
+		width: 0;
 	}
 }
 
@@ -304,8 +281,6 @@ function update() {
 		extra: "top",
 		ip: "127.0.0.1"
 	}, function (response) {
-		window.updateTime.textContent = getTime();
-		
 		setTop(response.responseTime, window.responseTime, toMillsString);
 		setTop(response.processor, window.processor, toPercentageString);
 		setTop(response.memory, window.memory, ITAhM.util.toBytesString);
@@ -321,13 +296,7 @@ function update() {
 		}
 	});
 	
-	top.sendRequest({
-		command: "agent",
-	}, function (response) {
-		connections.textContent = response.connections;
-		java.textContent = response.java;
-		space.textContent = ITAhM.util.toBytesString(response.space);
-	});
+	initStats();
 }
 
 function initStats() {
@@ -340,6 +309,12 @@ function initStats() {
 		normal = 0,
 		labelData = {},
 		device, count;
+	
+	summaryList.classList.remove("initialized");
+	
+	while (window.summaryList.firstChild) {
+		window.summaryList.removeChild(window.summaryList.firstChild);
+	}
 	
 	for (var ip in deviceData) {
 		device = deviceData[ip];
@@ -393,7 +368,11 @@ function initStats() {
 		df.appendChild(createStatusItem(label, ls.critical, ls.shutdown, ls.normal, ls.critical + ls.shutdown + ls.normal));
 	}
 	
-	summaryList.appendChild(df);
+	window.summaryList.appendChild(df);
+	
+	setTimeout(function () {
+		summaryList.classList.add("initialized");
+	}, 500);
 }
 
 function toErrorString(value) {
@@ -482,154 +461,119 @@ function onEvent(ip) {
 	</head>
 	
 	<body class="loading name">
-		<aside>
-			<div class="aside">
-				<div class="head">
-					<section class="agent">
-						<div class="title">에이전트</div>
+		<div class="bar">
+			<div id="counter"></div>
+		</div>
+		<div class="body">
+			<aside>
+				<div class="aside">
+					<div class="statistic">
+						<ul class="summary">
+							<li>구분
+							<li>임계 초과
+							<li>응답 없음
+							<li>정상
+							<li>합계
+						</ul>
+						<ul id="summary_list">
+						</ul>
+					</div>
+				</div>
+				<section>
+					<div class="title">SNMP 실패 Top</div>
+					<div class="list">
+						<ul id="failure_rate"></ul>
+					</div>
+				</section>
+			</aside>
+			<article>			
+				<div class="top">
+					<section>
+						<div class="title">
+							응답 시간 Top
+							<select name="option">
+								<option value="name" selected>장비명
+								<option value="address">IP주소
+							</select>
+						</div>
 						<div class="list">
-							<ul>
-								<li>
-									<ul class="agent_status">
-										<li>접속 연결수
-										<li id="connections">
-									</ul>
-									<ul class="agent_status">
-										<li>저장공간 여유
-										<li id="space">
-									</ul>
-								<li>
-									<ul class="agent_status">
-										<li>에이전트 버전
-										<li id="version">
-									</ul>
-								<li>
-									<ul class="agent_status">
-										<li>자바 버전
-										<li id="java">
-									</ul>
-								<li>
-							</ul>
+							<ul id="response_time"></ul>
 						</div>
 					</section>
-					<div id="counter">
-						<div>
-							갱신시간
-							<p id="update"></p>
+					<section>
+						<div class="title">메모리 사용량 Top</div>
+						<div class="list">
+							<ul id="memory"></ul>
 						</div>
-						<div>
-							<hr></hr>
+					</section>
+					<section>
+						<div class="title">메모리 사용율 Top</div>
+						<div class="list">
+							<ul id="memoryRate"></ul>
 						</div>
-						<div>
-							<span></span>
+					</section>
+				</div>
+				
+				<div class="top">
+					<section>
+						<div class="title">프로세서 로드 Top</div>
+						<div class="list">
+							<ul id="processor"></ul>
 						</div>
-					</div>
+					</section>
+					<section>
+						<div class="title">저장공간 사용량 Top</div>
+						<div class="list">
+							<ul id="storage"></ul>
+						</div>
+					</section>
+					<section>
+						<div class="title">저장공간 사용율 Top</div>
+						<div class="list">
+							<ul id="storageRate"></ul>
+						</div>
+					</section>
 				</div>
-				<div class="statistic">
-					<ul class="summary">
-						<li>구분
-						<li>임계 초과
-						<li>응답 없음
-						<li>정상
-						<li>합계
-					</ul>
-					<ul id="summary_list">
-					</ul>
+				
+				<div class="top">
+					<section>
+						<div class="title green">통신 에러 Top</div>
+						<div class="list">
+							<ul id="throughputErr"></ul>
+						</div>
+					</section>
+					<section>
+						<div class="title green">통신 사용량 Top</div>
+						<div class="list">
+							<ul id="throughput"></ul>
+						</div>
+					</section>
+					<section>
+						<div class="title green">통신 사용율 Top</div>
+						<div class="list">
+							<ul id="throughputRate"></ul>
+						</div>
+					</section>
 				</div>
-			</div>
-			<section>
-				<div class="title">SNMP 실패 Top</div>
-				<div class="list">
-					<ul id="failure_rate"></ul>
-				</div>
-			</section>
-		</aside>
-		<article>
-			<div>
-				<label><input type="radio" name="option" value="name" checked>name</label>
-				<label><input type="radio" name="option" value="address">address</label>
-			</div>
+			</article>
 			
-			<div class="top">
-				<section>
-					<div class="title">응답 시간 Top</div>
-					<div class="list">
-						<ul id="response_time"></ul>
-					</div>
-				</section>
-				<section>
-					<div class="title">메모리 사용량 Top</div>
-					<div class="list">
-						<ul id="memory"></ul>
-					</div>
-				</section>
-				<section>
-					<div class="title">메모리 사용율 Top</div>
-					<div class="list">
-						<ul id="memoryRate"></ul>
-					</div>
-				</section>
+			<div class="extra">
+				<div class="title">이벤트</div>
+				<iframe src="event_extra.html" id="event" width="100%" height="100%"></iframe>
+				<div class="title">구성도</div>
+				<iframe src="map_extra.html" id="map" width="100%" height="100%"></iframe>
 			</div>
-			
-			<div class="top">
-				<section>
-					<div class="title">프로세서 로드 Top</div>
-					<div class="list">
-						<ul id="processor"></ul>
-					</div>
-				</section>
-				<section>
-					<div class="title">저장공간 사용량 Top</div>
-					<div class="list">
-						<ul id="storage"></ul>
-					</div>
-				</section>
-				<section>
-					<div class="title">저장공간 사용율 Top</div>
-					<div class="list">
-						<ul id="storageRate"></ul>
-					</div>
-				</section>
+				
+			<div class="layout">
+				<ul>
+					<li class="list_item">
+						<ul class="simple">
+							<li>
+							<li>
+							<li>
+						</ul>
+				</ul>
 			</div>
-			
-			<div class="top">
-				<section>
-					<div class="title green">통신 에러 Top</div>
-					<div class="list">
-						<ul id="throughputErr"></ul>
-					</div>
-				</section>
-				<section>
-					<div class="title green">통신 사용량 Top</div>
-					<div class="list">
-						<ul id="throughput"></ul>
-					</div>
-				</section>
-				<section>
-					<div class="title green">통신 사용율 Top</div>
-					<div class="list">
-						<ul id="throughputRate"></ul>
-					</div>
-				</section>
-			</div>
-		</article>
-		
-		<div class="extra">
-			<div class="title">이벤트</div>
-			<iframe src="event_extra.html" id="event" width="100%" height="100%"></iframe>
-			<div class="title">구성도</div>
-			<iframe src="map_extra.html" id="map" width="100%" height="100%"></iframe>
-		</div>
-			
-		<div class="layout">
-			<ul>
-				<li class="list_item">
-					<ul class="simple">
-						<li>
-						<li>
-						<li>
-					</ul>
-			</ul>
 		</div>
 		
 		<div class="bg_loading"></div>
@@ -649,32 +593,19 @@ var summaryList = document.getElementById("summary_list"),
 	throughput = document.getElementById("throughput"),
 	throughputRate = document.getElementById("throughputRate"),
 	throughputErr = document.getElementById("throughputErr"),
-	updateTime = document.getElementById("update"),
 	connections = document.getElementById("connections"),
 	java = document.getElementById("java"),
 	space = document.getElementById("space");
-
-initStats();
 
 update();
 
 document.getElementById("counter").addEventListener("animationiteration", update);
 
-document.getElementById("version").textContent = sessionStorage.version;
-
-document.querySelector("input[name=option][value=name]").onclick = function () {
-	document.body.classList.add("name");
-};
-
-document.querySelector("input[name=option][value=address]").onclick = function () {
-	document.body.classList.remove("name");
+document.querySelector("select[name=option]").onchange = function () {
+	document.body.classList[this.value == "name"? "add": "remove"]("name");
 };
 
 document.body.classList.remove("loading");
-
-setTimeout(function () {
-	summaryList.classList.add("initialized");
-}, 500);
 
 		</script>
 	
