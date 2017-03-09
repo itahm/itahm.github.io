@@ -109,7 +109,7 @@ input[name="password"] {
 					<p>Agent address</p>
 					<div class="flex">
 						<div>
-							<input type="text" name="host" placeholder="IP address" required>
+							<input type="text" name="host" value="127.0.0.1" placeholder="IP address" required>
 						</div>
 						<div>
 							<input type="text" name="port" value="2014" placeholder="TCP port" required>
@@ -118,12 +118,12 @@ input[name="password"] {
 				</div>
 				<div id="account">
 					<p>Username</p>
-					<input type="text" name="username" required>
+					<input type="text" name="username" value="root" required>
 					<p id="comment"></p>
 				</div>
 				<div>
 					<p>Password</p>
-					<input type="password" name="password" required>
+					<input type="password" name="password" value="root" required>
 				</div>
 				<input type="submit" value="Connect">
 			</form>
