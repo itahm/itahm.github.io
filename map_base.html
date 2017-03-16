@@ -328,12 +328,16 @@ function moveLine(x, y, data, direct) {
 
 function addDevice(ip) {
 	var device = window.deviceData[ip],
-		pos = window.posData[ip],
+		pos = window.posData[ip] || {x: 0, y: 0},
 		svgDevice = document.createElementNS(svgNS, "image"),
 		svgLabel = document.createElementNS(svgNS, "text"),
 		svgAddr = document.createElementNS(svgNS, "tspan"),
 		svgName = document.createElementNS(svgNS, "tspan");
-
+	
+	if (!pos) {
+		window.posData[ip] = pos = {x: 0, y: 0};
+	}
+	
 	svgDevice.setAttributeNS(null, "x", pos.x);
 	svgDevice.setAttributeNS(null, "y", pos.y);
 	svgDevice.setAttributeNS(null, "width", "40px");
