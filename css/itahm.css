@@ -43,9 +43,11 @@ body:not(.loading) .bg_loading {
 	cursor: not-allowed;
 }
 
+
 .bg_loading {
 	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
-	background: #fafafa url("/img/waiting.gif") no-repeat center;
+	background: #fafafa url("/img/loading.gif") no-repeat center;
+	background-size: 32px 32px;
 }
 
 .r_button {

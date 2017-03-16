@@ -12,13 +12,20 @@
 
 header {
 	position: fixed; top: 0; right: 0; left: 0; height: 60px;
-	display: flex;
-	justify-content: center;
-	background-color: #4d525a;/*#0084ff*/
-	color: #fff;
-	/*font-weight: bold;*/
 }
 
+.header {
+	background-color: #4d525a;
+	color: #fff;
+	height: 100%;
+	display: flex;
+	justify-content: center;
+}
+/*
+header:not(:hover) .header {
+	display: none;
+}
+*/
 header a,
 header a:visited,
 header a:link,
@@ -145,26 +152,6 @@ body:not(.dialog) #dialog {
 	
 	<body>
 		
-		<header>
-			<nav class="content_width">
-				<ul>
-					<li><h1><a href="dashboard.html" target="main">대쉬보드</a></h1>
-					<li><h1><a href="list.html" target="main">장비목록</a></h1>
-					<li><h1><a href="map.html" target="main">구성도</a></h1>
-					<li><h1><a href="ip.html" target="main">IP주소</a></h1>
-					<li><h1><a href="event.html" target="main">이벤트</a></h1>
-					<!--li><h1><a href="syslog.html" target="main">시스로그</a></h1-->
-				</ul>
-				<ul>
-					<li><a id="signout"></a>
-					<li><a href="setting.html" target="main">설정</a>
-					<li><a href="icon.html" target="main">아이콘</a>
-					<li><a id="message">메세지</a>
-					<li><a id="reload">재시작</a>
-				</ul>
-			</nav>
-		</header>
-		
 		<section>
 			<iframe id="frame" name="main"></iframe>
 		</section>		
@@ -175,6 +162,28 @@ body:not(.dialog) #dialog {
 			<span id="count">99</span>
 			<span id="log">message</span>
 		</div>
+		
+		<header>
+			<div class="header">
+				<nav class="content_width">
+					<ul>
+						<li><h1><a href="dashboard.html" target="main">대쉬보드</a></h1>
+						<li><h1><a href="list.html" target="main">장비목록</a></h1>
+						<li><h1><a href="map.html" target="main">구성도</a></h1>
+						<li><h1><a href="ip.html" target="main">IP주소</a></h1>
+						<li><h1><a href="event.html" target="main">이벤트</a></h1>
+						<!--li><h1><a href="syslog.html" target="main">시스로그</a></h1-->
+					</ul>
+					<ul>
+						<li><a id="signout"></a>
+						<li><a href="setting.html" target="main">설정</a>
+						<li><a href="icon.html" target="main">아이콘</a>
+						<li><a id="message">메세지</a>
+						<li><a id="reload">재시작</a>
+					</ul>
+				</nav>
+			</div>
+		</header>
 		
 		<script src="js/ITAhM.js"></script>
 		<script src="js/object.js"></script>

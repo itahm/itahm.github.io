@@ -77,7 +77,8 @@ footer input {
 	flex: 1;
 }
 
-body:not(.removable) .remove {
+body:not(.removable) .remove,
+body:not(.warning) .warning {
 	display: none;
 }
 
@@ -139,6 +140,7 @@ body:not(.removable) .remove {
 					</ul>
 				</div>
 				<label class="remove"><input type="checkbox" name="remove" disabled>remove</label>
+				<i class="warning">사용중인 프로파일은 삭제할 수 없습니다.</i>
 				<footer>
 					<input type="reset" class="r_button" value="cancel">
 					<input type="submit" class="r_button" value="apply" disabled>
@@ -323,6 +325,9 @@ function initialize(name) {
 		
 		if (isIdleProfile(name)){
 			document.body.classList.add("removable");
+		}
+		else {
+			document.body.classList.add("warning");
 		}
 		
 		document.querySelector("input[type=submit]").disabled = true;
