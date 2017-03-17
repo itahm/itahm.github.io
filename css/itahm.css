@@ -46,7 +46,7 @@ body:not(.loading) .bg_loading {
 
 .bg_loading {
 	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
-	background: #fafafa url("/img/loading.gif") no-repeat center;
+	background: #4d525a url("/img/loading.gif") no-repeat center;
 	background-size: 32px 32px;
 }
 

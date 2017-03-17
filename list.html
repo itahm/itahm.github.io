@@ -29,6 +29,7 @@ form {
 
 #list {
 	flex: 1;
+	background-color: #fff;
 	overflow: auto;
 }
 
@@ -37,10 +38,6 @@ nav {
 	background-color: #0084ff;
 	color: #fff;
 	font-weight: bold;
-}
-
-nav li {
-	
 }
 
 nav li:nth-child(2),
@@ -166,7 +163,9 @@ function initList() {
 	
 	list.appendChild(df);
 	
-	document.body.classList.remove("loading");
+	window.setTimeout(function () {
+		document.body.classList.remove("loading");
+	}, 1000);
 }
 
 function createRow(device, monitor, critical) {

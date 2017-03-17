@@ -10,8 +10,15 @@
 @import "css/itahm.css";
 
 body {
-	padding: 10px;
+	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
+}
+
+.main {
 	margin: 0 auto;
+	padding: 10px;
+	height: 100%;
+	background-color: #fafafa;
+	overflow: auto;
 }
 
 ul {
@@ -142,48 +149,48 @@ function initConfig() {
 		</script>
 	</head>
 	
-	<body class="loading content_width">
-		
-		<div class="common">
-			<h2>일반</h2>
-				<ul>
-					<li>자바 버전 : <span id="java"></span>
-					<li>에이전트 버전 : <span id="version"></span>
-					<li>에이전트 저장공간 여유 : <span id="space"></span>
-					<li>
-						<form id=clean>
-							데이터 보관 기간 : <input type="number" min="0" max="365" name="clean"> 일 <input type="submit" value="적용">
-							<i>(데이터 정리 기능을 사용하지 않는 경우 0)</i>
-						</form>
-				</ul>
-		</div>
-		
-		<div>
-			<h2>계정 <img width="16" height="16" src="img/plus.png" title="계정 추가" id="add_account"></h2>
-			<ul id="account_list" class="list"></ul>
-		</div>
-		
-		<div>
-			<h2>프로파일 <img width="16" height="16" src="img/plus.png" title="프로파일 추가" id="add_profile"></h2>
-			<ul id="profile_list" class="list"></ul>
-			<i>등록된 Profile은 변경할 수 없습니다. 삭제후 추가하십시오. (사용중인 Profile은 삭제할 수 없습니다.)</i>
-		</div>
-		
-		<div>
-			<h2>이벤트 알림 <img width="16" height="16" src="img/plus.png" title="알림 추가" id="add_gcm"></h2>
-			<ul id="gcm_list" class="list"></ul>
-		</div>
+	<body class="loading">
+		<div class="main content_width">
+			<div class="common">
+				<h2>일반</h2>
+					<ul>
+						<li>자바 버전 : <span id="java"></span>
+						<li>에이전트 버전 : <span id="version"></span>
+						<li>에이전트 저장공간 여유 : <span id="space"></span>
+						<li>
+							<form id=clean>
+								데이터 보관 기간 : <input type="number" min="0" max="365" name="clean"> 일 <input type="submit" value="적용">
+								<i>(데이터 정리 기능을 사용하지 않는 경우 0)</i>
+							</form>
+					</ul>
+			</div>
 			
-		<div class="bg_loading"></div>
-		
-		<div class="layout">
-			<ul>
-				<li class="item">
-					<img width="16" height="16">
-					<span></span>
-			</ul>
+			<div>
+				<h2>계정 <img width="16" height="16" src="img/plus.png" title="계정 추가" id="add_account"></h2>
+				<ul id="account_list" class="list"></ul>
+			</div>
+			
+			<div>
+				<h2>프로파일 <img width="16" height="16" src="img/plus.png" title="프로파일 추가" id="add_profile"></h2>
+				<ul id="profile_list" class="list"></ul>
+				<i>등록된 Profile은 변경할 수 없습니다. 삭제후 추가하십시오. (사용중인 Profile은 삭제할 수 없습니다.)</i>
+			</div>
+			
+			<div>
+				<h2>이벤트 알림 <img width="16" height="16" src="img/plus.png" title="알림 추가" id="add_gcm"></h2>
+				<ul id="gcm_list" class="list"></ul>
+			</div>
+				
+			<div class="bg_loading"></div>
+			
+			<div class="layout">
+				<ul>
+					<li class="item">
+						<img width="16" height="16">
+						<span></span>
+				</ul>
+			</div>
 		</div>
-		
 		<script src="js/ITAhM.js"></script>
 		<script>
 if (top === window) {

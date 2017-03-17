@@ -12,7 +12,10 @@
 body {
 	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
 	margin: 0; padding: 0;
-	background-color: #fff/*rgba(77, 82, 90, .2)*//*#4d525a*/;
+}
+
+.bg_loading {
+	background-color: #4d525a;
 }
 
 iframe {
@@ -43,11 +46,13 @@ nav img {
 
 nav {
 	font-size: 9pt;
+	color: #fff;
 }
 
 #display {
 	border: none;
 	outline: none;
+	color: #fff;
 	background-color: transparent;
 }
 
@@ -197,9 +202,7 @@ window.map.onload = function () {
 		mapWindow.selectDevice(ip);
 	}
 	
-	window.setTimeout(function () {
-		document.body.classList.remove("loading");
-	}, 1000);
+	document.body.classList.remove("loading");
 }
 
 		</script>

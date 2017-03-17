@@ -41,6 +41,7 @@ aside {
 	width: 400px;
 	display: flex;
 	flex-direction: column;
+	text-shadow: 1px 1px 1px #000;
 }
 
 aside> div:first-child {
@@ -134,8 +135,10 @@ ul {
 
 .summary li {
 	flex: 1;
-	padding: .5em;
-	text-align: center;
+	padding: 3px;
+	display: flex;
+	justify-content: center;
+	align-items: center;
 }
 
 .summary:first-child,
@@ -143,7 +146,12 @@ ul {
 	font-weight: bold;
 }
 
+.summary.head {
+	margin-bottom: 1em; 
+}
+
 .summary.head li {
+	padding: .5em;
 	border-radius: 10px 10px 0 0;
 }
 
@@ -153,6 +161,14 @@ ul {
 
 .summary.head li:nth-child(2) {
 	background-color: #f00;
+}
+
+.summary.head li:nth-child(3) {
+	background-color: #fc0;
+}
+
+.summary.head li:nth-child(4) {
+	background-color: #0f0;
 }
 
 .summary:not(.head) li:not(:first-child)::after {
@@ -177,14 +193,6 @@ ul {
 
 .summary:not(.head) li:nth-child(4)::after {
 	background: linear-gradient(to top,  hsla(120, 75%, 50%, 1) 0%, hsla(120, 75%, 30%,1) 99%);
-}	
-	
-.summary.head li:nth-child(3) {
-	background-color: #fc0;
-}
-
-.summary.head li:nth-child(4) {
-	background-color: #0f0;
 }
 
 .list_item ul {
@@ -626,8 +634,8 @@ function onEvent(ip) {
 					<div class="statistic">
 						<ul class="summary head">
 							<li>구분
-							<li>임계 초과
 							<li>응답 없음
+							<li>임계 초과
 							<li>정상
 							<!-- <li>합계 -->
 						</ul>
