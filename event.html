@@ -202,6 +202,8 @@ function sendRequest(mills) {
 		
 		document.getElementById("count").textContent = count;
 		
+		date.textContent = getDateString(mills);
+		
 		window.setTimeout(function () {
 			document.body.classList.remove("loading");
 		}, 1000);
