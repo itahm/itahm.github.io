@@ -14,9 +14,10 @@ body {
 }
 
 .main {
-	margin: 0 auto;
-	padding: 10px;
-	height: 100%;
+	margin: auto;
+	padding: 1em;
+	height: 99%;
+	box-sizing: border-box;
 	background-color: #fafafa;
 	overflow: auto;
 }
@@ -61,7 +62,28 @@ img[src="img/plus.png"]:hover {
 	background-color: #fdfdfd;
 }
 
-form input {
+#resources li {
+	overflow: hidden;
+}
+
+#resources li:not(:first-child):hover::after {
+	content: "";
+	border: .5em solid transparent;
+	border-bottom-color: #0084ff;
+	display: inline-block;
+	
+}
+
+#resources li:not(:first-child):hover {
+	cursor: default;
+}
+
+#resources input[type=checkbox] {
+	vertical-align: middle;
+}
+
+form input,
+form select {
 	padding: 3px;
 }
 
@@ -70,7 +92,7 @@ input[name="clean"] {
 	text-align: right;
 }
 
-.common li {
+#common li {
 	margin: .5em 0;
 }
 
@@ -135,51 +157,101 @@ function createItem(src, key, func) {
 }
 
 function initConfig() {
-	top.sendRequest({
-		command: "pull",
-		database: "config"
-	}, function (response) {
-		document.querySelector("input[name=clean]").value = response.clean;
-		document.getElementById("java").textContent = response.java;
-		document.getElementById("version").textContent = response.version;
-		document.getElementById("space").textContent = ITAhM.util.toBytesString(response.space);
-	});
-}
+	var configData = top.databases.config;
+	
+	document.querySelector("input[name=clean]").value = configData.clean;
+	document.querySelector("select[name=display]").value = configData.display || "name";
+	document.getElementById("java").textContent = configData.java;
+	document.getElementById("version").textContent = configData.version;
+	document.getElementById("space").textContent = ITAhM.util.toBytesString(configData.space);
+	
+	if ("dashboard" in configData) {
+		var resources = configData.dashboard,
+			orders = [].sort.call(Object.keys(resources), function (a, b) {
+				return parseInt(b) - parseInt(a);
+			}), resource;
 		
+		for (var i=0, _i=orders.length; i<_i; i++) {
+			resource = resources[orders[i]];
+			
+			window.resources.insertBefore(window.resources.querySelector("li[data-value="+ resource +"]"), window.resources.firstElementChild);
+			window.resources.querySelector("input[name="+ resource +"]").checked = true;
+		}
+	}
+	else {
+		[].forEach.call(window.resources.querySelectorAll("input[type=checkbox]"), function (resource) {
+			resource.checked = true;
+		});
+	}
+}
+
+function initialize() {
+	initConfig();
+	initAccount();
+	initProfile();
+	initGCM();
+	
+	document.body.classList.remove("loading");
+}
+
 		</script>
 	</head>
 	
 	<body class="loading">
 		<div class="main content_width">
-			<div class="common">
+			<form id="common">
 				<h2>일반</h2>
-					<ul>
-						<li>자바 버전 : <span id="java"></span>
-						<li>에이전트 버전 : <span id="version"></span>
-						<li>에이전트 저장공간 여유 : <span id="space"></span>
-						<li>
-							<form id=clean>
-								데이터 보관 기간 : <input type="number" min="0" max="365" name="clean"> 일 <input type="submit" value="적용">
-								<i>(데이터 정리 기능을 사용하지 않는 경우 0)</i>
-							</form>
-					</ul>
-			</div>
-			
-			<div>
-				<h2>계정 <img width="16" height="16" src="img/plus.png" title="계정 추가" id="add_account"></h2>
+				<ul>
+					<li>자바 버전 : <span id="java"></span>
+					<li>에이전트 버전 : <span id="version"></span>
+					<li>에이전트 저장공간 여유 : <span id="space"></span>
+					<li>
+						데이터 보관 기간 : <input type="number" min="0" max="365" name="clean"> 일 <input type="submit" value="적용" disabled>
+						<i>(데이터 정리 기능을 사용하지 않는 경우 0)</i>
+				</ul>
+			</form>
+			<form id="display">
+				<h2>장비 표시</h2>
+				<ul>
+					<li>
+						<select name="display">
+							<option value="name" selected>장비명
+							<option value="address">IP 주소
+						</select>
+						<input type="submit" value="적용" disabled>
+				</ul>
+			</form>
+			<form id="dashboard">
+				<h2>대쉬보드</h2>
+				<ul id="resources">
+					<li data-value="responseTime"><input type="checkbox" name="responseTime">응답속도
+					<li data-value="processor"><input type="checkbox" name="processor">프로세서 로드
+					<li data-value="memory"><input type="checkbox" name="memory">메모리 사용량
+					<li data-value="memoryRate"><input type="checkbox" name="memoryRate">메모리 사용율
+					<li data-value="storage"><input type="checkbox" name="storage">스토리지 사용량
+					<li data-value="storageRate"><input type="checkbox" name="storageRate">스토리지 사용율
+					<li data-value="throughput"><input type="checkbox" name="throughput">통신 사용량
+					<li data-value="throughputRate"><input type="checkbox" name="throughputRate">통신 사용율
+					<li data-value="throughputErr"><input type="checkbox" name="throughputErr">통신 오류
+					<li data-value="failureRate"><input type="checkbox" name="failureRate">snmp 오류
+				</ul>
+				<input type="submit" value="적용" disabled>
+			</form>
+			<form id="account">
+				<h2>계정 <input type="image" src="img/plus.png" title="계정 추가" disabled></h2>
 				<ul id="account_list" class="list"></ul>
-			</div>
+			</form>
 			
-			<div>
-				<h2>프로파일 <img width="16" height="16" src="img/plus.png" title="프로파일 추가" id="add_profile"></h2>
+			<form id="profile">
+				<h2>프로파일 <input type="image" src="img/plus.png" title="프로파일 추가" disabled></h2>
 				<ul id="profile_list" class="list"></ul>
 				<i>등록된 Profile은 변경할 수 없습니다. 삭제후 추가하십시오. (사용중인 Profile은 삭제할 수 없습니다.)</i>
-			</div>
+			</form>
 			
-			<div>
-				<h2>이벤트 알림 <img width="16" height="16" src="img/plus.png" title="알림 추가" id="add_gcm"></h2>
+			<form id="gcm">
+				<h2>이벤트 알림 <input type="image" src="img/plus.png" title="알림 추가" disabled></h2>
 				<ul id="gcm_list" class="list"></ul>
-			</div>
+			</form>
 				
 			<div class="bg_loading"></div>
 			
@@ -193,50 +265,132 @@ function initConfig() {
 		</div>
 		<script src="js/ITAhM.js"></script>
 		<script>
+		
 if (top === window) {
 	location.href = "http://itahm.com";
 }
 
+var resources = document.getElementById("resources");
+
+if (sessionStorage.level == 0) {
+	[].forEach.call(document.querySelectorAll("input[type=submit], input[type=image]"), function (input) {
+		input.disabled = false;
+	});
+}
+
 var listItem = document.querySelector(".item");
 
-document.getElementById("add_account").onclick = function () {
+document.getElementById("account").onsubmit = function (e) {
+	e.preventDefault();
+	
 	onSelectAccount();
 };
 
-document.getElementById("add_profile").onclick = function () {
+document.getElementById("profile").onsubmit = function (e) {
+	e.preventDefault();
+	
 	onSelectProfile();
 };
 
-document.getElementById("add_gcm").onclick = function () {
+document.getElementById("gcm").onsubmit = function (e) {
+	e.preventDefault();
+	
 	onSelectGCM();
 };
 
-document.getElementById("clean").onsubmit = function (e) {
+document.getElementById("profile").onsubmit = function (e) {
+	e.preventDefault();
+	
+	onSelectProfile();
+};
+
+document.getElementById("common").onsubmit = function (e) {
 	e.preventDefault();
 	
 	document.body.classList.add("loading");
 	
+	var clean = parseInt(this.elements["clean"].value);
+	
 	top.sendRequest({
 		command: "config",
 		key: "clean",
-		value: parseInt(this.elements["clean"].value)
+		value: clean
 	}, function (response) {
 		document.body.classList.remove("loading");
+		
+		top.databases.config.clean = clean;
 		
 		alert("데이터 보관 기간을 설정하였습니다.");
 	});
 	
 };
 
-initConfig();
+document.getElementById("display").onsubmit = function (e) {
+	e.preventDefault();
+	
+	document.body.classList.add("loading");
+	
+	var display = this.elements["display"].value;
+	
+	top.sendRequest({
+		command: "config",
+		key: "display",
+		value: display
+	}, function (response) {
+		document.body.classList.remove("loading");
+		
+		top.databases.config.display = display;
+		
+		alert("장비 표시 방식을 변경하였습니다.");
+	});
+	
+};
 
-initAccount();
+document.getElementById("dashboard").onsubmit = function (e) {
+	e.preventDefault();
+	
+	var elements = window.resources.children,
+		li
+		resources = {};
+	
+	for (var i=0, _i=elements.length; i<_i; i++) {
+		li = elements[i];
+		
+		if (li.querySelector("input:checked")) {
+			resources[i.toString()] = elements[i].dataset.value;
+		}
+	}
+	
+	if (Object.keys(resources).length == 0 && !confirm("선택한 리소스가 없습니다.\n대쉬보드에 리소스 정보를 표시하지 않겠습니까?")) {
+		return;
+	}
+	
+	document.body.classList.add("loading");
+	
+	top.sendRequest({
+		command: "config",
+		key: "dashboard",
+		value: resources
+	}, function (response) {
+		document.body.classList.remove("loading");
+		
+		top.databases.config.dashboard = resources;
+		
+		alert("대쉬보드 리소스 정보를 변경하였습니다.");
+	});
+};
 
-initProfile();
+window.resources.onclick = function (e) {
+	var li = e.target, ul;
+	
+	if (li.nodeName.toLowerCase() !== "li" || !li.previousElementSibling) {
+		return;
+	}
+	
+	li.parentNode.insertBefore(li, li.previousElementSibling);
+};
 
-initGCM();
-
-document.body.classList.remove("loading");
+initialize();
 
 		</script>
 	

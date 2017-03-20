@@ -12,7 +12,7 @@ body  {
 .content_width {
 	width: 768px;
 }
-
+/*
 @media (max-width: 319px) {
 }
 
@@ -30,7 +30,7 @@ body  {
 		width: 1024px;
 	}
 }
-
+*/
 .rounded {
 	border-radius: 5px 5px 5px 5px;
 }

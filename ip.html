@@ -28,16 +28,16 @@ body {
 
 .network {
 	position: relative;
-	border-radius: 2em;
-	/*background-color: #0084ff;*/
-	margin: 3px 0;
 }
 
-.network p {
+.network h4 {
+	font-size: 16px;
 	margin: 0;
-	padding: .5em 3em;
+	padding: 10px 30px;
 	background-color: #0084ff;
-	border-radius: .5em;
+	color: #fff;
+	text-shadow: 1px 1px 1px #8a2be2;
+	border-bottom: 1px solid #ddd;
 }
 
 .network input[type="checkbox"] {
@@ -187,7 +187,7 @@ top.sendRequest({
 	for (var network in data) {
 		item = document.createElement("li");
 		
-		item.appendChild(document.createElement("p")).textContent = network +" /"+ getMask(data[network]);
+		item.appendChild(document.createElement("h4")).textContent = network +" /"+ getMask(data[network]);
 		//item.id = network +" /"+ getMask(data[network]);
 		item.className = "network";
 		

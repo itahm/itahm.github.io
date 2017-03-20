@@ -49,13 +49,6 @@ nav {
 	color: #fff;
 }
 
-#display {
-	border: none;
-	outline: none;
-	color: #fff;
-	background-color: transparent;
-}
-
 body:not(.root) .root {
 	display: none;
 }
@@ -117,10 +110,6 @@ function onSetAlarm(ip){
 		
 		<nav class="right">	
 			<label title="인터페이스명 표시/감추기"><input type="checkbox" id="ifname" checked>interface</label>
-			<select id="display">
-				<option value="name" selected>장치명
-				<option value="address">IP주소
-			</select>
 		</nav>
 				
 		<div class="bg_loading"></div>
@@ -164,10 +153,6 @@ window.map.onload = function () {
 	document.getElementById("print").onclick = function () {
 		mapWindow.print();
 	}
-	
-	document.getElementById("display").onchange = function () {
-		mapWindow.displayIPAddress(this.value === "address"? true: false);
-	};
 	
 	document.getElementById("ifname").onchange = function () {
 		mapWindow.displayIFName(this.checked);

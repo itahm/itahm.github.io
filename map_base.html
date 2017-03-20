@@ -599,10 +599,6 @@ function onLink(ip, e) {
 		});
 }
 
-function displayIPAddress(show) {
-	document.body.classList[show? "remove": "add"]("name");
-}
-
 function displayIFName(show) {
 	document.body.classList[show? "add": "remove"]("ifname");
 }
@@ -676,7 +672,7 @@ function onShowAlarm(ip) {
 		<script src="js/ITAhM.js"></script>
 		<script src="js/Draggable.js"></script>
 		<script>
-console.log("updated4");
+
 if (sessionStorage.level == 0) {
 	document.body.classList.add("root");
 }
@@ -742,6 +738,10 @@ editAnchor.onclick = function (e) {
 resize();
 
 clearSelectionMark();
+
+if ("display" in top.databases.config) {
+	document.body.classList[top.databases.config.display == "name"? "add": "remove"]("name");
+}
 
 document.body.classList.remove("loading");
 
