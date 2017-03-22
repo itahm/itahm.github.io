@@ -722,29 +722,31 @@ var summaryList = document.getElementById("summary_list"),
 	alert = document.getElementById("alert"),
 	critical = document.getElementById("critical"),
 	normal = document.getElementById("normal"),
-	title = {
-		responseTime: "응답시간",
-		memory: "메모리 사용량",
-		memoryRate: "메모리 사용율(%)",
-		processor: "프로세서 로드",
-		storage: "저장공간 사용량",
-		storageRate: "저장공간 사용율(%)",
-		failureRate: "SNMP 오류",
-		throughput: "통신 사용량",
-		throughputRate: "통신 사용율(%)",
-		throughputErr: "통신 오류"
-	},
-	toString = {
-		responseTime: toMillsString,
-		memory: ITAhM.util.toBytesString,
-		memoryRate: toPercentageString,
-		processor: toPercentageString,
-		storage: ITAhM.util.toBytesString,
-		storageRate: toPercentageString,
-		failureRate: toPercentageString,
-		throughput: ITAhM.util.toBPSString,
-		throughputRate: toPercentageString,
-		throughputErr: toErrorString
+	resources = {
+		title: {
+			responseTime: "응답시간",
+			memory: "메모리 사용량",
+			memoryRate: "메모리 사용율(%)",
+			processor: "프로세서 로드",
+			storage: "저장공간 사용량",
+			storageRate: "저장공간 사용율(%)",
+			failureRate: "SNMP 오류",
+			throughput: "통신 사용량",
+			throughputRate: "통신 사용율(%)",
+			throughputErr: "통신 오류"
+		},
+		toString: {
+			responseTime: toMillsString,
+			memory: ITAhM.util.toBytesString,
+			memoryRate: toPercentageString,
+			processor: toPercentageString,
+			storage: ITAhM.util.toBytesString,
+			storageRate: toPercentageString,
+			failureRate: toPercentageString,
+			throughput: ITAhM.util.toBPSString,
+			throughputRate: toPercentageString,
+			throughputErr: toErrorString
+		}
 	};
 
 document.getElementById("counter").addEventListener("animationiteration", update);

@@ -7,6 +7,10 @@
 		<style>
 @import "css/itahm.css";
 
+body {
+	color: #fff;
+}
+
 article {
 	page-break-inside: avoid;
 }
@@ -23,13 +27,13 @@ h2 {
 .resource,
 .information {
 	padding: 5px;
-	border: 1px solid #0084ff;
+	border: 3px solid #0084ff;
 	border-radius: 5px;
 	margin: 5px;
 }
 
 .resource:hover {
-	background-color: rgba(0, 132, 255, .1);
+	background-color: #777;
 	cursor: pointer;
 }
 
@@ -189,7 +193,7 @@ ul {
 }
 
 .i_face_item:not(.no_select) li:last-child:hover {
-	background-color: rgba(0, 132, 255, .2);
+	background-color: #555;
 }
 
 .i_face_item li:last-child div{
@@ -308,7 +312,12 @@ label.filter {
 }
 
 @media print {
-	label.filter {
+	body {
+		color: #000;
+	}
+	
+	label.filter,
+	#reset {
 		display: none;
 	}
 }

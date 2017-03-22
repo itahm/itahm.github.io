@@ -15,6 +15,7 @@ body {
 	margin: 0; padding: 0;
 	display: flex;
 	flex-direction: column;
+	color: #fff;
 }
 
 header {
@@ -23,8 +24,8 @@ header {
 
 #chart {
 	border: none;
-	width: 100%; height: 100%;
 	flex: 1;
+	margin: 3px 0;
 }
 
 nav {
@@ -49,8 +50,8 @@ footer {
 	position: relative;
 	margin: 0 16px;
 	background-color: rgba(99, 99, 99, .1);
-	border: solid #999;
-	border-width: 1px 0;
+	/*border: solid #999;
+	border-width: 1px 0;*/
 }
 
 footer >div {
@@ -72,7 +73,7 @@ footer .dot::after {
 	content: "";
 	position: absolute; top: 0; left: 0;
 	transform: translateX(-50%) translateY(-50%);
-	border: 2px solid #777;
+	border: 2px solid #ddd;
 	border-radius: 50%;
 }
 
@@ -89,6 +90,8 @@ footer #selector {
 	position: absolute;	top: 0; right: 0; bottom: 0; left: 0;
 	border : double #999;
 	border-width: 0 5px;
+	background-color: #777;
+	box-shadow: 0 0 10px #000 inset
 }
 
 footer .label {
@@ -342,7 +345,7 @@ function reload(start, end) {
 			</nav>
 		</header>
 		
-		<iframe id="chart" class="chart"></iframe>
+		<iframe id="chart" width="100%" height="100%"></iframe>
 		
 		<footer>
 			<div id="grid"></div>
