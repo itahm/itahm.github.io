@@ -89,7 +89,7 @@ article {
 }
 
 .extra >div:last-child {
-	height: 300px;
+	height: 200px;
 }
 
 aside .statistic {
@@ -441,7 +441,7 @@ function initialize() {
 		}
 	}
 	else {
-		for (var id in window.title) {
+		for (var id in window.resources) {
 			df.appendChild(createTopList(id));
 		}
 	}
@@ -457,7 +457,7 @@ function createTopList(resource) {
 	var section = document.createElement("section"),
 		list = document.createElement("ul");
 
-	section.appendChild(document.createElement("div")).textContent = window.title[resource];
+	section.appendChild(document.createElement("div")).textContent = window.resources[resource].title;
 	section.appendChild(list).className = "list";
 	
 	window.topList[resource] = list;
@@ -479,7 +479,7 @@ function update() {
 			list = window.topList[resource];
 			
 			if (resource in response) {
-				setTop(response[resource], list, window.toString[resource]);
+				setTop(response[resource], list, window.resources[resource].toString, window.resources[resource].skipZero);
 			}
 		}
 	
@@ -591,7 +591,7 @@ function getTime() {
 	return (h > 9? "": "0") + h +" : "+ (m > 9? "": "0") + m +" : "+ (s > 9? "": "0") + s;
 }
 
-function setTop(top, list, toString) {
+function setTop(top, list, toString, skipZero) {
 	var ipList = Object.keys(top).sort(function (a, b) {
 			return top[b] - top[a];
 		}),
@@ -602,7 +602,9 @@ function setTop(top, list, toString) {
 	for (var i=0, length=ipList.length; i< length; i++) {
 		ip = ipList[i];
 		
-		list.appendChild(createTopItem(ip, toString(top[ip])));
+		if (top[ip] || !skipZero) {
+			list.appendChild(createTopItem(ip, toString(top[ip])));
+		}
 	}
 }
 
@@ -723,29 +725,47 @@ var summaryList = document.getElementById("summary_list"),
 	critical = document.getElementById("critical"),
 	normal = document.getElementById("normal"),
 	resources = {
-		title: {
-			responseTime: "응답시간",
-			memory: "메모리 사용량",
-			memoryRate: "메모리 사용율(%)",
-			processor: "프로세서 로드",
-			storage: "저장공간 사용량",
-			storageRate: "저장공간 사용율(%)",
-			failureRate: "SNMP 오류",
-			throughput: "통신 사용량",
-			throughputRate: "통신 사용율(%)",
-			throughputErr: "통신 오류"
+		responseTime: {
+			title: "응답시간",
+			toString: toMillsString
 		},
-		toString: {
-			responseTime: toMillsString,
-			memory: ITAhM.util.toBytesString,
-			memoryRate: toPercentageString,
-			processor: toPercentageString,
-			storage: ITAhM.util.toBytesString,
-			storageRate: toPercentageString,
-			failureRate: toPercentageString,
-			throughput: ITAhM.util.toBPSString,
-			throughputRate: toPercentageString,
-			throughputErr: toErrorString
+		memory: {
+			title: "메모리 사용량",
+			toString: ITAhM.util.toBytesString
+		},
+		memoryRate: {
+			title: "메모리 사용율(%)",
+			toString: toPercentageString
+		},
+		processor: {
+			title: "프로세서 로드",
+			toString: toPercentageString
+		},
+		storage: {
+			title: "저장공간 사용량",
+			toString: ITAhM.util.toBytesString
+		},
+		storageRate: {
+			title: "저장공간 사용율(%)",
+			toString: toPercentageString
+		},
+		failureRate: {
+			title: "SNMP 오류",
+			toString: toPercentageString,
+			skipZero: true
+		},
+		throughput: {
+			title: "통신 사용량",
+			toString: ITAhM.util.toBPSString
+		},
+		throughputRate: {
+			title: "통신 사용율(%)",
+			toString: toPercentageString
+		},
+		throughputErr: {
+			title: "통신 오류",
+			toString: toErrorString,
+			skipZero: true
 		}
 	};
 
