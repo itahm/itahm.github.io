@@ -38,6 +38,7 @@ nav {
 	background-color: #0084ff;
 	color: #fff;
 	font-weight: bold;
+	text-align: center;
 }
 
 nav li:nth-child(2),
@@ -73,14 +74,26 @@ li {
 	border: 1px solid transparent;
 }
 
-li:first-child {
+li:nth-child(1) {
 	flex: none;
 	width: 3em;
 }
 
-ul.critical li:first-child {
-	background: transparent url("img/alarm.png") center no-repeat;
+#list li:nth-child(1) {
+	background: transparent url("img/ball_gray.png") center no-repeat;
 	background-size: 16px;
+}
+
+#list ul.shutdown li:nth-child(1) {
+	background-image: url("img/ball_red.png");
+}
+
+#list ul.critical li:nth-child(1) {
+	background-image: url("img/ball_orange.png");
+}
+
+#list ul.normal li:nth-child(1) {
+	background-image: url("img/ball_green.png");
 }
 
 li:nth-child(5),
@@ -94,13 +107,13 @@ li:nth-child(8) {
 	background-position: center;
 }
 
-#list ul:not(.snmp) {
+#list ul:not(.monitor) {
 	color: #999;
 }
 
 #list ul:hover li:nth-child(5) {
 	background-image: url("img/location.png");
-	cursor: pointer;
+	
 }
 
 #list ul:hover li:nth-child(6) {
@@ -109,6 +122,11 @@ li:nth-child(8) {
 }
 
 #list ul.snmp:hover li:nth-child(7) {
+	background-image: url("img/alarm_gray.png");
+	cursor: pointer;
+}
+
+#list ul.alarm:hover li:nth-child(7) {
 	background-image: url("img/alarm.png");
 	cursor: pointer;
 }
@@ -163,12 +181,10 @@ function initList() {
 	
 	list.appendChild(df);
 	
-	window.setTimeout(function () {
-		document.body.classList.remove("loading");
-	}, 1000);
+	document.body.classList.remove("loading");
 }
 
-function createRow(device, monitor, critical) {
+function createRow(device, monitor, set) {
 	var row = document.createElement("ul"),
 		location, alarm, edit, status, labels, label;
 	
@@ -207,17 +223,31 @@ function createRow(device, monitor, critical) {
 		window.labelData[NO_LABEL] = null;
 	}
 	
-	if (monitor && monitor.protocol === "snmp") {
-		row.classList.add("snmp");
+	if (monitor) {
+		row.classList.add("monitor");
 		
-		alarm.title = "장비의 성능 임계 설정";
-		alarm.onclick = onSetAlarm.bind(undefined, device.ip);
-		
-		status.title = "장비의 상태 보기";
-		status.onclick = onStatus.bind(undefined, device.ip);
-		
-		if (critical) {
+		if (monitor.protocol === "snmp") {
+			row.classList.add("snmp");
+			
+			alarm.title = "장비의 성능 임계 설정";
+			alarm.onclick = onSetAlarm.bind(undefined, device.ip);
+			
+			status.title = "장비의 상태 보기";
+			status.onclick = onStatus.bind(undefined, device.ip);
+			
+			if (set) {
+				row.classList.add("alarm");
+			}
+		}
+			
+		if (monitor.shutdown) {
+			row.classList.add("shutdown");
+		}
+		else if (monitor.critical) {
 			row.classList.add("critical");
+		}
+		else {
+			row.classList.add("normal");
 		}
 	}
 	

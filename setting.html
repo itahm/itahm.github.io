@@ -96,6 +96,13 @@ input[name="clean"] {
 	margin: .5em 0;
 }
 
+body:not(.gcm) #gcm input[type=image],
+body:not(.gcm) #gcm input[type=checkbox],
+body.gcm #gcm input[type=text],
+body.gcm #gcm input[type=submit] {
+	display: none;
+}
+
 		</style>
 		<script>
 		
@@ -191,6 +198,10 @@ function initialize() {
 	initProfile();
 	initGCM();
 	
+	if (top.databases.config.gcm !== null) {
+		document.body.classList.add("gcm");
+	}
+	
 	document.body.classList.remove("loading");
 }
 
@@ -249,7 +260,8 @@ function initialize() {
 			</form>
 			
 			<form id="gcm">
-				<h2>이벤트 알림 <input type="image" src="img/plus.png" title="알림 추가" disabled></h2>
+				<h2><input type="checkbox" name="disable" checked>이벤트 알림 <input type="image" src="img/plus.png" title="알림 추가" disabled></h2>
+				<input type="text" name="host"><input type="submit" value="적용">
 				<ul id="gcm_list" class="list"></ul>
 			</form>
 				
@@ -267,18 +279,20 @@ function initialize() {
 		<script>
 		
 if (top === window) {
-	location.href = "http://itahm.com";
+	throw "";
 }
 
-var resources = document.getElementById("resources");
+var resources = document.getElementById("resources"),
+	listItem = document.querySelector(".item"),
+	gcm = document.getElementById("gcm");
+	
+window.gcm.elements["host"].value = sessionStorage.host;
 
 if (sessionStorage.level == 0) {
 	[].forEach.call(document.querySelectorAll("input[type=submit], input[type=image]"), function (input) {
 		input.disabled = false;
 	});
 }
-
-var listItem = document.querySelector(".item");
 
 document.getElementById("account").onsubmit = function (e) {
 	e.preventDefault();
@@ -290,12 +304,6 @@ document.getElementById("profile").onsubmit = function (e) {
 	e.preventDefault();
 	
 	onSelectProfile();
-};
-
-document.getElementById("gcm").onsubmit = function (e) {
-	e.preventDefault();
-	
-	onSelectGCM();
 };
 
 document.getElementById("profile").onsubmit = function (e) {
@@ -321,8 +329,59 @@ document.getElementById("common").onsubmit = function (e) {
 		top.databases.config.clean = clean;
 		
 		alert("데이터 보관 기간을 설정하였습니다.");
+		
+		document.body.classList.add("gcm");
 	});
 	
+};
+
+window.gcm.elements["disable"].onclick = function (e) {
+	e.preventDefault();
+
+	if (confirm("구글 클라우드 메세징 서비스를 사용하지 않도록 설정합니다.")) {
+		top.sendRequest({
+			command: "config",
+			key: "gcm",
+			value: null
+		}, function (response) {
+			document.body.classList.remove("loading");
+			
+			top.databases.config.gcm = null;
+		
+			document.body.classList.remove("gcm");
+		});
+	}
+};
+
+window.gcm.onsubmit = function (e) {
+	e.preventDefault();
+	
+	if (document.body.classList.contains("gcm")) {
+		onSelectGCM();
+	}
+	else {
+		var host = this.elements["host"].value;
+	
+		if (host === "") {
+			return this.elements["host"].focus();
+		}
+		
+		document.body.classList.add("loading");
+		
+		top.sendRequest({
+			command: "config",
+			key: "gcm",
+			value: host
+		}, function (response) {
+			document.body.classList.remove("loading");
+			
+			top.databases.config.gcm = host;
+		
+			document.body.classList.add("gcm");
+			
+			alert("구글 클라우드 메세징 서비스를 사용하도록 설정하였습니다.");
+		});
+	}
 };
 
 document.getElementById("display").onsubmit = function (e) {

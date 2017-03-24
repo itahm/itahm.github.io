@@ -157,7 +157,6 @@ function onDragStart(e) {
 		target = data.target;
 	
 	if (window.selected) {
-		//var selectedSvgDevice = window.iconData[window.selected];
 		var pos = window.posData[window.selected];
 		
 		window.dragOrigin = {
@@ -165,9 +164,7 @@ function onDragStart(e) {
 			y: pos.y
 		};
 		
-		/*if (target === selectedSvgDevice) {
-		}
-		else*/ if (target === linkAnchor) {
+		if (target === linkAnchor) {
 			setLinkAnchor(window.dragOrigin.x, window.dragOrigin.y, window.dragOrigin.x, window.dragOrigin.y -34);
 		}
 	}
@@ -317,12 +314,12 @@ function moveLine(x, y, data, direct) {
 
 function addDevice(ip) {
 	var device = window.deviceData[ip],
-		pos = window.posData[ip] || {x: 0, y: 0},
+		pos = window.posData[ip],
 		svgDevice = document.createElementNS(svgNS, "image"),
 		svgLabel = document.createElementNS(svgNS, "text"),
 		svgAddr = document.createElementNS(svgNS, "tspan"),
 		svgName = document.createElementNS(svgNS, "tspan");
-	
+		
 	if (!pos) {
 		window.posData[ip] = pos = {x: 0, y: 0};
 	}
