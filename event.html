@@ -36,11 +36,21 @@ header {
 	flex-direction: column;
 }
 
-#calendar {
+header>nav {
 	position: absolute; top: 10px; right: 10px; 
+}
+
+#calendar {
+	position: absolute; top: 0; right: 0;
+	display: none;
 	background-color: #fff;
 	border: 1px solid #0084ff;
 	padding: 5px;
+}
+
+header>nav:hover> #calendar,
+#calendar:hover {
+	display: block;
 }
 
 ul {
@@ -130,7 +140,10 @@ ul {
 					<h1>이벤트 로그</h1>
 					<h2 id="date">Date</h2>
 				</div>
-				<div id="calendar"></div>
+				<nav>
+					<img src="img/calendar512.png" width="36" height="36">
+					<div id="calendar"></div>
+				</nav>
 			</header>
 			
 			<div class="log">
@@ -204,9 +217,7 @@ function sendRequest(mills) {
 		
 		date.textContent = getDateString(mills);
 		
-		window.setTimeout(function () {
-			document.body.classList.remove("loading");
-		}, 1000);
+		document.body.classList.remove("loading");
 	});
 }
 

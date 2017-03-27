@@ -99,7 +99,8 @@ input[name="clean"] {
 body:not(.gcm) #gcm input[type=image],
 body:not(.gcm) #gcm input[type=checkbox],
 body.gcm #gcm input[type=text],
-body.gcm #gcm input[type=submit] {
+body.gcm #gcm input[type=submit],
+body.gcm #gcm i {
 	display: none;
 }
 
@@ -198,7 +199,7 @@ function initialize() {
 	initProfile();
 	initGCM();
 	
-	if (top.databases.config.gcm !== null) {
+	if (top.databases.config.gcm !== undefined && top.databases.config.gcm !== null) {
 		document.body.classList.add("gcm");
 	}
 	
@@ -260,8 +261,9 @@ function initialize() {
 			</form>
 			
 			<form id="gcm">
-				<h2><input type="checkbox" name="disable" checked>이벤트 알림 <input type="image" src="img/plus.png" title="알림 추가" disabled></h2>
-				<input type="text" name="host"><input type="submit" value="적용">
+				<h2><input type="checkbox" name="disable" checked title="알림 중지">이벤트 알림 <input type="image" src="img/plus.png" title="알림 추가" disabled></h2>
+				<input type="text" name="host"><input type="submit" value="알림 허용">
+				<i>(알림에 표시할 에이전트 이름을 입력하십시오.)</i>
 				<ul id="gcm_list" class="list"></ul>
 			</form>
 				

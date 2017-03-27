@@ -729,16 +729,16 @@ var summaryList = document.getElementById("summary_list"),
 			title: "응답시간",
 			toString: toMillsString
 		},
+		processor: {
+			title: "프로세서 로드",
+			toString: toPercentageString
+		},
 		memory: {
 			title: "메모리 사용량",
 			toString: ITAhM.util.toBytesString
 		},
 		memoryRate: {
 			title: "메모리 사용율(%)",
-			toString: toPercentageString
-		},
-		processor: {
-			title: "프로세서 로드",
 			toString: toPercentageString
 		},
 		storage: {
@@ -748,11 +748,6 @@ var summaryList = document.getElementById("summary_list"),
 		storageRate: {
 			title: "저장공간 사용율(%)",
 			toString: toPercentageString
-		},
-		failureRate: {
-			title: "SNMP 오류",
-			toString: toPercentageString,
-			skipZero: true
 		},
 		throughput: {
 			title: "통신 사용량",
@@ -765,6 +760,11 @@ var summaryList = document.getElementById("summary_list"),
 		throughputErr: {
 			title: "통신 오류",
 			toString: toErrorString,
+			skipZero: true
+		},
+		failureRate: {
+			title: "SNMP 오류",
+			toString: toPercentageString,
 			skipZero: true
 		}
 	};

@@ -206,15 +206,17 @@ var ITAhM = ITAhM || {};
 	
 	ITAhM.Calendar.prototype = {
 		initialize: function (id, handler) {
+			var nav = document.createElement("nav");
+			
 			this.calendar = document.getElementById(id);
 			this.body = document.createElement("div");
 			this.date = document.createElement("div");
-			this.button = document.createElement("div");
+			 
 			this.year = document.createElement("span");
 			this.month = document.createElement("select");
-			this.btnPrev = document.createElement("button");
-			this.btnCur = document.createElement("button");
-			this.btnNext = document.createElement("button");
+			this.btnPrev = document.createElement("span");
+			this.btnCur = document.createElement("span");
+			this.btnNext = document.createElement("span");
 			
 			this.callback = handler;
 			this.header = document.createElement("div");
@@ -245,7 +247,7 @@ var ITAhM = ITAhM || {};
 			
 			// header
 			this.header.appendChild(this.date);
-			this.header.appendChild(this.button);
+			this.header.appendChild(nav);
 			
 			this.date.appendChild(this.year);
 			this.date.appendChild(this.month);
@@ -259,9 +261,9 @@ var ITAhM = ITAhM || {};
 				this.month.appendChild(opt);
 			}
 			
-			this.button.appendChild(this.btnPrev).textContent = "<";
-			this.button.appendChild(this.btnCur).textContent = ".";
-			this.button.appendChild(this.btnNext).textContent = ">";
+			nav.appendChild(this.btnPrev);
+			nav.appendChild(this.btnCur);
+			nav.appendChild(this.btnNext);
 			
 			this.calendar.appendChild(this.header);
 			

@@ -1,3 +1,5 @@
+@charset "utf-8";
+
 .calendar {
 	width: 180px;
 }
@@ -54,4 +56,27 @@
 .calendar li.valid:hover {
 	background-color: #ddd;
 	cursor: pointer;
+}
+
+.calendar nav span {
+	display: inline-block;
+	border: .5em solid transparent;
+	margin: 3px;
+}
+
+.calendar nav span:hover {
+	outline: 2px solid gray;
+}
+
+.calendar nav span:first-child {
+	border-right-color: #0084ff;
+}
+
+.calendar nav span:nth-child(2) {
+	border-radius: 1em;
+	border-color: #0084ff;
+}
+
+.calendar nav span:nth-child(3) {
+	border-left-color: #0084ff;
 }
