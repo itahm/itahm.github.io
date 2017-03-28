@@ -18,7 +18,7 @@ article {
 	display: flex;
 	flex-direction: column;
 	margin: auto;
-	height: 100%;
+	height: 99%;
 }
 
 form {
@@ -80,20 +80,24 @@ li:nth-child(1) {
 }
 
 #list li:nth-child(1) {
-	background: transparent url("img/ball_gray.png") center no-repeat;
+	background: transparent center no-repeat;
 	background-size: 16px;
 }
 
-#list ul.shutdown li:nth-child(1) {
+#list ul[data-shutdown] li:nth-child(1) {
 	background-image: url("img/ball_red.png");
 }
 
-#list ul.critical li:nth-child(1) {
+#list ul[data-critical] li:nth-child(1) {
 	background-image: url("img/ball_orange.png");
 }
 
-#list ul.normal li:nth-child(1) {
+#list ul[data-normal] li:nth-child(1) {
 	background-image: url("img/ball_green.png");
+}
+
+#list ul[data-disabled] li:nth-child(1) {
+	background-image: url("img/ball_gray.png");
 }
 
 li:nth-child(5),
@@ -107,7 +111,7 @@ li:nth-child(8) {
 	background-position: center;
 }
 
-#list ul:not(.monitor) {
+#list ul[data-disabled] {
 	color: #999;
 }
 
@@ -121,17 +125,17 @@ li:nth-child(8) {
 	cursor: pointer;
 }
 
-#list ul.snmp:hover li:nth-child(7) {
+#list ul[data-snmp]:hover li:nth-child(7) {
 	background-image: url("img/alarm_gray.png");
 	cursor: pointer;
 }
 
-#list ul.alarm:hover li:nth-child(7) {
+#list ul[data-alarm]:hover li:nth-child(7) {
 	background-image: url("img/alarm.png");
 	cursor: pointer;
 }
 
-#list ul.snmp:hover li:nth-child(8) {
+#list ul[data-snmp]:hover li:nth-child(8) {
 	background-image: url("img/chart.png");
 	cursor: pointer;
 }
@@ -142,6 +146,74 @@ li:nth-child(8) {
 
 li {
 	padding: 3px;
+}
+
+div.selector {
+	margin-left: 1em;
+	font-size: 10px;
+	display: inline-block;
+}
+
+div.selector span {
+	border: 1em solid transparent;
+	border-radius: 1em;
+	display: inline-block;
+	animation: slide .5s ease-in;
+}
+
+div.selector span.selected {
+	transform: scale(1.5);
+	animation: grow .5s ease-in;
+}
+
+div.selector span[data-status] {
+	border-color: black;
+}
+
+div.selector span[data-status=normal] {
+	border-color: green;
+}
+
+div.selector span[data-status=shutdown] {
+	border-color: red;
+}
+
+div.selector span[data-status=critical] {
+	border-color: orange;
+}
+
+div.selector span[data-status=disabled] {
+	border-color: gray;
+}
+/*
+div.selector span:first-child {
+	transform: scale(1.5);
+	animation: grow .5s ease-in;
+}
+*/
+@keyframes grow {
+	from {
+		transform: scale(1);
+	}
+	to {
+		transform: scale(1.5);
+	}
+}
+/*
+@keyframes slide {
+	from {
+		transform: translateX(-1em);
+	}
+	to {
+		transform: translateX(1em);
+	}
+}
+*/
+body.normal #list>ul:not([data-normal]),
+body.critical #list>ul:not([data-critical]),
+body.shutdown #list>ul:not([data-shutdown]),
+body.disabled #list>ul:not([data-disabled]) {
+	display: none;
 }
 
 		</style>
@@ -224,10 +296,8 @@ function createRow(device, monitor, set) {
 	}
 	
 	if (monitor) {
-		row.classList.add("monitor");
-		
 		if (monitor.protocol === "snmp") {
-			row.classList.add("snmp");
+			row.dataset.snmp = true;
 			
 			alarm.title = "장비의 성능 임계 설정";
 			alarm.onclick = onSetAlarm.bind(undefined, device.ip);
@@ -236,19 +306,22 @@ function createRow(device, monitor, set) {
 			status.onclick = onStatus.bind(undefined, device.ip);
 			
 			if (set) {
-				row.classList.add("alarm");
+				row.dataset.alarm = true;
 			}
 		}
 			
 		if (monitor.shutdown) {
-			row.classList.add("shutdown");
+			row.dataset.shutdown = true;
 		}
 		else if (monitor.critical) {
-			row.classList.add("critical");
+			row.dataset.critical = true;
 		}
 		else {
-			row.classList.add("normal");
+			row.dataset.normal = true;
 		}
+	}
+	else {
+		row.dataset.disabled = true;
 	}
 	
 	return row;
@@ -297,10 +370,13 @@ function onChangeLabel(e) {
 }
 
 function search() {
+	document.body.classList.add("loading");
 	// search 결과를 초기화 하기 위해
 	selectLabel(form.elements.label.value);
 
 	filterDeviceList(form.elements.keyword.value);
+	
+	document.body.classList.remove("loading");
 }
 
 function clearDeviceList() {
@@ -367,7 +443,16 @@ function selectLabel(label) {
 	<body class="loading">
 		<article class="content_width">
 			<form id="form">
-				<select name="label"></select>
+				<div>
+					<select name="label"></select>
+					<div class="selector">
+						<span title="모든 장비 보기" class="selected" data-status="">
+						</span><span title="정상 장비 보기" data-status="normal">
+						</span><span title="임계 장비 보기" data-status="critical">
+						</span><span title="장애 장비 보기" data-status="shutdown">
+						</span><span title="비활성 장비 보기" data-status="disabled"></span>
+					</div>
+				</div>
 				<span>
 					<input type="text" name="keyword" placeholder="이름, 유형, IP주소 ">
 					<input type="submit" value="찾기">
@@ -397,12 +482,27 @@ var NO_LABEL = "라벨없음";
 
 var form = document.getElementById("form"),
 	list = document.getElementById("list"),
+	selector = document.querySelector(".selector"),
 	deviceMapping = {},
 	labelData = {};
 
-form.elements.label.addEventListener("change", onChangeLabel);
-form.addEventListener("submit", onSearch);
-form.addEventListener("reset", onReset);
+window.form.elements.label.addEventListener("change", onChangeLabel);
+window.form.addEventListener("submit", onSearch);
+window.form.addEventListener("reset", onReset);
+
+window.selector.onclick = function (e) {
+	var element = e.target;
+	
+	if (element.nodeName.toLowerCase() === "span") {
+		element.parentNode.querySelector(".selected").classList.remove("selected");
+		
+		element.classList.add("selected");
+		
+		document.body.classList.remove("normal", "critical", "shutdown", "disabled", "all");
+		
+		document.body.classList.add(element.dataset.status);
+	}
+};
 
 initList();
 
