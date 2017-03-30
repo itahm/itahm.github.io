@@ -203,28 +203,21 @@ ul {
 	background: linear-gradient(to top,  hsla(120, 75%, 50%, 1) 0%, hsla(120, 75%, 30%,1) 99%);
 }
 
+.list_item {
+	border-bottom: 1px solid #777;
+}
+
 .list_item ul {
 	display: flex;
 	cursor: pointer;
-	padding: .5em;
+	padding: 3px;
 }
 
-.list_item ul.default {
-	transition-duration: .5s;
-}
-
-.list_item ul.default:hover {
-	text-decoration: underline;
-	border-radius: 0 0 .5em .5em;
-	box-shadow: 0 .3em #999;
-	padding: .2em .5em .5em .5em;
-	margin-bottom: .3em;
-}
-
-.list_item ul.simple:hover {
+.list_item ul:hover {
 	background-color: #fff;
 	color: #0084ff;
-	border-radius: 1em;
+	outline: 1px solid #0084ff;
+	/*border-radius: 1em;*/
 }
 
 .list_item li {
@@ -706,7 +699,7 @@ function onEvent(ip) {
 			<div class="layout">
 				<ul>
 					<li class="list_item">
-						<ul class="simple">
+						<ul>
 							<li>
 							<li>
 							<li>
