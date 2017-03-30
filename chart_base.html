@@ -13,7 +13,7 @@ body {
 	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
 	min-width: 200px;
 	min-height: 100px;
-	background-color: #fff;
+	/*background-color: #fff;*/
 }
 
 #chart {
@@ -28,33 +28,41 @@ body {
 	padding: 5px;
 	box-sizing: border-box;
 	font-size: 10px;
-	background-color: #555;
+	/*background-color: #555;*/
 	color: #fff;
 	font-weight: bold;
 	pointer-events: none;
 	transition: top .5s;
 }
-
+/*
 .balloon.value {
 	opacity: .7;
 	padding: 5px 10px;
 	border-radius: 5px;
 	font-weight: normal;
 }
-
+*/
 text {
-	fill: #000;
+	fill: #fff;
 	font-size: 9pt;
 }
 
+@media print {
+	text {
+		fill: #000;
+	}
+}
+
 #grid path {
-	stroke: rgba(0, 0, 0, .2);
-	stroke-width: .7;
+	stroke: #ddd;
+	stroke-width: .5;
 	fill: none;
 }
 
-#graph path.fill_min {
-	fill: #fff;
+path.detail {
+	stroke: #4d525a;
+	stroke-width: .5;
+	fill: none;
 }
 
 #axis_left text {
@@ -259,19 +267,18 @@ function drawGraph() {
 	window.low = window.chartSummary.low,
 	window.yRatio = window.rect.height / (high - window.low);
 	
-	strokeMax.set("stroke", window.color);
-	strokeMax.set("stroke-width", 2);
+	//strokeMax.set("stroke", window.color);
+	//strokeMax.set("stroke-width", 2);
 	strokeMax.set("fill", "none");
-	strokeAvg.set("stroke", window.color);
+	strokeAvg.set("stroke", "#fff");
 	strokeAvg.set("stroke-width", 1);
 	strokeAvg.set("fill", "none");
-	strokeMin.set("stroke", window.color);
+	//strokeMin.set("stroke", window.color);
 	strokeMin.set("fill", "none");
-	strokeMin.set("stroke-width", 2);
+	//strokeMin.set("stroke-width", 2);
 	
 	fillMax.set("fill", window.color);
-	fillMax.set("fill-opacity", .1);
-	fillMin.set("class", "fill_min");
+	fillMin.set("fill", "#4d525a");
 	
 	strokeMax.beginPath();
 	fillMax.beginPath();
@@ -465,9 +472,7 @@ function drawDetail(blocks) {
 	var path = new ITAhM.Path(window.graph),
 		dateArray, mills;
 	
-	path.set("stroke", window.color);
-	path.set("stroke-width", .5);
-	path.set("fill", "none");
+	path.set("class", "detail");
 	path.beginPath();
 	
 	for (var i=0, _i=blocks.length; i<_i; i++) {

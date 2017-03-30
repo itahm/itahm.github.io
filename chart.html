@@ -157,7 +157,7 @@ function getDateText(mills) {
 	var date = new Date(mills),
 		dd = date.getDate();
 	
-	return MONTHS[date.getMonth()] +","+ (dd >9? "": "0") + dd;
+	return MONTH[date.getMonth()] + (dd >9? "": "0") + dd +"일";
 }
 
 function initialize() {
@@ -379,7 +379,7 @@ var chart = document.getElementById("chart"),
 
 var 
 	MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-	MONTH = ["1 월", "2 월", "3 월", "4 월", "5 월", "6 월", "7 월", "8 월", "9 월", "10월", "11월", "12월"],
+	MONTH = ["01월", "02월", "03월", "04월", "05월", "06월", "07월", "08월", "09월", "10월", "11월", "12월"],
 	MARGINS = 5;
 
 var svg = document.querySelector("svg"),
