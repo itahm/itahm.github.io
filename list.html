@@ -30,7 +30,7 @@ form {
 #list {
 	flex: 1;
 	background-color: #fff;
-	overflow: auto;
+	overflow-y: scroll;
 }
 
 nav {
@@ -40,6 +40,12 @@ nav {
 	font-weight: bold;
 	text-align: center;
 	box-shadow: 0 0 5px #fff inset;
+}
+
+nav ul::after {
+	content: "";
+	display: inline-block;
+	width: 16px;
 }
 
 nav li:nth-child(2),
@@ -165,9 +171,9 @@ div.selector {
 }
 
 div.selector span {
-	border: 1px solid transparent;
+	border: 2px solid transparent;
 	border-radius: 20px;
-	display: inline-block; height: 19px; width: 19px;
+	display: inline-block; height: 18px; width: 18px;
 	animation: slide .5s ease-in;
 }
 
