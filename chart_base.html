@@ -24,7 +24,6 @@ body {
 
 .balloon {
 	position: absolute;
-	transform: translateX(-50%);
 	padding: 5px;
 	box-sizing: border-box;
 	font-size: 10px;
@@ -34,14 +33,15 @@ body {
 	pointer-events: none;
 	transition: top .5s;
 }
-/*
-.balloon.value {
-	opacity: .7;
-	padding: 5px 10px;
-	border-radius: 5px;
-	font-weight: normal;
+
+#value_avg {
+	transform: translateX(-100%);
 }
-*/
+
+#hover_date {
+	transform: translateX(-50%);
+}
+
 text {
 	fill: #fff;
 	font-size: 9pt;
@@ -91,8 +91,9 @@ path.fill_min {
 }
 
 #hover line {
-	stroke-width: 1px;
-	stroke: #777;
+	stroke-width: 3px;
+	stroke-dasharray: 3, 3;
+	stroke: #ccc;
 }
 
 nav {
@@ -160,7 +161,8 @@ function resize() {
 	hoverHAvg.setAttribute("x2", width);
 	hoverHMin.setAttribute("x2", width);
 	
-	hoverDate.style.top = (height + MARGIN) + "px";
+	//hoverDate.style.top = (height + MARGIN) + "px";
+	hoverDate.style.top = "0";
 }
 
 function drawGrid() {
@@ -313,8 +315,6 @@ function drawGraph() {
 		fillMin.lineTo(x, yMin);
 		
 		strokeAvg.moveTo(x, yAvg);
-		//strokeMax.moveTo(x, yMax);
-		//strokeMin.moveTo(x, yMin);
 		
 		for (var j=1,_j=dateArray.length; j<_j; j++) {
 			mills = dateArray[j];
@@ -322,9 +322,7 @@ function drawGraph() {
 			x = (mills - window.start) / window.tpp;
 			y = window.summaryData.get(mills);
 			
-			//strokeMax.lineTo(x, yMax);
 			strokeAvg.lineTo(x, yAvg);
-			//strokeMin.lineTo(x, yMin);
 			
 			fillMax.lineTo(x, yMax);
 			fillMin.lineTo(x, yMin);
@@ -333,9 +331,7 @@ function drawGraph() {
 			yMin = (y.min - window.low) * window.yRatio;
 			yAvg = (y.avg - window.low) * window.yRatio;
 			
-			//strokeMax.lineTo(x, yMax);
 			strokeAvg.lineTo(x, yAvg);
-			//strokeMin.lineTo(x, yMin);
 			
 			fillMax.lineTo(x, yMax);
 			fillMin.lineTo(x, yMin);
@@ -348,9 +344,7 @@ function drawGraph() {
 		fillMax.lineTo(x, yMax);
 		fillMin.lineTo(x, yMin);
 		
-		//strokeMax.lineTo(x, yMax);
 		strokeAvg.lineTo(x, yAvg);
-		//strokeMin.lineTo(x, yMin);
 		
 		fillMax.lineTo(x, 0);
 		fillMin.lineTo(x, 0);
@@ -361,9 +355,7 @@ function drawGraph() {
 		fillMax.draw();
 		fillMin.draw();
 		
-		//strokeMax.draw();
 		strokeAvg.draw();
-		//strokeMin.draw();
 	}
 }
 
@@ -407,7 +399,7 @@ function drawValueAxis() {
 	for (var y = 0, grow = 0; y <= window.rect.height; y += window.blockHeight, grow += diff) {
 		value = window.chartSummary.high - grow;
 		
-		leftAxis.appendChild(createValueText(0, y, onValueToString(value)));
+		leftAxis.appendChild(createValueText(0, y, onValueToString(value === 0? 0: value)));
 		
 		if (window.max) {
 			rightAxis.appendChild(createValueText(0, y, (value *100 / window.max).toFixed(2) + "%"));
