@@ -10,7 +10,7 @@ var ITAhM = ITAhM || {};
 	ITAhM.snmp = {
 		enterprise: {
 			2: "IBM",
-			9: "ciscoSystems",
+			9: "ciscoSystems", // 1.3.6.1.4.1.9.1.1823
 			311: "Microsoft",
 			8072: "net-snmp"
 		},

@@ -166,7 +166,7 @@ var MAJOR = 1,
 	function onConnect(e) {
 		e.preventDefault();
 		
-		var xhr = new ITAhM.Communicator(form.elements.host.value, form.elements.port.value, 3000),
+		var xhr = new ITAhM.Communicator(form.elements.host.value, form.elements.port.value, 10000),
 			request = {
 				command: "signin",
 				username: form.elements.username.value,
