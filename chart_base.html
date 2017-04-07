@@ -11,9 +11,6 @@
 
 body {
 	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
-	min-width: 200px;
-	min-height: 100px;
-	/*background-color: #fff;*/
 }
 
 #chart {
@@ -26,13 +23,16 @@ body {
 	position: absolute;
 	padding: 5px;
 	box-sizing: border-box;
-	font-size: 16px;
 	font-weight: bold;
 	color: #fff;
 	font-weight: bold;
 	pointer-events: none;
 	transition: top .5s;
 	white-space: nowrap;
+}
+
+.balloon.value {
+	font-size: 16px;
 }
 
 #value_max {
@@ -376,7 +376,7 @@ function drawDateAxis() {
 		pM = date.getMonth();
 		pD = date.getDate();
 	}
-	console.log(x, window.rect.width);
+	
 	window.dateAxis.transform.baseVal.getItem(0).setTranslate(0, rect.height + MARGIN);
 }
 

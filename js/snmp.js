@@ -10,8 +10,12 @@ var ITAhM = ITAhM || {};
 	ITAhM.snmp = {
 		enterprise: {
 			2: "IBM",
-			9: "ciscoSystems", // 1.3.6.1.4.1.9.1.1823
+			9: "ciscoSystems", // 1.3.6.1.4.1.9.1.1823, 9.1.1279
 			311: "Microsoft",
+			368: "Axis Communications AB",
+			11: "Hewlett-Packard",
+			789: "Network Appliance Corporation",
+			2142: "Future Systems, Inc.",
 			8072: "net-snmp"
 		},
 		ifAdminStatus: {

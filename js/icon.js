@@ -107,5 +107,10 @@ ITAhM.iconData = {
         "group": "etc",
         "src": "img/svg/laptop.svg",
         "disabled": "img/svg/disabled/laptop.svg"
+    },
+    "cctv": {
+        "group": "etc",
+        "src": "img/svg/camera.svg",
+        "disabled": "img/svg/disabled/camera.svg"
     }
 };

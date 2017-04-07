@@ -159,44 +159,6 @@ function initIcon(iconData) {
 	return df;
 }
 
-function _initIcon(iconData) {
-	var df = document.createDocumentFragment(),
-		icon, groupName, groupElement, labelElement,
-		map = {}, span;
-	
-	
-	for (type in iconData) {
-		icon = iconData[type];
-		
-		groupName = icon.group;
-		
-		groupElement = map[groupName];
-		
-		if (!groupElement) {
-			groupElement = document.createElement("ul");
-			
-			labelElement = document.createElement("li");
-			labelElement.textContent = groupName;
-			
-			df.appendChild(labelElement)
-			labelElement.appendChild(groupElement);
-			
-			map[groupName] = groupElement;
-		}
-		
-		span = document.createElement("span");
-		span.textContent = type;
-		span.onclick = onSelectIcon.bind(undefined, type);
-		span.style.backgroundImage = "url("+ icon.src +")";
-		
-		groupElement
-			.appendChild(document.createElement("li"))
-			.appendChild(span);
-	}
-	
-	return df;
-}
-
 		</script>
 	
 	</body>

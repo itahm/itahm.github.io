@@ -465,7 +465,7 @@ function initialize(ip) {
 			parent.location.reload();
 		});
 	};
-	
+	console.log(snmp.sysObjectID);
 	document.getElementById("sys_name").textContent = snmp.sysName;
 	document.getElementById("sys_name").title = snmp.sysDescr;
 	document.getElementById("sys_enterprise").textContent = ITAhM.util.enterpriseFromOID(snmp.sysObjectID);

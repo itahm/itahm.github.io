@@ -83,27 +83,28 @@ function getNetwork(ip, mask) {
 	return ipArray.join(".");
 }
 
-function getMask(mask) {
+function getV4Mask(mask) {
 	var maskArray = mask.split("."),
-		address = 0,
-		bits = 0;
+		address = 0;
+	
+	if (!Array.isArray(maskArray)) {
+		return 0;
+	}
 	
 	while(maskArray.length > 0) {
 		address <<= 8;
 		address |= maskArray.shift();
 	}
 	
-	while (!(address & 1)) {
-		address >>>= 1;
-	}
-	
-	while (address & 1) {
-		address >>>= 1;
+	for (var i=0; i<32; i++) {
+		if (address & 1) {
+			break;
+		}
 		
-		bits++;
+		address >>>= 1;
 	}
 	
-	return bits;
+	return 32 - i;
 }
 
 function getAddressValue(ip) {
@@ -185,10 +186,10 @@ top.sendRequest({
 	var item, checkbox;
 	
 	for (var network in data) {
+	
 		item = document.createElement("li");
 		
-		item.appendChild(document.createElement("h4")).textContent = network +" /"+ getMask(data[network]);
-		//item.id = network +" /"+ getMask(data[network]);
+		item.appendChild(document.createElement("h4")).textContent = network +" /"+ getV4Mask(data[network]);
 		item.className = "network";
 		
 		checkbox = document.createElement("input");
@@ -215,12 +216,12 @@ top.sendRequest({
 					div.appendChild(createAddrItem(address.ip, mac));
 				}
 			} catch (e) {
-				console.log(address.ip +"는 올바르지 않은 마스크를 가지고 있을 수 있습니다.");
+				console.log(address.ip +"는 올바르지 않은 마스크를 가지고 있을 수 있습니다.", address);
 			}
 		}
 
 		// 빈 네트워크는 삭제
-		for (var network in networkData) {
+		for (var network in networkData) {break;
 			div = networkData[network];
 			
 			if (div.children.length === 0) {

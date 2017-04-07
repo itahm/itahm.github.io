@@ -34,6 +34,7 @@ function onComplete(database) {
 		databases[database] = JSON.parse(this.responseText);
 		
 		database = requestQ.pop();
+		
 		if (database) {
 			sendRequest(database);
 		}

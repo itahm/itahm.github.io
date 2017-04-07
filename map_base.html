@@ -40,6 +40,22 @@ text {
 #line line {
 	stroke: #a17f1a/*836953*/;
 	stroke-width: 1;
+	animation: 5s test infinite;
+}
+
+@keyframes test {
+	0% {
+		stroke: #ddd;
+		stroke-width: .5;
+	}
+	20% {
+		stroke: #a17f1a;
+		stroke-width: 1;
+	}
+	100% {
+		stroke: #a17f1a;
+		stroke-width: 1;
+	}
 }
 
 body.extra #line line {
