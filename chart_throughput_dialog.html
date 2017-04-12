@@ -53,11 +53,27 @@ section {
 }
 
 footer {
+	margin-top: 1em;
 	display: flex;
 }
 
 footer input {
 	flex: 1;
+	padding: 1em;
+	border-radius: 2em;
+	background-color: #0084ff;
+	color: #fff;
+	border: 3px solid transparent;
+}
+
+footer input:hover {
+	background-color: #fff;
+	color: #0084ff;
+	border-color: #0084ff;
+}
+
+body:not(.customized) label {
+	display: none;
 }
 
 		</style>
@@ -81,9 +97,10 @@ footer input {
 					</select>
 				</h1>
 			</section>
+			<label><input type="checkbox" id="reset">초기화</label>
 			<footer>
-				<input type="reset" class="r_button" value="cancel">
-				<input type="submit" class="r_button" value="apply">
+				<input type="reset" value="취소">
+				<input type="submit" value="적용">
 			</footer>
 		</form>
 		
@@ -100,26 +117,35 @@ var form = document.querySelector("form");
 form.addEventListener("submit", onApply);
 form.addEventListener("reset", onCancel);
 
+document.getElementById("reset").onclick = function (e) {
+	e.preventDefault();
+	
+	if (!confirm("bandwidth 설정을 초기화 하겠습니까?")) {
+		return;
+	}
+	
+	delete window.device.ifSpeed[window.index];
+	
+	put();
+}
+
 /**
  * callback method
  */
  function onApply(e) {
 	e.preventDefault();
 	
-	var device = top.databases.device[window.ip],
-		speed = document.getElementById("speed").value * document.getElementById("unit").value;
+	window.device.ifSpeed[window.index] = document.getElementById("speed").value * document.getElementById("unit").value;
 	
-	if (!device.ifSpeed) {
-		device.ifSpeed = {};
-	}
-	
-	device.ifSpeed[window.index] = speed;
-	
+	put();
+}
+
+function put() {
 	top.sendRequest({
 		command: "put",
 		database: "device",
 		key: window.ip,
-		value: device
+		value: window.device
 	}, function (data) {
 		top.databases.device = data;
 		
@@ -128,15 +154,24 @@ form.addEventListener("reset", onCancel);
 		top.closeDialog();
 	});
 }
-
+ 
 function onCancel(e) {
 	top.closeDialog();
 }
 
 function initialize(ip, index, bandwidth) {
+	window.device = top.databases.device[ip];
 	window.ip = ip;
 	window.index = index;
 	window.opener = this;
+	
+	if (!window.device.ifSpeed) {
+		window.device.ifSpeed = {};
+	}
+	
+	if (index in window.device.ifSpeed) {
+		document.body.classList.add("customized");
+	}
 	
 	document.getElementById("before").textContent = ITAhM.util.toBPSString(bandwidth);
 }
