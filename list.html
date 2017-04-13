@@ -521,7 +521,9 @@ window.selector.onclick = function (e) {
 		
 		document.body.classList.remove("normal", "critical", "shutdown", "disabled", "all");
 		
-		document.body.classList.add(element.dataset.status);
+		if (element.dataset.status) {
+			document.body.classList.add(element.dataset.status);
+		}
 	}
 };
 
