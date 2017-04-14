@@ -112,8 +112,8 @@ body.initialized .search {
 				<ul>
 					<li>서브넷 마스크
 					<li>
-						<div id="mask">255.255.255.0</div>
-						<select name="mask">
+						<div id="mask">255.255.255.192</div>
+						<select id="mask_bits">
 							<option value="255.255.255.0">24
 							<option value="255.255.255.128">25
 							<option value="255.255.255.192" selected>26
@@ -135,11 +135,12 @@ body.initialized .search {
 
 if (window === top) throw "";
 
-var form = document.querySelector("form");
+var form = document.querySelector("form"),
+	mask = document.getElementById("mask_bits");
 
 form.addEventListener("reset", onCancel);
 
-form.elements.mask.onchange = onSelect;
+window.mask.onchange = onSelect;
 
 if (sessionStorage.level == 0) {
 	form.addEventListener("submit", onApply);
@@ -155,12 +156,11 @@ function onSelect(e) {
 function onApply(e) {
 	e.preventDefault();
 	
-	var mask = form.elements.mask,
-		request = {
+	var request = {
 			command: "extra",
 			extra: "search",
 			network: form.elements.network.value,
-			mask: mask[mask.selectedIndex].text
+			mask: window.mask[window.mask.selectedIndex].text
 		};
 	
 	top.sendRequest(request, function (data) {
