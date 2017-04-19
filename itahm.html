@@ -3,29 +3,33 @@
 	<head>
 		<meta charset="UTF-8">
 		<meta http-equiv="Cache-Control" content="no-cache">
-		<meta http-equiv="Content-Script-Type" content="text/javascript">
-		<meta http-equiv="Content-Style-Type" content="text/css">
+		
 		<title>Main @ ITAhM</title>
 		
 		<style>
 @import "css/itahm.css";
 
 header {
-	position: fixed; top: 0; right: 0; left: 0; height: 60px;
-}
-
-.header {
+	position: fixed; top: 0; right: 0; left: 0; height: 80px;
+	transition: height .5s;
 	background-color: #4d525a;
 	color: #fff;
-	height: 100%;
+	overflow: hidden;
 	display: flex;
 	justify-content: center;
 }
-/*
-header:not(:hover) .header {
-	display: none;
+
+header::before {
+	content: "";
+	position: absolute; top: 3px; right: 3px; left: 3px; bottom: 3px;
+	border: 3px solid #ccc;
+	pointer-events: none;
 }
-*/
+
+header:not(:hover) {
+	height: 0;
+}
+
 header a,
 header a:visited,
 header a:link,
@@ -80,7 +84,7 @@ nav ul:last-child li {
 }
 
 section {
-	position: fixed; top: 60px; right: 0; bottom: 0; left: 0;
+	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
 	display: flex;
 }
 
@@ -88,7 +92,6 @@ section {
 	flex: 1;
 	width: 100%; height: 100%;
 	border: none;
-	overflow: auto;
 	background-color: #4d525a;
 }
 
@@ -101,7 +104,7 @@ section {
 }
 
 .log {
-	position: fixed; right: 10px; top: 80px;
+	position: fixed; right: 10px; top: 10px;
 	cursor: pointer;
 }
 
@@ -134,10 +137,17 @@ section {
 	border-radius: 1em 0 0 1em;
 }
 
-body:not(.log) .log,
-body:not(.dialog) #dialog {
-	
+.handle {
+	position: fixed; top: -20px; left: 50%;
+	border: 20px solid red;
+	border-radius: 50%;
+	transform: translateX(-50%);
 }
+
+.handle:hover+ header {
+	height: 60px;
+}
+
 
 body:not(.log) .log,
 body:not(.dialog) #dialog {
@@ -148,6 +158,17 @@ body:not(.dialog) #dialog {
 	<script src="js/google.js"></script>
 	<script>
 	
+function showChart(ip) {
+	var chart = window.chart[ip];
+
+	if (chart && !chart.closed) {
+		chart.focus();
+	}
+	else {
+		window.chart[ip] = window.open("status.html?"+ ip);
+	}
+}
+	
 	</script>
 	</head>
 	
@@ -157,27 +178,25 @@ body:not(.dialog) #dialog {
 			<iframe id="frame" name="main"></iframe>
 		</section>
 		
+		<div class="handle"></div>
+		
 		<header>
-			<div class="header">
-				<nav class="content_width">
-					<ul>
-						<li><h1><a href="dashboard.html" target="main">대쉬보드</a></h1>
-						<li><h1><a href="list.html" target="main">장비목록</a></h1>
-						<li><h1><a href="map.html" target="main">구성도</a></h1>
-						<li><h1><a href="ip.html" target="main">IP주소</a></h1>
-						<li><h1><a href="event.html" target="main">이벤트</a></h1>
-						<!--li><h1><a href="test.html" target="main">테스트</a></h1-->
-						<!--li><h1><a href="syslog.html" target="main">시스로그</a></h1-->
-					</ul>
-					<ul>
-						<li><a id="signout"></a>
-						<li><a href="setting.html" target="main">설정</a>
-						<li><a href="icon.html" target="main">아이콘</a>
-						<li><a id="message">메세지</a>
-						<li><a id="reload">재시작</a>
-					</ul>
-				</nav>
-			</div>
+			<nav class="content_width">
+				<ul>
+					<li><h1><a href="dashboard.html" target="main">대쉬보드</a></h1>
+					<li><h1><a href="list.html" target="main">장비목록</a></h1>
+					<li><h1><a href="map.html" target="main">구성도</a></h1>
+					<li><h1><a href="ip.html" target="main">IP주소</a></h1>
+					<li><h1><a href="event.html" target="main">이벤트</a></h1>
+				</ul>
+				<ul>
+					<li><a id="signout"></a>
+					<li><a href="setting.html" target="main">설정</a>
+					<li><a href="icon.html" target="main">아이콘</a>
+					<li><a id="message">메세지</a>
+					<li><a id="reload">재시작</a>
+				</ul>
+			</nav>
 		</header>
 		
 		<div class="log">
@@ -194,10 +213,17 @@ body:not(.dialog) #dialog {
 var count = document.getElementById("count"),
 	dialog = document.getElementById("dialog"),
 	log = document.getElementById("log"),
+	chart = {},
 	logCount = 0;
 
 window.onbeforeunload = function () {
 	return "아이탐 종료.";
+};
+
+window.onunload = function () {
+	for (var ip in window.chart) {
+		window.chart[ip].close();
+	}
 };
 
 document.getElementById("reload").onclick = function () {

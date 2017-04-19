@@ -2,8 +2,8 @@
 <html>
 	<head>
 		<meta charset="UTF-8">
-		<meta http-equiv="Content-Script-Type" content="text/javascript">
-		<meta http-equiv="Content-Style-Type" content="text/css">
+		<meta http-equiv="Cache-Control" content="No-Cache">
+		
 		<title>ITAhM</title>
 		
 		<style>
@@ -35,22 +35,16 @@ iframe {
 }
 
 h1 {
-	font-size: 16px;
-	margin: 0;
-	padding: .5em 1em;
-	background-color: #0084ff;
 	color: #fff;
-	display: inline-block;
-	border-radius: 1em;
+	margin: 0;
 }
-
 		</style>
 		
 	</head>
 	
 	<body>
 		<header>
-			<h1>응답 시간 @ <span id="host"></span></h1>
+			<h1>응답 시간</h1>
 			<div id="legend"></div>
 		</header>
 		
@@ -63,14 +57,11 @@ h1 {
 var chart = document.getElementById("chart"),
 	chartWindow = chart.contentWindow,
 	cursor = document.getElementById("cursor"),
-	deviceIP = top.databases.local.selected,
 	max = 10000;
 	
-if(!window.deviceIP) {
+if(!top.ip) {
 	throw "!";
 }
-
-document.getElementById("host").textContent = window.deviceIP;
 
 document.getElementById("legend").textContent = "Timeout : "+ max +"ms";
 
@@ -80,7 +71,7 @@ document.getElementById("legend").textContent = "Timeout : "+ max +"ms";
 function initialize(from, to, start, end) {
 	top.sendRequest({
 		command: "query",
-		ip: window.deviceIP,
+		ip: top.ip,
 		summary: true,
 		database: "responseTime",
 		index: 0,
@@ -121,7 +112,7 @@ function onValueToString(value) {
 function sendDetailRequest() {
 	top.sendRequest({
 		command: "query",
-		ip: window.deviceIP,
+		ip: top.ip,
 		summary: false,
 		database: "responseTime",
 		index: 0,

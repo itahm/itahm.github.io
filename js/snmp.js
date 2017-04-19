@@ -16,6 +16,7 @@ var ITAhM = ITAhM || {};
 			11: "Hewlett-Packard",
 			789: "Network Appliance Corporation",
 			2142: "Future Systems, Inc.",
+			6296: "DASAN Co.,LTD.",
 			8072: "net-snmp"
 		},
 		ifAdminStatus: {

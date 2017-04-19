@@ -19,9 +19,8 @@ body {
 }
 
 div.bar {
-	height: 2px;
-	background-color: navy;
-	background: linear-gradient(to right, #fff, navy);
+	height: 3px;
+	background-color: #ccc;
 	position: relative;
 }
 
@@ -92,17 +91,11 @@ aside .statistic {
 	flex: 1;
 }
 
-article section {
+section {
 	display: flex;
 	flex: 1 1 auto;
 	min-width: 260px;
-	/*overflow-y: auto;*/
-}
-
-section {
 	margin: 0 .5em;
-	flex: 1;
-	display: flex;
 	flex-direction: column;
 }
 
@@ -213,7 +206,6 @@ ul {
 	background-color: #fff;
 	color: #0084ff;
 	outline: 1px solid #0084ff;
-	/*border-radius: 1em;*/
 }
 
 .list_item li {
@@ -599,12 +591,6 @@ function setTop(top, list, toString, skipZero) {
 	}
 }
 
-function onSelectTopItem(ip) {
-	top.databases.local.selected = ip;
-	
-	location.href = "status.html";
-}
-
 function createStatusItem(label, critical, alert, normal, sum) {
 	var ul = document.createElement("ul");
 	
@@ -626,7 +612,7 @@ function createTopItem(ip, value) {
 	item.children[1].textContent = ip;
 	item.children[2].dataset.value = value;
 	
-	clone.onclick = onSelectTopItem.bind(window, ip);
+	clone.onclick = top.showChart.bind(window, ip);
 	
 	return clone;
 }

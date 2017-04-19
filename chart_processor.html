@@ -2,8 +2,8 @@
 <html>
 	<head>
 		<meta charset="UTF-8">
-		<meta http-equiv="Content-Script-Type" content="text/javascript">
-		<meta http-equiv="Content-Style-Type" content="text/css">
+		<meta http-equiv="Cache-Control" content="No-Cache">
+		
 		<title>ITAhM</title>
 		
 		<style>
@@ -53,21 +53,21 @@ nav {
 	text-align: right;
 }
 
+header {
+	position: relative;
+}
+
+h1 {
+	color: #fff;
+	margin: 0;
+}
+
 @media print {
 	nav {
 		display: none;
 	}
 }
 
-h1 {
-	font-size: 16px;
-	padding: .5em 1em;
-	background-color: #0084ff;
-	color: #fff;
-	display: inline-block;
-	border-radius: 1em;
-	margin: 0;
-}
 		</style>
 		<script>
 		
@@ -79,7 +79,7 @@ function initialize(from, to, start, end) {
 		df = document.createDocumentFragment(),
 		request = {
 			command: "query",
-			ip: window.deviceIP,
+			ip: top.ip,
 			summary: true,
 			database: "hrProcessorLoad",
 			start: from,
@@ -257,7 +257,7 @@ function buildSummaryFile(chartWindow) {
 	
 	<body>
 		<header>
-			<h1>프로세서 로드 @ <span id="host"></span></h1>
+			<h1>프로세서 로드</h1>
 		</header>
 		<nav>
 			<select id="view">
@@ -272,8 +272,7 @@ function buildSummaryFile(chartWindow) {
 		<script src="js/object.js"></script>
 		<script>
 
-var deviceIP = top.databases.local.selected,
-	node = top.databases.local.node,
+var node = top.snmp,
 	chartList = {},
 	summaryList = {},
 	detail,
@@ -289,7 +288,7 @@ var deviceIP = top.databases.local.selected,
 	],
 	detailRequest = {
 		command: "query",
-		ip: deviceIP,
+		ip: top.ip,
 		summary: false,
 		database: "hrProcessorLoad",
 	},
@@ -298,11 +297,9 @@ var deviceIP = top.databases.local.selected,
 	colorIndex = 0,
 	max = 100;
 
-if(!window.deviceIP || !window.node) {
+if(!top.ip || !window.node) {
 	throw "!";
 }
-
-document.getElementById("host").textContent = window.deviceIP;
 
 document.getElementById("view").onchange = function () {
 	document.body.classList[this.value]("row");

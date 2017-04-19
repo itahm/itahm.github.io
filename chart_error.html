@@ -50,26 +50,17 @@ nav {
 	text-align: right;
 }
 
-@media print {
-	nav {
-		display: none;
-	}
-}
-
-h1, h2 {
-	margin: 0;
+header {
+	position: relative;
 }
 
 h1 {
-	font-size: 16px;
-	padding: .5em 1em;
-	background-color: #0084ff;
 	color: #fff;
-	border-radius: 1em;
-	display: inline-block;
+	margin: 0;
 }
 
 h2 {
+	position: absolute; top: 0; left: 0; right: 0;
 	text-align: center;
 }
 
@@ -90,6 +81,12 @@ h3.output {
 	color: #f60;
 }
 
+@media print {
+	nav {
+		display: none;
+	}
+}
+
 		</style>
 		<script>
 		
@@ -97,7 +94,7 @@ function initialize(from, to, start, end) {
 	var entry = node.ifEntry[window.resourceIndex],
 		request = {
 			command: "query",
-			ip: window.deviceIP,
+			ip: top.ip,
 			summary: true,
 			index: window.resourceIndex,
 			start: from,
@@ -140,7 +137,7 @@ function onValueToString(value) {
 function sendDetailRequest(database, callback) {
 	var request = {
 			command: "query",
-			ip: window.deviceIP,
+			ip: top.ip,
 			summary: false,
 			index: window.resourceIndex,
 			start: window.start,
@@ -290,7 +287,7 @@ function buildSummaryFile(chartWindow, fileName) {
 	
 	<body>
 		<header>
-			<h1>통신 에러 @ <span id="host"></span></h1>
+			<h1>통신 에러</h1>
 			<h2>인터페이스 : <span id="if_name"></span></h2>
 		</header>
 		
@@ -319,15 +316,8 @@ var chartIn = document.getElementById("chart_in"),
 	chartInWindow = chartIn.contentWindow,
 	chartOut = document.getElementById("chart_out"),
 	chartOutWindow = chartOut.contentWindow,
-	deviceIP = top.databases.local.selected,
-	resourceIndex = top.databases.local.resourceIndex,
-	node = top.databases.local.node;
-
-if(!deviceIP || !window.resourceIndex || !node) {
-	throw "!";
-}
-
-document.getElementById("host").textContent = window.deviceIP;
+	resourceIndex = window.location.search.substring(1),
+	node = top.snmp;
 
 document.getElementById("view").onchange = function () {
 	document.body.classList[this.value]("row");

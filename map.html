@@ -2,8 +2,8 @@
 <html>
 	<head>
 		<meta charset="UTF-8">
-		<meta http-equiv="Content-Script-Type" content="text/javascript">
-		<meta http-equiv="Content-Style-Type" content="text/css">
+		<meta http-equiv="Cache-Control" content="No-Cache">
+		
 		<title></title>
 		
 		<style>
@@ -116,11 +116,11 @@ function onSetAlarm(ip){
 		
 		<script>
 
+var map = document.getElementById("map");
+		
 if (sessionStorage.level == 0) {
 	document.body.classList.add("root");
 }
-
-var map = document.getElementById("map");
 
 document.getElementById("save").onclick = onSave;
 
@@ -167,9 +167,7 @@ window.map.onload = function () {
 	mapWindow.onEditDevice = editDevice;
 	
 	mapWindow.onShowChart = function (ip){
-		window.top.databases.local.selected = ip;
-		
-		window.location.href = "status.html";
+		top.showChart(ip);
 	}
 	
 	mapWindow.onShowAlarm = onSetAlarm;
@@ -177,11 +175,9 @@ window.map.onload = function () {
 	mapWindow.zoom(scale = window.top.databases.local.scale);
 	
 	mapWindow.initialize();
-	
-	if (ip = top.databases.local.selected) {
-		var pos = window.top.databases.position[ip];
 		
-		top.databases.local.selected = undefined;
+	if (ip = window.location.search.substring(1)) {
+		var pos = window.top.databases.position[ip];
 		
 		mapWindow.moveAllDevice(- pos.x, - pos.y);
 		mapWindow.selectDevice(ip);

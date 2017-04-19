@@ -2,8 +2,7 @@
 <html>
 	<head>
 		<meta charset="UTF-8">
-		<meta http-equiv="Content-Script-Type" content="text/javascript">
-		<meta http-equiv="Content-Style-Type" content="text/css">
+		
 		<title>List @ ITAhM</title>
 		
 		<style>
@@ -21,7 +20,7 @@ article {
 	height: 99%;
 }
 
-form {
+aside {
 	margin: 5px 0;
 	display: flex;
 	justify-content: space-between;
@@ -33,7 +32,7 @@ form {
 	overflow-y: scroll;
 }
 
-nav {
+header {
 	margin: 5px 0;
 	background-color: #0084ff;
 	color: #fff;
@@ -42,27 +41,34 @@ nav {
 	box-shadow: 0 0 5px #fff inset;
 }
 
-nav ul::after {
+header ul::after {
 	content: "";
 	display: inline-block;
 	width: 16px;
 }
 
-nav li:nth-child(2),
-nav li:nth-child(3),
-nav li:nth-child(4) {
+header li:nth-child(2),
+header li:nth-child(3),
+header li:nth-child(4) {
 	border-right-color: #ddd;
 }
 
-form input,
-form select {
+aside input,
+aside select {
 	padding: .5em;
-	vertical-align: bottom;
 }
 
 form input[type="text"] {
 	flex: 1;
 	min-width: 0;
+}
+
+nav {
+	display: flex;
+	align-items: center;
+}
+nav> div {
+	margin-right: 5px;
 }
 
 ul {
@@ -84,6 +90,10 @@ li {
 li:nth-child(1) {
 	flex: none;
 	width: 3em;
+}
+
+label {
+	color: #fff;
 }
 
 #list ul {
@@ -160,12 +170,25 @@ li:nth-child(8) {
 	background-color: #fafafa;
 }
 
+#count {
+	border: 2px ridge #fff;
+	width: 100px; height: 100%;
+	position: relative;
+	color: #fff;
+	font-size: 18px; font-weight: bold;
+}
+
+#count::after {
+	content: attr(data-value);
+	position: absolute; top: 50%; left: 50%;
+	transform: translateX(-50%) translateY(-50%);
+}
+
 li {
 	padding: 3px;
 }
 
 div.selector {
-	margin-left: 1em;
 	font-size: 10px;
 	display: inline-block;
 }
@@ -206,12 +229,7 @@ div.selector span[data-status=disabled] {
 	background-color: gray;
 	border-color: white;
 }
-/*
-div.selector span:first-child {
-	transform: scale(1.5);
-	animation: grow .5s ease-in;
-}
-*/
+
 @keyframes grow {
 	from {
 		transform: scale(1);
@@ -220,20 +238,12 @@ div.selector span:first-child {
 		transform: scale(1.5);
 	}
 }
-/*
-@keyframes slide {
-	from {
-		transform: translateX(-1em);
-	}
-	to {
-		transform: translateX(1em);
-	}
-}
-*/
+
 body.normal #list>ul:not([data-normal]),
 body.critical #list>ul:not([data-critical]),
 body.shutdown #list>ul:not([data-shutdown]),
-body.disabled #list>ul:not([data-disabled]) {
+body.disabled #list>ul:not([data-disabled]),
+body.unlabeled #list>ul:not([data-unlabeled]) {
 	display: none;
 }
 
@@ -249,16 +259,8 @@ function onSetAlarm(ip){
 	top.showDialog.call(window, "critical_dialog.html", ip);
 }
 
-function onStatus(ip){
-	top.databases.local.selected = ip;
-	
-	window.location.href = "status.html";
-}
-
 function onMap(ip) {
-	top.databases.local.selected = ip;
-	
-	window.location.href = "map.html";
+	window.location.href = "map.html?"+ip;
 }
 
 function initList() {
@@ -271,6 +273,8 @@ function initList() {
 	for (var ip in deviceData) {
 		df.appendChild(createRow(deviceData[ip], monitorData[ip], criticalData[ip]));
 	}
+	
+	document.getElementById("count").dataset.value = df.children.length;
 	
 	list.appendChild(df);
 	
@@ -297,7 +301,7 @@ function createRow(device, monitor, set) {
 	location.onclick = onMap.bind(undefined, device.ip);
 	edit.onclick = onEdit.bind(undefined, device.ip);
 	
-	deviceMapping[device.ip] = row;
+	window.deviceMapping[device.ip] = row;
 	
 	if (device.label) {
 		labels = device.label.split(",");
@@ -311,9 +315,7 @@ function createRow(device, monitor, set) {
 		}
 	}
 	else {
-		row.classList.add(NO_LABEL);
-		
-		window.labelData[NO_LABEL] = null;
+		row.dataset.unlabeled = true;
 	}
 	
 	if (monitor) {
@@ -324,7 +326,7 @@ function createRow(device, monitor, set) {
 			alarm.onclick = onSetAlarm.bind(undefined, device.ip);
 			
 			status.title = "장비의 상태 보기";
-			status.onclick = onStatus.bind(undefined, device.ip);
+			status.onclick = top.showChart.bind(undefined, device.ip);
 			
 			if (set) {
 				row.dataset.alarm = true;
@@ -349,24 +351,23 @@ function createRow(device, monitor, set) {
 }
 
 function initLabel() {
-	var select = form.elements.label,
-		option = document.createElement("option");
+	var option = document.createElement("option");
 
 	// label select 초기화
-	select.length = 0;
+	window.label.length = 0;
 	
 	option.value = "";
-	option.text = "모든 라벨";
+	option.text = "모두 보기";
 	option.selected = true;
 	
-	select.add(option);
+	window.label.add(option);
 	
 	for (var label in window.labelData) {
 		option = document.createElement("option");
 		
 		option.text = label;
 		
-		select.add(option);
+		window.label.add(option);
 	}
 }
 
@@ -387,13 +388,13 @@ function onReset(e) {
 function onChangeLabel(e) {
 	form.elements.keyword.value = "";
 	
-	selectLabel(form.elements.label.value);
+	selectLabel(window.label.value);
 }
 
 function search() {
 	document.body.classList.add("loading");
 	// search 결과를 초기화 하기 위해
-	selectLabel(form.elements.label.value);
+	selectLabel(window.label.value);
 
 	filterDeviceList(form.elements.keyword.value);
 	
@@ -433,6 +434,8 @@ function filterDeviceList(keyword) {
 		row = next;
 	}
 	
+	document.getElementById("count").dataset.value = df.children.length;
+	
 	list.appendChild(df);
 }
 
@@ -440,8 +443,8 @@ function selectLabel(label) {
 	var df = document.createDocumentFragment(),
 		rows;
 	
-	for (var ip in deviceMapping) {
-		df.appendChild(deviceMapping[ip]);
+	for (var ip in window.deviceMapping) {
+		df.appendChild(window.deviceMapping[ip]);
 	}
 	
 	if (label) {
@@ -454,6 +457,8 @@ function selectLabel(label) {
 		}
 	}
 	
+	document.getElementById("count").dataset.value = df.children.length;
+	
 	list.appendChild(df);
 }
 
@@ -463,9 +468,12 @@ function selectLabel(label) {
 	
 	<body class="loading">
 		<article class="content_width">
-			<form id="form">
-				<div>
-					<select name="label"></select>
+			<aside>
+				<nav>
+					<div id="count"></div>
+					<div>
+						<select id="label"></select>
+					</div>
 					<div class="selector">
 						<span title="모든 장비 보기" class="selected" data-status="">
 						</span><span title="정상 장비 보기" data-status="normal">
@@ -473,14 +481,20 @@ function selectLabel(label) {
 						</span><span title="장애 장비 보기" data-status="shutdown">
 						</span><span title="비활성 장비 보기" data-status="disabled"></span>
 					</div>
-				</div>
-				<span>
+					<div>
+						<label>
+							<input type="checkbox" id="unlabeled">라벨 없는 장비만 보기
+						</label>
+					</div>
+				</nav>
+				<form id="form">
 					<input type="text" name="keyword" placeholder="이름, 유형, IP주소 ">
 					<input type="submit" value="찾기">
 					<input type="reset" value="초기화">
-				</span>
-			</form>
-			<nav>
+				</form>
+			</aside>
+			
+			<header>
 				<ul>
 					<li>
 					<li>장비 이름
@@ -491,23 +505,24 @@ function selectLabel(label) {
 					<li>
 					<li>
 				</ul>
-			</nav>
+			</header>
+			
 			<div id="list"></div>
 		</article>
 		
 		<div class="bg_loading"></div>
 		<script>
 
-		
-var NO_LABEL = "라벨없음";
-
 var form = document.getElementById("form"),
+	label = document.getElementById("label"),
 	list = document.getElementById("list"),
-	selector = document.querySelector(".selector"),
+	selector = document.querySelector(".selector")
+	cache = document.createDocumentFragment(),
 	deviceMapping = {},
 	labelData = {};
 
-window.form.elements.label.addEventListener("change", onChangeLabel);
+label.addEventListener("change", onChangeLabel);
+
 window.form.addEventListener("submit", onSearch);
 window.form.addEventListener("reset", onReset);
 
@@ -525,6 +540,10 @@ window.selector.onclick = function (e) {
 			document.body.classList.add(element.dataset.status);
 		}
 	}
+};
+
+document.getElementById("unlabeled").onclick = function () {
+	document.body.classList[this.checked? "add": "remove"]("unlabeled");
 };
 
 initList();

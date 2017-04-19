@@ -11,6 +11,7 @@
 
 body {
 	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
+	background-color: #4d525a;
 	color: #fff;
 }
 
@@ -22,6 +23,8 @@ body {
 
 article {
 	page-break-inside: avoid;
+	display: flex;
+	flex-wrap: wrap;
 }
 
 h2 {
@@ -37,27 +40,20 @@ nav img {
 	cursor: pointer;
 }
 
-.summary {
-	display: flex;
-	flex-wrap: wrap;
+article section:last-child {
+	flex: 1;
 }
 
-.resource,
-.information {
+section {
 	padding: 5px;
 	border: 3px solid #0084ff;
 	border-radius: 5px;
 	margin: 5px;
 }
 
-.resource:hover {
+section:hover:not(.information) {
 	background-color: #777;
 	cursor: pointer;
-}
-
-.resource.response_time,
-.resource.storage {
-	flex: 1;
 }
 
 .processor_item {
@@ -107,44 +103,13 @@ nav img {
 	font-weight: bold;
 }
 
-.memory_item .bar {
-	width: 100px;
-	height: 100px;
-	border: 3px solid #ddd;
-	box-sizing: border-box;
-	border-radius: 50%;
-	position: relative;
-	overflow: hidden;
-}
-
-.memory_item .bar::after {
-	content: attr(data-value);
-	position: absolute; top: 50%; left: 50%;
-	transform: translateX(-50%) translateY(-50%);
-}
-
-.memory_item li {
-	display: inline-block;
-	vertical-align: top;
-}
-
-.memory_item .color {
-	position: absolute; bottom: 0; left: 0;
-	width: 100%; height: 0;
-	transition: height .5s ease-out;
-}
-
 ul {
 	list-style: none;
 	margin: 0; padding: 0;
 }
 
-.memory_item ul li {
-	margin: .5em;
-	display: inline-block;
-}
-
-.resource li {
+section.storage li,
+section.throughput li {
 	text-align: center;
 	padding: .5em; margin: 3px;
 	flex: 1;
@@ -155,7 +120,7 @@ ul {
 	margin-bottom: 3px;
 }
 
-.resource.storage.title .usage {
+.title.storage .usage {
 	flex: 2;
 }
 
@@ -163,7 +128,7 @@ ul {
 	font-weight: bold;
 }
 
-.resource.storage .bar {
+section.storage .bar {
 	position: relative;
 	border: 3px solid #ddd;
 	border-radius: 1em;
@@ -171,13 +136,13 @@ ul {
 	box-sizing: border-box;
 }
 
-.resource.storage .color {
+section.storage .color {
 	position: absolute; top: 0; left: 0;
 	width: 0; height: 100%;
 	transition: width .5s ease-out;
 }
 
-.resource.response_time {
+section.response_time {
 	min-width: 250px;
 	min-height: 150px;
 }
@@ -210,7 +175,7 @@ ul {
 	background-color: #555;
 }
 
-.i_faceitem li:last-child div{
+.i_face.item li:last-child div{
 	flex: 1;
 }
 
@@ -230,13 +195,13 @@ ul {
 	content: url("img/ball_gray.png"); 
 }
 
-.throughput.title li:nth-child(1),
+.title.throughput li:nth-child(1),
 #i_face li:nth-child(1) {
 	flex: .2;
 }
 
-.throughput.title li:nth-child(5),
-.throughput.title li:nth-child(6) {
+.title.throughput li:nth-child(5),
+.title.throughput li:nth-child(6) {
 	flex: 2;
 }
 
@@ -280,12 +245,8 @@ ul {
 .title {
 	display: flex;
 }
-/*
-#memory {
-	display: inline-block;
-}
-*/
-.resource.response_time {
+
+section.response_time {
 	display: flex; flex-direction: column;
 }
 
@@ -310,15 +271,15 @@ ul {
 	pointer-events: none;
 }
 
-ul.table ul {
+section.information ul {
 	display: flex;
 }
 
-ul.table ul li {
+section.information li {
 	padding: 5px;
 }
 
-ul.table ul li:first-child {
+section.information li:first-child {
 	width: 80px;
 	border-right: 1px solid #ddd;
 	text-align: right;
@@ -334,6 +295,14 @@ label.filter {
 	float: right;
 	font-wegith: normal;
 	font-size: 12px;
+}
+
+div.flex {
+	display: flex;
+}
+
+div.flex span {
+	flex: 1;
 }
 
 @media print {
@@ -377,7 +346,7 @@ div.frame header {
 
 div.frame header span {
 	display: inline-block;
-	padding: 3px 8px;
+	padding: 3px 10px;
 }
 
 div.frame header span:hover {
@@ -392,10 +361,41 @@ div.frame iframe {
 	border: none;
 }
 
-body:not(.processor) .resource.processor,
-body:not(.storage) .resource.storage,
-body:not(.memory) .resource.memory,
-body:not(.throughput) .resource.throughput,
+section.memory> div {
+	display: flex;
+}
+
+section.memory> div div:first-child {
+	width: 100px;
+	height: 100px;
+	border: 3px solid #ddd;
+	box-sizing: border-box;
+	border-radius: 50%;
+	position: relative;
+	overflow: hidden;
+}
+
+section.memory> div div:first-child::after {
+	content: attr(data-value);
+	position: absolute; top: 50%; left: 50%;
+	transform: translateX(-50%) translateY(-50%);
+}
+
+section.memory img {
+	position: absolute; bottom: 0; left: 0;
+	width: 100%; height: 0;
+	transition: height .5s ease-out;
+}
+
+section.memory p:first-child {
+	font-size: 1.2em;
+	font-weight: bold;
+}
+
+body:not(.processor) section.processor,
+body:not(.storage) section.storage,
+body:not(.memory) section.memory,
+body:not(.throughput) section.throughput,
 body:not(.frame) .frame {
 	display: none;
 }
@@ -424,24 +424,6 @@ function createProcGauge(value) {
 	}, 500);
 	
 	return circularBar;
-}
-
-function createMemoryGuage(used, size) {
-	var clone = memoryGauge.cloneNode(true),
-		bar = clone.children[0],
-		info = clone.children[1],
-		usage = Math.round(100* used / size) +"%";
-
-	setTimeout(function () {
-		bar.children[0].style.height = usage;
-	}, 500);
-	
-	bar.dataset.value = usage;
-	
-	info.children[0].textContent = ITAhM.util.toBytesString(used);
-	info.children[1].textContent = "/ "+ ITAhM.util.toBytesString(size);
-	
-	return clone;
 }
 
 function createStorageGuage(used, size, label) {
@@ -510,11 +492,13 @@ function createIFaceGuage(admin, oper, index, name, descr, alias, bandwidth, inB
 	return clone;
 }
 
-function initialize(snmp) {
+function initialize() {
 	var entry;
 	
+	document.title = window.ip + "["+ window.snmp.sysName +"]";
+	
 	document.getElementById("reset").onclick = function () {
-		top.sendRequest({
+		sendRequest({
 			command: "extra",
 			extra: "reset",
 			ip: window.ip
@@ -523,11 +507,11 @@ function initialize(snmp) {
 		});
 	};
 	
-	document.getElementById("sys_name").textContent = snmp.sysName;
-	document.getElementById("sys_name").title = snmp.sysDescr;
-	document.getElementById("sys_enterprise").textContent = ITAhM.util.enterpriseFromOID(snmp.sysObjectID);
+	document.getElementById("sys_name").textContent = window.snmp.sysName;
+	document.getElementById("sys_name").title = window.snmp.sysDescr;
+	document.getElementById("sys_enterprise").textContent = ITAhM.util.enterpriseFromOID(window.snmp.sysObjectID);
 	document.getElementById("ip").textContent = window.ip;
-	document.getElementById("failure").textContent = 100 - snmp.failure;
+	document.getElementById("failure").textContent = 100 - window.snmp.failure;
 	document.getElementById("last_response").textContent = (function (lastResponse) {
 		if (!lastResponse) {
 			return "";
@@ -571,30 +555,30 @@ function initialize(snmp) {
 		}
 		
 		return text + s;
-	})(snmp.lastResponse);
+	})(window.snmp.lastResponse);
 	
-	if (top.databases.monitor[window.ip].shutdown) {
+	if (databases.monitor[window.ip].shutdown) {
 		document.body.classList.add("shutdown");
 	}
 	else {
 		document.getElementById("realtime_response").src="realtime_response.html"
 	}
 	
-	entry = snmp.hrProcessorEntry;
+	entry = window.snmp.hrProcessorEntry;
 	for (var index in entry) {
 		initProcessor(entry[index]);
 	}
 	
-	document.querySelector(".resource.processor").onclick = function () {
+	document.querySelector("section.processor").onclick = function () {
 		onSelectResource("processor");
 	};
 	
-	entry = snmp.hrStorageEntry;
+	entry = window.snmp.hrStorageEntry;
 	for (var index in entry) {
 		parseStorage(entry[index], index);
 	}
 	
-	entry = snmp.ifEntry;
+	entry = window.snmp.ifEntry;
 	for (var index in entry) {
 		initIFace(entry[index], index);
 	}
@@ -618,7 +602,7 @@ function parseStorage(storage, index) {
 		break;
 	case 2:
 		initMemory(storage);
-		document.querySelector(".resource.memory").onclick = function () {
+		document.querySelector("section.memory").onclick = function () {
 			onSelectResource("memory", index);
 		};
 		
@@ -641,10 +625,21 @@ function initStorage(storage, index) {
 
 function initMemory(memory) {
 	var used = memory.hrStorageUsed * memory.hrStorageAllocationUnits,
-		size = memory.hrStorageSize * memory.hrStorageAllocationUnits;
+		size = memory.hrStorageSize * memory.hrStorageAllocationUnits,
+		usage = Math.round(100* used / size) +"%",
+		item = document.querySelector("section.memory>div"),
+		bar = item.children[0],
+		label = item.children[1];
+
+	setTimeout(function () {
+		bar.children[0].style.height = usage;
+	}, 500);
 	
-	memoryArea.appendChild(createMemoryGuage(used, size));
+	bar.dataset.value = usage;
 	
+	label.children[0].textContent = ITAhM.util.toBytesString(size);
+	label.children[1].textContent = ITAhM.util.toBytesString(used);
+
 	document.body.classList.add("memory");
 }
 
@@ -659,7 +654,7 @@ function initIFace(iFace, index) {
 				iFace.ifAlias,
 				(function (device) {
 					return device.ifSpeed && device.ifSpeed[index];
-				})(top.databases.device[window.ip]) || iFace.ifHighSpeed || iFace.ifSpeed,
+				})(databases.device[window.ip]) || iFace.ifHighSpeed || iFace.ifSpeed,
 				iFace.ifInBPS || 0,
 				iFace.ifOutBPS || 0,
 				iFace.ifInErrors,
@@ -669,23 +664,9 @@ function initIFace(iFace, index) {
 }
 
 function onSelectResource(resource, index) {
-	top.databases.local.selectedResource = resource;
-	top.databases.local.resourceIndex = index;
-	
-	location.href = "chart.html";
-}
-
-function onSelectResource(resource, index) {
 	document.body.classList.add("frame");
 	
-	top.databases.local.selectedResource = resource;
-	top.databases.local.resourceIndex = index;
-	
-	document.querySelector("div.frame iframe").src = "chart.html";	
-}
-console.log("!!!8");
-function close() {
-	document.body.classList.remove("frame");
+	document.querySelector("div.frame iframe").src = "chart.html?resource="+ resource +"&index="+ index;		
 }
 
 		</script>
@@ -694,45 +675,53 @@ function close() {
 	<body class="loading filter">
 		
 		<div class="body">
-			<article class="summary">
+		
+			<article>
+			
 				<section class="information">
-					<ul class="table">
-						<li>
-							<ul>
-								<li>장비명
-								<li id="sys_name">
-							</ul>
-						<li>
-							<ul>
-								<li>공급자
-								<li id="sys_enterprise">
-							</ul>
-						<li>
-							<ul>
-								<li>IP 주소
-								<li id="ip">
-							</ul>
-						<li>
-							<ul>
-								<li>마지막 응답
-								<li id="last_response">
-							</ul>
-						<li>
-							<ul>
-								<li>상태
-								<li id="status">(<span id="failure"></span>%) <input type="button" id="reset" value="초기화">
-							</ul>
+					<ul>
+						<li>장비명
+						<li id="sys_name">
+					</ul>
+					<ul>
+						<li>공급자
+						<li id="sys_enterprise">
+					</ul>
+					<ul>
+						<li>IP 주소
+						<li id="ip">
+					</ul>
+					<ul>
+						<li>마지막 응답
+						<li id="last_response">
+					</ul>
+					<ul>
+						<li>상태
+						<li id="status">(<span id="failure"></span>%) <input type="button" id="reset" value="초기화">
 					</ul>
 				</section>
 				
-				<section class="resource processor">
+				<section class="processor">
 					<h2>프로세서 로드</h2>
 					<div>
 						<div id="processor"></div>
 					</div>
 				</section>
 				
-				<section class="resource response_time">
+				<section class="memory">
+					<h2>물리적 메모리</h2>
+					<div>
+						<div>
+							<img src="img/line_y.png" width="100px">
+						</div>
+						<div>
+							<p>용량</p>
+							<p>사용</p>
+						</div>
+					</div>
+				</section>
+				
+				<section class="response_time">
 					<h2>응답 속도</h2>
 					<div id="response">
 						<iframe id="realtime_response"></iframe>
@@ -741,8 +730,9 @@ function close() {
 				
 			</article>
 			
-			<article class="summary">
-				<section class="resource storage">
+			<article>
+				
+				<section class="storage">
 					<h2>스토리지 사용</h2>
 					<div>
 						<ul class="storage title">
@@ -754,33 +744,46 @@ function close() {
 						</div>
 					</div>
 				</section>
-				<section class="resource memory">
-					<h2>물리적 메모리</h2>
+				
+			</article>
+			
+			<article>
+				<section class="throughput">
+					<h2>통신
+						<label class="filter">
+							<input id="filter" type="checkbox" checked>
+							<span>비활성 인터페이스 감추기</span>
+						</label>
+					</h2>
 					<div>
-						<div id="memory"></div>
+						<ul class="title throughput">
+							<li>상태
+							<li>이름
+							<li>설명
+							<li>대역폭
+							<li>
+								<div>사용량</div>
+								<div class="flex">
+									<span>송신</span>
+									<span>수신</span>
+								</div>
+							<li>
+								<div>사용률</div>
+								<div class="flex">
+									<span>송신</span>
+									<span>수신</span>
+								</div>
+							<li>
+								<div>에러</div>
+								<div class="flex">
+									<span>송신</span>
+									<span>수신</span>
+								</div>
+						</ul>
+						<div id="i_face">
+						</div>
 					</div>
 				</section>
-			</article>
-			<article class="resource throughput">
-				<h2>통신
-					<label class="filter">
-						<input id="filter" type="checkbox" checked>
-						<span>비활성 인터페이스 감추기</span>
-					</label>
-				</h2>
-				<div>
-					<ul class="throughput title">
-						<li>상태
-						<li>이름
-						<li>설명
-						<li>대역폭
-						<li>사용량(송신/수신)
-						<li>사용률(송신/수신)
-						<li>초당에러량(송신/수신)
-					</ul>
-					<div id="i_face">
-					</div>
-				</div>
 			</article>
 			
 			<nav>
@@ -791,7 +794,7 @@ function close() {
 		
 		<div class="frame">
 			<header>
-				<span>X</span>
+				<span>x</span>
 			</header>
 			<iframe></iframe>
 		</div>
@@ -809,14 +812,6 @@ function close() {
 					</g>
 				</svg>
 			</div>
-			
-			<ul class="memory_item">
-				<li class="bar">
-					<img src="img/line_y.png" width="100px" class="color">
-				<li>
-					<p>용량</p>
-					<p>사용</p>
-			</ul>
 			
 			<ul class="storage item">
 				<li>
@@ -847,24 +842,36 @@ function close() {
 	<script src="js/ITAhM.js"></script>
 	<script src="js/snmp.js"></script>
 	<script>
-
-	var ip = window.top.databases.local.selected,
+	
+	var sendRequest = opener.top.sendRequest,
+		showDialog = opener.top.showDialog,
+		databases = opener.top.databases,
+		realtime = {},
+		ip = window.location.search.substring(1),
+		device = opener.top.databases.device[ip],
 		processorArea = document.getElementById("processor"),
 		storageArea = document.getElementById("storage"),
 		memoryArea = document.getElementById("memory"),
 		interfaceArea = document.getElementById("i_face"),
 		gauge = document.querySelector(".gauge"),
 		processorGauge = document.querySelector(".processor_item"),
-		memoryGauge = document.querySelector(".memory_item"),
 		storageGauge = document.querySelector(".storage.item"),
 		iFaceGauge = document.querySelector(".i_face.item");
 	
-	document.querySelector(".resource.response_time").onclick = function () {
+	window.onunload = function () {
+		for (var resource in realtime) {
+			for (var index in realtime[resource]) {
+				realtime[resource][index].close();
+			}
+		}
+	};
+	
+	document.querySelector(".response_time").onclick = function () {
 		onSelectResource("responseTime");
 	};
 	
 	document.getElementById("realtime_response").onload = function () {
-		this.contentWindow.initialize(top.databases.local.selected);
+		this.contentWindow.initialize(window.ip);
 	};
 	
 	document.getElementById("filter").onclick = function () {
@@ -879,15 +886,17 @@ function close() {
 		window.location.reload();	
 	};
 	
-	document.querySelector(".frame span").onclick = close;
+	document.querySelector(".frame span").onclick = function () {
+		document.body.classList.remove("frame");;
+	}
 	
-	top.sendRequest({
+	sendRequest({
 		command: "select",
 		ip: window.ip
 	}, function (snmp) {
-		top.databases.local.node = snmp;
+		window.snmp = snmp;
 		
-		initialize(snmp);
+		initialize();
 	});
 	
 	</script>

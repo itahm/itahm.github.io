@@ -2,8 +2,8 @@
 <html>
 	<head>
 		<meta charset="UTF-8">
-		<meta http-equiv="Content-Script-Type" content="text/javascript">
-		<meta http-equiv="Content-Style-Type" content="text/css">
+		<meta http-equiv="Cache-Control" content="No-Cache">
+		
 		<title>ITAhM</title>
 		
 		<style>
@@ -31,21 +31,18 @@ iframe {
 	min-height: 80px;
 }
 
-h1, h2 {
-	margin: 0;
+header {
+	position: relative;
 }
 
 h1 {
-	font-size: 16px;
-	padding: .5em 1em;
-	background-color: #0084ff;
-	display: inline-block;
 	color: #fff;
-	border-radius: 1em;
+	margin: 0;
 }
 
 h2 {
 	text-align: center;
+	position: absolute; top: 0; left: 0; right: 0;
 }
 
 #legend {
@@ -59,10 +56,10 @@ h2 {
  * public
  */
 function initialize(from, to, start, end) {
-	var entry = window.node.hrStorageEntry[window.resourceIndex],
+	var entry = top.snmp.hrStorageEntry[window.resourceIndex],
 		request = {
 			command: "query",
-			ip: window.deviceIP,
+			ip: top.ip,
 			summary: true,
 			database: "hrStorageUsed",
 			index: window.resourceIndex,
@@ -106,7 +103,7 @@ function onValueToString(value) {
 function sendDetailRequest() {
 	top.sendRequest({
 		command: "query",
-		ip: window.deviceIP,
+		ip: top.ip,
 		summary: false,
 		database: "hrStorageUsed",
 		index: window.resourceIndex,
@@ -229,7 +226,7 @@ function getFile() {
 	<body>
 		
 		<header>
-			<h1>스토리지 사용 @ <span id="host"></span></h1>
+			<h1>스토리지</h1>
 			<h2>볼륨 : <span id="storage_name"></span></h2>
 			<div id="legend"></div>
 		</header>
@@ -242,15 +239,7 @@ function getFile() {
 
 var chart = document.getElementById("chart"),
 	chartWindow = chart.contentWindow,
-	deviceIP = top.databases.local.selected,
-	resourceIndex = top.databases.local.resourceIndex,
-	node = top.databases.local.node;
-
-if(!deviceIP || !window.node) {
-	throw "!";
-}
-
-document.getElementById("host").textContent = window.deviceIP;
+	resourceIndex = window.location.search.substring(1);
 
 		</script>
 	
