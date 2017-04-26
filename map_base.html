@@ -2,8 +2,8 @@
 <html>
 	<head>
 		<meta charset="UTF-8">
-		<meta http-equiv="Content-Script-Type" content="text/javascript">
-		<meta http-equiv="Content-Style-Type" content="text/css">
+		<meta http-equiv="Cache-Control" content="no-cache">
+		
 		<title>ITAhM</title>
 		
 		<style>
@@ -320,12 +320,17 @@ function moveLine(x, y, data, direct) {
 		x2 = x;
 		y2 = y;
 	}
-	
+try {	
 	data.name1.setAttributeNS(null, "x", (x1 *2 + x2) /3);
 	data.name1.setAttributeNS(null, "y", (y1 *2 + y2) /3);
 	
 	data.name2.setAttributeNS(null, "x", (x2 *2 + x1) /3);
 	data.name2.setAttributeNS(null, "y", (y2 *2 + y1) /3);
+}
+catch(e) {
+	console.log(data);
+}
+
 }
 
 function addDevice(ip) {
@@ -530,7 +535,7 @@ function moveLabel(labelSvg, x1, y1, x2, y2) {
 	labelSvg.setAttributeNS(null, "x", (x1 *2 + x2) /3);
 	labelSvg.setAttributeNS(null, "y", (y1 *2 + y2) /3);
 }
-	
+
 function addLine(ip) {
 	var device = window.deviceData[ip],
 		pos = window.posData[ip],
@@ -557,7 +562,7 @@ function addLine(ip) {
 		// peer가 먼저 svg 만들었다면 공유
 		if (window.linkData[peerIP]) {
 			link = linkData[peerIP][ip];
-			
+				
 			link.name2 = labelSvg;
 		}
 		else {

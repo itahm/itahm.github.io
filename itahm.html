@@ -21,9 +21,9 @@ header {
 
 header::before {
 	content: "";
-	position: absolute; top: 3px; right: 3px; left: 3px; bottom: 3px;
-	border: 3px solid #ccc;
-	pointer-events: none;
+	position: absolute; right: 0; left: 0; bottom: 0;
+	height: 3px;
+	background-color: #ccc;
 }
 
 header:not(:hover) {
@@ -138,8 +138,8 @@ section {
 }
 
 .handle {
-	position: fixed; top: -20px; left: 50%;
-	border: 20px solid red;
+	position: fixed; top: -1em; left: 50%;
+	border: 1em solid red;
 	border-radius: 50%;
 	transform: translateX(-50%);
 }
@@ -217,7 +217,7 @@ var count = document.getElementById("count"),
 	logCount = 0;
 
 window.onbeforeunload = function () {
-	return "아이탐 종료.";
+	//return "아이탐 종료.";
 };
 
 window.onunload = function () {
@@ -298,6 +298,35 @@ document.getElementById("signout").onclick = function () {
 					var databases = event.value;
 					
 					window.databases = databases;
+					
+					
+					//console.log(JSON.stringify(databases.position));
+					/*
+					var monitor;
+					var x = {};
+					for (var ip in databases.monitor) {
+						monitor = databases.monitor[ip];
+						if (monitor.protocol == "snmp") {
+							sendRequest({
+								command: "select",
+								ip: ip
+							}, function (ip, data) {
+								if (Object.keys(data.ifEntry).length === 1) {
+									console.log(data.sysObjectID, ip);
+									x[data.sysObjectID] = true;
+								}
+								else {
+									console.log(Object.keys(data.ifEntry).length);
+								}
+							}.bind(null, ip));
+						}
+					}
+					setTimeout(function () {
+						for (var id in x) {
+							console.log(id);
+						}
+					}, 5000);	
+					*/
 					
 					databases.local.scale = 1;
 					

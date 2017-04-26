@@ -889,11 +889,13 @@ function onSelectResource(resource, index) {
 	document.querySelector(".frame span").onclick = function () {
 		document.body.classList.remove("frame");;
 	}
+	var request = {
+			command: "select",
+			ip: window.ip	
+	};
 	
-	sendRequest({
-		command: "select",
-		ip: window.ip
-	}, function (snmp) {
+	console.log(request);
+	sendRequest(request, function (snmp) {
 		window.snmp = snmp;
 		
 		initialize();

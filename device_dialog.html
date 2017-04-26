@@ -2,6 +2,8 @@
 <html>
 	<head>
 		<meta charset="UTF-8">
+		<meta http-equiv="Cache-Control" content="no-cache">
+		
 		<title>dialog</title>
 		
 		<style>
@@ -87,6 +89,11 @@ body:not(.removable) .remove {
 
 body.initialized .search {
 	display: none;
+}
+
+body.loading {
+	background-color: green;
+	pointer-events: none; 
 }
 
 		</style>
@@ -193,6 +200,8 @@ function onCancel(e) {
 
 function onRemoveDevice() {
 	if (confirm("삭제하겠습니까?")) {
+		document.body.classList.add("loading");
+		
 		top.sendRequest({
 				command: "put",
 				database: "device",
@@ -349,6 +358,7 @@ function initialize(ip) {
 				<input type="reset" class="r_button" value="Cancel">
 				<input type="submit" class="r_button" value="Apply">
 			</footer>
+			
 		</form>
 		
 		<script>
