@@ -557,7 +557,7 @@ function initialize() {
 		return text + s;
 	})(window.snmp.lastResponse);
 	
-	if (databases.monitor[window.ip].shutdown) {
+	if (databases.monitor[window.ip].shutdown || window.snmp.failure === 100) {
 		document.body.classList.add("shutdown");
 	}
 	else {
@@ -889,13 +889,11 @@ function onSelectResource(resource, index) {
 	document.querySelector(".frame span").onclick = function () {
 		document.body.classList.remove("frame");;
 	}
-	var request = {
-			command: "select",
-			ip: window.ip	
-	};
 	
-	console.log(request);
-	sendRequest(request, function (snmp) {
+	sendRequest({
+		command: "select",
+		ip: window.ip	
+	}, function (snmp) {
 		window.snmp = snmp;
 		
 		initialize();

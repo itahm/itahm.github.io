@@ -188,6 +188,7 @@ function showChart(ip) {
 					<li><h1><a href="map.html" target="main">구성도</a></h1>
 					<li><h1><a href="ip.html" target="main">IP주소</a></h1>
 					<li><h1><a href="event.html" target="main">이벤트</a></h1>
+					<li><h1><a href="test2.html" target="main">test</a></h1>
 				</ul>
 				<ul>
 					<li><a id="signout"></a>
@@ -217,7 +218,7 @@ var count = document.getElementById("count"),
 	logCount = 0;
 
 window.onbeforeunload = function () {
-	//return "아이탐 종료.";
+	return "close ITAhM.";
 };
 
 window.onunload = function () {
@@ -244,7 +245,6 @@ document.querySelector('div[class="log"]').onclick = function() {
 };
 
 document.getElementById("signout").onclick = function () {
-	//if (confirm("Are you sure you want to sign out right now?")) {
 	if (confirm("로그아웃 하겠습니까?")) {
 		sendRequest({
 				command: "signout"
@@ -278,7 +278,7 @@ document.getElementById("signout").onclick = function () {
 						alert("다른 관리자 계정이 데이터베이스를 수정하였습니다.");
 					}
 					else if (status === 400) { // bad request
-						alert("잘못된 요청입니다.");
+						alert("잘못된 요청입니다.\n"+ response.error);
 					}
 					else {
 						alert("에이전트가 응답하지 않습니다.\nstatus: "+ status);

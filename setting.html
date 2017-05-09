@@ -266,7 +266,11 @@ function initialize() {
 				<i>(알림에 표시할 에이전트 이름을 입력하십시오.)</i>
 				<ul id="gcm_list" class="list"></ul>
 			</form>
-				
+			
+			<form id="syslog">
+				<input type="text" name="date" required>
+				<input type="submit" value="dump">
+			</form>
 			<div class="bg_loading"></div>
 			
 			<div class="layout">
@@ -336,6 +340,18 @@ document.getElementById("common").onsubmit = function (e) {
 	});
 	
 };
+
+document.getElementById("syslog").onsubmit = function (e) {
+	var request = {
+			command: "extra",
+			extra: "syslog",
+			date: new Date(this.elements["date"].value).setHours(0, 0, 0, 0)
+		};
+console.log(request);
+	top.sendRequest(request, function (data) {
+		window.open().document.write(data.log);
+	});
+}
 
 window.gcm.elements["disable"].onclick = function (e) {
 	e.preventDefault();

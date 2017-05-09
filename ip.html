@@ -30,14 +30,20 @@ body {
 	position: relative;
 }
 
-.network h4 {
-	font-size: 16px;
+.network::before {
+	content: attr(data-network);
+	display: block;
+	font-size: 16px; font-weight: bold;
 	margin: 0;
 	padding: 10px 30px;
 	background-color: #0084ff;
 	color: #fff;
 	text-shadow: 1px 1px 1px #8a2be2;
 	border-bottom: 1px solid #ddd;
+}
+
+.network h4 {
+	display: none;
 }
 
 .network input[type="checkbox"] {
@@ -189,7 +195,7 @@ top.sendRequest({
 	
 		item = document.createElement("li");
 		
-		item.appendChild(document.createElement("h4")).textContent = network +" /"+ getV4Mask(data[network]);
+		item.dataset.network = network +" /"+ getV4Mask(data[network]);
 		item.className = "network";
 		
 		checkbox = document.createElement("input");
@@ -221,11 +227,14 @@ top.sendRequest({
 		}
 
 		// 빈 네트워크는 삭제
-		for (var network in networkData) {break;
+		for (var network in networkData) {
 			div = networkData[network];
 			
 			if (div.children.length === 0) {
 				window.documentFragment.removeChild(div.parentNode);
+			}
+			else {
+				div.parentNode.dataset.network = div.parentNode.dataset.network + " ("+ div.children.length +")";
 			}
 		}
 		
