@@ -97,6 +97,11 @@ input[name="password"] {
 	padding-left: 36px;
 }
 
+.bg_loading {
+	opacity: .5;
+}
+
+
 		</style>
 		
 	</head>
@@ -134,6 +139,8 @@ input[name="password"] {
 			</h1>
 		</section>
 		
+		<div class="bg_loading"></div>
+		
 		<script src="js/ITAhM.js"></script>
 		<script src="js/object.js"></script>
 		<script>
@@ -166,14 +173,16 @@ var MAJOR = 1,
 	function onConnect(e) {
 		e.preventDefault();
 		
-		var xhr = new ITAhM.Communicator(form.elements.host.value, form.elements.port.value, 10000),
-			request = {
-				command: "signin",
-				username: form.elements.username.value,
-				password: form.elements.password.value
-			};
+		document.body.classList.add("loading");
 		
-		xhr.sendRequest(request, function (status, response) {
+		new ITAhM.Communicator(form.elements.host.value, form.elements.port.value, 10000)
+		.sendRequest({
+			command: "signin",
+			username: form.elements.username.value,
+			password: form.elements.password.value
+		}, function (status, response) {
+			document.body.classList.remove("loading");
+			
 			if (status === 200) {
 				sessionStorage.host = form.elements.host.value;
 				sessionStorage.port = form.elements.port.value;

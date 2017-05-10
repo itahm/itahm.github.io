@@ -20,13 +20,6 @@ ul {
 	padding: 0; margin: 0;
 }
 
-.header {
-	/*padding: .5em 0;
-	border-bottom: 1px solid #aaa;
-	font-weight: bold;*/
-	display: none;
-}
-
 #list {
 	flex: 1;
 	overflow-y: auto;
@@ -34,9 +27,6 @@ ul {
 
 .item {
 	padding: 0; margin: 0;
-}
-
-.item ul {
 	display: flex;
 	align-items: center;
 	border: 1px solid transparent;
@@ -45,19 +35,19 @@ ul {
 .item li {
 	padding: 3px;
 	box-sizing: border-box;
+	overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 
-.item .date {
+.item li:nth-child(1) {
 	width: 60px;
 }
 
-.item .ip {
-	width: 120px;
-	text-align: center;
+.item li:nth-child(2) {
+	flex: 1;
 }
 
-.item .message {
-	flex: 1;
+.item li:nth-child(3) {
+	flex: 2;
 }
 
 .item.shutdown {
@@ -73,15 +63,8 @@ ul {
 	</head>
 	
 	<body class="loading">
-		<ul class="header">
-			<li class="item">
-				<ul>
-					<li class="date">시간
-					<li class="ip">대상
-					<li class="message">이벤트 메세지
-				</ul>
-		</ul>
-		<ul id="list"></ul>
+		
+		<div id="list"></div>
 		
 		<div class="bg_loading"></div>
 		
@@ -123,18 +106,19 @@ top.sendRequest({
 
 function createItem(log) {
 	var device = top.databases.device[log.ip],
-		clone = window.item.cloneNode(true),
-		row = clone.children[0];
+		item = document.createElement("ul");
 	
-	row.children[0].textContent = toTimeString(log.date);
-	row.children[1].textContent = (device && device.name) || log.ip;
-	row.children[2].textContent = log.message;
+	item.appendChild(document.createElement("li")).textContent = toTimeString(log.date);
+	item.appendChild(document.createElement("li")).textContent = (device && device.name) || log.ip;
+	item.appendChild(document.createElement("li")).textContent = log.message;
+	
+	item.classList.add("item");
 	
 	if (!log.status && (log.type === "critical" || log.type === "shutdown")) {
-		clone.classList.add(log.type);
+		item.classList.add(log.type);
 	}
 	
-	return clone;
+	return item;
 }
 
 function toTimeString(mills) {
