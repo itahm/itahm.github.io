@@ -85,7 +85,7 @@ function onEvent() {
 			value: response
 		});
 		
-		self.event.index = response.index +1;
+		self.event.index = parseInt(response.index) +1;
 		
 		listen();
 	}

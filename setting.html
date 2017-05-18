@@ -342,14 +342,19 @@ document.getElementById("common").onsubmit = function (e) {
 };
 
 document.getElementById("syslog").onsubmit = function (e) {
+	e.preventDefault();
+	
 	var request = {
 			command: "extra",
 			extra: "syslog",
 			date: new Date(this.elements["date"].value).setHours(0, 0, 0, 0)
 		};
-console.log(request);
+	
 	top.sendRequest(request, function (data) {
-		window.open().document.write(data.log);
+		var doc = window.open().document;
+		
+		doc.title = "Dump @ ITAhM";
+		doc.write(data.log || "No data.");
 	});
 }
 

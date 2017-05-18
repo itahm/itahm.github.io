@@ -292,22 +292,32 @@ var ITAhM = ITAhM || {};
 			this.move(new Date());
 		},
 		
-		move: function (date) {
+		move: function (date, select) {
 			this.year.textContent = date.getFullYear();
 			this.month.value = date.getMonth();
 			
 			date.setHours(0, 0, 0, 0);
-			
-			this.build(date);
 			
 			if (this.selected) {
 				this.selected.classList.remove("selected");
 				
 				this.selected = undefined;
 			}
+			
+			this.build(date, select? date.getDate(): 0);
 		},
 		
-		build: function (date) {
+		select: function (col) {
+			col.classList.add("selected");
+			
+			if (this.selected) {
+				this.selected.classList.remove("selected");
+			}
+			
+			this.selected = col;
+		},
+		
+		build: function (date, select) {
 			var today = new Date(),
 				year = date.getFullYear(),
 				month = date.getMonth(),
@@ -344,15 +354,14 @@ var ITAhM = ITAhM || {};
 					}
 					
 					col.textContent = dateArray[i];
+					
+					if (dateArray[i] === select) {
+						this.select(col);
+					}
+					
 					col.classList.add("valid");
 					col.onclick = function (col, date) {
-						col.classList.add("selected");
-						
-						if (this.selected) {
-							this.selected.classList.remove("selected");
-						}
-						
-						this.selected = col;
+						this.select(col);
 						
 						this.callback(date);
 					}.bind(this, col, date);

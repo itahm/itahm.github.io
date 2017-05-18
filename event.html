@@ -201,7 +201,7 @@ function sendRequest(mills) {
 		var df = document.createDocumentFragment(),
 			indexArray = Object.keys(data);
 			count = indexArray.length;
-		
+		console.log(data);
 		indexArray = indexArray.sort(function (a, b) {
 			return parseInt(a) - parseInt(b);
 		});
