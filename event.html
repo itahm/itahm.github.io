@@ -95,19 +95,25 @@ ul {
 .item li {
 	padding: 5px;
 	box-sizing: border-box;
+	overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 
 .item li:nth-child(1) {
-	width: 100px;
+	width: 3em;
 	text-align: center;
 }
 
 .item li:nth-child(2) {
-	width: 200px;
+	width: 100px;
 	text-align: center;
 }
 
 .item li:nth-child(3) {
+	width: 200px;
+	text-align: center;
+}
+
+.item li:nth-child(4) {
 	flex: 1;
 }
 
@@ -117,6 +123,11 @@ ul {
 
 #list .item.shutdown {
 	background-color: rgba(255, 0, 0, .2);
+}
+
+#list .item li:nth-child(1) img {
+	width: 24px;
+	height: 24px;
 }
 
 #list .item.critical {
@@ -150,6 +161,7 @@ ul {
 			<div class="log">
 				<div class="header">
 					<ul class="item">
+						<li>!
 						<li>시간
 						<li>대상
 						<li>이벤트 메세지 (<span id="count"></span>)
@@ -201,7 +213,7 @@ function sendRequest(mills) {
 		var df = document.createDocumentFragment(),
 			indexArray = Object.keys(data);
 			count = indexArray.length;
-		console.log(data);
+		
 		indexArray = indexArray.sort(function (a, b) {
 			return parseInt(a) - parseInt(b);
 		});
@@ -224,17 +236,16 @@ function sendRequest(mills) {
 
 function createItem(log) {
 	var device = top.databases.device[log.ip],
-		ul = document.createElement("ul");
+		ul = document.createElement("ul"), icon;
 	
+	icon = ul.appendChild(document.createElement("li")).appendChild(document.createElement("img"));
 	ul.appendChild(document.createElement("li")).textContent = toTimeString(log.date);
 	ul.appendChild(document.createElement("li")).textContent = (device && device.name) || log.ip;
 	ul.appendChild(document.createElement("li")).textContent = log.message;
 	
 	ul.classList.add("item");
 	
-	if (!log.status && (log.type === "critical" || log.type === "shutdown")) {
-		ul.classList.add(log.type);
-	}
+	icon.src = log.status? "img/normal.png": log.type === "shutdown"? "img/warning.png": "img/siren.png";
 	
 	return ul;
 }

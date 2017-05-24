@@ -41,12 +41,22 @@ header {
 	box-shadow: 0 0 5px #fff inset;
 }
 
+header img {
+	width: 24px;
+	height: 24px;
+}
+
 header ul::after {
 	content: "";
 	display: inline-block;
 	width: 16px;
 }
 
+header li:nth-child(1) {
+	position: relative;
+}
+
+header li:nth-child(1),
 header li:nth-child(2),
 header li:nth-child(3),
 header li:nth-child(4) {
@@ -90,6 +100,7 @@ li {
 li:nth-child(1) {
 	flex: none;
 	width: 3em;
+	text-align: center;
 }
 
 label {
@@ -105,25 +116,10 @@ label {
 	box-shadow: 0 0 5px gray inset;
 }
 
-#list li:nth-child(1) {
-	background: transparent center no-repeat;
-	background-size: 16px;
-}
-
-#list ul[data-shutdown] li:nth-child(1) {
-	background-image: url("img/ball_red.png");
-}
-
-#list ul[data-critical] li:nth-child(1) {
-	background-image: url("img/ball_orange.png");
-}
-
-#list ul[data-normal] li:nth-child(1) {
-	background-image: url("img/ball_green.png");
-}
-
-#list ul[data-disabled] li:nth-child(1) {
-	background-image: url("img/ball_gray.png");
+li:nth-child(1) img {
+	width: 24px;
+	height: 24px;
+	vertical-align: middle;
 }
 
 li:nth-child(5),
@@ -184,50 +180,37 @@ li:nth-child(8) {
 	transform: translateX(-50%) translateY(-50%);
 }
 
+.selector {
+	overflow: visible;
+}
+
+.selector div {
+	position: absolute; top: 100%; left: 0; width: 100%;
+	border: 1px inset gray;
+	box-sizing: border-box;
+	z-index: 1;
+	background-color: #fff;
+}
+
+.selector:not(:focus) div {
+	display: none;
+}
+
+.selector p {
+	padding: 3px; margin: 0;
+	text-align: center;
+}
+
+.selector p:not(:last-child) {
+	border-bottom: 1px solid #ccc;
+}
+
+.selector img {
+	pointer-events: none;
+}
+
 li {
 	padding: 3px;
-}
-
-div.selector {
-	font-size: 10px;
-	display: inline-block;
-}
-
-div.selector span {
-	border: 2px solid transparent;
-	border-radius: 20px;
-	display: inline-block; height: 18px; width: 18px;
-	animation: slide .5s ease-in;
-}
-
-div.selector span.selected {
-	transform: scale(1.5);
-	animation: grow .5s ease-in;
-}
-
-div.selector span[data-status] {
-	background-color: black;
-	border-color: gray;
-}
-
-div.selector span[data-status=normal] {
-	background-color: green;
-	border-color: yellow;
-}
-
-div.selector span[data-status=shutdown] {
-	background-color: red;
-	border-color: pink;
-}
-
-div.selector span[data-status=critical] {
-	background-color: orange;
-	border-color: yellow;
-}
-
-div.selector span[data-status=disabled] {
-	background-color: gray;
-	border-color: white;
 }
 
 @keyframes grow {
@@ -283,9 +266,9 @@ function initList() {
 
 function createRow(device, monitor, set) {
 	var row = document.createElement("ul"),
-		location, alarm, edit, status, labels, label;
+		icon, location, alarm, edit, status, labels, label;
 	
-	row.appendChild(document.createElement("li"));
+	icon = row.appendChild(document.createElement("li")).appendChild(document.createElement("img"));
 	row.appendChild(document.createElement("li")).textContent = device.name;
 	row.appendChild(document.createElement("li")).textContent = device.type;
 	row.appendChild(document.createElement("li")).textContent = device.ip;
@@ -335,40 +318,42 @@ function createRow(device, monitor, set) {
 			
 		if (monitor.shutdown) {
 			row.dataset.shutdown = true;
+			
+			icon.src = "img/warning.png";
 		}
 		else if (monitor.critical) {
 			row.dataset.critical = true;
+			
+			icon.src = "img/siren.png";
 		}
 		else {
 			row.dataset.normal = true;
+			
+			icon.src = "img/normal.png";
 		}
 	}
 	else {
 		row.dataset.disabled = true;
+		
+		icon.src = "img/disabled.png";
 	}
 	
 	return row;
 }
 
 function initLabel() {
-	var option = document.createElement("option");
+	var df = document.createDocumentFragment(),
+		option = document.createElement("option");
 
-	// label select 초기화
-	window.label.length = 0;
-	
-	option.value = "";
-	option.text = "모두 보기";
-	option.selected = true;
-	
-	window.label.add(option);
-	
 	for (var label in window.labelData) {
 		option = document.createElement("option");
 		
 		option.text = label;
 		
-		window.label.add(option);
+		df.appendChild(option);
 	}
+	
+	window.label.insertBefore(df, window.label.firstChild);
 }
 
 function onSearch(e) {
@@ -462,6 +447,18 @@ function selectLabel(label) {
 	list.appendChild(df);
 }
 
+function onSelect (src, className) {
+	document.body.classList.remove("normal", "critical", "shutdown", "disabled");
+	
+	if (className) {
+		document.body.classList.add(className);
+	}
+	
+	icon.src = src;
+	
+	selector.blur();
+};
+
 		</script>
 		
 	</head>
@@ -472,18 +469,15 @@ function selectLabel(label) {
 				<nav>
 					<div id="count"></div>
 					<div>
-						<select id="label"></select>
-					</div>
-					<div class="selector">
-						<span title="모든 장비 보기" class="selected" data-status="">
-						</span><span title="정상 장비 보기" data-status="normal">
-						</span><span title="임계 장비 보기" data-status="critical">
-						</span><span title="장애 장비 보기" data-status="shutdown">
-						</span><span title="비활성 장비 보기" data-status="disabled"></span>
+						<select id="label">
+							<optgroup>
+								<option value="">모두 보기
+							</optgroup>
+						</select>
 					</div>
 					<div>
 						<label>
-							<input type="checkbox" id="unlabeled">라벨 없는 장비만 보기
+							<input type="checkbox" id="unlabeled">미분류
 						</label>
 					</div>
 				</nav>
@@ -496,7 +490,25 @@ function selectLabel(label) {
 			
 			<header>
 				<ul>
-					<li>
+					<li class="selector" tabindex="0">
+						<img id="icon" src="img/all.png">
+						<div>
+							<p title="장애 장비 보기" id="shutdown">
+								<img src="img/warning.png">
+							</p>
+							<p title="임계 장비 보기" id="critical">
+								<img src="img/siren.png">
+							</p>
+							<p title="정상 장비 보기" id="normal">
+								<img src="img/normal.png">
+							</p>
+							<p title="비활성 장비 보기" id="disabled">
+								<img src="img/disabled.png">
+							</p>
+							<p title="모든 장비 보기" id="all">
+								<img src="img/all.png">
+							</p>
+						</div>
 					<li>장비 이름
 					<li>장비 유형
 					<li>IP 주소
@@ -516,8 +528,8 @@ function selectLabel(label) {
 var form = document.getElementById("form"),
 	label = document.getElementById("label"),
 	list = document.getElementById("list"),
-	selector = document.querySelector(".selector")
-	cache = document.createDocumentFragment(),
+	selector = document.querySelector(".selector"),
+	icon = document.getElementById("icon"),
 	deviceMapping = {},
 	labelData = {};
 
@@ -526,21 +538,11 @@ label.addEventListener("change", onChangeLabel);
 window.form.addEventListener("submit", onSearch);
 window.form.addEventListener("reset", onReset);
 
-window.selector.onclick = function (e) {
-	var element = e.target;
-	
-	if (element.nodeName.toLowerCase() === "span") {
-		element.parentNode.querySelector(".selected").classList.remove("selected");
-		
-		element.classList.add("selected");
-		
-		document.body.classList.remove("normal", "critical", "shutdown", "disabled", "all");
-		
-		if (element.dataset.status) {
-			document.body.classList.add(element.dataset.status);
-		}
-	}
-};
+document.getElementById("shutdown").onclick = onSelect.bind(window, "img/warning.png", "shutdown");
+document.getElementById("critical").onclick = onSelect.bind(window, "img/siren.png", "critical");
+document.getElementById("normal").onclick = onSelect.bind(window, "img/normal.png", "normal");
+document.getElementById("disabled").onclick = onSelect.bind(window, "img/disabled.png", "disabled");
+document.getElementById("all").onclick = onSelect.bind(window, "img/all.png", "");
 
 document.getElementById("unlabeled").onclick = function () {
 	document.body.classList[this.checked? "add": "remove"]("unlabeled");
