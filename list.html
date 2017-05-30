@@ -82,14 +82,15 @@ nav> div {
 }
 
 ul {
-	margin: 0;
-	padding: 3px 0;
+	margin: 0; padding: 0;
 	list-style: none;
 	display: flex;
 }
 
 li {
 	flex: 1;
+	display: flex; align-items: center;
+	padding: 5px;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
@@ -111,14 +112,16 @@ label {
 	border-bottom: 1px solid #ddd;
 }
 
-#list ul:hover {
-	background-color: #fff;
-	box-shadow: 0 0 5px gray inset;
+#list ul:hover li:nth-child(5),
+#list ul:hover li:nth-child(6),
+#list ul:hover li:nth-child(7),
+#list ul:hover li:nth-child(8) {
+	background-color: rgba(0, 0, 0, .9);
 }
 
 li:nth-child(1) img {
-	width: 24px;
-	height: 24px;
+	width: 20px;
+	height: 20px;
 	vertical-align: middle;
 }
 
@@ -163,7 +166,7 @@ li:nth-child(8) {
 }
 
 #list ul:nth-child(odd) {
-	background-color: #fafafa;
+	/*background-color: #fafafa;*/
 }
 
 #count {
@@ -207,10 +210,6 @@ li:nth-child(8) {
 
 .selector img {
 	pointer-events: none;
-}
-
-li {
-	padding: 3px;
 }
 
 @keyframes grow {

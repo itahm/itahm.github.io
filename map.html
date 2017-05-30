@@ -91,6 +91,42 @@ function onSetAlarm(ip){
 	top.showDialog.call(window, "critical_dialog.html", ip);
 }
 
+function test() {
+	var device, entry, i=1000;
+	
+	for (var ip in top.databases.device) {
+		device = top.databases.device[ip];
+		
+		if (device.name) continue;
+		
+		if (i-- < 0) break;
+		
+		for (var peer in device.ifEntry) {
+			delete top.databases.device[peer].ifEntry[ip];
+		}
+		
+		delete top.databases.device[ip];
+		delete top.databases.position[ip];
+	}
+	
+	var request = {
+			command: "push",
+			database: "position",
+			data: window.top.databases.position
+		};
+	
+	top.sendRequest(request, function (response) {
+		alert("구성의 변경사항을 저장하였습니다.");
+	});
+	
+	request.database = "device";
+	request.data = top.databases.device;
+	
+	top.sendRequest(request, function (response) {
+		alert("장비의 변경사항을 저장하였습니다.");
+	});
+}
+
 		</script>
 		
 		
@@ -106,6 +142,7 @@ function onSetAlarm(ip){
 			<img src="img/zoomin.png" width="16px" height="16px" title="확대" id="zoom_in">
 			<img src="img/zoomout.png" width="16px" height="16px" title="축소" id="zoom_out">
 			<img src="img/printer16.png" width="16px" height="16px" title="인쇄" id="print">
+			<!--button onclick="test()">test</button-->
 		</nav>
 		
 		<nav class="right">	
@@ -180,7 +217,7 @@ window.map.onload = function () {
 		var pos = window.top.databases.position[ip];
 		
 		mapWindow.moveAllDevice(- pos.x, - pos.y);
-		mapWindow.selectDevice(ip);
+		mapWindow.showSelectedDevice(ip);
 	}
 	
 	document.body.classList.remove("loading");
