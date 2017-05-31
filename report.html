@@ -134,7 +134,7 @@ function onCreateReport(e) {
 		document.getElementById("shutdown24").textContent = window.elapse["24"];
 		document.getElementById("shutdown0").textContent = window.elapse["0"];
 		
-		createTopTable();
+		createTopTable(form.elements["order"].value);
 	});
 }
 
@@ -157,7 +157,7 @@ function initialize() {
 	}
 }
 
-function createTopTable() {
+function createTopTable(n) {
 	var topList = [].sort.call(Object.keys(window.shutdownCount), function(a, b) {
 		return window.shutdownCount[b] - window.shutdownCount[a];
 	}),
@@ -165,7 +165,11 @@ function createTopTable() {
 	device = top.databases.device,
 	tr, ip;
 	
-	for (var i=0, _i=Math.min(topList.length, 10); i<_i; i++) {
+	n = Math.min(topList.length, n);
+	
+	window.order.textContent = n;
+	
+	for (var i=0; i<n; i++) {
 		ip = topList[i];
 		
 		tr = document.createElement("tr");
@@ -270,6 +274,12 @@ function toDateString(date) {
 									<input type="text" name="user">
 								</td>
 							</tr>
+							<tr>
+								<td>장애 Top n</td>
+								<td>
+									<input type="number" min="1" name="order" value="10">
+								</td>
+							</tr>
 						</tbody>
 					</table>
 				</form>
@@ -353,7 +363,9 @@ function toDateString(date) {
 				</div>
 				
 				<div>
-					<h3>■ 장애 Top 10</h3>
+					<h3>■ 장애 Top
+						<span id="order">0</span>
+					</h3>
 					<table class="top">
 						<colgroup>
 							<col></col>
@@ -381,7 +393,8 @@ var form = document.getElementById("form"),
 	table = document.getElementById("table"),
 	reportTitle = document.getElementById("title"),
 	user = document.getElementById("user"),
-	duration = document.getElementById("duration");
+	duration = document.getElementById("duration"),
+	order = document.getElementById("order");
 
 (function (date) {
 	var mm, dd;

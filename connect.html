@@ -103,14 +103,94 @@ input[name="password"] {
 
 
 		</style>
+		<script>
 		
+function initialize() {
+	var value;
+	
+	if (value = sessionStorage.host) {
+		form.elements.host.value = value;
+	}
+	
+	if (value = sessionStorage.port) {
+		form.elements.port.value = value;
+	}
+	
+	(function (search) {
+		var map = {},
+			pair;
+		
+		for (var i=0, _i=search.length; i<_i; i++) {
+			pair = search[i].split("=");
+			
+			if (pair.length === 2) {
+				map[pair[0]] = pair[1];
+			}
+		}
+		
+		if ("username" in map) {
+			form.elements["username"].value = map.username;
+		}
+		
+		if ("host" in map) {
+			form.elements["host"].value = map.host;
+		}
+		
+		if ("port" in map) {
+			form.elements["port"].value = map.port;
+		}
+	})(window.location.search.substring(1).split("&"));
+	
+	form.addEventListener("submit", onConnect);
+}
+
+function onConnect(e) {
+	e.preventDefault();
+	
+	document.body.classList.add("loading");
+	
+	new ITAhM.Communicator(form.elements.host.value, form.elements.port.value, 10000)
+	.sendRequest({
+		command: "signin",
+		username: form.elements.username.value,
+		password: form.elements.password.value
+	}, function (status, response) {
+		document.body.classList.remove("loading");
+		
+		if (status === 200) {
+			sessionStorage.host = form.elements.host.value;
+			sessionStorage.port = form.elements.port.value;
+			sessionStorage.user = form.elements.username.value;
+			sessionStorage.level = response.level;
+			sessionStorage.version = response.version;
+			
+			if ([MAJOR, MINOR, 3, REVISION].join(".") !== response.version) {
+				alert("에이전트가 최신의 버전이 아닙니다.\n에이전트를 업데이트하지 않으면 오동작 할 수 있습니다.");
+			}
+			
+			window.location.href = "itahm.html";
+		}
+		else if (status === 401) {
+			window.comment.textContent = "Incorrect username or password.";
+			
+			form.elements.username.select();
+		}
+		else {			
+			window.comment.textContent = "Agent is not responding.";
+			
+			form.elements.host.select();
+		}
+	});
+}
+		
+		</script>
 	</head>
 	
 	<body>
 		<section class="content_width">
 			<h1>Connect to agent</h1>
 			<form id="form" class="rounded">
-				<div id="agent">
+				<div>
 					<p>Agent address</p>
 					<div class="flex">
 						<div>
@@ -121,7 +201,7 @@ input[name="password"] {
 						</div>
 					</div>
 				</div>
-				<div id="account">
+				<div>
 					<p>Username</p>
 					<input type="text" name="username" value="root" required>
 					<p id="comment"></p>
@@ -138,7 +218,7 @@ input[name="password"] {
 				</a>
 			</h1>
 		</section>
-		
+		<a href="http://itahm.com/connect.html?username=kt&port=2014&host=demo.itahm.com">KT Test</a>
 		<div class="bg_loading"></div>
 		
 		<script src="js/ITAhM.js"></script>
@@ -148,70 +228,12 @@ input[name="password"] {
 var MAJOR = 1,
 	MINOR = 3,
 	REVISION = 12;
-		
-(function (window, undefined){
 	
 	var form = document.getElementById("form"),
-		comment = document.getElementById("comment"),
-		agent = document.getElementById("agent"),
-		account = document.getElementById("account");
-	
-	function initialize() {
-		var value;
-		
-		if (value = sessionStorage.host) {
-			form.elements.host.value = value;
-		}
-		
-		if (value = sessionStorage.port) {
-			form.elements.port.value = value;
-		}
-		
-		form.addEventListener("submit", onConnect);
-	}
-	
-	function onConnect(e) {
-		e.preventDefault();
-		
-		document.body.classList.add("loading");
-		
-		new ITAhM.Communicator(form.elements.host.value, form.elements.port.value, 10000)
-		.sendRequest({
-			command: "signin",
-			username: form.elements.username.value,
-			password: form.elements.password.value
-		}, function (status, response) {
-			document.body.classList.remove("loading");
-			
-			if (status === 200) {
-				sessionStorage.host = form.elements.host.value;
-				sessionStorage.port = form.elements.port.value;
-				sessionStorage.user = form.elements.username.value;
-				sessionStorage.level = response.level;
-				sessionStorage.version = response.version;
-				
-				if ([MAJOR, MINOR, 3, REVISION].join(".") !== response.version) {
-					alert("에이전트가 최신의 버전이 아닙니다.\n에이전트를 업데이트하지 않으면 오동작 할 수 있습니다.");
-				}
-				
-				window.location.href = "itahm.html";
-			}
-			else if (status === 401) {
-				comment.textContent = "Incorrect username or password.";
-				
-				form.elements.username.select();
-			}
-			else {			
-				comment.textContent = "Agent is not responding.";
-				
-				form.elements.host.select();
-			}
-		});
-	}
+		comment = document.getElementById("comment");
 	
 	initialize();
-		
-}) (window);
+
 		</script>
 	
 	</body>
