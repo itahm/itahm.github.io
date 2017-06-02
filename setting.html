@@ -171,7 +171,14 @@ function initConfig() {
 	document.querySelector("select[name=display]").value = configData.display || "name";
 	document.getElementById("java").textContent = configData.java;
 	document.getElementById("version").textContent = configData.version;
-	document.getElementById("load").textContent = configData.load || 0;
+	document.getElementById("load").textContent = (function (load) {
+		if (!load){
+			return 0;
+		}
+		
+		return Object.values(load).join(", ");
+	})(configData.load);
+	document.getElementById("resource").textContent = configData.resource || 0;
 	document.getElementById("space").textContent = ITAhM.util.toBytesString(configData.space);
 	console.log(configData.load);
 	if ("dashboard" in configData) {
@@ -219,6 +226,7 @@ function initialize() {
 					<li>에이전트 버전 : <span id="version"></span>
 					<li>에이전트 저장공간 여유 : <span id="space"></span>
 					<li>데이터베이스 로드 : <span id="load"></span>
+					<li>관리 리소스 갯수 : <span id="resource"></span>
 					<li>
 						데이터 보관 기간 : <input type="number" min="0" max="365" name="clean"> 일 <input type="submit" value="적용" disabled>
 						<i>(데이터 정리 기능을 사용하지 않는 경우 0)</i>
