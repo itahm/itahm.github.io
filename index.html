@@ -79,17 +79,34 @@ nav {
 	display: inline-block;
 }
 
-.why {
+.intro {
 	display: flex;
 	justify-content: center;
 }
 
-.why h1 {
+.intro h1 {
 	font-size: 48px;
 }
 
-.why_1 {
+.intro> div {
 	max-width: 600px;
+}
+
+.intro p::before {
+	content: "";
+	display: inline-block;
+	border: 0.5em solid #999;
+	margin: 0 0.2em;
+}
+
+img[src="img/home/enterprise2.png"] {
+	float: right;
+	margin: 0 0 1em 1em;
+}
+
+img[src="img/home/enterprise.png"] {
+	float: left;
+	margin: 0 1em 1em 0;
 }
 
 img[src="img/home/quality.png"] {
@@ -112,6 +129,18 @@ img[src="img/home/preview.png"] {
 	margin: auto;
 }
 
+.preview {
+	text-align: center;
+}
+
+.preview img:not(:first-child) {
+	display: none;
+}
+
+.preview img {
+	animation: slide 5s;
+}
+
 footer {
 	display: flex;
 	justify-content: center;
@@ -119,6 +148,18 @@ footer {
 
 footer img {
 	width: 1em; height: 1em;
+}
+
+@keyframes slide {
+	0% {
+		opacity: 0;
+	}
+	40% {
+		opacity: 1;
+	}
+	100% {
+		opacity: 1;
+	}
 }
 
 	</style>
@@ -168,29 +209,53 @@ footer img {
 		</ul>
 	</div>
 	
-	<div class="why">
-		<div class="why_1">
-			<h1>Why? ITAhM!</h1>
+	<div class="where intro">
+		<div>
+			<h1>Where?</h1>
+			<img src="img/home/enterprise2.png" width="64" height="64">
+			<p>NMS 솔루션의 필요성은 이미 알고 있지만 고가의 서비스 비용을
+				집행할 만큼 예산이 충분하지 않은 중소기업의 관리자들은
+				더 이상 고민하지 않으셔도 좋습니다.
+				아이탐은 그 고민을 해결하기 위해서 시작되었습니다.</p>
+			<img src="img/home/enterprise.png" width="64" height="64">
+			<p>엔터프라이즈급 NMS 솔루션을 사용하고 있더라도
+				지점의 워크그룹스위치와 같은 사소한 모든 장비를 관리하려면
+				그 비용 역시 감당하기 어려워 부득이 관리 대상에서 제외되는 장비들이 있습니다.
+				이러한 경우 아이탐을 기존 NMS 솔루션의 보조적인 역할로써 활용할 수 있습니다 </p>
+		</div>
+	</div>
+	
+	<div class="why intro">
+		<div>
+			<h1>Why?</h1>
 			<img src="img/home/quality.png" width="64" height="64">
 			<p>회사가 제공하는 서비스의 품질 저하를 야기할 수 있는 장애 인자들을 미리 인지함으로써
 				 서비스의 가용성을 극대화 하고 장애 발생시에도 신속하게 대응하여 복구함으로써
 				 비즈니스 연속성을 향상 시킬 수 있습니다.</p>
 			<img src="img/home/money.png" width="64" height="64">
 			<p>아이탐은 상용 웹서버, 미들웨어, 데이터베이스 등을 사용하지 않고 독자적인 기술로 개발되어
-				별도의 라이센스 비용이 추가되지 않습니다.</p>
-			<p>이와 같이 독자적인 기술로 개발된 서비스들은 솔루션에 최적화 되어 있기 때문에
+				별도의 라이센스 비용이 추가되지 않습니다.
+				이와 같이 독자적인 기술로 개발된 서비스들은 솔루션에 최적화 되어 있기 때문에
 				하드웨어 구매 비용을 절감할 수 있습니다.
-			<p>더 이상 비용 때문에 서비스의 품질을 포기하는 일은 없어야 할 것입니다.</p>
+				더 이상 비용 때문에 서비스의 품질을 포기하는 일은 없어야 할 것입니다.</p>
 			
 			<img src="img/home/performance.png" width="64" height="64">
 			<p>아이탐은 인텔 i5 프로세서, 4G 메모리, 5400RPM HDD 만으로
 				<strong>500노드</strong>
 				이상의 서버와 통신장비를 거뜬히 모니터링할 수 있습니다. 이는 구매한지 오래된
 				개인용 데스크탑 수준의 하드웨어 입니다.
-			<p>아이탐이 제공하는 구성도는 위와 같은 수준의 컴퓨터로 지연현상 없이
+				아이탐이 제공하는 구성도는 위와 같은 수준의 컴퓨터로 지연현상 없이
 				<strong>3000노드</strong>
 				이상의 장치들을 표현하고 관리할 수 있습니다.</p>
 		</div>
+	</div>
+	
+	<div class="preview">
+		<img src="img/home/dashboard.png" height="500">
+		<img src="img/home/status.png" height="500">
+		<img src="img/home/chart.png" height="500">
+		<img src="img/home/map.png" height="500">
+		<img src="img/home/map_zoom.png" height="500">
 	</div>
 	
 	<footer>
@@ -210,6 +275,11 @@ document.getElementById("connect").onclick = function () {
 	window.location.href = "connect.html";
 };
 
+(function (preview) {
+	window.setInterval(function () {
+		preview.appendChild(preview.firstElementChild);
+	}, 5000);
+})(document.querySelector(".preview"));
 	
 	</script>
 </body>
