@@ -216,8 +216,8 @@ function isChecked(svgDevice) {
 function onDragMove(e) {
 	var data = e.detail,
 		target = data.target,
-		x = Math.round(data.dragX / window.scale /10) *10,
-		y = Math.round(data.dragY / window.scale /10) *10;
+		x = data.dragX / window.scale,
+		y = data.dragY / window.scale;
 	
 	if (isChecked(target)) {
 		var pos;
@@ -244,7 +244,7 @@ function onDragMove(e) {
 			var matrix = destination.transform.baseVal.getItem(0).matrix;
 			
 			x = matrix.e;
-			y = matrix.f;console.log(x,y);
+			y = matrix.f;
 			
 			window.linkCanvas.classList.add("match");
 		}
@@ -278,15 +278,15 @@ function onDragEnd(e) {
 		if (window.selected) {
 			pos = top.databases.position[window.selected];
 			
-			pos.x += x;
-			pos.y += y;
+			pos.x = Math.round((pos.x + x) /window.scale /10) *10;
+			pos.y = Math.round((pos.y + y) /window.scale /10) *10;
 		}
 		
 		for (var ip in window.checked) {
 			pos = top.databases.position[ip];
 			
-			pos.x += x;
-			pos.y += y;
+			pos.x = Math.round((pos.x + x) /window.scale /10) *10;
+			pos.y = Math.round((pos.y + y) /window.scale /10) *10;
 		}
 	}
 	else if (target === linkAnchor) {
@@ -311,14 +311,16 @@ function onDragEnd(e) {
 	}
 }
 	
-function moveAllDevice(x, y) {	
+function moveAllDevice(x, y) {
+	var moved;
+	
 	for (var ip in top.databases.device) {
 		pos = top.databases.position[ip];
 		
-		moveDevice(ip, x, y);
+		moved = moveDevice(ip, x, y);
 		
-		pos.x += x;
-		pos.y += y
+		pos.x = moved.x;
+		pos.y = moved.y;
 	}
 	
 	if (window.selected) {
@@ -544,7 +546,7 @@ function removeClass(e, className) {
 	e.setAttribute("class", classList.join(" "));
 }
 
-function hasClass(e, className) {try {
+function hasClass(e, className) {
 	var cls = e.getAttribute("class"),
 		classList = cls? cls.split(" "): [];
 	
@@ -555,7 +557,6 @@ function hasClass(e, className) {try {
 	}
 	
 	return true;
-} catch(ex) {console.log(e);}
 }
 
 function moveDevice(ip, x, y) {
@@ -566,7 +567,10 @@ function moveDevice(ip, x, y) {
 
 	var svgDevice = window.svgData[ip];
 	
-	svgDevice.setAttribute("transform", "translate("+ (x += pos.x) +","+ (y += pos.y) +")");
+	x = Math.round((x + pos.x) /10) *10;
+	y = Math.round((y + pos.y) /10) *10;
+	
+	svgDevice.setAttribute("transform", "translate("+ x +","+ y +")");
 	
 	for (var peerIP in link) {
 		data = link[peerIP];
