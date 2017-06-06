@@ -173,6 +173,18 @@ li:nth-child(8) {
 	/*background-color: #fafafa;*/
 }
 
+#list li:nth-child(3) {
+	background-size: 24px 24px;
+	background-repeat: no-repeat;
+	background-position: left center;
+}
+
+#list li:nth-child(3)::before {
+	content: attr(data-type);
+	display: inline-block;
+	margin-left: 30px;
+}
+
 #count {
 	border: 2px ridge #fff;
 	width: 100px; height: 100%;
@@ -269,11 +281,16 @@ function initList() {
 
 function createRow(device, monitor, set) {
 	var row = document.createElement("ul"),
-		icon, location, alarm, edit, status, labels, label;
+		icon, type, location, alarm, edit, status, labels, label;
 	
 	icon = row.appendChild(document.createElement("li")).appendChild(document.createElement("img"));
 	row.appendChild(document.createElement("li")).textContent = device.name;
-	row.appendChild(document.createElement("li")).textContent = device.type;
+	
+	type = document.createElement("li");
+	type.dataset.type = device.type;
+	type.style.backgroundImage = "url('"+ getIcon(device.type).src +"')";
+	row.appendChild(type);
+	
 	row.appendChild(document.createElement("li")).textContent = device.ip;
 	
 	location = row.appendChild(document.createElement("li"));
@@ -460,7 +477,11 @@ function onSelect (src, className) {
 	icon.src = src;
 	
 	selector.blur();
-};
+}
+
+function getIcon(type) {
+	return top.databases.icon[type] || top.databases.local.icon[type];
+}
 
 		</script>
 		
