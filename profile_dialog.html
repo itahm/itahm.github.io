@@ -173,6 +173,12 @@ form.elements["en_auth"].onclick = function () {
 };
 
 form.elements["en_priv"].onclick = function () {
+	if (this.checked && !form.elements["en_auth"].checked) {
+		this.checked = false;
+		
+		return;
+	}
+	
 	enableElement(window.form.elements["privacy"], this.checked);
 };
 
