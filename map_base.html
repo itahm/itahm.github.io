@@ -278,15 +278,15 @@ function onDragEnd(e) {
 		if (window.selected) {
 			pos = top.databases.position[window.selected];
 			
-			pos.x = Math.round((pos.x + x) /window.scale /10) *10;
-			pos.y = Math.round((pos.y + y) /window.scale /10) *10;
+			pos.x += x;
+			pos.y += y;
 		}
 		
 		for (var ip in window.checked) {
 			pos = top.databases.position[ip];
 			
-			pos.x = Math.round((pos.x + x) /window.scale /10) *10;
-			pos.y = Math.round((pos.y + y) /window.scale /10) *10;
+			pos.x += x;
+			pos.y += y;
 		}
 	}
 	else if (target === linkAnchor) {
@@ -600,7 +600,7 @@ function preventDefault(e) {
 }
 
 function moveAnchor(x, y) {
-	window.anchor.setAttribute("transform", "translate("+ x +", "+ y +")");
+	window.anchor.setAttribute("transform", "translate("+ (x) +", "+ (y) +")");
 }
 
 function resetSeleced() {
