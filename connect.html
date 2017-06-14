@@ -165,7 +165,8 @@ function onConnect(e) {
 			sessionStorage.version = response.version;
 			
 			if ([MAJOR, MINOR, 3, REVISION].join(".") !== response.version) {
-				alert("에이전트가 최신의 버전이 아닙니다.\n에이전트를 업데이트하지 않으면 오동작 할 수 있습니다.");
+				alert("에이전트에 중요한 변화가 적용된 업데이트가 있습니다.\n"
+						+[MAJOR, MINOR, 3, REVISION].join(".")+" 버전으로 업데이트하십시오.");
 			}
 			
 			window.location.href = "itahm.html";
@@ -226,8 +227,8 @@ function onConnect(e) {
 		<script>
 
 var MAJOR = 1,
-	MINOR = 3,
-	REVISION = 12;
+	MINOR = 4,
+	REVISION = 0;
 	
 	var form = document.getElementById("form"),
 		comment = document.getElementById("comment");

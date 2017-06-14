@@ -78,10 +78,20 @@ ITAhM.iconData = {
         "src": "img/svg/accesspoint.svg",
         "disabled": "img/svg/disabled/accesspoint.svg"
     },
+    "accelerator": {
+        "group": "network",
+        "src": "img/svg/accelerator.svg",
+        "disabled": "img/svg/disabled/accelerator.svg"
+    },
+    "nac": {
+        "group": "network",
+        "src": "img/svg/nac.svg",
+        "disabled": "img/svg/disabled/nac.svg"
+    },
     "printer": {
-    	group: "etc",
-    	src: "img/svg/printer.svg",
-    	disabled: "img/svg/disabled/printer.svg"
+    	"group": "etc",
+    	"src": "img/svg/printer.svg",
+    	"disabled": "img/svg/disabled/printer.svg"
     },
     "office": {
         "group": "etc",

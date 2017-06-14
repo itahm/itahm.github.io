@@ -100,7 +100,8 @@ body:not(.gcm) #gcm input[type=image],
 body:not(.gcm) #gcm input[type=checkbox],
 body.gcm #gcm input[type=text],
 body.gcm #gcm input[type=submit],
-body.gcm #gcm i {
+body.gcm #gcm i,
+#syslog {
 	display: none;
 }
 
@@ -118,6 +119,7 @@ function initAccount() {
 	
 	list.appendChild(df);
 }
+
 function initProfile() {
 	var list = document.getElementById("profile_list"),
 		profileData = top.databases.profile,
@@ -125,6 +127,18 @@ function initProfile() {
 	
 	for (var name in profileData) {
 		df.appendChild(createItem("img/svg/list.svg", name, onSelectProfile));
+	}
+	
+	list.appendChild(df);
+}
+
+function initSMS() {
+	var list = document.getElementById("sms_list"),
+		smsData = top.databases.sms,
+		df = document.createDocumentFragment();
+	
+	for (var id in smsData) {
+		df.appendChild(createItem("img/sms_list.png", id, onSelectSMS));
 	}
 	
 	list.appendChild(df);
@@ -178,9 +192,10 @@ function initConfig() {
 		
 		return Object.values(load).join(", ");
 	})(configData.load);
+	
 	document.getElementById("resource").textContent = configData.resource || 0;
 	document.getElementById("space").textContent = ITAhM.util.toBytesString(configData.space);
-	console.log(configData.load);
+	
 	if ("dashboard" in configData) {
 		var resources = configData.dashboard,
 			orders = [].sort.call(Object.keys(resources), function (a, b) {
@@ -201,11 +216,154 @@ function initConfig() {
 	}
 }
 
+function onSetStorage(clean) {
+	document.body.classList.add("loading");
+	
+	var clean = parseInt(clean.value);
+	
+	top.sendRequest({
+		command: "config",
+		key: "clean",
+		value: clean
+	}, function (response) {
+		document.body.classList.remove("loading");
+		
+		top.databases.config.clean = clean;
+		
+		alert("데이터 보관 기간을 설정하였습니다.");
+		
+		document.body.classList.add("gcm");
+	});
+}
+
+function onDump(date) {
+	document.body.classList.add("loading");
+	
+	top.sendRequest({
+		command: "extra",
+		extra: "syslog",
+		date: new Date(date.value).setHours(0, 0, 0, 0)
+	}, function (data) {
+		document.body.classList.remove("loading");
+		
+		var doc = window.open().document;
+		
+		doc.title = "Dump @ ITAhM";
+		doc.write(data.log || "No data.");
+	});
+}
+
+function onOrderResources(e) {
+	var li = e.target, ul;
+	
+	if (li.nodeName.toLowerCase() !== "li" || !li.previousElementSibling) {
+		return;
+	}
+	
+	li.parentNode.insertBefore(li, li.previousElementSibling);
+}
+
+function onModifyDashboard() {
+	var elements = window.resources.children,
+		li
+		resources = {};
+	
+	for (var i=0, _i=elements.length; i<_i; i++) {
+		li = elements[i];
+		
+		if (li.querySelector("input:checked")) {
+			resources[i.toString()] = elements[i].dataset.value;
+		}
+	}
+	
+	if (Object.keys(resources).length == 0 && !confirm("선택한 리소스가 없습니다.\n대쉬보드에 리소스 정보를 표시하지 않겠습니까?")) {
+		return;
+	}
+	
+	document.body.classList.add("loading");
+	
+	top.sendRequest({
+		command: "config",
+		key: "dashboard",
+		value: resources
+	}, function (response) {
+		document.body.classList.remove("loading");
+		
+		top.databases.config.dashboard = resources;
+		
+		alert("대쉬보드 리소스 정보를 변경하였습니다.");
+	});
+}
+
+function onModifyDisplay(display) {
+	document.body.classList.add("loading");
+	
+	top.sendRequest({
+		command: "config",
+		key: "display",
+		value: display.value
+	}, function (response) {
+		document.body.classList.remove("loading");
+		
+		top.databases.config.display = display.value;
+		
+		alert("장비 표시 방식을 변경하였습니다.");
+	});
+}
+
+function onSelectSMS(id) {
+	top.showDialog.call(window, "sms_dialog.html", id);
+}
+
+function onModifyGCM(host) {
+	if (document.body.classList.contains("gcm")) {
+		onSelectGCM();
+	}
+	else {
+		if (host.value === "") {
+			return host.focus();
+		}
+		
+		document.body.classList.add("loading");
+		
+		top.sendRequest({
+			command: "config",
+			key: "gcm",
+			value: host.value
+		}, function (response) {
+			document.body.classList.remove("loading");
+			
+			top.databases.config.gcm = host.value;
+		
+			document.body.classList.add("gcm");
+			
+			alert("구글 클라우드 메세징 서비스를 사용하도록 설정하였습니다.");
+		});
+	}
+}
+
+function onDisableGCM() {
+	if (confirm("구글 클라우드 메세징 서비스를 사용하지 않도록 설정합니다.")) {
+		top.sendRequest({
+			command: "config",
+			key: "gcm",
+			value: null
+		}, function (response) {
+			document.body.classList.remove("loading");
+			
+			top.databases.config.gcm = null;
+		
+			document.body.classList.remove("gcm");
+		});
+	}
+}
+
 function initialize() {
 	initConfig();
 	initAccount();
 	initProfile();
 	initGCM();
+	initSMS();
 	
 	if (top.databases.config.gcm !== undefined && top.databases.config.gcm !== null) {
 		document.body.classList.add("gcm");
@@ -270,9 +428,14 @@ function initialize() {
 				<i>등록된 Profile은 변경할 수 없습니다. 삭제후 추가하십시오. (사용중인 Profile은 삭제할 수 없습니다.)</i>
 			</form>
 			
+			<form id="sms">
+				<h2>SMS <input type="image" src="img/plus.png" title="알림 추가" disabled></h2>
+				<ul id="sms_list" class="list"></ul>
+			</form>
+			
 			<form id="gcm">
-				<h2><input type="checkbox" name="disable" checked title="알림 중지">이벤트 알림 <input type="image" src="img/plus.png" title="알림 추가" disabled></h2>
-				<input type="text" name="host"><input type="submit" value="알림 허용">
+				<h2><input type="checkbox" name="disable" checked title="중지">GCM(Google Cloud Messaging) <input type="image" src="img/plus.png" title="알림 추가" disabled></h2>
+				<input type="text" name="host"><input type="submit" value="사용">
 				<i>(알림에 표시할 에이전트 이름을 입력하십시오.)</i>
 				<ul id="gcm_list" class="list"></ul>
 			</form>
@@ -286,17 +449,13 @@ function initialize() {
 			<div class="layout">
 				<ul>
 					<li class="item">
-						<img width="16" height="16">
+						<img width="20" height="20">
 						<span></span>
 				</ul>
 			</div>
 		</div>
 		<script src="js/ITAhM.js"></script>
 		<script>
-		
-if (top === window) {
-	throw "";
-}
 
 var resources = document.getElementById("resources"),
 	listItem = document.querySelector(".item"),
@@ -331,156 +490,46 @@ document.getElementById("profile").onsubmit = function (e) {
 document.getElementById("common").onsubmit = function (e) {
 	e.preventDefault();
 	
-	document.body.classList.add("loading");
-	
-	var clean = parseInt(this.elements["clean"].value);
-	
-	top.sendRequest({
-		command: "config",
-		key: "clean",
-		value: clean
-	}, function (response) {
-		document.body.classList.remove("loading");
-		
-		top.databases.config.clean = clean;
-		
-		alert("데이터 보관 기간을 설정하였습니다.");
-		
-		document.body.classList.add("gcm");
-	});
-	
+	onSetStorage(this.elements["clean"]);	
 };
-
+console.log("updated!");
 document.getElementById("syslog").onsubmit = function (e) {
 	e.preventDefault();
 	
-	var request = {
-			command: "extra",
-			extra: "syslog",
-			date: new Date(this.elements["date"].value).setHours(0, 0, 0, 0)
-		};
-	
-	top.sendRequest(request, function (data) {
-		var doc = window.open().document;
-		
-		doc.title = "Dump @ ITAhM";
-		doc.write(data.log || "No data.");
-	});
-}
+	onDump(this.elements["date"]);
+};
 
 window.gcm.elements["disable"].onclick = function (e) {
 	e.preventDefault();
 
-	if (confirm("구글 클라우드 메세징 서비스를 사용하지 않도록 설정합니다.")) {
-		top.sendRequest({
-			command: "config",
-			key: "gcm",
-			value: null
-		}, function (response) {
-			document.body.classList.remove("loading");
-			
-			top.databases.config.gcm = null;
-		
-			document.body.classList.remove("gcm");
-		});
-	}
+	onDisableGCM();
 };
 
 window.gcm.onsubmit = function (e) {
 	e.preventDefault();
 	
-	if (document.body.classList.contains("gcm")) {
-		onSelectGCM();
-	}
-	else {
-		var host = this.elements["host"].value;
+	onModifyGCM(this.elements["host"]);
+};
+
+document.getElementById("sms").onsubmit = function (e) {
+	e.preventDefault();
 	
-		if (host === "") {
-			return this.elements["host"].focus();
-		}
-		
-		document.body.classList.add("loading");
-		
-		top.sendRequest({
-			command: "config",
-			key: "gcm",
-			value: host
-		}, function (response) {
-			document.body.classList.remove("loading");
-			
-			top.databases.config.gcm = host;
-		
-			document.body.classList.add("gcm");
-			
-			alert("구글 클라우드 메세징 서비스를 사용하도록 설정하였습니다.");
-		});
-	}
+	onSelectSMS();
 };
 
 document.getElementById("display").onsubmit = function (e) {
 	e.preventDefault();
 	
-	document.body.classList.add("loading");
-	
-	var display = this.elements["display"].value;
-	
-	top.sendRequest({
-		command: "config",
-		key: "display",
-		value: display
-	}, function (response) {
-		document.body.classList.remove("loading");
-		
-		top.databases.config.display = display;
-		
-		alert("장비 표시 방식을 변경하였습니다.");
-	});
-	
+	onModifyDisplay(this.elements["display"]);
 };
 
 document.getElementById("dashboard").onsubmit = function (e) {
 	e.preventDefault();
 	
-	var elements = window.resources.children,
-		li
-		resources = {};
-	
-	for (var i=0, _i=elements.length; i<_i; i++) {
-		li = elements[i];
-		
-		if (li.querySelector("input:checked")) {
-			resources[i.toString()] = elements[i].dataset.value;
-		}
-	}
-	
-	if (Object.keys(resources).length == 0 && !confirm("선택한 리소스가 없습니다.\n대쉬보드에 리소스 정보를 표시하지 않겠습니까?")) {
-		return;
-	}
-	
-	document.body.classList.add("loading");
-	
-	top.sendRequest({
-		command: "config",
-		key: "dashboard",
-		value: resources
-	}, function (response) {
-		document.body.classList.remove("loading");
-		
-		top.databases.config.dashboard = resources;
-		
-		alert("대쉬보드 리소스 정보를 변경하였습니다.");
-	});
+	onModifyDashboard();
 };
 
-window.resources.onclick = function (e) {
-	var li = e.target, ul;
-	
-	if (li.nodeName.toLowerCase() !== "li" || !li.previousElementSibling) {
-		return;
-	}
-	
-	li.parentNode.insertBefore(li, li.previousElementSibling);
-};
+window.resources.onclick = onOrderResources;
 
 initialize();
 

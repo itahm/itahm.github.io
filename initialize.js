@@ -1,7 +1,7 @@
 "use strict" ;
 
 var url,
-	requestQ = ["gcm", "config", "icon", "profile", "account", "device", "position", "monitor", "critical"],
+	requestQ = ["gcm", "sms", "config", "icon", "profile", "account", "device", "position", "monitor", "critical"],
 	event = {
 		command: "listen"
 	},

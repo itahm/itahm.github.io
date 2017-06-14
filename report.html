@@ -56,6 +56,25 @@ article {
 	border: 1px solid #000;
 }
 
+svg {
+	width: 100%;
+	border: 1px solid #000;
+}
+
+circle {
+	fill: #0084ff;
+	/*stroke: none;*/
+}
+
+line {
+	stroke: #0084ff; stroke-width: 3;
+}
+
+text {
+	text-anchor: middle;
+	dominant-baseline: text-after-edge;
+}
+	
 table {
 	width: 100%;
 	border-collapse:collapse;
@@ -108,11 +127,13 @@ function onCreateReport(e) {
 	var start = new Date(window.form.elements["start"].value),
 		end = new Date(window.form.elements["end"].value);
 	
-	initialize();
+	clear();
 	
 	window.duration.textContent = toDateString(start) +" ~ "+ toDateString(end);
 	window.reportTitle.textContent = window.form.elements["title"].value;
 	window.user.textContent = window.form.elements["user"].value;
+	
+	document.body.classList.add("loading");
 	
 	top.sendRequest({
 		command: "extra",
@@ -120,8 +141,14 @@ function onCreateReport(e) {
 		start: start.setHours(0, 0, 0, 0),
 		end: end.setHours(0, 0, 0, 0)
 	}, function (data) {
+		var key = [],
+			shutdownData = {},
+			max = 0;
+		
 		for (var s=start.getTime(), e=end.getTime(); s<=e; s=start.setDate(start.getDate() +1)) {
-			parseData(data[s], s);
+			key[key.length] = s;
+			
+			max = Math.max(shutdownData[s] = parseData(data[s], s), max);
 		}
 		
 		document.getElementById("shutdown").textContent = window.shutdownTotal;
@@ -135,10 +162,16 @@ function onCreateReport(e) {
 		document.getElementById("shutdown0").textContent = window.elapse["0"];
 		
 		createTopTable(form.elements["order"].value);
+		
+		drawGraph(key, shutdownData, max);
+		
+		document.body.classList.remove("loading");
 	});
 }
 
-function initialize() {
+function clear() {
+	var child;
+
 	window.elapse = {
 			5: 0,
 			10: 0,
@@ -151,9 +184,61 @@ function initialize() {
 	window.shutdownList = {};
 	window.shutdownCount = {};
 	window.shutdownTotal = 0;
+	window.lastPos = undefined;
 	
-	while(window.table.firstChild) {
-		window.table.removeChild(window.table.firstChild);
+	while(child = window.table.firstChild) {
+		window.table.removeChild(child);
+	}
+	
+	while(child = window.graph.firstChild) {
+		window.graph.removeChild(child);
+	}
+	
+	while(child = window.value.firstChild) {
+		window.value.removeChild(child);
+	}
+}
+
+function drawGraphData(x, y, value) {
+	var circle = document.createElementNS("http://www.w3.org/2000/svg", "circle"),
+		text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+	
+	if (window.lastPos) {
+		var line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+		
+		line.setAttribute("x1", window.lastPos.x);
+		line.setAttribute("y1", window.lastPos.y);
+		line.setAttribute("x2", x);
+		line.setAttribute("y2", y);
+		
+		window.graph.appendChild(line);
+	}
+	
+	circle.setAttribute("cx", x);
+	circle.setAttribute("cy", y);
+	circle.setAttribute("r", 8);
+	window.graph.appendChild(circle);
+	
+	text.setAttribute("x", x);
+	text.setAttribute("y", 100 - y);
+	text.textContent = value;
+	window.value.appendChild(text);
+	
+	window.lastPos = {
+		x: x,
+		y: y
+	};
+}
+
+function drawGraph(key, data, max) {
+	var height = 100,
+		count = key.length,
+		value, circle;
+	
+	for (var x=window.graphWidth / (count +1), i=0; i<count; i++) {
+		value = data[key[i]];
+		
+		drawGraphData(x * (i +1),  Math.round(height * value / max), value);
 	}
 }
 
@@ -185,7 +270,7 @@ function createTopTable(n) {
 }
 
 function parseData(data, date) {
-	var event, elapse;
+	var event, elapse, count = 0;
 	
 	for (var index in data) {
 		event = data[index];
@@ -217,6 +302,8 @@ function parseData(data, date) {
 				}
 			}
 			else {
+				count++;
+				
 				window.shutdownList[event.ip] = event;
 				
 				window.shutdownTotal++;
@@ -230,6 +317,8 @@ function parseData(data, date) {
 			}
 		}
 	}
+	
+	return count;
 }
 
 function toDateString(date) {
@@ -283,9 +372,6 @@ function toDateString(date) {
 						</tbody>
 					</table>
 				</form>
-				<p>
-					<em>※ 리포트 기능을 이용하기 위해서는 최신의 ITAhM.jar 파일을 적용해야 합니다.</em>
-				</p>
 			</nav>
 			<article>
 				<h1 id="title"></h1>
@@ -315,6 +401,13 @@ function toDateString(date) {
 							</tr>
 						</tbody>
 					</table>
+				</div>
+				<div>
+					<h3>■ 장애추이</h3>
+					<svg height="140">
+						<g id="graph" transform="translate(0 130) scale(1 -1)"></g>
+						<g id="value" transform="translate(0 20)"></g>
+					</svg>
 				</div>
 				<div>
 					<h3>■ 복구시간</h3>
@@ -385,12 +478,17 @@ function toDateString(date) {
 			</article>
 		</div>
 		
+		<div class="bg_loading"></div>
+		
 		<script src="js/ITAhM.js"></script>
 		<script src="js/object.js"></script>
 		<script>
 
 var form = document.getElementById("form"),
 	table = document.getElementById("table"),
+	graphWidth = document.querySelector("svg").getBoundingClientRect().width,
+	graph = document.getElementById("graph"),
+	value = document.getElementById("value"),
 	reportTitle = document.getElementById("title"),
 	user = document.getElementById("user"),
 	duration = document.getElementById("duration"),
@@ -405,7 +503,8 @@ var form = document.getElementById("form"),
 	dd = date.getDate();
 	window.form.elements["end"].value = [date.getFullYear(), mm < 10? "0"+ mm: mm, dd < 10? "0"+ dd: dd].join("-");
 	
-	date.setMonth(date.getMonth() -1);
+	//date.setMonth(date.getMonth() -1);
+	date.setDate(date.getDate() -7);
 	
 	mm = date.getMonth() +1;
 	dd = date.getDate();
