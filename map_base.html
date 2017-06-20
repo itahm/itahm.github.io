@@ -58,8 +58,8 @@ text {
 	}
 }
 
-body.extra #line line {
-	stroke: #f5d04c;
+body.extra #anchor {
+	display: none;
 }
 
 #line text {
@@ -766,7 +766,7 @@ function onShowAlarm(ip) {
 					<line x1="0" y1="0" x2="0" y2="0" />
 				</g>
 				<g id="device"></g>
-				<g id="tool">
+				<!--g id="tool"-->
 					<g id="anchor">
 						<image xlink:href="img/svg/chart.svg" id="chart_anchor" x="-42" y="-8" 
 							width="16" height="16" cursor="pointer"><!-- -34 -16/2, -16/2 -->
@@ -785,14 +785,14 @@ function onShowAlarm(ip) {
 							<title>성능의 임계값을 설정합니다.</title>
 						</image>
 					</g>
-				</g>
+				<!--/g-->
 			</g>
 		</svg>
 		
 		<script src="js/ITAhM.js"></script>
 		<script src="js/Draggable.js"></script>
 		<script>
-
+console.log("updated");
 if (sessionStorage.level == 0) {
 	document.body.classList.add("root");
 }
@@ -805,7 +805,7 @@ var svgNS = "http://www.w3.org/2000/svg",
 
 var mapCanvas = document.getElementById("map"),
 	deviceCanvas = document.getElementById("device"),
-	toolCanvas = document.getElementById("tool"),
+	//toolCanvas = document.getElementById("tool"),
 	lineCanvas = document.getElementById("line"),
 	transform = document.getElementById("transform").transform.baseVal,
 	linkCanvas = document.getElementById("link"),
