@@ -358,6 +358,28 @@ function onDisableGCM() {
 	}
 }
 
+function onEnableSMS(e) {
+	var checked = this.checked;
+	
+	if (confirm("SMS 발송 기능을 "+
+		(checked? "사용 하도록": "사용하지 않도록") +
+		"설정하겠습니까?")) {
+	
+		top.sendRequest({
+			command: "config",
+			key: "sms",
+			value: checked
+		}, function (response) {
+			top.databases.config.sms = checked;
+		
+			window.location.reload();
+		});
+	}
+	else {
+		e.preventDefault();
+	}
+}
+
 function initialize() {
 	initConfig();
 	initAccount();
@@ -368,6 +390,8 @@ function initialize() {
 	if (top.databases.config.gcm !== undefined && top.databases.config.gcm !== null) {
 		document.body.classList.add("gcm");
 	}
+	
+	window.sms.elements["enable"].checked = top.databases.config.sms? true: false;
 	
 	document.body.classList.remove("loading");
 }
@@ -429,7 +453,11 @@ function initialize() {
 			</form>
 			
 			<form id="sms">
-				<h2>SMS <input type="image" src="img/plus.png" title="알림 추가" disabled></h2>
+				<h2>
+					<input type="checkbox" name="enable">
+					SMS
+					<input type="image" src="img/plus.png" title="알림 추가" disabled>
+				</h2>
 				<ul id="sms_list" class="list"></ul>
 			</form>
 			
@@ -458,6 +486,7 @@ function initialize() {
 		<script>
 
 var resources = document.getElementById("resources"),
+	sms = document.getElementById("sms"),
 	listItem = document.querySelector(".item"),
 	gcm = document.getElementById("gcm");
 	
@@ -511,7 +540,9 @@ window.gcm.onsubmit = function (e) {
 	onModifyGCM(this.elements["host"]);
 };
 
-document.getElementById("sms").onsubmit = function (e) {
+window.sms.elements["enable"].onclick = onEnableSMS;
+
+window.sms.onsubmit = function (e) {
 	e.preventDefault();
 	
 	onSelectSMS();
