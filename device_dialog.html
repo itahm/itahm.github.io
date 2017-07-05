@@ -177,7 +177,11 @@ function onApply(e) {
 	window.device.ip = ip;
 	window.device.type = form.elements.type.value;
 	window.device.label = trimLabel(form.elements.label.value);
-
+	
+	if (top.databases.local.parent) {
+		top.databases.position[ip].parent = top.databases.local.parent;
+	}
+	
 	top.sendRequest({
 			command: "put",
 			database: "device",
@@ -316,7 +320,9 @@ function initialize(ip) {
 				<ul>
 					<li>ip 주소
 					<li>
-						<input type="text" pattern="^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$" required id="ip" autofocus>
+						<input type="text" name="ip"  
+							pattern="^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$" 
+							required autofocus>
 				</ul>
 				<ul>
 					<li>이름

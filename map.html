@@ -49,7 +49,16 @@ nav {
 	color: #fff;
 }
 
+button img {
+	vertical-align: bottom;
+	margin-right: 0.5em;
+}
+
 body:not(.root) .root {
+	display: none;
+}
+
+#group {
 	display: none;
 }
 
@@ -61,12 +70,12 @@ function resize() {
 	window.mapWindow.resize();
 }
 
-function editDevice(ip) {
-	top.showDialog.call(window, "device_dialog.html", ip);
+function editDevice(key) {
+	top.showDialog.call(window, key && top.databases.device[key].group? "group_dialog.html": "device_dialog.html", key);
 }
 
-function onEdit() {
-	editDevice();
+function editGroup(name) {
+	top.showDialog.call(window, "group_dialog.html", name);
 }
 
 function onSave() {
@@ -137,11 +146,12 @@ function test() {
 		<iframe id="map" src="map_base.html"></iframe>
 		
 		<nav class="left">
-			<img src="img/add_device.png" width="16px" height="16px" title="장비 추가" id="add" class="root">
-			<img src="img/save.png" width="16px" height="16px" title="저장" id="save"  class="root">
-			<img src="img/zoomin.png" width="16px" height="16px" title="확대" id="zoom_in">
-			<img src="img/zoomout.png" width="16px" height="16px" title="축소" id="zoom_out">
-			<img src="img/printer16.png" width="16px" height="16px" title="인쇄" id="print">
+			<button id="add"><img src="img/add_device.png" width="16px" height="16px" title="장비 추가" class="root">추가</button>
+			<button id="group"><!--img src="img/add_group.png" width="16px" height="16px" title="그룹 추가" class="root"-->그룹</button>
+			<button id="save"><img src="img/save.png" width="16px" height="16px" title="저장" class="root">저장</button>
+			<button id="zoom_in"><img src="img/zoomin.png" width="16px" height="16px" title="확대">확대</button>
+			<button id="zoom_out"><img src="img/zoomout.png" width="16px" height="16px" title="축소">축소</button>
+			<button id="print"><img src="img/printer16.png" width="16px" height="16px" title="인쇄">인쇄</button>
 			<!--button onclick="test()">test</button-->
 		</nav>
 		
@@ -154,14 +164,20 @@ function test() {
 		<script>
 
 var map = document.getElementById("map");
-		
+
 if (sessionStorage.level == 0) {
 	document.body.classList.add("root");
 }
 
 document.getElementById("save").onclick = onSave;
 
-document.getElementById("add").onclick = onEdit;
+document.getElementById("add").onclick = function () {
+	editDevice();
+};
+
+document.getElementById("group").onclick = function () {
+	editGroup();
+};
 
 window.map.onload = function () {
 	var mapWindow = window.map.contentWindow,
@@ -212,13 +228,6 @@ window.map.onload = function () {
 	mapWindow.zoom(scale = window.top.databases.local.scale);
 	
 	mapWindow.initialize();
-		
-	if (ip = window.location.search.substring(1)) {
-		var pos = window.top.databases.position[ip];
-		
-		mapWindow.moveAllDevice(- pos.x, - pos.y);
-		mapWindow.showSelectedDevice(ip);
-	}
 	
 	document.body.classList.remove("loading");
 }

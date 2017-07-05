@@ -258,7 +258,12 @@ function onSetAlarm(ip){
 }
 
 function onMap(ip) {
-	window.location.href = "map.html?"+ip;
+	var device = top.databases.device[ip];
+	
+	top.databases.local.parent = device.parent;
+	top.databases.local.selected = ip;
+	
+	window.location.href = "map.html";
 }
 
 function initList() {

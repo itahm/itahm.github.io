@@ -118,15 +118,16 @@ body.loading g,
 	display: none;
 }
 
-.device {
-	pointer-events: all;
+.device * {
+	pointer-events: none;
 }
 
-.device text {
+.device circle.drag {
 	pointer-events: none;
 }
 
 .device circle {
+	pointer-events: all;
 	stroke-width: 5px;
 	stroke: none;
 	fill: none;
@@ -144,6 +145,7 @@ body.loading g,
 .device.critical circle {
 	stroke: #fa0;
 }
+
 
 /* 공통 */
 .fullscreen {
@@ -213,6 +215,15 @@ function isChecked(svgDevice) {
 	return hasClass(svgDevice, "device", "checked");
 }
 
+function moveSelectedDevice(x, y) {
+	for (var ip in window.checked) {
+		pos = top.databases.position[ip];
+		
+		pos.x += x;
+		pos.y += y;
+	}
+}
+
 function onDragMove(e) {
 	var data = e.detail,
 		target = data.target,
@@ -221,6 +232,8 @@ function onDragMove(e) {
 	
 	if (isChecked(target)) {
 		var pos;
+		
+		addClass(target, "drag");
 		
 		if (window.selected) {
 			pos = moveDevice(window.selected, x, y);
@@ -275,6 +288,8 @@ function onDragEnd(e) {
 			y = Math.round(data.dragY / window.scale /10) *10,
 			pos;
 		
+		removeClass(target, "drag");
+		
 		if (window.selected) {
 			pos = top.databases.position[window.selected];
 			
@@ -282,12 +297,7 @@ function onDragEnd(e) {
 			pos.y += y;
 		}
 		
-		for (var ip in window.checked) {
-			pos = top.databases.position[ip];
-			
-			pos.x += x;
-			pos.y += y;
-		}
+		moveSelectedDevice(x, y);
 	}
 	else if (target === linkAnchor) {
 		var pos = top.databases.position[window.selected];
@@ -434,9 +444,8 @@ function drawLine(x, y, data, direct) {
 
 }
 
-function addDevice(ip) {
+function addDevice(ip, pos) {
 	var device = top.databases.device[ip],
-		pos = top.databases.position[ip],
 		svgDevice = document.createElementNS(svgNS, "g"),
 		svgIcon = document.createElementNS(svgNS, "image"),
 		svgBG = document.createElementNS(svgNS, "circle"),
@@ -636,9 +645,8 @@ function moveLabel(labelSvg, x1, y1, x2, y2) {
 	labelSvg.setAttribute("y", (y1 *2 + y2) /3);
 }
 
-function addLine(ip) {
+function addLine(ip, pos) {
 	var device = top.databases.device[ip],
-		pos = top.databases.position[ip],
 		ifEntry = device.ifEntry,
 		peerList = {},
 		peer, peerPos, peerIP, link, lineSvg,
@@ -689,16 +697,29 @@ function addLine(ip) {
 }
 
 function initialize(extra) {
+	var pos;
+	
+	for (var ip in top.databases.device) {
+		pos = top.databases.position[ip];
+		
+		addDevice(ip, pos);
+		addLine(ip, pos);
+	}
+	
+	var ip = top.databases.local.selected;
+	
+	if (ip) {
+		var pos = window.top.databases.position[ip];
+		
+		moveAllDevice(- pos.x, - pos.y);
+		showSelectedDevice(ip);
+	}
+	
 	if (extra) {
 		document.body.classList.add("extra");
 	}
 	
-	for (var ip in top.databases.device) {
-		addDevice(ip);
-		addLine(ip);
-	}
-	
-
+	top.databases.local.selected = undefined;
 }
 
 function onLink(ip, e) {
@@ -792,7 +813,7 @@ function onShowAlarm(ip) {
 		<script src="js/ITAhM.js"></script>
 		<script src="js/Draggable.js"></script>
 		<script>
-console.log("updated");
+
 if (sessionStorage.level == 0) {
 	document.body.classList.add("root");
 }
