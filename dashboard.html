@@ -13,82 +13,49 @@ body {
 	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
 	padding: 0; margin: 0;
 	display: flex;
-	flex-direction: column;
+	align-items: stretch;
 	background-color: #4d525a;
 	color: #fff;
 }
 
-div.bar {
-	height: 3px;
-	background-color: #ccc;
-	position: relative;
-}
-
-#counter {
-	position: absolute; top: 0; right: 0; bottom: 0;
-	background-color: #4d525a;
-	animation: count 10s infinite linear;
-}
-
-div.body {
-	flex: 1;
-	display: flex;
-	padding: 1em;
-}
-
 aside {
-	width: 400px;
+	width: 300px;
 	display: flex;
+	box-sizing: border-box;
+	padding: .5em;
 	flex-direction: column;
 	text-shadow: 1px 1px 1px #000;
 }
 
-aside> div:first-child {
+aside> .top {
 	height: 140px;
 	display: flex;
-	justify-content: space-between;
+	justify-content: space-around;
 	align-items: center;
 }
 
-aside> div:nth-child(2) {
+#summary_list {
+	position: relative;
 	flex: 1;
-	display: flex;
-	flex-direction: column;
-	overflow: auto;
-	margin-bottom: 1em;
+	overflow-y: auto;
 }
 
 article {
 	flex: 1;
 	display: flex;
-	flex-wrap: wrap;
-	overflow-y: auto;
-}
-
-.extra {
-	flex: 1;
-	box-sizing: border-box;
-	display: flex;
 	flex-direction: column;
 }
 
-.extra iframe {
+iframe {
 	border: none;
 }
 
-.extra >div:first-child {
+#map {
 	flex: 1;
 	border: 5px solid #0084ff;
+	box-sizing: border-box;
 	border-radius: 5px;
 	margin-bottom: 5px;
-}
-
-.extra >div:last-child {
-	height: 200px;
-}
-
-aside .statistic {
-	flex: 1;
 }
 
 section {
@@ -125,50 +92,64 @@ ul {
 	padding: .5em; 1em;
 }
 
+.right {
+	width: 320px;
+	overflow-y: auto;
+}
+
+#top_list {
+	flex: 1;
+}
+
 .summary {
+	display: flex;
+	font-weight: bold;
+}
+
+.summary> li {
+	flex: 1;
+	padding: 3px;
+}
+
+.summary> li:first-child {
+	flex: 2;
+}
+
+header {
+	margin-bottom: 1em;
+	text-align: center;
+}
+
+header> ul {
 	display: flex;
 }
 
-.summary li {
+header> ul> li {
+	padding: .5em;
+	border-radius: 10px 10px 0 0;
+	box-shadow: 0 0 5px #fff inset;
 	flex: 1;
-	padding: 3px;
+}
+
+header> ul> li:nth-child(1) {
+	background-color: #f00;
+}
+
+header> ul> li:nth-child(2) {
+	background-color: #fc0;
+}
+
+header> ul> li:nth-child(3) {
+	background-color: #0f0;
+}
+
+#summary_list> .summary> li:first-child {
 	display: flex;
 	justify-content: center;
 	align-items: center;
 }
 
-.summary:first-child,
-.summary li:first-child {
-	font-weight: bold;
-}
-
-.summary.head {
-	margin-bottom: 1em; 
-}
-
-.summary.head li {
-	padding: .5em;
-	border-radius: 10px 10px 0 0;
-	box-shadow: 0 0 5px #fff inset;
-}
-
-.summary.head li:nth-child(1) {
-	background-color: #000;
-}
-
-.summary.head li:nth-child(2) {
-	background-color: #f00;
-}
-
-.summary.head li:nth-child(3) {
-	background-color: #fc0;
-}
-
-.summary.head li:nth-child(4) {
-	background-color: #0f0;
-}
-
-.summary:not(.head) li:not(:first-child)::after {
+#summary_list> .summary> li:not(:first-child)::after {
 	margin: auto;
 	content: attr(data-value);
 	width: 40px; height: 40px;
@@ -180,35 +161,32 @@ ul {
 	align-items: center;
 }
 
-.summary:not(.head) li:nth-child(2)::after {
+#summary_list> .summary> li:nth-child(2)::after {
 	background: linear-gradient(to top,  hsla(0, 75%, 50%, 1) 0%, hsla(0, 75%, 30%,1) 99%);
 }
 
-.summary:not(.head) li:nth-child(3)::after {
+#summary_list> .summary> li:nth-child(3)::after {
 	background: linear-gradient(to top,  hsla(30, 75%, 50%, 1) 0%, hsla(30, 75%, 30%,1) 99%);
 }
 
-.summary:not(.head) li:nth-child(4)::after {
+#summary_list> .summary> li:nth-child(4)::after {
 	background: linear-gradient(to top,  hsla(120, 75%, 50%, 1) 0%, hsla(120, 75%, 30%,1) 99%);
 }
 
 .list_item {
 	border-bottom: 1px solid #777;
-}
-
-.list_item ul {
 	display: flex;
 	cursor: pointer;
 	padding: 3px;
 }
 
-.list_item ul:hover {
+.list_item:hover {
 	background-color: #fff;
 	color: #0084ff;
 	outline: 1px solid #0084ff;
 }
 
-.list_item li {
+.list_item> li {
 	flex: 1;
 	overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
@@ -221,18 +199,18 @@ select[name=option] {
 	float: right;
 }
 
-body:not(.name) .list_item li:nth-child(1),
-body.name .list_item li:nth-child(2) {
+body:not(.name) .list_item> li:nth-child(1),
+body.name .list_item> li:nth-child(2) {
 	display: none;
 }
 
-.list_item li:last-child {
+.list_item> li:last-child {
 	text-align: right;
 	flex: .5;
 	overflow: hidden;
 }
 
-.list_item li:last-child::after {
+.list_item> li:last-child::after {
 	content: attr(data-value);
 	display: inline-block;
 	animation: flow 1s;
@@ -254,15 +232,6 @@ body.name .list_item li:nth-child(2) {
 
 .agent_status li:first-child {
 	text-align: center;
-}
-
-@keyframes count {
-	from {
-		width: 100%;
-	}
-	to {
-		width: 0;
-	}
 }
 
 @keyframes flow {
@@ -297,33 +266,20 @@ body.name .list_item li:nth-child(2) {
 	display: flex;
 	justify-content: center;
 	align-items: center;
-}
-
-body.update .ball div:first-child {
-	animation: bounce 1s;
+	animation: bounce 10s infinite;
 }
 
 .green.ball div:first-child {
 	background: linear-gradient(to top,  hsla(120, 75%, 50%,1) 0%, hsla(120, 75%, 30%,1) 99%);
 }
 
-.blue.ball div:first-child {
-	background: linear-gradient(to top,  hsla(240, 75%, 50%,1) 0%, hsla(240, 75%, 30%,1) 99%);
-}
-
 .orange.ball div:first-child {
 	background: linear-gradient(to top,  hsla(30, 75%, 50%,1) 0%, hsla(30, 75%, 30%,1) 99%);
-}
-
-body.update .orange.ball div:first-child {
 	animation-delay: .5s;
 }
 
-.ball.red div:first-child {
+.red.ball div:first-child {
 	background: linear-gradient(to top,  hsla(0, 75%, 50%,1) 0%, hsla(0, 75%, 30%,1) 99%);
-}
-
-body.update .ball.red div:first-child {
 	animation-delay: 1s;
 }
 
@@ -365,22 +321,22 @@ body.update .ball.red div:first-child {
 		top: 0;
 		animation-timing-function: ease-in;
 	}
-	50% {
+	4% {
 		top: 40%;
 		height: 50%;
 		animtion-timing-function: ease-out;
 	}
-	55% {
+	5% {
 		top: 45%;
 		height: 45%;
 		animation-timing-function: ease-in;
 	}
-	65% {
+	6% {
 		top: 30%;
 		height: 50%;
 		animation-timing-function: ease-out;
 	}
-	100% {
+	10% {
 		top: 0;
 		animation-timing-function: ease-in;
 	}
@@ -435,11 +391,13 @@ function initialize() {
 	update();
 	
 	document.body.classList.remove("loading");
+	
+	window.setInterval(update, 10000);
 }
 
 function createTopList(resource) {
 	var section = document.createElement("section"),
-		list = document.createElement("ul");
+		list = document.createElement("div");
 
 	section.appendChild(document.createElement("div")).textContent = window.resources[resource].title;
 	section.appendChild(list).className = "list";
@@ -606,16 +564,17 @@ function createStatusItem(label, critical, alert, normal, sum) {
 }
 
 function createTopItem(ip, value) {
-	var clone = listItem.cloneNode(true),
-		item = clone.children[0];
+	var item = document.createElement("ul");
 	
-	item.children[0].textContent = top.databases.device[ip].name || ip;
-	item.children[1].textContent = ip;
-	item.children[2].dataset.value = value;
+	item.appendChild(document.createElement("li")).textContent = top.databases.device[ip].name || ip;
+	item.appendChild(document.createElement("li")).textContent = ip;
+	item.appendChild(document.createElement("li")).dataset.value = value;
 	
-	clone.onclick = top.showChart.bind(window, ip);
+	item.onclick = top.showChart.bind(window, ip);
 	
-	return clone;
+	item.className = "list_item";
+	
+	return item;
 }
 
 // public
@@ -629,75 +588,49 @@ function onEvent(ip) {
 	</head>
 	
 	<body class="loading name">
-		<div class="bar">
-			<div id="counter"></div>
-		</div>
-		
-		<div class="body">
-			<aside>
-				<div>
-					<div></div>
-					<div class="ball red">
-						<div id="alert"></div>
-						<div></div>
-					</div>
-					<div class="ball orange">
-						<div id="critical"></div>
-						<div></div>
-					</div>
-					<div class="ball green">
-						<div id="normal"></div>
-						<div></div>
-					</div>
-					<div></div>
-				</div>
-				<div>
-					<div class="statistic">
-						<ul class="summary head">
-							<li>구분
-							<li>응답 없음
-							<li>임계 초과
-							<li>정상
-							<!-- <li>합계 -->
-						</ul>
-						<ul id="summary_list">
-						</ul>
-					</div>
-				</div>
-			</aside>
-			
-			<article id="top_list">
-			</article>
-			
-			<div class="extra">
-				<div>
-					<iframe src="map_extra.html" id="map" width="100%" height="100%"></iframe>
-				</div>
-				<div class="title">이벤트</div>
-				<div>
-					<iframe src="event_extra.html" id="event" width="100%" height="100%"></iframe>
-				</div>
-			</div>
-				
-			<div class="layout">
+		<aside>
+			<header>
 				<ul>
-					<li class="list_item">
-						<ul>
-							<li>
-							<li>
-							<li>
-						</ul>
+					<li>장애
+					<li>임계
+					<li>정상
 				</ul>
+			</header>
+			
+			<div class="top">
+				<div class="ball red">
+					<div id="alert"></div>
+					<div></div>
+				</div>
+				<div class="ball orange">
+					<div id="critical"></div>
+					<div></div>
+				</div>
+				<div class="ball green">
+					<div id="normal"></div>
+					<div></div>
+				</div>
+			</div>
+
+			<div id="summary_list"></div>
+			
+		</aside>
+		
+		<article>
+			<iframe src="map_extra.html" id="map" width="100%" height="100%"></iframe>
+			<iframe src="event_extra.html" id="event" width="100%" height="120px"></iframe>
+		</article>
+		
+		<div class="right">
+			<div id="top_list">
 			</div>
 		</div>
-		
+			
 		<div class="bg_loading"></div>
 		<script src="/js/ITAhM.js"></script>
 		<script>
 
 var summaryList = document.getElementById("summary_list"),
-	summaryItem = document.querySelector(".summary"),
-	listItem = document.querySelector(".list_item"),
 	topList = {},
 	alert = document.getElementById("alert"),
 	critical = document.getElementById("critical"),
@@ -747,12 +680,9 @@ var summaryList = document.getElementById("summary_list"),
 		}
 	};
 
-document.getElementById("counter").addEventListener("animationiteration", update);
-
 if ("display" in top.databases.config) {
 	document.body.classList[top.databases.config.display == "name"? "add": "remove"]("name");
 }
-
 initialize();
 
 		</script>

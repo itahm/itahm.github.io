@@ -98,7 +98,6 @@ li {
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
-	font-size: 12px;
 	border: 1px solid transparent;
 }
 
@@ -123,9 +122,9 @@ label {
 	background-color: rgba(0, 0, 0, .9);
 }
 
-li:nth-child(1) img {
-	width: 20px;
-	height: 20px;
+li:nth-child(1)> img {
+	width: 24px;
+	height: 24px;
 	vertical-align: middle;
 }
 
@@ -258,9 +257,7 @@ function onSetAlarm(ip){
 }
 
 function onMap(ip) {
-	var device = top.databases.device[ip];
-	
-	top.databases.local.parent = device.parent;
+	top.databases.local.parent = top.databases.position[ip].parent;
 	top.databases.local.selected = ip;
 	
 	window.location.href = "map.html";
@@ -274,6 +271,10 @@ function initList() {
 	var deviceData = window.top.databases.device;
 	
 	for (var ip in deviceData) {
+		if (deviceData[ip].group) {
+			continue;
+		}
+		
 		df.appendChild(createRow(deviceData[ip], monitorData[ip], criticalData[ip]));
 	}
 	

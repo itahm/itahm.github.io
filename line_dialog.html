@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>Dialog @ Line</title>
+		
+		<style>
+@import "css/itahm.css";
+
+body {
+	margin: 0; padding: 0;
+	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	background-color: rgba(0, 0, 0, .8);
+}
+
+.dialog {
+	padding: 20px;
+	background-color: #fff;
+}
+
+input[type="checkbox"] {
+	vertical-align: middle;
+}
+
+.layout {
+	display: flex;
+}
+
+.layout_top {
+	height: 50px;
+}
+
+.layout_box {
+	position: relative;
+	padding: 10px;
+	box-sizing: border-box;
+	width: 160px;
+}
+
+.fill_box {
+	width: 100%;
+	box-sizing: border-box;
+	padding: .5em;
+}
+
+footer {
+	display: flex;
+	margin-top: 1em;
+}
+
+footer input {
+	flex: 1;
+	border-radius: 1.2em;
+	background-color: #0084ff;
+	color: #fff;
+	border: .2em solid transparent;
+	padding: .5em;
+}
+
+footer input:hover {
+	background-color: #fff;
+	color: #0084ff;
+	border-color: #0084ff;
+}
+
+.loading_mask {
+	position: absolute; top: 0; right: 0; bottom: 0; left: 0;
+	background: rgba(255, 255, 255, .5) url(/img/loading.gif) no-repeat center;
+	background-size: 32px 32px;
+}
+
+.layout_box:not(.loading)> .loading_mask {
+	display: none;
+}
+
+body:not(.removable) .remove{
+	display: none;
+}
+
+		</style>
+		
+		<script>
+
+function onApply(e) {
+	e.preventDefault();
+
+	top.databases.position[window.ip].ifEntry[window.peerIP]
+		= window.peerLeft.disabled? null: {
+			index: window.peerLeft.value,
+			name: window.peerLeft.options[window.peerLeft.selectedIndex].text
+		};
+	
+	top.databases.position[window.peerIP].ifEntry[window.ip]
+		= window.peerRight.disabled? null: {
+			index: window.peerRight.value,
+			name: window.peerRight.options[window.peerRight.selectedIndex].text
+		};
+	
+	window.opener.reload();
+	
+	top.closeDialog();
+}
+
+function onRemove(e) {
+	if (!confirm("연결을 삭제하겠습니까?")) {
+		this.checked = false;
+		
+		return;
+	}
+	
+	delete top.databases.position[window.ip].ifEntry[window.peerIP];
+	delete top.databases.position[window.peerIP].ifEntry[window.ip];
+	
+	window.opener.reload();
+	
+	top.closeDialog();
+}
+
+function onCancel(e) {
+	top.closeDialog();
+}
+
+function initPort(e, ifEntry) {
+	var df = document.createDocumentFragment(),
+		opt, port;
+	
+	for (var index in ifEntry) {
+		port = ifEntry[index];
+		
+		opt = df.appendChild(document.createElement("option"));
+		
+		opt.value = index;
+		opt.text = port.ifName;
+		opt.title = port.ifDescr;
+	}
+	
+	e.appendChild(df);
+	
+	e.selectedIndex = -1;
+}
+
+function initialize(ip, peerIP) {
+	window.opener = this && this.location;
+	window.ip = ip;
+	window.peerIP = peerIP;
+	
+	document.getElementById("ip").textContent = ip;
+	document.getElementById("peer_ip").textContent = peerIP;
+	
+	document.getElementById("name").textContent = top.databases.device[ip].name;
+	document.getElementById("peer_name").textContent = top.databases.device[peerIP].name;
+	
+	if (ip in top.databases.monitor && top.databases.monitor[ip].protocol === "snmp") {
+		var box = document.querySelector(".layout_box.left");
+		
+		box.classList.add("loading");
+		
+		window.peerLeft.disabled = false;
+		
+		top.sendRequest({
+			command: "select",
+			ip: ip
+		}, function (data) {
+			var ifEntry = top.databases.position[ip].ifEntry;
+			
+			initPort(window.peerLeft, data.ifEntry);
+			
+			if (peerIP in ifEntry) {
+				document.body.classList.add("removable");
+				
+				window.peerLeft.value = ifEntry[peerIP].index;
+			}
+				
+			this.classList.remove("loading");
+		}.bind(box));
+	}
+	
+	if (peerIP in top.databases.monitor && top.databases.monitor[peerIP].protocol === "snmp") {
+		var box = document.querySelector(".layout_box.right");
+		
+		box.classList.add("loading");
+		
+		window.peerRight.disabled = false;
+		
+		top.sendRequest({
+			command: "select",
+			ip: peerIP
+		}, function (data) {
+			var ifEntry = top.databases.position[peerIP].ifEntry;
+			
+			initPort(window.peerRight, data.ifEntry);
+			
+			if (ip in ifEntry) {
+				document.body.classList.add("removable");
+				
+				window.peerRight.value = ifEntry[ip].index;
+			}
+			
+			this.classList.remove("loading");
+		}.bind(box));
+	}
+}
+
+		</script>
+	</head>
+	
+	<body>
+	
+		<div class="dialog rounded">
+			<h2>Line</h2>
+			<form autocomplete="off">
+				<div class="layout">
+					<div class="layout_box left">
+						<div class="layout_top">
+							<div id="ip"></div>
+							<div id="name"></div>
+						</div>
+						<select class="fill_box" id="left" required disabled></select>
+						<div class="loading_mask"></div>
+					</div>
+					<div class="layout_box right">
+						<div class="layout_top">
+							<div id="peer_ip">192.168.0.1</div>
+							<div id="peer_name"></div>
+						</div>
+						<select class="fill_box" id="right" required disabled></select>
+						<div class="loading_mask"></div>
+					</div>
+				</div>
+				<label class="remove"><input type="checkbox" name="remove" disabled>remove</label>
+				<footer>
+					<input type="reset" value="cancel">
+					<input type="submit" value="apply" disabled>
+				</footer>
+			</form>
+		</div>
+		
+		<script>
+
+var form = document.querySelector("form"),
+	peerLeft = document.getElementById("left"),
+	peerRight = document.getElementById("right");
+	
+form.onreset = onCancel;
+
+if (sessionStorage.level == 0) {
+	form.addEventListener("submit", onApply);
+	form.elements["remove"].onclick = onRemove;
+	form.elements["remove"].disabled = false;
+	document.querySelector("input[type=submit]").disabled = false;
+}
+
+		</script>
+	
+	</body>
+	
+</html>

@@ -31,10 +31,6 @@ nav.right {
 	right: 5px;
 }
 
-nav.left {
-	left: 5px;
-}
-
 nav input,
 nav img {
 	vertical-align: middle;
@@ -54,11 +50,28 @@ button img {
 	margin-right: 0.5em;
 }
 
-body:not(.root) .root {
+#edit_mode {
+	left: 5px;
+	transition: width 2s;
+}
+
+#edit_mode> button {
 	display: none;
 }
 
-#group {
+#edit_mode.edit> button {
+	display: initial;
+}
+
+#port_name::after {
+	content: "숨김";
+}
+
+#port_name.show::after {
+	content: "표시";
+}
+
+body:not(.root) .root {
 	display: none;
 }
 
@@ -72,6 +85,16 @@ function resize() {
 
 function editDevice(key) {
 	top.showDialog.call(window, key && top.databases.device[key].group? "group_dialog.html": "device_dialog.html", key);
+}
+
+function editLine(ip, peerIP) {
+	top.showDialog.call(window, "line_dialog.html", ip, peerIP);
+}
+
+function selectGroup(name) {
+	top.databases.local.parent = name;
+	
+	window.location.href = "map.html";
 }
 
 function editGroup(name) {
@@ -90,10 +113,15 @@ function onSave() {
 	});
 }
 
+/**
+ * public
+ */
 function onEvent(ip) {
-	if (top.databases.device[ip]) {
-		window.mapWindow.resetDevice(ip, true);
+	if (window.editMode.classList.contains("edit")) {
+		return;
 	}
+
+	window.location.reload();
 }		
 
 function onSetAlarm(ip){
@@ -145,25 +173,27 @@ function test() {
 		
 		<iframe id="map" src="map_base.html"></iframe>
 		
-		<nav class="left">
+		<nav id="edit_mode">
 			<button id="add"><img src="img/add_device.png" width="16px" height="16px" title="장비 추가" class="root">추가</button>
-			<button id="group"><!--img src="img/add_group.png" width="16px" height="16px" title="그룹 추가" class="root"-->그룹</button>
+			<button id="group"><img src="img/group.png" width="16px" height="16px" title="그룹 추가" class="root">그룹</button>
 			<button id="save"><img src="img/save.png" width="16px" height="16px" title="저장" class="root">저장</button>
-			<button id="zoom_in"><img src="img/zoomin.png" width="16px" height="16px" title="확대">확대</button>
-			<button id="zoom_out"><img src="img/zoomout.png" width="16px" height="16px" title="축소">축소</button>
-			<button id="print"><img src="img/printer16.png" width="16px" height="16px" title="인쇄">인쇄</button>
+			<img id="edit" src="img/setting.png" width="28" height="28">
 			<!--button onclick="test()">test</button-->
 		</nav>
 		
 		<nav class="right">	
-			<label title="인터페이스명 표시/감추기"><input type="checkbox" id="ifname" checked>interface</label>
+			<button id="port_name" class="show"><img src="img/interface.png" title="포트 이름 표시/숨김"></button>
+			<button id="zoom_in"><img src="img/zoomin.png" width="16px" height="16px" title="구성도 확대">확대</button>
+			<button id="zoom_out"><img src="img/zoomout.png" width="16px" height="16px" title="구성도 축소">축소</button>
+			<button id="print"><img src="img/printer16.png" width="16px" height="16px" title="구성도 인쇄">인쇄</button>
 		</nav>
 				
 		<div class="bg_loading"></div>
 		
 		<script>
 
-var map = document.getElementById("map");
+var map = document.getElementById("map"),
+	editMode = document.getElementById("edit_mode");
 
 if (sessionStorage.level == 0) {
 	document.body.classList.add("root");
@@ -177,6 +207,10 @@ document.getElementById("add").onclick = function () {
 
 document.getElementById("group").onclick = function () {
 	editGroup();
+};
+
+document.getElementById("edit").onclick = function () {
+	editMode.classList.toggle("edit");
 };
 
 window.map.onload = function () {
@@ -207,8 +241,10 @@ window.map.onload = function () {
 		mapWindow.print();
 	}
 	
-	document.getElementById("ifname").onchange = function () {
-		mapWindow.displayIFName(this.checked);
+	document.getElementById("port_name").onclick = function () {
+		this.classList.toggle("show");
+		
+		mapWindow.displayIFName(this.classList.contains("show"));
 	};
 	
 	mapWindow.addEventListener("wheel", function (e) {
@@ -218,6 +254,8 @@ window.map.onload = function () {
 	});
 	
 	mapWindow.onEditDevice = editDevice;
+	mapWindow.onSelectGroup = selectGroup;
+	mapWindow.onEditLine = editLine;
 	
 	mapWindow.onShowChart = function (ip){
 		top.showChart(ip);

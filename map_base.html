@@ -19,6 +19,12 @@ body, input, button {
 	padding: 0; 
 }
 
+nav {
+	position: absolute; top: 0; left: 0;
+	width: 100px; height: 100px;
+	background-color: red;
+}
+
 #map {
 	width: 100%; height: 100%;
 	animation-duration: .5s;
@@ -40,10 +46,10 @@ text {
 #line line {
 	stroke: #a17f1a/*836953*/;
 	stroke-width: 1;
-	animation: 5s test infinite;
+	animation: 5s line infinite;
 }
 
-@keyframes test {
+@keyframes line {
 	0% {
 		stroke: #ddd;
 		stroke-width: .5;
@@ -51,11 +57,11 @@ text {
 	20% {
 		stroke: #a17f1a;
 		stroke-width: 1;
-	}
+	}/*
 	100% {
 		stroke: #a17f1a;
 		stroke-width: 1;
-	}
+	}*/
 }
 
 body.extra #anchor {
@@ -80,6 +86,12 @@ body.extra #anchor {
 #device text {
 	font-size: 12px;
 }
+/*
+use.critical {
+	stroke-width: 5;
+	stroke: rgba(255, 255, 0, .5);
+	fill: none;
+}
 
 use.shutdown {
 	stroke-width: 5;
@@ -87,13 +99,7 @@ use.shutdown {
 	fill: none;
 	animation: alert 2s infinite;
 }
-
-use.critical {
-	stroke-width: 5;
-	stroke: rgba(255, 255, 0, .5);
-	fill: none;
-}
-
+*/
 @keyframes initialize {
 	from {
 		transform: rotate(0) scale(.1);
@@ -138,25 +144,39 @@ body.loading g,
 	fill: #fff;
 }
 
-.device.shutdown circle {
-	stroke: #f00; 
-}
-
 .device.critical circle {
 	stroke: #fa0;
 }
 
+.device.shutdown circle {
+	stroke: #f00; 
+}
+
+.device.hover circle,
+#parent.hover {
+	stroke: #0f0;
+}
+
+#parent {
+	fill: #fff;
+	stroke: #ddd; stroke-width: 5px;
+}
 
 /* 공통 */
 .fullscreen {
 	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
 }
 
+.no_pointer_event {
+	pointer-events: none;
+}
+
 body.name tspan:last-child,
 body:not(.name) tspan:first-child,
 body:not(.ifname) #line text,
 body:not(.root) .root,
-body:not(.selected) #anchor {
+body:not(.selected) #anchor,
+body:not(.submap) .parent {
 	display: none;
 }
 
@@ -215,7 +235,67 @@ function isChecked(svgDevice) {
 	return hasClass(svgDevice, "device", "checked");
 }
 
+function onEnter(name) {
+	addClass(this, "hover");
+	
+	window.group = name;
+	window.isGroup = true;
+}
+
+function onLeave() {
+	removeClass(this, "hover");
+	
+	window.isGroup = false;
+}
+
+function deleteIFEntry(ip) {
+	var pos = top.databases.position[ip];
+	
+	for (var peerIP in pos.ifEntry) {
+		delete top.databases.position[peerIP].ifEntry[ip];
+	}
+	
+	top.databases.position[ip].ifEntry = {};
+	
+	pos.parent = window.group;
+}
+
+function moveGroup() {
+	if (window.selected) {
+		deleteIFEntry(window.selected);
+	}
+	
+	for (ip in window.checked) {
+		deleteIFEntry(ip);
+	}
+	
+	window.location.reload();
+}
+
 function moveSelectedDevice(x, y) {
+	var pos;
+	
+	if (window.selected) {
+		pos = moveDevice(window.selected, x, y);
+		
+		moveAnchor(pos.x, pos.y);
+	}
+	
+	for (var ip in window.checked) {
+		moveDevice(ip, x, y);
+	}
+}
+
+function moveSelectedDeviceTo(x, y) {
+	var pos;
+	
+	if (window.selected) {
+		pos = top.databases.position[window.selected];
+		
+		pos.x += x;
+		pos.y += y;
+	}
+	
 	for (var ip in window.checked) {
 		pos = top.databases.position[ip];
 		
@@ -235,15 +315,7 @@ function onDragMove(e) {
 		
 		addClass(target, "drag");
 		
-		if (window.selected) {
-			pos = moveDevice(window.selected, x, y);
-			
-			moveAnchor(pos.x, pos.y);
-		}
-		
-		for (var ip in window.checked) {
-			moveDevice(ip, x, y);
-		}
+		moveSelectedDevice(x, y);
 	}
 	else if (target === linkAnchor) {
 		var destination = data.destination,
@@ -290,14 +362,12 @@ function onDragEnd(e) {
 		
 		removeClass(target, "drag");
 		
-		if (window.selected) {
-			pos = top.databases.position[window.selected];
-			
-			pos.x += x;
-			pos.y += y;
+		if (window.isGroup) {
+			moveGroup();
 		}
-		
-		moveSelectedDevice(x, y);
+		else {
+			moveSelectedDeviceTo(x, y);
+		}
 	}
 	else if (target === linkAnchor) {
 		var pos = top.databases.position[window.selected];
@@ -322,10 +392,14 @@ function onDragEnd(e) {
 }
 	
 function moveAllDevice(x, y) {
-	var moved;
+	var group = top.databases.local.parent, moved;
 	
 	for (var ip in top.databases.device) {
 		pos = top.databases.position[ip];
+		
+		if (pos.parent !== group) {
+			continue;
+		}
 		
 		moved = moveDevice(ip, x, y);
 		
@@ -470,6 +544,12 @@ function addDevice(ip, pos) {
 	svgDevice.onclick = onClickDevice.bind(svgDevice, ip);
 	svgDevice.addEventListener("link", onLink.bind(undefined, ip));
 	
+	if (device.group) {
+		svgDevice.onmouseenter = onEnter.bind(svgDevice, ip);
+		svgDevice.onmouseleave = onLeave.bind(svgDevice);
+		svgDevice.ondblclick = onSelectGroup.bind(svgDevice, ip);
+	}
+	
 	svgName.textContent = device.name;
 	svgAddr.textContent = device.ip;
 	
@@ -484,14 +564,16 @@ function addDevice(ip, pos) {
 	svgDevice.appendChild(svgIcon);
 	svgDevice.appendChild(svgLabel);
 	
-	window.deviceCanvas.appendChild(svgDevice).setAttribute("class", "device");
+	addClass(svgDevice, "device");
+	
+	window.deviceCanvas.appendChild(svgDevice);
 	
 	window.svgData[ip] = svgDevice;
 	
-	resetDevice(ip);
+	drawDevice(ip);
 }
 
-function resetDevice(ip) {
+function drawDevice(ip) {
 	var device = top.databases.device[ip],
 		svgDevice = window.svgData[ip],
 		svgIcon = svgDevice.querySelector("image"),
@@ -630,10 +712,10 @@ function resetChecked() {
 	window.checked = {};
 }
 
-function createLabel(name, x1, y1, x2, y2) {
+function createLabel(port, x1, y1, x2, y2) {
 	var labelSvg = document.createElementNS(svgNS, "text");
 	
-	labelSvg.textContent = name;
+	labelSvg.textContent = port && port.name || "";
 	
 	moveLabel(labelSvg, x1, y1, x2, y2);
 	
@@ -647,24 +729,17 @@ function moveLabel(labelSvg, x1, y1, x2, y2) {
 
 function addLine(ip, pos) {
 	var device = top.databases.device[ip],
-		ifEntry = device.ifEntry,
+		ifEntry = pos.ifEntry,
 		peerList = {},
-		peer, peerPos, peerIP, link, lineSvg,
+		peerPos, peerIP, link, lineSvg,
 		labelSvg;
 	
 	window.linkData[ip] = peerList;
 	
 	for (var peerIP in ifEntry) {
-		peer = top.databases.device[peerIP];
-		
-		if (!peer) {
-			delete ifEntry[peerIP];
-			
-			continue;
-		}
-		
 		peerPos = top.databases.position[peerIP];
 		
+		// TODO 라벨이 없는 경우에는 그려주지 않는것이 성능에 유리할것.
 		labelSvg = createLabel(ifEntry[peerIP], pos.x, pos.y, peerPos.x, peerPos.y);
 		
 		// peer가 먼저 svg 만들었다면 공유
@@ -696,14 +771,63 @@ function addLine(ip, pos) {
 	}
 }
 
+function setGroupStatus(name, status) {
+	if (name in window.svgData) {
+		addClass(window.svgData[name], status);
+	}
+	else {
+		var parent = top.databases.position[name].parent;
+		
+		if (parent) {
+			setGroupStatus(parent, status);
+		}
+	}
+}
+
+function getTopGroup(name) {
+	if (name in window.svgData) {
+		return window.svgData[name];
+	}
+	
+	if (top.databases.position[name].parent) {
+		return getTopGroup(top.databases.position[name].parent);
+	}
+	
+	return undefined;
+}
+
 function initialize(extra) {
-	var pos;
+	var group = top.databases.local.parent,
+		shutdown = {},
+		critical = {},
+		pos;
 	
 	for (var ip in top.databases.device) {
 		pos = top.databases.position[ip];
+	
+		if (pos.parent !== group) {
+			if (ip in top.databases.monitor) {
+				if (top.databases.monitor[ip].shutdown) {
+					shutdown[pos.parent] = true;
+				}
+				else if (top.databases.monitor[ip].critical) {
+					critical[pos.parent] = true;
+				}
+			}
+				
+			continue;
+		}
 		
 		addDevice(ip, pos);
 		addLine(ip, pos);
+	}
+	
+	for (var name in shutdown) {
+		setGroupStatus(name, "shutdown");
+	}
+	
+	for (var name in critical) {
+		setGroupStatus(name, "critical");
 	}
 	
 	var ip = top.databases.local.selected;
@@ -723,21 +847,7 @@ function initialize(extra) {
 }
 
 function onLink(ip, e) {
-	var peerIP = e.detail.peer;
-	
-	document.body.classList.add("loading");	
-	
-	top.sendRequest({
-			command: "extra",
-			extra: "link",
-			peer1: ip,
-			peer2: peerIP,
-			link: peerIP in top.databases.device[ip].ifEntry? false: true
-		}, function (data) {
-			top.databases.device = data;
-			
-			location.reload();
-		});
+	onEditLine(ip, e.detail.peer);
 }
 
 function displayIFName(show) {
@@ -765,6 +875,15 @@ function onEditDevice(ip) {
 }
 
 //abstract
+function onEditLine(ip, peerIP) {
+	
+}
+
+//abstract
+function onSelectGroup(name) {	
+}
+
+//abstract
 function onShowChart(ip) {
 }
 
@@ -776,11 +895,14 @@ function onShowAlarm(ip) {
 	</head>
 	
 	<body class="loading name ifname">
-
 		<svg id="map">
 			<defs>
 				<circle r="35" id="circle"></circle>
 			</defs>
+			<g class="parent" transform="translate(100, 100)">
+				<circle id="parent" cx="0" cy="0" r="40"></circle>
+				<image class="no_pointer_event" xlink:href="img/group.png" x="-30" y="-30" width="60" height="60"></image>
+			</g>
 			<g id="transform" transform="translate(0, 0) scale(1, 1) translate(0, 0)">
 				<g id="line"></g>
 				<g id="link">
@@ -836,6 +958,7 @@ var mapCanvas = document.getElementById("map"),
 	alarmAnchor = document.getElementById("alarm_anchor"),
 	editAnchor = document.getElementById("edit_anchor"),
 	linkAnchor = document.getElementById("link_anchor"),
+	parentAnchor = document.getElementById("parent"),
 	fragment = document.createDocumentFragment(),
 	linkData = {},
 	svgData = {},
@@ -871,6 +994,17 @@ editAnchor.onclick = function (e) {
 	
 	e.stopPropagation();
 };
+
+if (top.databases.local.parent) {
+	document.body.classList.add("submap");
+	
+	parentAnchor.ondblclick = function (e) {
+		onSelectGroup(top.databases.position[top.databases.local.parent].parent);
+	};
+	
+	parentAnchor.onmouseenter = onEnter.bind(parentAnchor, top.databases.position[top.databases.local.parent].parent);
+	parentAnchor.onmouseleave = onLeave.bind(parentAnchor);
+}
 
 resize();
 

@@ -107,11 +107,13 @@ function buildType() {
 		icon, iconData, type;
 	
 	iconData = top.databases.local.icon;
+	
 	for (type in iconData) {
 		typeData[type] = iconData[type];
 	}
 	
 	iconData = top.databases.icon;
+	
 	for (type in iconData) {
 		typeData[type] = iconData[type];
 	}
@@ -163,12 +165,14 @@ function onApply(e) {
 		}
 		
 		window.device = {
-			ifEntry: {}
+			ifSpeed: {}	
 		};
 		
 		// 추가인 경우 position 정보는 갱신되지 않으므로 임의로 넣어준다.
 		top.databases.position[ip] = {
-			x: 0, y: 0
+			x: 0,
+			y: 0,
+			ifEntry: {}
 		};
 		
 	}
