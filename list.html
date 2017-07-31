@@ -21,7 +21,7 @@ article {
 }
 
 aside {
-	margin: 5px 0;
+	margin: 1em 0;
 	display: flex;
 	justify-content: space-between;
 }
@@ -33,17 +33,17 @@ aside {
 }
 
 header {
-	margin: 5px 0;
 	background-color: #0084ff;
 	color: #fff;
-	font-weight: bold;
-	text-align: center;
-	box-shadow: 0 0 5px #fff inset;
+	font-weight: bold; text-align: center; text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+	border-bottom: 4px solid #92a7af;
+	border-radius: 3px 3px 0 0;
+	padding: 0.5em 0;
+	text-shadow: 1px 1px 1px #00f;
 }
 
 header img {
-	width: 24px;
-	height: 24px;
+	width: 24px; height: 24px;
 }
 
 header ul::after {
@@ -94,7 +94,7 @@ ul {
 li {
 	flex: 1;
 	display: flex; align-items: center;
-	padding: 5px;
+	padding: 0.5em;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
@@ -103,29 +103,29 @@ li {
 
 li:nth-child(1) {
 	flex: none;
-	width: 3em;
-	text-align: center;
+	width: 4em;
+}
+
+li:nth-child(1)> img {
+	display: block;
+	margin: auto;
+	width: 24px; height: 24px;
+	vertical-align: middle;
 }
 
 label {
 	color: #fff;
 }
 
-#list ul {
-	border-bottom: 1px solid #ddd;
+#list> ul {
+	border-bottom: 1px solid #c1c3d1;
 }
 
-#list ul:hover li:nth-child(5),
-#list ul:hover li:nth-child(6),
-#list ul:hover li:nth-child(7),
-#list ul:hover li:nth-child(8) {
+#list> ul:hover li:nth-child(5),
+#list> ul:hover li:nth-child(6),
+#list> ul:hover li:nth-child(7),
+#list> ul:hover li:nth-child(8) {
 	background-color: rgba(0, 0, 0, .9);
-}
-
-li:nth-child(1)> img {
-	width: 24px;
-	height: 24px;
-	vertical-align: middle;
 }
 
 li:nth-child(5),
@@ -139,46 +139,46 @@ li:nth-child(8) {
 	background-position: center;
 }
 
-#list ul[data-disabled] {
+#list> ul[data-disabled] {
 	color: #999;
 }
 
-#list ul:hover li:nth-child(5) {
+#list> ul:hover li:nth-child(5) {
 	background-image: url("img/location.png");
 	
 }
 
-#list ul:hover li:nth-child(6) {
+#list> ul:hover li:nth-child(6) {
 	background-image: url("img/edit.png");
 	cursor: pointer;
 }
 
-#list ul[data-snmp]:hover li:nth-child(7) {
+#list> ul[data-snmp]:hover li:nth-child(7) {
 	background-image: url("img/alarm_gray.png");
 	cursor: pointer;
 }
 
-#list ul[data-alarm]:hover li:nth-child(7) {
+#list> ul[data-alarm]:hover li:nth-child(7) {
 	background-image: url("img/alarm.png");
 	cursor: pointer;
 }
 
-#list ul[data-snmp]:hover li:nth-child(8) {
+#list> ul[data-snmp]:hover li:nth-child(8) {
 	background-image: url("img/chart.png");
 	cursor: pointer;
 }
 
-#list ul:nth-child(odd) {
-	/*background-color: #fafafa;*/
+#list> ul:nth-child(odd) {
+	background-color: #ebebeb;
 }
 
-#list li:nth-child(3) {
+#list> ul> li:nth-child(3) {
 	background-size: 24px 24px;
 	background-repeat: no-repeat;
 	background-position: left center;
 }
 
-#list li:nth-child(3)::before {
+#list> ul> li:nth-child(3)::before {
 	content: attr(data-type);
 	display: inline-block;
 	margin-left: 30px;
@@ -236,11 +236,11 @@ li:nth-child(8) {
 	}
 }
 
-body.normal #list>ul:not([data-normal]),
-body.critical #list>ul:not([data-critical]),
-body.shutdown #list>ul:not([data-shutdown]),
-body.disabled #list>ul:not([data-disabled]),
-body.unlabeled #list>ul:not([data-unlabeled]) {
+body.normal #list> ul:not([data-normal]),
+body.critical #list> ul:not([data-critical]),
+body.shutdown #list> ul:not([data-shutdown]),
+body.disabled #list> ul:not([data-disabled]),
+body.unlabeled #list> ul:not([data-unlabeled]) {
 	display: none;
 }
 
@@ -539,8 +539,8 @@ function getIcon(type) {
 								<img src="img/all.png">
 							</p>
 						</div>
-					<li>장비 이름
-					<li>장비 유형
+					<li>이름
+					<li>유형
 					<li>IP 주소
 					<li>
 					<li>
