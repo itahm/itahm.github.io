@@ -92,7 +92,7 @@ input[name="clean"] {
 	text-align: right;
 }
 
-#common li {
+.common> li {
 	margin: .5em 0;
 }
 
@@ -182,6 +182,7 @@ function initConfig() {
 	var configData = top.databases.config;
 	
 	document.querySelector("input[name=clean]").value = configData.clean;
+	document.querySelector("select[name=interval]").value = configData.interval || 1;
 	document.querySelector("select[name=display]").value = configData.display || "name";
 	document.getElementById("java").textContent = configData.java;
 	document.getElementById("version").textContent = configData.version;
@@ -231,8 +232,24 @@ function onSetStorage(clean) {
 		top.databases.config.clean = clean;
 		
 		alert("데이터 보관 기간을 설정하였습니다.");
+	});
+}
+
+function onSetInterval(interval) {
+	document.body.classList.add("loading");
+	
+	interval = parseInt(interval.value);
+	
+	top.sendRequest({
+		command: "config",
+		key: "interval",
+		value: interval
+	}, function (response) {
+		document.body.classList.remove("loading");
 		
-		document.body.classList.add("gcm");
+		top.databases.config.interval = interval;
+		
+		alert("데이터 수집 단위를 "+ interval +"분으로 설정하였습니다.");
 	});
 }
 
@@ -401,17 +418,30 @@ function initialize() {
 	
 	<body class="loading">
 		<div class="main content_width">
-			<form id="common">
+			
 				<h2>일반</h2>
-				<ul>
+				<ul class="common">
 					<li>자바 버전 : <span id="java"></span>
 					<li>에이전트 버전 : <span id="version"></span>
 					<li>에이전트 저장공간 여유 : <span id="space"></span>
 					<li>데이터베이스 로드 : <span id="load"></span>
 					<li>관리 리소스 갯수 : <span id="resource"></span>
 					<li>
-						데이터 보관 기간 : <input type="number" min="0" max="365" name="clean"> 일 <input type="submit" value="적용" disabled>
-						<i>(데이터 정리 기능을 사용하지 않는 경우 0)</i>
+						<form id="clean">
+							데이터 보관 기간(일) :
+							<input type="number" min="0" max="365" name="clean">
+							<input type="submit" value="적용" disabled>
+							<i>(데이터 정리 기능을 사용하지 않는 경우 0)</i>
+						</form>
+					<li>
+						<form id="interval">
+							데이터 수집 단위(분) :
+							<select name="interval">
+								<option>1
+								<option>5
+							</select>
+							<input type="submit" value="적용" disabled>
+						</form>
 				</ul>
 			</form>
 			<form id="display">
@@ -516,10 +546,16 @@ document.getElementById("profile").onsubmit = function (e) {
 	onSelectProfile();
 };
 
-document.getElementById("common").onsubmit = function (e) {
+document.getElementById("clean").onsubmit = function (e) {
 	e.preventDefault();
 	
 	onSetStorage(this.elements["clean"]);	
+};
+
+document.getElementById("interval").onsubmit = function (e) {
+	e.preventDefault();
+	
+	onSetInterval(this.elements["interval"]);	
 };
 
 document.getElementById("syslog").onsubmit = function (e) {
