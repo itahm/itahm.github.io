@@ -128,36 +128,18 @@ var ITAhM = ITAhM || {};
 			this.data = data;
 		},
 		
-		next: function (date) {
-			return date.setMinutes(date.getMinutes() +1, 0, 0);
-		},
-		
 		parseData: function (start, end) {
-			var keys = [],
-				tmp = [],
+			var key = [],
 				date = new Date(start),
-				mills;
-			
-			mills = date.setSeconds(0, 0);
+				mills = date.setSeconds(0, 0);
 			
 			do {
 				if (!isNaN(this.data[mills])) {
-					tmp[tmp.length] = mills;
+					key[key.length] = mills;
 				}
-				else if (tmp.length > 0) {
-					keys[keys.length] = tmp;
-					
-					tmp = [];
-				}
-			} while ((mills = this.next(date)) <= end);
+			} while ((mills = date.setMinutes(date.getMinutes() + 1)) <= end);
 			
-			if (tmp.length > 0) {
-				keys[keys.length] = tmp;
-			}
-			
-			return keys.length > 0? {
-				keys: keys
-			}: undefined;
+			return key;
 		},
 		
 		get: function (date) {
@@ -181,6 +163,12 @@ var ITAhM = ITAhM || {};
 		
 		lineTo: function (x, y) {
 			this.distance[this.distance.length] = "L"+ x +" "+ y;
+			
+			return this;
+		},
+		
+		v: function (y) {
+			this.distance[this.distance.length] = "V"+ y;
 			
 			return this;
 		},

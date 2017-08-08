@@ -60,7 +60,7 @@ text {
 
 path.detail {
 	stroke: #fff;
-	stroke-width: .5;
+	stroke-width: 1;
 	fill: none;
 }
 
@@ -143,8 +143,8 @@ function onResize() {
 	
 	drawChart();
 	
-	if (window.detailData && window.chartDetail) {
-		drawDetail(window.chartDetail.keys);
+	if (window.detailData && window.detailKeys) {
+		drawDetail();
 	}
 }
 
@@ -462,46 +462,34 @@ function drawChart() {
  */
 function detail(detailData) {
 	window.detailData = detailData;
+	window.detailKeys = window.detailData.parseData(window.start, window.end);
 	
-	window.chartDetail = window.detailData.parseData(window.start, window.end);
-	
-	if (window.chartDetail) {
-		drawDetail(window.chartDetail.keys);
-	}
+	drawDetail();
 }
 
-/**
- * private
- */
-function drawDetail(blocks) {
+function drawDetail() {
 	var path = new ITAhM.Path(window.graph),
-		dateArray, mills;
+		mills, y;
 	
 	path.set("class", "detail");
 	path.beginPath();
 	
-	for (var i=0, _i=blocks.length; i<_i; i++) {
-		dateArray = blocks[i];
+	mills = window.detailKeys[0];
 	
-		mills = dateArray[0];
+	path.moveTo(Math.round((mills - window.start) / window.tpp)
+			,Math.round((window.detailData.get(mills) - window.low) * window.yRatio));
+	
+	for (var i=0, _i=window.detailKeys.length; i<_i; i++) {			
+		mills = window.detailKeys[i];
 		
-		x = (mills - window.start) / window.tpp;
-		y = detailData.get(mills);
+		path.v(y = Math.round((window.detailData.get(mills) - window.low) * window.yRatio));
+		path.moveTo(Math.round((mills - window.start) / window.tpp), y);
 		
-		path.moveTo(x, (y - window.low) * window.yRatio);
-	
-		for (var j=1,_j=dateArray.length; j<_j; j++) {				
-			mills = dateArray[j];
-			
-			x = (mills - window.start) / window.tpp;
-			y = window.detailData.get(mills);
-			
-			path.lineTo(x, (y - window.low) * window.yRatio);
-		}
-	
-		path.draw();
 	}
+	
+	path.draw();
 }
+
 
 /**
  * public

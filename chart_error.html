@@ -214,26 +214,15 @@ function getFile() {
 
 function buildDetailFile(chartWindow, fileName) {
 	var detailData = chartWindow.detailData,
-		chartDetail = chartWindow.chartDetail,
-		row = ["index,date,interface throughput(bps)"],
-		blocks, block, date, mills, value, k = 0;
-	
-	if (detailData) {
-		blocks = chartDetail.keys
+		detailKeys = chartWindow.detailKeys,
+		row = ["index,date,interface throughput(bps)"];
 		
-		for (var i=0, _i=blocks.length; i<_i; i++) {
-			block = blocks[i];
-			
-			for (var j=0, _j=block.length; j<_j; j++) {
-				mills = block[j];
-				
-				date = new Date(mills);
-				
-				row[row.length] = [k++, ITAhM.util.toDateTimeString(date), detailData.get(mills)].join(",");
-			}
-		}
+	for (var i=0, _i=detailKeys.length, j=0, mills; i<_i; i++, j++) {
+		mills = detailKeys[i];
+		
+		row[row.length] = [j, ITAhM.util.toDateTimeString(new Date(mills)), detailData.get(mills)].join(",");
 	}
-	
+		
 	ITAhM.util.download(new Blob([row.join("\n")] ,{
 		type: "text/csv;charset=utf-8;"
 	}), fileName);

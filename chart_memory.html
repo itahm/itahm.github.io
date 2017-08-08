@@ -142,23 +142,13 @@ function buildSummaryFile() {
  */
 function buildDetailFile() {
 	var detailData = window.chartWindow.detailData,
-		chartDetail = window.chartWindow.chartDetail,
-		blocks, row, block, mills, value, k = 0;
-	
-	row = ["index,date,physical memory(bytes)"];
-	
-	if (chartDetail) {
-		blocks = chartDetail.keys;
+		detailKeys = window.chartWindow.detailKeys,	
+		row = ["index,date,physical memory(bytes)"];
 		
-		for (var i=0, _i=blocks.length; i<_i; i++) {
-			block = blocks[i];
-			
-			for (var j=0, _j=block.length; j<_j; j++) {
-				mills = block[j];
-				
-				row[row.length] = [k++, ITAhM.util.toDateTimeString(new Date(mills)), detailData.get(mills)].join(",");
-			}
-		}
+	for (var i=0, _i=blocks.length, j=0, mills; i<_i; i++, j++) {
+		mills = detailKeys[i];
+		
+		row[row.length] = [j, ITAhM.util.toDateTimeString(new Date(mills)), detailData.get(mills)].join(",");
 	}
 	
 	return row;

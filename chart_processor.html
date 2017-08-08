@@ -187,23 +187,13 @@ function getFile() {
 
 function buildDetailFile(chartWindow) {
 	var detailData = chartWindow.detailData,
-		chartDetail = chartWindow.chartDetail,
-		row = ["index,date,processor load(%)"],
-		blocks, block, date, mills, k = 0;
+		detailKeys = chartWindow.detailKeys,
+		row = ["index,date,processor load(%)"];
 	
-	if (detailData) {
-		blocks = chartDetail.keys;
-		for (var i=0, _i=blocks.length; i<_i; i++) {
-			block = blocks[i];
-			
-			for (var j=0, _j=block.length; j<_j; j++) {
-				mills = block[j];
-				
-				date = new Date(mills);
-				
-				row[row.length] = [k++, ITAhM.util.toDateTimeString(date), detailData.get(mills)].join(",");
-			}
-		}
+	for (var i=0, _i=detailKeys.length, j=0, mills; i<_i; i++, j++) {
+		mills = detailKeys[i];
+		
+		row[row.length] = [j, ITAhM.util.toDateTimeString(new Date(mills)), detailData.get(mills)].join(",");
 	}
 	
 	return row;
@@ -277,15 +267,14 @@ var node = top.snmp,
 	summaryList = {},
 	detail,
 	colorList = [
-		"#ff0",
+		"#6b050d",
 		"#f0a30a",
 		"#6a00ff",
-		"#fcf",
-		"#a20025",
-		"#1ba1e2",
 		"#008a00",
-		"#e1f7d5",
-	],
+		"#a20025",
+		"#333",
+		"#1ba1e2",
+		"#093346"],
 	detailRequest = {
 		command: "query",
 		ip: top.ip,
