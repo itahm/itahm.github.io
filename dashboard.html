@@ -500,9 +500,8 @@ function initStats() {
 	window.alert.dataset.value = shutdown;
 	window.critical.dataset.value = critical;
 	window.normal.dataset.value = normal;
-	//df.appendChild(createStatusItem("전체", critical, shutdown, normal, critical + shutdown + normal));
 	
-	var ls //labeledSummary;
+	var ls;
 	for (var label in labelData) {
 		ls = labelData[label];
 		
@@ -541,19 +540,22 @@ function getTime() {
 	return (h > 9? "": "0") + h +" : "+ (m > 9? "": "0") + m +" : "+ (s > 9? "": "0") + s;
 }
 
-function setTop(top, list, toString, skipZero) {
-	var ipList = Object.keys(top).sort(function (a, b) {
-			return top[b] - top[a];
-		}),
-		ip;
+function setTop(list, eList, toString, skipZero) {
+	var ipList = Object.keys(list).sort(function (a, b) {
+			return list[b] - list[a];
+		}),	ip;
 	
-	clear(list);
+	clear(eList);
 	
-	for (var i=0, length=ipList.length; i< length; i++) {
+	for (var i=0, _i=ipList.length, j=0, max=top.databases.config.top; i< _i; i++) {
 		ip = ipList[i];
 		
-		if (top[ip] || !skipZero) {
-			list.appendChild(createTopItem(ip, toString(top[ip])));
+		if (list[ip] || !skipZero) {
+			eList.appendChild(createTopItem(ip, toString(list[ip])));
+			
+			if (++j >= max) {
+				break;
+			}
 		}
 	}
 }
