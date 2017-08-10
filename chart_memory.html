@@ -145,7 +145,7 @@ function buildDetailFile() {
 		detailKeys = window.chartWindow.detailKeys,	
 		row = ["index,date,physical memory(bytes)"];
 		
-	for (var i=0, _i=blocks.length, j=0, mills; i<_i; i++, j++) {
+	for (var i=0, _i=detailKeys.length, j=0, mills; i<_i; i++, j++) {
 		mills = detailKeys[i];
 		
 		row[row.length] = [j, ITAhM.util.toDateTimeString(new Date(mills)), detailData.get(mills)].join(",");
