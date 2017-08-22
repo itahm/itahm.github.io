@@ -27,30 +27,37 @@ ul {
 	padding: 0; margin: 0;
 }
 
+h2 {
+	background-color: #0084ff;
+	padding: 1em; margin: 0;
+	color: #fff;
+}
+
 #name {
 	margin-left: 1em;
 }
 
 #ip {
-	margin-left: 2em;
+	display: inline-block;
 	float: right;
+	font-size: 0.8em;
 }
 
-.header {
+header {
 	padding: .5em 0;
 	border-bottom: 1px solid #aaa;
 }
 
-.header .item li {
+header> .item> li {
 	font-weight: bold;
 	text-align: center;
 }
 
-.header .item li:last-child {
+header> .item> li:last-child {
 	visibility: hidden;
 }
 
-.item ul {
+.item {
 	display: flex;
 	cursor: pointer;
 	padding: .5em;
@@ -58,19 +65,25 @@ ul {
 	height: 16px;
 }
 
-.item li {
+header> .item {
+	cursor: initial;
+}
+
+.item> li {
 	flex: 1;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 
-.item li:first-child {
-	flex: 3;
+.item> li:first-child {
+	flex: 2;
 }
 
-.item li:last-child {
+.item> li:last-child {
 	flex: none;
 	width: 20px;
 	background: transparent url(img/remove.png) center no-repeat;
-	/*background-size: 20px;*/
 	cursor: pointer;
 }
 
@@ -79,11 +92,11 @@ ul {
 	overflow: auto;
 }
 
-#list .item li {
+#list> .item> li {
 	text-align: right;
 }
 
-#list .item li:first-child {
+#list> .item> li:first-child {
 	text-align: left;
 }
 
@@ -126,10 +139,22 @@ form {
 
 footer{
 	display: flex;
+	margin-top: 1em;
 }
 
-footer input {
+footer> input {
 	flex: 1;
+	border-radius: 1.2em;
+	background-color: #0084ff;
+	color: #fff;
+	border: .2em solid transparent;
+	padding: .5em;
+}
+
+footer> input:hover {
+	background-color: #fff;
+	color: #0084ff;
+	border-color: #0084ff;
 }
 
 .critical {
@@ -181,6 +206,8 @@ function onApply(e) {
 	e.preventDefault();
 	
 	var critical = top.databases.critical[window.ip],
+		eIndex = form.elements["index"],
+		index = eIndex.value,
 		resource;
 	
 	if (!critical) {
@@ -196,9 +223,12 @@ function onApply(e) {
 		critical[form.elements.resource.value] = resource;
 	}
 	
-	resource[form.elements.index.value] = {
+	resource[index] = {
 		limit: form.elements.limit.value,
-		description: form.elements.index.options[form.elements.index.options.selectedIndex].text
+	}
+	
+	if (!eIndex.disabled) {
+		resource[index].description= eIndex.options[eIndex.options.selectedIndex].text;
 	}
 	
 	put();
@@ -235,15 +265,16 @@ function onSelectResource() {
 	var resource = form.elements.resource.value,
 		selectedIndex = -1;
 	
-	form.elements.index.length = 0;
+	form.elements["index"].length = 0;
 	
-	form.elements.index.disabled = false;
+	form.elements["index"].disabled = false;
 	
 	switch(resource) {
 	case "processor":
-		for (var index in window.snmp["hrProcessorEntry"]) {
-			form.elements.index.appendChild(createOption(index, "Processor "+ index));
-		}
+		form.elements["index"].appendChild(createOption(0, "N/A"));
+		form.elements["index"].disabled = true;
+		
+		selectedIndex = 0;
 		
 		break;
 	case "memory":
@@ -254,9 +285,8 @@ function onSelectResource() {
 			storage = entry[index];
 			
 			if (storage.hrStorageType === 2) {
-				form.elements.index.appendChild(createOption(index, "N/A"));
-				form.elements.index.value = index;
-				form.elements.index.disabled = true;
+				form.elements["index"].appendChild(createOption(index, "N/A"));
+				form.elements["index"].disabled = true;
 			}
 		}
 		
@@ -271,7 +301,7 @@ function onSelectResource() {
 			storage = entry[index];
 			
 			if(storage.hrStorageType === 4) {
-				form.elements.index.appendChild(createOption(index, storage.hrStorageDescr));
+				form.elements["index"].appendChild(createOption(index, storage.hrStorageDescr));
 			}
 		}
 	
@@ -284,46 +314,41 @@ function onSelectResource() {
 			throughput = entry[index];
 			
 			if (throughput.ifSpeed !== 0) {
-				form.elements.index.appendChild(createOption(index, throughput.ifName, throughput.ifAlias));
+				form.elements["index"].appendChild(createOption(index, throughput.ifName, throughput.ifAlias));
 			}
 		}
 	
 		break;
 	}
 	
-	window.form.elements.index.selectedIndex = selectedIndex;
+	window.form.elements["index"].selectedIndex = selectedIndex;
 	window.form.elements.limit.value = "";
 }
 
 function createOption(value, text, alias) {
-	var clone = window.option.cloneNode(true);
+	var option = document.createElement("option");
 	
-	clone.value = value;
-	clone.text = text;
+	option.value = value;
+	option.text = text;
 	
 	if (alias) {
-		clone.title = alias;
+		option.title = alias;
 	}
 	
-	return clone;
+	return option;
 }
 
 function createItem(resource, index, critical) {
-	var clone = window.item.cloneNode(true),
-		item = clone.children[0];
+	var item = window.item.cloneNode(true);
 	
 	item.children[0].textContent = resourceString[resource];
-	item.children[1].textContent = index;
+	item.children[1].textContent = critical.description || "";
 	item.children[2].textContent = critical.limit;
 	item.children[3].onclick = onRemove.bind(undefined, resource, index);
 	
-	clone.onclick = onSelectCritical.bind(undefined, resource, index, critical.limit);
+	item.onclick = onSelectCritical.bind(undefined, resource, index, critical.limit);
 	
-	if (critical.description) {
-		item.title = critical.description;
-	}
-	
-	return clone;
+	return item;
 }
 
 function onSelectCritical(resource, index, limit) {
@@ -331,7 +356,7 @@ function onSelectCritical(resource, index, limit) {
 	
 	onSelectResource();
 	
-	window.form.elements.index.value = index;
+	window.form.elements["index"].value = index;
 	window.form.elements.limit.value = limit;
 }
 
@@ -377,21 +402,22 @@ function initialize(ip) {
 	<body class="loading">
 		
 		<div class="dialog dialog_width rounded">
-			<h3 id="ip">IP주소</h3>
-			<h2>임계 설정</h2>
+			<h2>
+				<span id="ip">IP주소</span>
+				임계 설정
+			</h2>
 			<h3 id="name">이름</h3>
 			
-			<ul class="header">
-				<li class="item">
-				<ul>
+			<header>
+				<ul class="item">
 					<li class="resource">성능지표
 					<li class="index">구분
 					<li class="limit">임계값(%)
 					<li title="삭제">
 				</ul>
-			</ul>
+			</header>
 		
-			<ul id="list"></ul>
+			<div id="list"></div>
 			
 			<form autocomplete="off">
 				<div class="form">
@@ -417,19 +443,13 @@ function initialize(ip) {
 					</ul>
 				</div>
 				<footer>
-					<input type="reset" class="r_button" value="close">
-					<input type="submit" class="r_button" value="apply" disabled>
+					<input type="reset" value="close">
+					<input type="submit" value="apply" disabled>
 				</footer>
 			</form>
 		</div>
 		
 		<div class="bg_loading"></div>
-		
-		<div class="layout">
-			<select>
-				<option class="option">
-			</select>
-		</div>
 		
 		<script>
 
@@ -445,8 +465,7 @@ var resourceString = {
 	};
 
 var form = document.querySelector("form"),
-	item = document.querySelector(".item"),
-	option = document.querySelector(".option");
+	item = document.querySelector(".item");
 
 form.addEventListener("reset", onClose);
 
