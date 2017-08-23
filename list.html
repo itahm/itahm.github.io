@@ -391,13 +391,13 @@ function onSearch(e) {
 function onReset(e) {
 	e.preventDefault();
 	
-	this.elements.keyword.value = "";
+	this.elements["keyword"].value = "";
 	
 	search();
 }
 
 function onChangeLabel(e) {
-	form.elements.keyword.value = "";
+	form.elements["keyword"].value = "";
 	
 	selectLabel(window.label.value);
 }
@@ -407,7 +407,7 @@ function search() {
 	// search 결과를 초기화 하기 위해
 	selectLabel(window.label.value);
 
-	filterDeviceList(form.elements.keyword.value);
+	filterDeviceList(form.elements["keyword"].value);
 	
 	document.body.classList.remove("loading");
 }
@@ -451,16 +451,16 @@ function filterDeviceList(keyword) {
 }
 
 function selectLabel(label) {
-	var df = document.createDocumentFragment(),
-		rows;
+	var df = document.createDocumentFragment();
 	
 	for (var ip in window.deviceMapping) {
 		df.appendChild(window.deviceMapping[ip]);
 	}
 	
-	if (label) {
-		rows = [].slice.call(df.querySelectorAll("."+ label), 0);
-		
+	if (window.label.selectedIndex < window.label.options.length -1) {
+		var condition = window.label.selectedIndex === window.label.options.length -2? "[data-unlabeled]": ("."+ label),
+			rows = [].slice.call(df.querySelectorAll(condition), 0);
+			
 		df = document.createDocumentFragment();
 		
 		for (var i=0, length=rows.length; i<length; i++) {
@@ -501,14 +501,12 @@ function getIcon(type) {
 					<div>
 						<select id="label">
 							<optgroup>
-								<option value="">모두 보기
+								<option>미분류
+							</optgroup>
+							<optgroup>
+								<option selected>모두 보기
 							</optgroup>
 						</select>
-					</div>
-					<div>
-						<label>
-							<input type="checkbox" id="unlabeled">미분류
-						</label>
 					</div>
 				</nav>
 				<form id="form">
@@ -573,10 +571,6 @@ document.getElementById("critical").onclick = onSelect.bind(window, "img/siren.p
 document.getElementById("normal").onclick = onSelect.bind(window, "img/normal.png", "normal");
 document.getElementById("disabled").onclick = onSelect.bind(window, "img/disabled.png", "disabled");
 document.getElementById("all").onclick = onSelect.bind(window, "img/all.png", "");
-
-document.getElementById("unlabeled").onclick = function () {
-	document.body.classList[this.checked? "add": "remove"]("unlabeled");
-};
 
 initList();
 
