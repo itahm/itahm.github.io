@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta http-equiv="Cache-Control" content="no-cache">
+		
+		<title>dialog</title>
+		
+		<style>
+@import "css/itahm.css";
+
+body {
+	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	background-color: rgba(0, 0, 0, .8);
+}
+
+form {
+	width: 300px;
+	padding: 20px;
+	background-color: #fff;
+	/*box-shadow: 0px 0px 20px 10px #ddd;*/
+}
+
+.table {
+	margin-bottom: 5px;
+}
+
+.table ul {
+	list-style: none;
+	padding: 0; margin: 3px 0;
+	display: flex;
+	align-items: center;
+}
+
+.table li {
+	flex: 1;
+}
+
+.table li:first-child {
+	padding: .5em;
+	text-align: right;
+}
+
+.table li:last-child {
+	flex: 3;
+}
+
+.table li input[type="text"],
+.table li select {
+	padding: .5em;
+	width: 100%;
+	box-sizing: border-box;
+}
+
+input[type="checkbox"] {
+	margin: .5em;
+	vertical-align: middle;
+}
+
+#profile:hover {
+	cursor: default;
+	text-decoration: underline;
+}
+
+u {
+	cursor: default;
+}
+
+footer {
+	display: flex;
+	margin-top: 1em;
+}
+
+footer> input {
+	flex: 1;
+	border-radius: 1.2em;
+	background-color: #0084ff;
+	color: #fff;
+	border: .2em solid transparent;
+	padding: .5em;
+}
+
+footer> input:hover {
+	background-color: #fff;
+	color: #0084ff;
+	border-color: #0084ff;
+}
+
+body:not(.monitor) .monitor {
+	display: none;
+}
+
+body:not(.removable) .remove {
+	display: none;
+}
+
+body.initialized .search {
+	display: none;
+}
+
+body.loading {
+	background-color: green;
+	pointer-events: none; 
+}
+
+		</style>
+		<script>
+		
+function buildType() {
+	var df = document.createDocumentFragment(),
+		groupName, optgroup, option,
+		typeData = {},
+		group = {},
+		icon, iconData, type;
+	
+	iconData = top.databases.local.icon;
+	
+	for (type in iconData) {
+		typeData[type] = iconData[type];
+	}
+	
+	iconData = top.databases.icon;
+	
+	for (type in iconData) {
+		typeData[type] = iconData[type];
+	}
+	
+	for (type in typeData) {
+		icon = typeData[type];
+		
+		groupName = icon.group;
+		
+		optgroup = group[groupName];
+		
+		if (!optgroup) {
+			optgroup = document.createElement("optgroup");
+			optgroup.label = groupName;
+			
+			group[groupName] = optgroup;
+			
+			df.appendChild(optgroup);
+		}
+		
+		optgroup.appendChild(document.createElement("option")).text = type;
+	}
+	
+	return df;
+}
+
+function onSearch() {
+	if (Object.keys(top.databases.profile).length > 0) {
+		top.showDialog.call(window, "search_dialog.html");
+	}
+	else {
+		alert("사용 가능한 프로파일이 존재하지 않습니다.\n"+ "\n" +"먼저 프로파일을 생성하십시오.");
+	}
+}
+
+function onApply(e) {
+	e.preventDefault();
+	
+	var ip = form.elements.ip.value;
+	
+	if (!window.device) {
+		if (ip in top.databases.device) {
+			alert("IP address already exists.");
+			
+			//form.elements.ip1.select();
+			form.elements.ip.select();
+			
+			return;
+		}
+		
+		window.device = {
+			ifSpeed: {}	
+		};
+		
+		// 추가인 경우 position 정보는 갱신되지 않으므로 임의로 넣어준다.
+		top.databases.position[ip] = {
+			x: 0,
+			y: 0,
+			ifEntry: {}
+		};
+		
+	}
+	
+	window.device.name = form.elements.name.value;
+	window.device.ip = ip;
+	window.device.type = form.elements.type.value;
+	window.device.label = trimLabel(form.elements.label.value);
+	
+	if (top.databases.local.parent) {
+		top.databases.position[ip].parent = top.databases.local.parent;
+	}
+	
+	top.sendRequest({
+			command: "put",
+			database: "device",
+			key: ip,
+			value: window.device
+		}, function (data) {
+			top.databases.device = data;
+			
+			if (window.opener) {
+				window.opener.reload();
+			}
+			
+			top.closeDialog();
+		});
+}
+
+function onCancel(e) {
+	top.closeDialog();
+}
+console.log("updated!");
+function onRemoveDevice() {
+	if (confirm("삭제하겠습니까?")) {
+		document.body.classList.add("loading");
+		
+		top.sendRequest({
+				command: "put",
+				database: "device",
+				key: window.device.ip,
+				value: null
+			}, function (data) {
+				for (var ip in top.databases.position[window.device.ip].ifEntry) {
+					delete top.databases.position[ip].ifEntry[window.device.ip];
+				}
+				
+				top.databases.device = data;
+				
+				delete top.databases.monitor[window.device.ip];
+				delete top.databases.position[window.device.ip];
+				
+				window.opener.reload();
+				
+				top.closeDialog();
+			});
+	}
+	else {
+		this.checked = false;
+	}
+}
+
+function onMonitorDevice(e) {
+	if (confirm("모니터 설정을 변경하시겠습니까?")) {
+		if (this.value === "snmp" && Object.keys(top.databases.profile).length === 0) {
+			alert("사용 가능한 프로파일이 존재하지 않습니다.\n"+ "\n" +"먼저 프로파일을 생성하십시오.");
+		}
+		else {
+			return top.sendRequest({
+				command: "put",
+				database: "monitor",
+				key: window.device.ip,
+				value: this.value === "none"? null: {
+					protocol: this.value
+				}
+			}, function (data) {
+				top.databases.monitor = data;
+				
+				if (window.opener) {
+					window.opener.reload();
+				}
+				
+				top.closeDialog();
+			});
+		}
+	}
+	
+	this.value = window.monitor;
+}
+
+function trimLabel(labels) {
+	var array = labels.split(","),
+		label, result = [];
+	
+	for (var i=0, _i=array.length; i<_i; i++) {
+		label = array[i].replace(/\s+/g, "");
+		
+		if (label) {
+			result[result.length] = label;
+		}
+	}
+	
+	return result.join(",");
+}
+
+function initialize(ip) {
+	window.opener = this && this.location;
+	
+	if (ip) {
+		window.device = top.databases.device[ip];
+		
+		form.elements.name.value = device.name || "";
+		
+		form.elements.ip.value = ip;
+		form.elements.ip.disabled = true;
+		form.elements.type.value = device.type;
+		// 저장할때는 trim으로 다 붙여서 넣지만 보여줄때는 보기 좋게 한칸씩 띈다.
+		form.elements.label.value = device.label && (device.label.split(",")).join(", ") || "";
+		
+		var monitor = top.databases.monitor[ip];
+		
+		form.elements.monitor.value = monitor? monitor.protocol: "none";
+		
+		document.body.classList.add("monitor");
+		
+		if (sessionStorage.level == 0) {
+			document.body.classList.add("removable");
+			form.elements.remove.onclick = onRemoveDevice;
+			
+			form.elements.monitor.onchange = onMonitorDevice;
+			form.elements.monitor.onclick = function () {
+				window.monitor = this.value;
+			}
+		}
+		
+		document.body.classList.add("initialized");
+	}
+	else {
+		form.elements.type.selectedIndex = -1;
+	}
+}
+		
+		</script>
+	</head>
+	
+	<body>
+	
+		<form class="rounded">
+			<h2>장비</h2>
+			<div class="table">
+				<ul>
+					<li>ip 주소
+					<li>
+						<input type="text" name="ip"  
+							pattern="^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$" 
+							required autofocus>
+				</ul>
+				<ul>
+					<li>이름
+					<li>
+						<input type="text" name="name" placeholder="장비 이름">
+				</ul>
+				<ul>
+					<li>타입
+					<li>
+						<select name="type" required></select>
+					
+				</ul>
+				<ul>
+					<li title="콤마(,)로 구분하며 공백을 허용하지 않습니다."><i>*라벨</i>
+					<li>
+						<input type="text" name="label" placeholder="라벨1 [,라벨2 ...]">
+					
+				</ul>
+				<ul class="monitor">
+					<li>모니터링
+					<li>
+						<select name="monitor">
+							<option value="none" selected>없음
+							<option value="icmp">ICMP
+							<option value="snmp">SNMP
+						</select>					
+				</ul>
+				<label class="remove">
+					<input type="checkbox" name="remove">
+					삭제
+				</label>
+				<label class="search">
+					<input type="checkbox" name="search">
+					자동탐색
+				</label>
+			</div>
+			
+			<footer>
+				<input type="reset" value="Cancel">
+				<input type="submit" value="Apply">
+			</footer>
+			
+		</form>
+		
+		<script>
+
+if (window === top) throw "";
+
+var form = document.querySelector("form"),
+	monitor = "none";
+
+form.elements.type.appendChild(buildType());
+
+form.elements.search.onclick = onSearch;
+
+form.addEventListener("reset", onCancel);
+
+if (sessionStorage.level == 0) {
+	form.addEventListener("submit", onApply);
+}
+else {
+	document.querySelector("input[type=submit]").disabled = true;
+}
+
+	</script>
+	
+	</body>
+	
+</html>
