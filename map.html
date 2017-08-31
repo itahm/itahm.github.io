@@ -210,7 +210,12 @@ document.getElementById("group").onclick = function () {
 };
 
 document.getElementById("edit").onclick = function () {
-	editMode.classList.toggle("edit");
+	if (editMode.classList.contains("edit")) {
+		window.location.reload();
+	}
+	else {
+		editMode.classList.add("edit");
+	}
 };
 
 window.map.onload = function () {
