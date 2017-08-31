@@ -153,7 +153,7 @@ function onConnect(e) {
 	.sendRequest({
 		command: "signin",
 		username: form.elements.username.value,
-		password: form.elements.password.value
+		password: hex_md5(form.elements.password.value)
 	}, function (status, response) {
 		document.body.classList.remove("loading");
 		
@@ -219,6 +219,7 @@ function onConnect(e) {
 		
 		<script src="js/ITAhM.js"></script>
 		<script src="js/object.js"></script>
+		<script src="js/md5.js"></script>
 		<script>
 
 var MAJOR = 2,
