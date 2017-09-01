@@ -522,6 +522,7 @@ function initialize() {
 	document.getElementById("sys_name").textContent = window.snmp.sysName;
 	document.getElementById("sys_name").title = window.snmp.sysDescr;
 	document.getElementById("sys_enterprise").textContent = ITAhM.util.enterpriseFromOID(window.snmp.sysObjectID);
+	document.getElementById("sys_enterprise").title = window.snmp.sysObjectID;
 	document.getElementById("ip").textContent = window.ip;
 	document.getElementById("failure").textContent = 100 - window.snmp.failure;
 	document.getElementById("last_response").textContent = (function (lastResponse) {
