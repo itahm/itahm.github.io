@@ -24,12 +24,13 @@
 		
 		<script src="js/ITAhM.js"></script>
 		<script src="js/object.js"></script>
+		<script src="js/md5.js"></script>
 		<script>
 
 var agent = "demo.itahm.com",
 	port = 2014,
 	username = "guest1",
-	password = "guest1";
+	password = hex_md5("guest1");
 	
 connect();
 
