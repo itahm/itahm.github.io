@@ -8,20 +8,15 @@
 		
 		<style>
 @import "css/itahm.css";
-/*
+
 body {
-	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
-	overflow: auto;
-}
-*/
-.main {
-	margin: auto;
-	padding: 1em;
-	box-sizing: border-box;
+	padding: 10px;
+	margin: 0 auto;
 }
 
 h2 {
 	color: #fff;
+	font-size: 20px;
 	text-shadow: 1px 1px 1px #000;
 }
 
@@ -75,7 +70,7 @@ img[src="img/plus.png"]:hover {
 .box {
 	padding: 1em;
 	background-color: #fdfdfd;
-	box-shadow: 0 2px 10px -2px #000;
+	box-shadow: 0 8px 10px -4px #000;
 }
 
 #resources li {
@@ -460,145 +455,142 @@ function initialize() {
 		</script>
 	</head>
 	
-	<body class="loading">
-		<div class="main content_width">
-			
-				<h2>정보</h2>
-				<ul class="common box">
-					<li>자바 버전 : <span id="java"></span>
-					<li>에이전트 버전 : <span id="version"></span>
-					<li>에이전트 저장공간 여유 : <span id="space"></span>
-					<li>데이터베이스 로드 : <span id="load"></span>
-					<li>관리 리소스 갯수 : <span id="resource"></span>
-					<li>전일 디스크 사용량 : <span id="usage"></span>
-				</ul>
-				<h2>일반</h2>
-				<ul class="common box">
-					<li>
-						<form id="clean">
-							데이터 보관 기간(일) :
-							<input type="number" min="0" max="365" name="clean">
-							<input type="submit" value="적용" disabled>
-							<i>(데이터 정리 기능을 사용하지 않는 경우 0)</i>
-						</form>
-					<li>
-						<form id="interval">
-							데이터 수집 단위(분) :
-							<select name="interval">
-								<option>1
-								<option>5
-							</select>
-							<input type="submit" value="적용" disabled>
-						</form>
-					<li>
-						<form id="display">
-							표시 : 
-							<select name="display">
-								<option value="name" selected>장비명
-								<option value="address">IP 주소
-							</select>
-							<input type="submit" value="적용" disabled>
-						</form>
-					<li>
-						<form id="top">
-							Top N : 
-							<input type="number" min="1" max="10" name="top">
-							<input type="submit" value="적용" disabled>
-						</form>
-				</ul>
-			
-			
-				<h2>대쉬보드</h2>
-				<form id="dashboard" class="box">
-					<ol id="resources">
-						<li data-value="responseTime">
-							<input type="checkbox" name="responseTime">
-							응답속도
-						<li data-value="processor">
-							<input type="checkbox" name="processor">
-							프로세서 로드
-						<li data-value="memory">
-							<input type="checkbox" name="memory">
-							메모리 사용량
-						<li data-value="memoryRate">
-							<input type="checkbox" name="memoryRate">
-							메모리 사용율
-						<li data-value="storage">
-							<input type="checkbox" name="storage">
-							스토리지 사용량
-						<li data-value="storageRate">
-							<input type="checkbox" name="storageRate">
-							스토리지 사용율
-						<li data-value="throughput">
-							<input type="checkbox" name="throughput">
-							통신 사용량
-						<li data-value="throughputRate">
-							<input type="checkbox" name="throughputRate">
-							통신 사용율
-						<li data-value="throughputErr">
-							<input type="checkbox" name="throughputErr">
-							통신 오류
-						<li data-value="failureRate">
-							<input type="checkbox" name="failureRate">
-							snmp 오류
-					</ol>
+	<body class="loading content_width">
+		<h2>정보</h2>
+		<ul class="common box">
+			<li>자바 버전 : <span id="java"></span>
+			<li>에이전트 버전 : <span id="version"></span>
+			<li>에이전트 저장공간 여유 : <span id="space"></span>
+			<li>데이터베이스 로드 : <span id="load"></span>
+			<li>관리 리소스 갯수 : <span id="resource"></span>
+			<li>전일 디스크 사용량 : <span id="usage"></span>
+		</ul>
+		<h2>일반</h2>
+		<ul class="common box">
+			<li>
+				<form id="clean">
+					데이터 보관 기간(일) :
+					<input type="number" min="0" max="365" name="clean">
+					<input type="submit" value="적용" disabled>
+					<i>(데이터 정리 기능을 사용하지 않는 경우 0)</i>
+				</form>
+			<li>
+				<form id="interval">
+					데이터 수집 단위(분) :
+					<select name="interval">
+						<option>1
+						<option>5
+					</select>
 					<input type="submit" value="적용" disabled>
 				</form>
-			
-			<form id="account">
-				<h2>계정 <input type="image" src="img/plus.png" title="계정 추가" disabled></h2>
-				<div class="box">
-					<ul id="account_list" class="list"></ul>
-				</div>
-			</form>
-			
-			<form id="profile">
-				<h2>프로파일 <input type="image" src="img/plus.png" title="프로파일 추가" disabled></h2>
-				<div class="box">
-					<ul id="profile_list" class="list"></ul>
-					<i>등록된 Profile은 변경할 수 없습니다. 삭제후 추가하십시오. (사용중인 Profile은 삭제할 수 없습니다.)</i>
-				</div>
-			</form>
-			
-			<form id="sms">
-				<h2>
-					<input type="checkbox" name="enable">
-					SMS
-					<input type="image" src="img/plus.png" title="알림 추가" disabled>
-				</h2>
-				<div class="box">
-					<ul id="sms_list" class="list"></ul>
-				</div>
-			</form>
-			
-			<form id="gcm">
-				<h2>
-					<input type="checkbox" name="disable" checked title="중지">
-					GCM(Google Cloud Messaging)
-					<input type="image" src="img/plus.png" title="알림 추가" disabled>
-				</h2>
-				<div class="box">
-					<input type="text" name="host"><input type="submit" value="사용">
-					<i>(알림에 표시할 에이전트 이름을 입력하십시오.)</i>
-					<ul id="gcm_list" class="list"></ul>
-				</div>
-			</form>
-			
-			<form id="syslog">
-				<input type="text" name="date" required>
-				<input type="submit" value="dump">
-			</form>
-			<div class="bg_loading"></div>
-			
-			<div class="layout">
-				<ul>
-					<li class="item">
-						<img width="20" height="20">
-						<span></span>
-				</ul>
+			<li>
+				<form id="display">
+					표시 : 
+					<select name="display">
+						<option value="name" selected>장비명
+						<option value="address">IP 주소
+					</select>
+					<input type="submit" value="적용" disabled>
+				</form>
+			<li>
+				<form id="top">
+					Top N : 
+					<input type="number" min="1" max="10" name="top">
+					<input type="submit" value="적용" disabled>
+				</form>
+		</ul>
+	
+	
+		<h2>대쉬보드</h2>
+		<form id="dashboard" class="box">
+			<ol id="resources">
+				<li data-value="responseTime">
+					<input type="checkbox" name="responseTime">
+					응답속도
+				<li data-value="processor">
+					<input type="checkbox" name="processor">
+					프로세서 로드
+				<li data-value="memory">
+					<input type="checkbox" name="memory">
+					메모리 사용량
+				<li data-value="memoryRate">
+					<input type="checkbox" name="memoryRate">
+					메모리 사용율
+				<li data-value="storage">
+					<input type="checkbox" name="storage">
+					스토리지 사용량
+				<li data-value="storageRate">
+					<input type="checkbox" name="storageRate">
+					스토리지 사용율
+				<li data-value="throughput">
+					<input type="checkbox" name="throughput">
+					통신 사용량
+				<li data-value="throughputRate">
+					<input type="checkbox" name="throughputRate">
+					통신 사용율
+				<li data-value="throughputErr">
+					<input type="checkbox" name="throughputErr">
+					통신 오류
+				<li data-value="failureRate">
+					<input type="checkbox" name="failureRate">
+					snmp 오류
+			</ol>
+			<input type="submit" value="적용" disabled>
+		</form>
+		
+		<form id="account">
+			<h2>계정 <input type="image" src="img/plus.png" title="계정 추가" disabled></h2>
+			<div class="box">
+				<ul id="account_list" class="list"></ul>
 			</div>
-			
+		</form>
+		
+		<form id="profile">
+			<h2>프로파일 <input type="image" src="img/plus.png" title="프로파일 추가" disabled></h2>
+			<div class="box">
+				<ul id="profile_list" class="list"></ul>
+				<i>등록된 Profile은 변경할 수 없습니다. 삭제후 추가하십시오. (사용중인 Profile은 삭제할 수 없습니다.)</i>
+			</div>
+		</form>
+		
+		<form id="sms">
+			<h2>
+				<input type="checkbox" name="enable">
+				SMS
+				<input type="image" src="img/plus.png" title="알림 추가" disabled>
+			</h2>
+			<div class="box">
+				<ul id="sms_list" class="list"></ul>
+			</div>
+		</form>
+		
+		<form id="gcm">
+			<h2>
+				<input type="checkbox" name="disable" checked title="중지">
+				GCM(Google Cloud Messaging)
+				<input type="image" src="img/plus.png" title="알림 추가" disabled>
+			</h2>
+			<div class="box">
+				<input type="text" name="host"><input type="submit" value="사용">
+				<i>(알림에 표시할 에이전트 이름을 입력하십시오.)</i>
+				<ul id="gcm_list" class="list"></ul>
+			</div>
+		</form>
+		
+		<form id="syslog">
+			<input type="text" name="date" required>
+			<input type="submit" value="dump">
+		</form>
+		<div class="bg_loading"></div>
+		
+		<div class="layout">
+			<ul>
+				<li class="item">
+					<img width="20" height="20">
+					<span></span>
+			</ul>
 		</div>
+		
 		<script src="js/ITAhM.js"></script>
 		<script>
 
