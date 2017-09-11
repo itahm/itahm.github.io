@@ -779,16 +779,20 @@ function addLine(ip, pos) {
 	}
 }
 
+// 그룹이 현재 구성도 depth에서 그려질수도 안그려질수도 있음
 function setGroupStatus(name, status) {
+	// 최상위
+	if (!name) {
+		return;
+	}
+	
+	// 그릴수 있는 조건
 	if (name in window.svgData) {
 		addClass(window.svgData[name], status);
 	}
+	// 그릴수 없는 조건
 	else {
-		var parent = top.databases.position[name].parent;
-		
-		if (parent) {
-			setGroupStatus(parent, status);
-		}
+		setGroupStatus(top.databases.position[name].parent, status);
 	}
 }
 
@@ -813,21 +817,21 @@ function initialize(extra) {
 	for (var ip in top.databases.device) {
 		pos = top.databases.position[ip];
 	
-		if (pos.parent !== group) {
-			if (ip in top.databases.monitor) {
-				if (top.databases.monitor[ip].shutdown) {
-					shutdown[pos.parent] = true;
-				}
-				else if (top.databases.monitor[ip].critical) {
-					critical[pos.parent] = true;
-				}
-			}
-				
-			continue;
+		if (pos.parent === group) {
+			addDevice(ip, pos);
+			addLine(ip, pos);
 		}
-		
-		addDevice(ip, pos);
-		addLine(ip, pos);
+		// upper 그룹일수도 lower 그룹일수도 있음
+		// upper 그룹은 대상이 아님
+		// 모니터링 대상장비 이어야 함
+		else if (pos.parent && ip in top.databases.monitor) {
+			if (top.databases.monitor[ip].shutdown) {
+				shutdown[pos.parent] = true;
+			}
+			else if (top.databases.monitor[ip].critical) {
+				critical[pos.parent] = true;
+			}
+		}
 	}
 	
 	for (var name in shutdown) {
