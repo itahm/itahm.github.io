@@ -128,42 +128,6 @@ function onSetAlarm(ip){
 	top.showDialog.call(window, "critical_dialog.html", ip);
 }
 
-function test() {
-	var device, entry, i=1000;
-	
-	for (var ip in top.databases.device) {
-		device = top.databases.device[ip];
-		
-		if (device.name) continue;
-		
-		if (i-- < 0) break;
-		
-		for (var peer in device.ifEntry) {
-			delete top.databases.device[peer].ifEntry[ip];
-		}
-		
-		delete top.databases.device[ip];
-		delete top.databases.position[ip];
-	}
-	
-	var request = {
-			command: "push",
-			database: "position",
-			data: window.top.databases.position
-		};
-	
-	top.sendRequest(request, function (response) {
-		alert("구성의 변경사항을 저장하였습니다.");
-	});
-	
-	request.database = "device";
-	request.data = top.databases.device;
-	
-	top.sendRequest(request, function (response) {
-		alert("장비의 변경사항을 저장하였습니다.");
-	});
-}
-
 		</script>
 		
 		
@@ -173,12 +137,11 @@ function test() {
 		
 		<iframe id="map" src="map_base.html"></iframe>
 		
-		<nav id="edit_mode">
-			<button id="add"><img src="img/add_device.png" width="16px" height="16px" title="장비 추가" class="root">추가</button>
-			<button id="group"><img src="img/group.png" width="16px" height="16px" title="그룹 추가" class="root">그룹</button>
-			<button id="save"><img src="img/save.png" width="16px" height="16px" title="저장" class="root">저장</button>
+		<nav id="edit_mode" class="root">
+			<button id="add"><img src="img/add_device.png" width="16px" height="16px" title="장비 추가">추가</button>
+			<button id="group"><img src="img/group.png" width="16px" height="16px" title="그룹 추가">그룹</button>
+			<button id="save"><img src="img/save.png" width="16px" height="16px" title="저장">저장</button>
 			<img id="edit" src="img/setting.png" width="28" height="28">
-			<!--button onclick="test()">test</button-->
 		</nav>
 		
 		<nav class="right">	
