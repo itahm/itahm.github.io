@@ -2,6 +2,7 @@
 <html>
 	<head>
 		<meta charset="UTF-8">
+		<meta http-equiv="Cache-Control" content="No-Cache">
 		<title>ITAhM</title>
 		
 		<style>
@@ -10,16 +11,6 @@
 body {
 	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
 	margin: 0; padding: 0;
-}
-
-@media print {
-	text {
-		color: #000;
-	}
-	
-	#graph path {
-		stroke: #000;
-	}
 }
 
 svg {
@@ -52,6 +43,20 @@ text {
 
 #point {
 	fill: #fff;
+}
+
+@media print {
+	text {
+		fill: #000;
+	}
+	
+	#graph path {
+		stroke: #000;
+	}
+	
+	#point {
+		fill: #000;
+	}
 }
 
 		</style>

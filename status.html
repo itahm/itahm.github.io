@@ -10,20 +10,17 @@
 @import "css/itahm.css";
 
 body {
-	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
 	background-color: #4d525a;
 	color: #fff;
 }
 
-.body {
-	height: 100%;
-	overflow: auto;
-	position: relative;	
-}
-
 article {
 	page-break-inside: avoid;
+}
+
+article:first-child {
 	display: flex;
+	justify-content: space-between;
 	flex-wrap: wrap;
 }
 
@@ -56,6 +53,65 @@ section:hover:not(.information) {
 	cursor: pointer;
 }
 
+div.bar {
+	position: relative;
+	display: inline-block;
+}
+
+svg.bar {
+	width: 100px;
+	height: 100px;
+	border-radius: 50%;
+	box-sizing: border-box;
+	border: 3px solid green;
+	overflow: hidden;
+}
+
+div.memory +div {
+	display: inline-block;
+}
+
+div.memory.orange svg.bar {
+	border-color: orange;
+}
+
+div.memory.red svg.bar {
+	border-color: red;
+}
+
+rect[height].bar {
+	animation: bar 1s;
+}
+
+#memory_total {
+	font-weight: bold;
+	font-size: 1.2em;
+}
+
+div.bar::after {
+	content: attr(data-value);
+	position: absolute; top: 50%; left: 50%;
+	transform: translateX(-50%) translateY(-50%);
+	font-size: 15px;
+	font-weight: bold;
+}
+
+div.memory.orange rect.bar {
+	fill: orange;
+}
+
+div.memory.red rect.bar {
+	fill: red;
+}
+
+@keyframes bar {
+	0% {
+		transform: scale(1, 0);
+	}
+	100% {
+		transform: scale(1, 1);
+	}
+}
 .processor_item {
 	margin: 10px;
 }
@@ -171,6 +227,7 @@ section.response_time {
 }
 
 .item li {
+	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
 }
@@ -373,11 +430,7 @@ div.frame iframe {
 	border: none;
 }
 
-section.memory> div {
-	display: flex;
-}
-
-section.memory> div div:first-child {
+#process {
 	width: 100px;
 	height: 100px;
 	border: 3px solid #ddd;
@@ -387,27 +440,25 @@ section.memory> div div:first-child {
 	overflow: hidden;
 }
 
-section.memory> div div:first-child::after {
+#process::after {
+	font-size: 1em;
+	transition: font-size 0.3s ease-in;
+	font-weight: bold;
 	content: attr(data-value);
 	position: absolute; top: 50%; left: 50%;
 	transform: translateX(-50%) translateY(-50%);
+	
 }
 
-section.memory img {
-	position: absolute; bottom: 0; left: 0;
-	width: 100%; height: 0;
-	transition: height .5s ease-out;
-}
-
-section.memory p:first-child {
-	font-size: 1.2em;
-	font-weight: bold;
+#process[data-value]::after {
+	font-size: 2em;
 }
 
 body:not(.processor) section.processor,
 body:not(.storage) section.storage,
 body:not(.memory) section.memory,
 body:not(.throughput) section.throughput,
+body:not(.process) section.process,
 body:not(.frame) .frame {
 	display: none;
 }
@@ -574,7 +625,7 @@ function initialize() {
 		document.body.classList.add("shutdown");
 	}
 	else {
-		document.getElementById("realtime_response").src="realtime_response.html"
+		document.getElementById("realtime_response").src = "realtime_response.html"
 	}
 	
 	entry = window.snmp.hrProcessorEntry;
@@ -594,6 +645,13 @@ function initialize() {
 	entry = window.snmp.ifEntry;
 	for (var index in entry) {
 		initIFace(entry[index], index);
+	}
+	
+	if ("hrSWRunName" in window.snmp && Object.keys(window.snmp.hrSWRunName).length > 0) {
+		document.body.classList.add("process");
+	
+		document.getElementById("process").dataset.value
+			= Object.keys(window.snmp.hrSWRunName).length;
 	}
 	
 	document.body.classList.remove("loading");
@@ -639,39 +697,44 @@ function initStorage(storage, index) {
 function initMemory(memory) {
 	var used = memory.hrStorageUsed * memory.hrStorageAllocationUnits,
 		size = memory.hrStorageSize * memory.hrStorageAllocationUnits,
-		usage = Math.round(100* used / size) +"%",
-		item = document.querySelector("section.memory>div"),
-		bar = item.children[0],
-		label = item.children[1];
+		usage = Math.round(100* used / size),
+		bar = document.querySelector("div.memory.bar"),
+		color = "green";
 
-	setTimeout(function () {
-		bar.children[0].style.height = usage;
-	}, 500);
+	if (usage > 90) {
+		color = "red";
+	}
+	else if (usage > 70) {
+		color = "orange";
+	}
 	
-	bar.dataset.value = usage;
+	bar.classList.add(color);
+	bar.dataset.value = usage +"%"; 
 	
-	label.children[0].textContent = ITAhM.util.toBytesString(size);
-	label.children[1].textContent = ITAhM.util.toBytesString(used);
+	document.getElementById("memory").setAttribute("height", usage);
+	
+	document.getElementById("memory_total").textContent = ITAhM.util.toBytesString(size);
+	document.getElementById("memory_used").textContent = ITAhM.util.toBytesString(used);
 
 	document.body.classList.add("memory");
 }
 
 function initIFace(iFace, index) {
-	interfaceArea
-		.appendChild(createIFaceGuage(
-				iFace.ifAdminStatus,
-				iFace.ifOperStatus,
-				index,
-				iFace.ifName,
-				iFace.ifDescr,
-				iFace.ifAlias,
-				(function (device) {
-					return device.ifSpeed && device.ifSpeed[index];
-				})(databases.device[window.ip]) || iFace.ifHighSpeed || iFace.ifSpeed,
-				iFace.ifInBPS || 0,
-				iFace.ifOutBPS || 0,
-				iFace.ifInErrors,
-				iFace.ifOutErrors));
+	interfaceArea.appendChild(
+		createIFaceGuage(
+			iFace.ifAdminStatus,
+			iFace.ifOperStatus,
+			index,
+			iFace.ifName,
+			iFace.ifDescr,
+			iFace.ifAlias,
+			(function (device) {
+				return device.ifSpeed && device.ifSpeed[index];
+			})(databases.device[window.ip]) || iFace.ifHighSpeed || iFace.ifSpeed,
+			iFace.ifInBPS || 0,
+			iFace.ifOutBPS || 0,
+			iFace.ifInErrors || 0,
+			iFace.ifOutErrors || 0));
 	
 	document.body.classList.add("throughput");
 }
@@ -687,123 +750,129 @@ function onSelectResource(resource, index) {
 
 	<body class="loading filter">
 		
-		<div class="body">
+		<article>
 		
-			<article>
+			<section class="information">
+				<ul>
+					<li>장비명
+					<li id="sys_name">
+				</ul>
+				<ul>
+					<li>공급자
+					<li id="sys_enterprise">
+				</ul>
+				<ul>
+					<li>IP 주소
+					<li id="ip">
+				</ul>
+				<ul>
+					<li>마지막 응답
+					<li id="last_response">
+				</ul>
+				<ul>
+					<li>상태
+					<li id="status">(<span id="failure"></span>%) <input type="button" id="reset" value="초기화">
+				</ul>
+			</section>
 			
-				<section class="information">
-					<ul>
-						<li>장비명
-						<li id="sys_name">
+			<section class="process">
+				<h2>프로세스</h2>
+				<div id="process"></div>
+			</section>
+			
+			<section class="processor">
+				<h2>프로세서 로드</h2>
+				<div>
+					<div id="processor"></div>
+				</div>
+			</section>
+			
+			<section class="memory">
+				<h2>물리적 메모리</h2>
+				<div>
+					<div class="memory bar">
+						<svg class="bar">
+							<g transform="translate(0, 100) scale(1, -1)">
+								<rect x="0" y="0" width="100" class="bar" id="memory"></rect>
+							</g>
+						</svg>
+					</div>
+					<div>
+						<p id="memory_total">용량</p>
+						<p id="memory_used">사용</p>
+					</div>
+				</div>
+			</section>
+			
+			<section class="response_time">
+				<h2>응답 속도</h2>
+				<div id="response">
+					<iframe id="realtime_response"></iframe>
+				</div>
+			</section>
+			
+		</article>
+		
+		<article>
+			
+			<section class="storage">
+				<h2>스토리지 사용</h2>
+				<div>
+					<ul class="storage title">
+						<li>이름
+						<li>크기
+						<li class="usage">사용
 					</ul>
-					<ul>
-						<li>공급자
-						<li id="sys_enterprise">
-					</ul>
-					<ul>
-						<li>IP 주소
-						<li id="ip">
-					</ul>
-					<ul>
-						<li>마지막 응답
-						<li id="last_response">
-					</ul>
-					<ul>
+					<div id="storage">
+					</div>
+				</div>
+			</section>
+			
+		</article>
+		
+		<article>
+			<section class="throughput">
+				<h2>통신
+					<label class="filter">
+						<input id="filter" type="checkbox" checked>
+						<span>비활성 인터페이스 감추기</span>
+					</label>
+				</h2>
+				<div>
+					<ul class="title throughput">
 						<li>상태
-						<li id="status">(<span id="failure"></span>%) <input type="button" id="reset" value="초기화">
+						<li>이름
+						<li>설명
+						<li>대역폭
+						<li>
+							<div>사용량</div>
+							<div class="flex">
+								<span>송신</span>
+								<span>수신</span>
+							</div>
+						<li>
+							<div>사용률</div>
+							<div class="flex">
+								<span>송신</span>
+								<span>수신</span>
+							</div>
+						<li>
+							<div>에러</div>
+							<div class="flex">
+								<span>송신</span>
+								<span>수신</span>
+							</div>
 					</ul>
-				</section>
-				
-				<section class="processor">
-					<h2>프로세서 로드</h2>
-					<div>
-						<div id="processor"></div>
+					<div id="i_face">
 					</div>
-				</section>
-				
-				<section class="memory">
-					<h2>물리적 메모리</h2>
-					<div>
-						<div>
-							<img src="img/line_y.png" width="100px">
-						</div>
-						<div>
-							<p>용량</p>
-							<p>사용</p>
-						</div>
-					</div>
-				</section>
-				
-				<section class="response_time">
-					<h2>응답 속도</h2>
-					<div id="response">
-						<iframe id="realtime_response"></iframe>
-					</div>
-				</section>
-				
-			</article>
-			
-			<article>
-				
-				<section class="storage">
-					<h2>스토리지 사용</h2>
-					<div>
-						<ul class="storage title">
-							<li>이름
-							<li>크기
-							<li class="usage">사용
-						</ul>
-						<div id="storage">
-						</div>
-					</div>
-				</section>
-				
-			</article>
-			
-			<article>
-				<section class="throughput">
-					<h2>통신
-						<label class="filter">
-							<input id="filter" type="checkbox" checked>
-							<span>비활성 인터페이스 감추기</span>
-						</label>
-					</h2>
-					<div>
-						<ul class="title throughput">
-							<li>상태
-							<li>이름
-							<li>설명
-							<li>대역폭
-							<li>
-								<div>사용량</div>
-								<div class="flex">
-									<span>송신</span>
-									<span>수신</span>
-								</div>
-							<li>
-								<div>사용률</div>
-								<div class="flex">
-									<span>송신</span>
-									<span>수신</span>
-								</div>
-							<li>
-								<div>에러</div>
-								<div class="flex">
-									<span>송신</span>
-									<span>수신</span>
-								</div>
-						</ul>
-						<div id="i_face">
-						</div>
-					</div>
-				</section>
-			</article>
-			
-			<nav>
-				<img id="print" src="img/printer.png" width="16" height="16" title="인쇄">
-				<img id="refresh" src="img/refresh.png" width="16" height="16" title="새로고침">
-			</nav>
-		</div>
+				</div>
+			</section>
+		</article>
+		
+		<nav>
+			<img id="print" src="img/printer.png" width="16" height="16" title="인쇄">
+			<img id="refresh" src="img/refresh.png" width="16" height="16" title="새로고침">
+		</nav>
 		
 		<div class="frame">
 			<header>
