@@ -2,8 +2,8 @@
 <html>
 	<head>
 		<meta charset="UTF-8">
-		<meta http-equiv="Content-Script-Type" content="text/javascript">
-		<meta http-equiv="Content-Style-Type" content="text/css">
+		<meta http-equiv="Cache-Control" content="No-Cache">
+		
 		<title>Setting @ ITAhM</title>
 		
 		<style>
@@ -199,17 +199,21 @@ function initConfig() {
 	document.querySelector("select[name=display]").value = configData.display || "name";
 	document.getElementById("java").textContent = configData.java;
 	document.getElementById("version").textContent = configData.version;
-	document.getElementById("load").textContent = (function (load) {
-		if (!load){
-			return 0;
-		}
-		
-		return Object.values(load).join(", ");
-	})(configData.load);
+	
+	if (load in configData) {
+		document.getElementById("load").textContent = (function (load) {
+			//TODO 시간순으로 제공해야함. 수정할것.
+			return Object.values(load).join(", ");
+		})(configData.load);
+	}
 	
 	document.getElementById("resource").textContent = configData.resource || 0;
 	document.getElementById("usage").textContent = configData.usage? ITAhM.util.toBytesString(configData.usage): 0;
 	document.getElementById("space").textContent = ITAhM.util.toBytesString(configData.space);
+	
+	if ("expire" in configData && configData.expire > 0) {
+		document.getElementById("expire").textContent = new Date(configData.expire).toLocaleString();
+	}
 	
 	if ("dashboard" in configData) {
 		var resources = configData.dashboard,
@@ -461,9 +465,10 @@ function initialize() {
 			<li>자바 버전 : <span id="java"></span>
 			<li>에이전트 버전 : <span id="version"></span>
 			<li>에이전트 저장공간 여유 : <span id="space"></span>
-			<li>데이터베이스 로드 : <span id="load"></span>
+			<li>데이터베이스 로드 : <span id="load">N/A</span>
 			<li>관리 리소스 갯수 : <span id="resource"></span>
 			<li>전일 디스크 사용량 : <span id="usage"></span>
+			<li>라이센스 만료일 : <span id="expire">N/A</span>
 		</ul>
 		<h2>일반</h2>
 		<ul class="common box">
