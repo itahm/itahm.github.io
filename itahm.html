@@ -150,8 +150,7 @@ section {
 
 
 body:not(.log) .log,
-body:not(.dialog) #dialog,
-#message {
+body:not(.dialog) #dialog {
 	display: none;
 }
 
@@ -215,6 +214,7 @@ var count = document.getElementById("count"),
 	dialog = document.getElementById("dialog"),
 	log = document.getElementById("log"),
 	chart = {},
+	sound = new Audio("siren.mp3"),
 	logCount = 0;
 
 window.onbeforeunload = function () {
@@ -316,6 +316,10 @@ document.getElementById("signout").onclick = function () {
 					
 					window.count.textContent = window.logCount > 9? "9+": window.logCount;
 					window.log.textContent = getDeviceName(eventData.ip) +" "+ eventData.message;
+					
+					if (eventData.type === "shutdown" && !eventData.status) {
+						window.sound.play();
+					}
 					
 					document.body.classList.add("log");
 					
