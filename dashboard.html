@@ -182,11 +182,12 @@ header> ul> li:nth-child(3) {
 }
 
 .list_item {
-	border-bottom: 1px solid #777;
+	font-size: 12px;
 	display: flex;
+	border-bottom: 1px solid #777;
 	cursor: pointer;
-	padding: 3px;
-	box-sizing: border-box;
+	padding: 1px;
+	/*box-sizing: border-box;*/
 }
 
 ..list_item:hover {
@@ -197,6 +198,7 @@ header> ul> li:nth-child(3) {
 
 .list_item> li {
 	flex: 1;
+	box-sizing: border-box;
 	overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 
@@ -218,7 +220,7 @@ body.name .list_item> li:nth-child(2) {
 	position: relative;
 	padding: 3px;
 	border: 2px solid transparent;
-	border-radius: 2px;
+	border-radius: 3px;
 }
 
 .list_item> li:last-child::after {
@@ -443,7 +445,7 @@ function initialize() {
 	
 	document.body.classList.remove("loading");
 	
-	window.setInterval(update, 10000);
+	//window.setInterval(update, 10000);
 }
 
 function createTopList(resource) {
