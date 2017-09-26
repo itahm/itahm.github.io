@@ -317,7 +317,7 @@ document.getElementById("signout").onclick = function () {
 					window.count.textContent = window.logCount > 9? "9+": window.logCount;
 					window.log.textContent = getDeviceName(eventData.ip) +" "+ eventData.message;
 					
-					if (eventData.type === "shutdown" && !eventData.status) {
+					if (!eventData.status) {
 						window.sound.play();
 					}
 					

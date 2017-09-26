@@ -76,7 +76,7 @@ section {
 }
 
 .title,
-section div:first-child {
+section >div:first-child {
 	padding: .5em 2em;
 	border-radius: 3px 3px 0 0;
 	border-bottom: none;
@@ -186,9 +186,10 @@ header> ul> li:nth-child(3) {
 	display: flex;
 	cursor: pointer;
 	padding: 3px;
+	box-sizing: border-box;
 }
 
-.list_item:hover {
+..list_item:hover {
 	background-color: #fff;
 	color: #0084ff;
 	outline: 1px solid #0084ff;
@@ -214,14 +215,47 @@ body.name .list_item> li:nth-child(2) {
 
 .list_item> li:last-child {
 	text-align: right;
-	flex: .5;
-	overflow: hidden;
+	position: relative;
+	padding: 3px;
+	border: 2px solid transparent;
+	border-radius: 2px;
 }
 
 .list_item> li:last-child::after {
 	content: attr(data-value);
-	display: inline-block;
-	animation: flow 1s;
+	/*display: inline-block;
+	animation: flow 1s;*/
+}
+
+.list_item> li:last-child >div {
+	position: absolute; top: 0; bottom: 0; left: 0;
+	z-index: -1;
+	animation: gauge 1s;
+}
+
+.list_item> li:last-child.red {
+	border-color: red;
+}
+
+.list_item> li:last-child.red >div {
+	/*background-image: linear-gradient(rgba(255, 0, 0, 0.6) 20%, red, rgba(255, 0, 0, 0.6) 20%);*/
+	background-color: red;
+}
+
+.list_item> li:last-child.orange {
+	border-color: orange;
+}
+
+.list_item> li:last-child.orange >div {
+	background-color: orange;
+}
+
+.list_item> li:last-child.green {
+	border-color: green;
+}
+
+.list_item> li:last-child.green >div {
+	background-color: green;
 }
 
 .agent_status {
@@ -248,6 +282,15 @@ body.name .list_item> li:nth-child(2) {
 	}
 	100% {
 		transform: translateY(-100%);
+	}
+}
+
+@keyframes gauge {
+	from {
+		width: 0;
+	}
+	to {
+		width: 100%;
 	}
 }
 
@@ -574,15 +617,26 @@ function createStatusItem(label, critical, alert, normal, sum) {
 }
 
 function createTopItem(ip, value) {
-	var item = document.createElement("ul");
+	var item = document.createElement("ul"),
+		bar;
+	
+	item.className = "list_item";
 	
 	item.appendChild(document.createElement("li")).textContent = top.databases.device[ip].name || ip;
 	item.appendChild(document.createElement("li")).textContent = ip;
-	item.appendChild(document.createElement("li")).dataset.value = value;
+	
+	bar = item.appendChild(document.createElement("li"));
+	bar.dataset.value = value;
+	
+	if (value.substring(value.length -1, value.length) == "%") {
+		var p = value.substring(0, value.length -1);
+		
+		bar.appendChild(document.createElement("div")).style.width = value;
+		
+		bar.classList.add(p > 90? "red": p > 70? "orange": "green");
+	}
 	
 	item.onclick = top.showChart.bind(window, ip);
-	
-	item.className = "list_item";
 	
 	return item;
 }
