@@ -63,7 +63,7 @@ svg.bar {
 	height: 100px;
 	border-radius: 50%;
 	box-sizing: border-box;
-	border: 3px solid green;
+	border: 3px solid #0f0;
 	overflow: hidden;
 }
 
@@ -72,11 +72,11 @@ div.memory +div {
 }
 
 div.memory.orange svg.bar {
-	border-color: orange;
+	border-color: #ffa500;
 }
 
 div.memory.red svg.bar {
-	border-color: red;
+	border-color: #f00;
 }
 
 rect[height].bar {
@@ -96,12 +96,16 @@ div.bar::after {
 	font-weight: bold;
 }
 
+div.memory.green rect.bar {
+	fill: #0f0;
+}
+
 div.memory.orange rect.bar {
-	fill: orange;
+	fill: #ffa500;
 }
 
 div.memory.red rect.bar {
-	fill: red;
+	fill: #f00;
 }
 
 @keyframes bar {
@@ -148,7 +152,7 @@ div.memory.red rect.bar {
 }
 
 .circular_bar.orange {
-	color: #fc0;
+	color: #ffa500;
 }
 
 .circular_bar.green .progress.bar {
@@ -160,7 +164,7 @@ div.memory.red rect.bar {
 }
 
 .circular_bar.orange .progress.bar {
-	stroke: #fc0;
+	stroke: #ffa500;
 }
 
 .circular_bar::after {
