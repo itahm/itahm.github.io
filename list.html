@@ -278,7 +278,9 @@ function initList() {
 		df.appendChild(createRow(deviceData[ip], monitorData[ip], criticalData[ip]));
 	}
 	
-	document.getElementById("count").dataset.value = df.children.length;
+	// ie는 ParentNode interface의 properties를 지원하지 않음.
+	document.getElementById("count").dataset.value
+		= df.children? df.children.length: df.querySelectorAll("ul").length;
 	
 	list.appendChild(df);
 	
