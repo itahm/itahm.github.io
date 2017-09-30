@@ -68,8 +68,8 @@ iframe {
 }
 
 section {
-	display: flex;
-	flex: 1 1 auto;
+	/*display: flex;
+	flex: 1 1 auto;*/
 	min-width: 260px;
 	margin: 0 .5em;
 	flex-direction: column;
@@ -87,8 +87,8 @@ section >div:first-child {
 }
 
 section> div:last-child {
-	flex: 1;
-	overflow: auto;
+	/*flex: 1;
+	overflow: auto;*/
 }
 
 ul {
@@ -97,7 +97,7 @@ ul {
 }
 
 .list {
-	padding: .5em; 1em;
+	padding: .5em 1em;
 }
 
 .right {
@@ -546,12 +546,23 @@ function initStats() {
 	window.critical.dataset.value = critical;
 	window.normal.dataset.value = normal;
 	
-	var ls;
-	for (var label in labelData) {
-		ls = labelData[label];
+	var labels = Object.keys(labelData).sort(function (a, b) {
+		return a > b? 1: -1;
+	});
+	
+	for (var i=0, _i=labels.length, label, values; i<_i; i++) {
+		label = labels[i];
+		values = labelData[label];
 		
-		df.appendChild(createStatusItem(label, ls.critical, ls.shutdown, ls.normal, ls.critical + ls.shutdown + ls.normal));
+		df.appendChild(
+			createStatusItem(
+				label,
+				values.critical,
+				values.shutdown,
+				values.normal,
+				values.critical + values.shutdown + values.normal));
 	}
+	
 	
 	window.summaryList.appendChild(df);
 }
