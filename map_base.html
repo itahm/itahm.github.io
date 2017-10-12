@@ -243,10 +243,10 @@ function isChecked(svgDevice) {
 	return hasClass(svgDevice, "device", "checked");
 }
 
-function onEnter(name) {
+function onEnter(id) {
 	addClass(this, "hover");
 	
-	window.group = name;
+	window.group = id;
 	window.isGroup = true;
 }
 
@@ -464,10 +464,10 @@ function onSelectDevice(ip, svgDevice, check) {
 }
 
 function selectDevice(ip, svgDevice) {
-	if (window.selected == ip) {
+	if (document.body.classList.contains("extra") || window.selected == ip) {
 		return;
 	}
-
+	
 	var monitor = top.databases.monitor[ip],
 		pos = top.databases.position[ip];
 	
@@ -780,29 +780,34 @@ function addLine(ip, pos) {
 }
 
 // 그룹이 현재 구성도 depth에서 그려질수도 안그려질수도 있음
-function setGroupStatus(name, status) {
+function setGroupStatus(id, status) {
 	// 최상위
-	if (!name) {
+	if (!id) {
 		return;
 	}
 	
 	// 그릴수 있는 조건
-	if (name in window.svgData) {
-		addClass(window.svgData[name], status);
+	if (id in window.svgData) {
+		addClass(window.svgData[id], status);
 	}
 	// 그릴수 없는 조건
 	else {
-		setGroupStatus(top.databases.position[name].parent, status);
+		if (id in top.databases.position) {
+			setGroupStatus(top.databases.position[id].parent, status);
+		}
+		else {
+			console.log(id+" 의 position 정보를 얻을수 없어 구성도에 표시할 수 없습니다.");
+		}
 	}
 }
 
-function getTopGroup(name) {
-	if (name in window.svgData) {
-		return window.svgData[name];
+function getTopGroup(id) {
+	if (id in window.svgData) {
+		return window.svgData[id];
 	}
 	
-	if (top.databases.position[name].parent) {
-		return getTopGroup(top.databases.position[name].parent);
+	if (top.databases.position[id].parent) {
+		return getTopGroup(top.databases.position[id].parent);
 	}
 	
 	return undefined;
@@ -816,7 +821,14 @@ function initialize(extra) {
 	
 	for (var ip in top.databases.device) {
 		pos = top.databases.position[ip];
-	
+
+		// 특별한 상황(버그)에서 device의 pos 정보가 없을 수 있음
+		if (!pos) {
+			console.log(ip+" 의 position 정보를 얻을수 없어 구성도에 표시할 수 없습니다.");
+			
+			continue;
+		}
+		
 		if (pos.parent === group) {
 			addDevice(ip, pos);
 			addLine(ip, pos);
@@ -834,12 +846,12 @@ function initialize(extra) {
 		}
 	}
 	
-	for (var name in shutdown) {
-		setGroupStatus(name, "shutdown");
+	for (var id in shutdown) {
+		setGroupStatus(id, "shutdown");
 	}
 	
-	for (var name in critical) {
-		setGroupStatus(name, "critical");
+	for (var id in critical) {
+		setGroupStatus(id, "critical");
 	}
 	
 	var ip = top.databases.local.selected;
@@ -892,7 +904,7 @@ function onEditLine(ip, peerIP) {
 }
 
 //abstract
-function onSelectGroup(name) {	
+function onSelectGroup(id) {	
 }
 
 //abstract
