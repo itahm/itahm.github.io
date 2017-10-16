@@ -132,51 +132,50 @@ function buildType() {
 	return df;
 }
 
+function editGroup() {
+	
+}
+
 function onApply(e) {
 	e.preventDefault();
 	
-	var name = form.elements["name"].value;
-	
-	if (!window.group) {
-		if (name in top.databases.device) {
-			alert(name +" 그룹이 이미 존재합니다.");
-			
-			form.elements["name"].select();
-			
-			return;
-		}
-		
-		window.group = {
-			name: name
+	var posData = top.databases.position,
+		group = {
+			name: form.elements["name"].value,
+			type: form.elements["type"].value,
+			group: true
 		};
+	
+	// 변경
+	if (window.group) {
+		group.id = window.group.id;
+	}
+	// 추가
+	else {
+		group.id = GROUP_TAG+ createID();
 		
 		// 추가인 경우 position 정보는 갱신되지 않으므로 임의로 넣어준다.
-		top.databases.position[name] = {
+		posData[group.id] = {
 			x: 0,
 			y: 0,
-			ifEntry: {}
+			ifEntry: {},
+			parent: top.databases.local.parent
 		};
 	}
-	
-	window.group.type = form.elements.type.value;
-	window.group.group = true;
-	
-	if (top.databases.local.parent) {
-		top.databases.position[name].parent = top.databases.local.parent;
-	}
-
-	top.sendRequest({
+	var r = {
 			command: "put",
 			database: "device",
-			key: name,
-			value: window.group
-		}, function (data) {
-			top.databases.device = data;
-			
-			window.opener.reload();
-			
-			top.closeDialog();
-		});
+			key: group.id,
+			value: group
+		};
+	
+	top.sendRequest(r, function (data) {
+		top.databases.device = data;
+		
+		window.opener.reload();
+		
+		top.closeDialog();
+	});
 }
 
 function onCancel(e) {
@@ -190,16 +189,16 @@ function onRemoveGroup() {
 		top.sendRequest({
 				command: "put",
 				database: "device",
-				key: window.group.name,
+				key: window.group.id,
 				value: null
 			}, function (data) {
-				for (var ip in top.databases.position[window.group.name].ifEntry) {
-					delete top.databases.position[ip].ifEntry[window.group.name];
+				for (var ip in top.databases.position[window.group.id].ifEntry) {
+					delete top.databases.position[ip].ifEntry[window.group.id];
 				}
 				
 				top.databases.device = data;
 				
-				delete top.databases.position[window.group.name];
+				delete top.databases.position[window.group.id];
 				
 				window.opener.reload();
 				
@@ -211,16 +210,32 @@ function onRemoveGroup() {
 	}
 }
 
-function initialize(name) {
+function createID() {
+	var devData = top.databases.device,
+		max = 0,
+		group;
+	
+	for (var id in devData) {
+		group = devData[id];
+	try {
+		if (!group.group || group.id.indexOf(GROUP_TAG) === -1) {
+			continue;
+		}
+	}catch(e) {console.log(group);}
+		id = Math.max(parseInt(group.id.split(GROUP_TAG)[1]), max);
+	}
+	
+	return max++;
+}
+
+function initialize(id) {
 	window.opener = this && this.location;
 	
-	if (name) {
-		window.group = top.databases.device[name];
-		
+	if (id) {
+		window.group = top.databases.device[id];
+		console.log(window.group);
 		form.elements.name.value = window.group.name;
 		form.elements.type.value = window.group.type;
-		
-		form.elements.name.disabled = true;
 		
 		if (sessionStorage.level == 0) {
 			document.body.classList.add("removable");
@@ -236,7 +251,7 @@ function initialize(name) {
 	
 	<body>
 	
-		<form class="rounded">
+		<form class="rounded" autocomplete="off">
 			<h2>그룹</h2>
 			<div class="table">
 				<ul>
@@ -267,7 +282,10 @@ function initialize(name) {
 		
 		<script>
 
-var form = document.querySelector("form");
+var GROUP_TAG = "group.";
+
+var form = document.querySelector("form"),
+	group;
 
 form.elements.type.appendChild(buildType());
 
