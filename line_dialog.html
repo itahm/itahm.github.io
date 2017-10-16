@@ -130,6 +130,10 @@ function initPort(e, ifEntry) {
 	for (var index in ifEntry) {
 		port = ifEntry[index];
 		
+		if (!port.ifName) {
+			continue;
+		}
+		
 		opt = df.appendChild(document.createElement("option"));
 		
 		opt.value = index;
