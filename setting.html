@@ -215,6 +215,10 @@ function initConfig() {
 		document.getElementById("expire").textContent = new Date(configData.expire).toLocaleString();
 	}
 	
+	if ("custom" in configData) {
+		custom.elements["custom"].value = configData.custom.split(",").join(", ") || "";
+	}
+	
 	if ("dashboard" in configData) {
 		var resources = configData.dashboard,
 			orders = [].sort.call(Object.keys(resources), function (a, b) {
@@ -300,7 +304,13 @@ function onOrderResources(e) {
 	li.parentNode.insertBefore(li, li.previousElementSibling);
 }
 
-function onModifyDashboard() {
+function onModifyDashboard(e) {
+	e.preventDefault();
+	
+	modifyDashboard();
+}
+
+function modifyDashboard() {
 	var elements = window.resources.children,
 		li
 		resources = {};
@@ -440,6 +450,47 @@ function onEnableSMS(e) {
 	}
 }
 
+function onMenuFix(e) {
+	e.preventDefault();
+	
+	var menu = this.elements["menu"].value === "fix"? true: false;
+	
+	top.sendRequest({
+		command: "config",
+		key: "menu",
+		value: menu
+	}, function () {
+		top.databases.config.menu = menu;
+	
+		top.setMenu();
+	});
+}
+
+function onEditCustom(e) {
+	e.preventDefault();
+	
+	var customs = this.elements["custom"].value.split(","),
+		custom;
+	
+	for (var i=0, _i=customs.length; i<_i; i++) {
+		customs[i] = customs[i].trim();
+	}
+	
+	custom = customs.join(",");
+	
+	top.sendRequest({
+		command: "config",
+		key: "custom",
+		value: custom
+	}, function () {
+		top.databases.config.custom = custom;
+	
+		window.custom.elements["custom"].value = customs.join(", ");
+		
+		alert("장비정보 항목의 추가를 설정하였습니다.");
+	});
+}
+
 function initialize() {
 	initConfig();
 	initAccount();
@@ -451,9 +502,12 @@ function initialize() {
 		document.body.classList.add("gcm");
 	}
 	
+	window.menu.elements["menu"].value = top.databases.config.menu? "fix": "auto";
+	
 	window.sms.elements["enable"].checked = top.databases.config.sms? true: false;
 	
 	document.body.classList.remove("loading");
+	
 }
 
 		</script>
@@ -502,6 +556,24 @@ function initialize() {
 					Top N : 
 					<input type="number" min="1" max="10" name="top">
 					<input type="submit" value="적용" disabled>
+				</form>	
+			<li>
+				<form id="menu">
+					<label>
+						메뉴 고정
+						<select name="menu">
+							<option value="auto">자동
+							<option value="fix">고정
+						</select>
+						<input type="submit" value="적용" disabled>
+					</label>
+				</form>
+			<li>
+				<form id="custom">
+					장비정보 항목 추가
+					<input type="text" name="custom" placeholder="라벨1 [,라벨2 ...]">
+					<input type="submit" value="적용" disabled>
+					<i>콤마(,)로 구분</i>
 				</form>
 		</ul>
 	
@@ -602,7 +674,9 @@ function initialize() {
 var resources = document.getElementById("resources"),
 	sms = document.getElementById("sms"),
 	listItem = document.querySelector(".item"),
-	gcm = document.getElementById("gcm");
+	gcm = document.getElementById("gcm"),
+	menu = document.getElementById("menu"),
+	custom = document.getElementById("custom");
 	
 window.gcm.elements["host"].value = sessionStorage.host;
 
@@ -660,8 +734,6 @@ window.gcm.onsubmit = function (e) {
 	onModifyGCM(this.elements["host"]);
 };
 
-window.sms.elements["enable"].onclick = onEnableSMS;
-
 window.sms.onsubmit = function (e) {
 	e.preventDefault();
 	
@@ -680,11 +752,10 @@ document.getElementById("top").onsubmit = function (e) {
 	onModifyTopN(this.elements["top"].value);
 };
 
-document.getElementById("dashboard").onsubmit = function (e) {
-	e.preventDefault();
-	
-	onModifyDashboard();
-};
+document.getElementById("dashboard").onsubmit = onModifyDashboard;
+window.sms.elements["enable"].onclick = onEnableSMS;
+custom.onsubmit = onEditCustom;
+menu.onsubmit = onMenuFix;
 
 window.resources.onclick = onOrderResources;
 

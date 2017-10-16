@@ -164,6 +164,7 @@ function onApply(e) {
 	
 	var ip = form.elements.ip.value;
 	
+	// 생성
 	if (!window.device) {
 		if (ip in top.databases.device) {
 			alert("IP address already exists.");
@@ -178,7 +179,7 @@ function onApply(e) {
 			ifSpeed: {}	
 		};
 		
-		// 추가인 경우 position 정보는 갱신되지 않으므로 임의로 넣어준다.
+		// 생성인 경우 position 정보는 갱신되지 않으므로 임의로 넣어준다.
 		top.databases.position[ip] = {
 			x: 0,
 			y: 0,
@@ -191,6 +192,10 @@ function onApply(e) {
 	window.device.ip = ip;
 	window.device.type = form.elements.type.value;
 	window.device.label = trimLabel(form.elements.label.value);
+	
+	for (var custom in window.custom) {
+		window.device[custom] = window.custom[custom].value;
+	}
 	
 	if (top.databases.local.parent) {
 		top.databases.position[ip].parent = top.databases.local.parent;
@@ -291,9 +296,29 @@ function trimLabel(labels) {
 function initialize(ip) {
 	window.opener = this && this.location;
 	
+	if ("custom" in top.databases.config) {
+		var customs = top.databases.config.custom.split(","),
+			df = document.createDocumentFragment(),
+			ul, input;
+		
+		for (var i=0, _i=customs.length; i<_i; i++) {
+			ul = df.appendChild(document.createElement("ul"));
+			ul.appendChild(document.createElement("li")).textContent = customs[i];
+			
+			input = document.createElement("input");
+			input.type = "text";
+			
+			window.custom[customs[i]] = input;
+			
+			ul.appendChild(document.createElement("li")).appendChild(input);
+		}
+		
+		document.getElementById("custom").appendChild(df);
+	}
+	
 	if (ip) {
 		window.device = top.databases.device[ip];
-		
+		console.log(device);
 		form.elements.name.value = device.name || "";
 		
 		form.elements.ip.value = ip;
@@ -301,6 +326,10 @@ function initialize(ip) {
 		form.elements.type.value = device.type;
 		// 저장할때는 trim으로 다 붙여서 넣지만 보여줄때는 보기 좋게 한칸씩 띈다.
 		form.elements.label.value = device.label && (device.label.split(",")).join(", ") || "";
+		
+		for (var custom in window.custom) {
+			window.custom[custom].value = device[custom] || "";
+		}
 		
 		var monitor = top.databases.monitor[ip];
 		
@@ -366,6 +395,9 @@ function initialize(ip) {
 							<option value="snmp">SNMP
 						</select>					
 				</ul>
+				
+				<div id="custom"></div>
+				
 				<label class="remove">
 					<input type="checkbox" name="remove">
 					삭제
@@ -388,7 +420,8 @@ function initialize(ip) {
 if (window === top) throw "";
 
 var form = document.querySelector("form"),
-	monitor = "none";
+	monitor = "none",
+	custom = {};
 
 form.elements.type.appendChild(buildType());
 

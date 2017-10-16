@@ -91,8 +91,8 @@ function editLine(ip, peerIP) {
 	top.showDialog.call(window, "line_dialog.html", ip, peerIP);
 }
 
-function selectGroup(name) {
-	top.databases.local.parent = name;
+function selectGroup(id) {
+	top.databases.local.parent = id;
 	
 	window.location.href = "map.html";
 }
