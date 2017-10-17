@@ -447,9 +447,7 @@ function reload(start, end) {
 		<script>
 
 var chart = document.getElementById("chart"),
-	chartWindow = chart.contentWindow,
-	deviceIP = top.ip,
-	node = top.snmp;
+	chartWindow = chart.contentWindow;
 
 var 
 	MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -619,7 +617,7 @@ initialize();
 	
 })({});
 
-window.chart.src = "chart_"+ resource +".html?"+ window.index;
+window.chart.src = "chart_"+ window.resource +".html?"+ window.index;
 
 		</script>
 	

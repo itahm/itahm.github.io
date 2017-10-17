@@ -172,16 +172,23 @@ body:not(.auto) >.handle {
 		</style>
 	<script src="js/google.js"></script>
 	<script>
-	
-function showChart(ip) {
+
+function showChart(ip, resource, index) {
 	var chart = window.chart[ip];
 
 	if (chart && !chart.closed) {
-		chart.focus();
+		chart.close();
 	}
-	else {
-		window.chart[ip] = window.open("status.html?"+ ip);
+	
+	window.chart[ip] = chart = window.open("status.html?"+ ip);
+	
+	if (resource) {
+		chart.onload = function () {
+			chart.onSelectResource && chart.onSelectResource(resource, index);
+		};
 	}
+	
+	chart.focus();
 }
 
 // public

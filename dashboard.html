@@ -632,7 +632,7 @@ function setTop(topData, list, args) {
 		
 		(function (value) {
 			if (isNaN(value)) {
-				list.appendChild(createGaugeItem(ip, args.toString(value.value), value.rate));
+				list.appendChild(createGaugeItem(ip, args.toString(value.value), value.rate, args.id, value.index));
 			}
 			else if (value || !args.skipZero) {
 				list.appendChild(createTopItem(ip, args.sortByRate? toPercentageString(value): args.toString(value)));
@@ -645,7 +645,7 @@ function setTop(topData, list, args) {
 	}
 }
 
-function createGaugeItem(ip, value, rate) {
+function createGaugeItem(ip, value, rate, resource, index) {
 	var item = document.createElement("ul"),
 		bar;
 	
@@ -665,7 +665,9 @@ function createGaugeItem(ip, value, rate) {
 		item.title = toPercentageString(rate);
 	}
 	
-	item.onclick = top.showChart.bind(window, ip);
+	item.onclick = function () {
+		top.showChart(ip, resource, index);
+	}
 	
 	return item;
 }
@@ -690,7 +692,9 @@ function createTopItem(ip, value) {
 		bar.classList.add(p > 90? "red": p > 70? "orange": "green");
 	}
 	
-	item.onclick = top.showChart.bind(window, ip);
+	item.onclick = function () {
+		top.showChart(ip);
+	}
 	
 	return item;
 }
@@ -761,41 +765,50 @@ var summaryList = document.getElementById("summary_list"),
 	resources = {
 		responseTime: {
 			title: "응답시간",
+			id: "responseTime",
 			toString: toMillsString
 		},
 		processor: {
 			title: "프로세서 로드",
+			id: "processor",
 			toString: toPercentageString
 		},
 		memory: {
 			title: "메모리 사용량",
+			id: "memory",
 			toString: ITAhM.util.toBytesString
 		},
 		memoryRate: {
 			title: "메모리 사용율(%)",
+			id: "memory",
 			toString: ITAhM.util.toBytesString,
 			sortByRate: true
 		},
 		storage: {
 			title: "저장공간 사용량",
+			id: "storage",
 			toString: ITAhM.util.toBytesString
 		},
 		storageRate: {
 			title: "저장공간 사용율(%)",
+			id: "storage",
 			toString: ITAhM.util.toBytesString,
 			sortByRate: true
 		},
 		throughput: {
 			title: "통신 사용량",
+			id: "throughput",
 			toString: ITAhM.util.toBPSString
 		},
 		throughputRate: {
 			title: "통신 사용율(%)",
+			id: "throughput",
 			toString: ITAhM.util.toBPSString,
 			sortByRate: true
 		},
 		throughputErr: {
 			title: "통신 오류",
+			id: "error",
 			toString: toErrorString,
 			skipZero: true
 		},
