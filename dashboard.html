@@ -445,7 +445,7 @@ function initialize() {
 	
 	document.body.classList.remove("loading");
 	
-	window.setInterval(update, 10000);
+	//window.setInterval(update, 10000);
 }
 
 function createTopList(resource) {
@@ -474,7 +474,7 @@ function update() {
 			list = window.topList[resource];
 			
 			if (resource in response) {
-				setTop(response[resource], list, window.resources[resource].toString, window.resources[resource].skipZero);
+				setTop(response[resource], list, window.resources[resource]);
 			}
 		}
 	
@@ -596,26 +596,6 @@ function getTime() {
 	return (h > 9? "": "0") + h +" : "+ (m > 9? "": "0") + m +" : "+ (s > 9? "": "0") + s;
 }
 
-function setTop(list, eList, toString, skipZero) {
-	var ipList = Object.keys(list).sort(function (a, b) {
-			return list[b] - list[a];
-		}),	ip;
-	
-	clear(eList);
-	
-	for (var i=0, _i=ipList.length, j=0, max=top.databases.config.top; i< _i; i++) {
-		ip = ipList[i];
-		
-		if (list[ip] || !skipZero) {
-			eList.appendChild(createTopItem(ip, toString(list[ip])));
-			
-			if (++j >= max) {
-				break;
-			}
-		}
-	}
-}
-
 function createStatusItem(label, critical, alert, normal, sum) {
 	var ul = document.createElement("ul");
 	
@@ -627,6 +607,67 @@ function createStatusItem(label, critical, alert, normal, sum) {
 	ul.className = "summary";
 	
 	return ul;
+}
+
+function setTop(topData, list, args) {
+	var ipList = Object.keys(topData).sort(function (a, b) {
+			var vA = topData[a],
+				vB = topData[b];
+			
+			if (isNaN(vA)) {
+				vA = args.sortByRate? vA.rate: vA.value;
+			}
+			
+			if (isNaN(vB)) {
+				vB = args.sortByRate? vB.rate: vB.value;
+			}
+			
+			return vB - vA;
+		}),	ip, value;
+	
+	clear(list);
+	
+	for (var i=0, _i=ipList.length, j=0, max=top.databases.config.top; i< _i; i++) {
+		ip = ipList[i];
+		
+		(function (value) {
+			if (isNaN(value)) {
+				list.appendChild(createGaugeItem(ip, args.toString(value.value), value.rate));
+			}
+			else if (value || !args.skipZero) {
+				list.appendChild(createTopItem(ip, args.sortByRate? toPercentageString(value): args.toString(value)));
+			}
+		}) (topData[ip]);
+		
+		if (++j >= max) {
+			break;
+		}
+	}
+}
+
+function createGaugeItem(ip, value, rate) {
+	var item = document.createElement("ul"),
+		bar;
+	
+	item.className = "list_item";
+	
+	item.appendChild(document.createElement("li")).textContent = top.databases.device[ip].name || ip;
+	item.appendChild(document.createElement("li")).textContent = ip;
+	
+	bar = item.appendChild(document.createElement("li"));
+	bar.dataset.value = value;
+			
+	bar.appendChild(document.createElement("div")).style.width = toPercentageString(rate);
+		
+	bar.classList.add(rate > 90? "red": rate > 70? "orange": "green");
+	
+	if (rate > -1) {
+		item.title = toPercentageString(rate);
+	}
+	
+	item.onclick = top.showChart.bind(window, ip);
+	
+	return item;
 }
 
 function createTopItem(ip, value) {
@@ -732,7 +773,8 @@ var summaryList = document.getElementById("summary_list"),
 		},
 		memoryRate: {
 			title: "메모리 사용율(%)",
-			toString: toPercentageString
+			toString: ITAhM.util.toBytesString,
+			sortByRate: true
 		},
 		storage: {
 			title: "저장공간 사용량",
@@ -740,7 +782,8 @@ var summaryList = document.getElementById("summary_list"),
 		},
 		storageRate: {
 			title: "저장공간 사용율(%)",
-			toString: toPercentageString
+			toString: ITAhM.util.toBytesString,
+			sortByRate: true
 		},
 		throughput: {
 			title: "통신 사용량",
@@ -748,7 +791,8 @@ var summaryList = document.getElementById("summary_list"),
 		},
 		throughputRate: {
 			title: "통신 사용율(%)",
-			toString: toPercentageString
+			toString: ITAhM.util.toBPSString,
+			sortByRate: true
 		},
 		throughputErr: {
 			title: "통신 오류",
