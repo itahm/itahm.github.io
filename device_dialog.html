@@ -221,8 +221,16 @@ function onCancel(e) {
 	top.closeDialog();
 }
 
+/**
+ * device의 monitor, critical 정보를 삭제해 주되,
+ * 서버에서도 이 작업을 수행해주어야 동기화 된다.
+ * 변경된 position 정보가 저장된다는 alarm을 주고,
+ * 삭제 완료후에는 device와 연결된 link를 끊어주고,
+ * 서버와 position 동기화를 진행한다.
+ */
 function onRemoveDevice() {
-	if (confirm("삭제하겠습니까?")) {
+	if (confirm("삭제시에는 구성도의 변경사항이 서버와 동기화 됩니다.\n"+
+		"삭제하겠습니까?")) {
 		document.body.classList.add("loading");
 		
 		top.sendRequest({
@@ -231,18 +239,35 @@ function onRemoveDevice() {
 				key: window.device.ip,
 				value: null
 			}, function (data) {
-				for (var ip in top.databases.position[window.device.ip].ifEntry) {
-					delete top.databases.position[ip].ifEntry[window.device.ip];
-				}
+				var posData = top.databases.position;
 				
 				top.databases.device = data;
 				
+				// device의 monitor 정보 삭제
 				delete top.databases.monitor[window.device.ip];
-				delete top.databases.position[window.device.ip];
 				
-				window.opener.reload();
+				// device의 critical 정보 삭제
+				delete top.databases.monitor[window.device.ip];
 				
-				top.closeDialog();
+				// 연관 link 정보 삭제
+				for (var ip in posData[window.device.ip].ifEntry) {
+					delete posData[ip].ifEntry[window.device.ip];
+				}
+				
+				// device의 position 정보 삭제
+				delete posData[window.device.ip];				
+				
+				top.sendRequest({
+					command: "push",
+					database: "position",
+					data: posData
+				}, function (data) {
+					document.body.classList.remove("loading");
+					
+					window.opener.reload();
+					
+					top.closeDialog();
+				});
 			});
 	}
 	else {
@@ -297,20 +322,24 @@ function initialize(ip) {
 	window.opener = this && this.location;
 	
 	if ("custom" in top.databases.config) {
-		var customs = top.databases.config.custom.split(","),
+		var customs = top.databases.config.custom,
 			df = document.createDocumentFragment(),
 			ul, input;
 		
-		for (var i=0, _i=customs.length; i<_i; i++) {
-			ul = df.appendChild(document.createElement("ul"));
-			ul.appendChild(document.createElement("li")).textContent = customs[i];
+		if (customs) {
+			customs = customs.split(",");
 			
-			input = document.createElement("input");
-			input.type = "text";
-			
-			window.custom[customs[i]] = input;
-			
-			ul.appendChild(document.createElement("li")).appendChild(input);
+			for (var i=0, _i=customs.length; i<_i; i++) {
+				ul = df.appendChild(document.createElement("ul"));
+				ul.appendChild(document.createElement("li")).textContent = customs[i];
+				
+				input = document.createElement("input");
+				input.type = "text";
+				
+				window.custom[customs[i]] = input;
+				
+				ul.appendChild(document.createElement("li")).appendChild(input);
+			}
 		}
 		
 		document.getElementById("custom").appendChild(df);
@@ -318,7 +347,7 @@ function initialize(ip) {
 	
 	if (ip) {
 		window.device = top.databases.device[ip];
-		console.log(device);
+		
 		form.elements.name.value = device.name || "";
 		
 		form.elements.ip.value = ip;

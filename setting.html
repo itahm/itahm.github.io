@@ -307,10 +307,6 @@ function onOrderResources(e) {
 function onModifyDashboard(e) {
 	e.preventDefault();
 	
-	modifyDashboard();
-}
-
-function modifyDashboard() {
 	var elements = window.resources.children,
 		li
 		resources = {};
@@ -351,6 +347,8 @@ function onModifyTopN (n) {
 	else if (n > 10) {
 		n = 10;
 	}
+	
+	document.body.classList.add("loading");
 	
 	top.sendRequest({
 		command: "config",
@@ -412,8 +410,12 @@ function onModifyGCM(host) {
 	}
 }
 
-function onDisableGCM() {
+function onDisableGCM(e) {
+	e.preventDefault();
+	
 	if (confirm("구글 클라우드 메세징 서비스를 사용하지 않도록 설정합니다.")) {
+		document.body.classList.remove("loading");
+		
 		top.sendRequest({
 			command: "config",
 			key: "gcm",
@@ -434,12 +436,15 @@ function onEnableSMS(e) {
 	if (confirm("SMS 발송 기능을 "+
 		(checked? "사용 하도록": "사용하지 않도록") +
 		"설정하겠습니까?")) {
-	
+		document.body.classList.remove("loading");
+		
 		top.sendRequest({
 			command: "config",
 			key: "sms",
 			value: checked
 		}, function (response) {
+			document.body.classList.remove("loading");
+			
 			top.databases.config.sms = checked;
 		
 			window.location.reload();
@@ -455,11 +460,15 @@ function onMenuFix(e) {
 	
 	var menu = this.elements["menu"].value === "fix"? true: false;
 	
+	document.body.classList.remove("loading");
+	
 	top.sendRequest({
 		command: "config",
 		key: "menu",
 		value: menu
 	}, function () {
+		document.body.classList.remove("loading");
+		
 		top.databases.config.menu = menu;
 	
 		top.setMenu();
@@ -478,16 +487,92 @@ function onEditCustom(e) {
 	
 	custom = customs.join(",");
 	
+	document.body.classList.remove("loading");
+	
 	top.sendRequest({
 		command: "config",
 		key: "custom",
 		value: custom
 	}, function () {
+		document.body.classList.remove("loading");
+		
 		top.databases.config.custom = custom;
 	
 		window.custom.elements["custom"].value = customs.join(", ");
 		
 		alert("장비정보 항목의 추가를 설정하였습니다.");
+	});
+}
+
+function onBackup(e) {
+	e.preventDefault();
+	
+	document.body.classList.add("loading");
+	
+	top.sendRequest({
+		command: "extra",
+		extra: "backup"
+	}, function (backup) {
+		document.body.classList.remove("loading");
+		
+		var d = new Date(),
+			name = "backup_"+ d.getFullYear() + (d.getMonth() +1) + d.getDate();
+		
+		ITAhM.util.download(new Blob([JSON.stringify(backup)],
+			{ type: "text/json;charset=utf-8;"}), name);
+	});
+}
+
+function onRestore(e) {
+	var file = e.target.files[0],
+		reader = new FileReader();
+	
+	reader.onload = function () {
+		document.body.classList.add("loading");
+		
+		top.sendRequest({
+			command: "extra",
+			extra: "restore",
+			backup: JSON.parse(this.result)
+		}, function () {
+			document.body.classList.remove("loading");
+			
+			alert("복구가 완료되었습니다.");
+			
+			top.reload();
+		});
+	};
+	
+	reader.onerror = function () {
+		alert("백업 파일을 읽어올 수 없습니다.")
+	};
+	
+	reader.readAsText(file);
+}
+
+function onTest(e) {
+	e.preventDefault();
+	
+	document.body.classList.add("loading");
+	
+	top.sendRequest({
+		command: "extra",
+		extra: "test"
+	}, function (data) {
+		document.body.classList.remove("loading");
+		
+		var rows = [], row;
+		
+		for (var ip in data) {
+			row = data[ip];
+			
+			rows[rows.length] = 
+				[ip, row.sysObjectID, row.hrProcessorEntry, row.hrStorageEntry, row.ifEntry].join(',');
+		}
+		
+		ITAhM.util.download(new Blob([rows.join("\n")] ,{
+			type: "text/csv;charset=utf-8;"
+		}), "test.csv");
 	});
 }
 
@@ -560,7 +645,7 @@ function initialize() {
 			<li>
 				<form id="menu">
 					<label>
-						메뉴 고정
+						메뉴 고정 : 
 						<select name="menu">
 							<option value="auto">자동
 							<option value="fix">고정
@@ -570,13 +655,18 @@ function initialize() {
 				</form>
 			<li>
 				<form id="custom">
-					장비정보 항목 추가
+					장비정보 항목 추가 : 
 					<input type="text" name="custom" placeholder="라벨1 [,라벨2 ...]">
 					<input type="submit" value="적용" disabled>
 					<i>콤마(,)로 구분</i>
 				</form>
+			<li>
+				<form id="backup">
+					설정 복구 : 
+					<input type="file" name="restore" value="복구">
+					<input type="submit" value="백업">
+				</form>
 		</ul>
-	
 	
 		<h2>대쉬보드</h2>
 		<form id="dashboard" class="box">
@@ -658,6 +748,14 @@ function initialize() {
 			<input type="text" name="date" required>
 			<input type="submit" value="dump">
 		</form>
+		
+		<form id="test">
+			<h2> </h2>
+			<div class="box">
+				<input type="submit" value="테스트">
+			</div>
+		</form>	
+		
 		<div class="bg_loading"></div>
 		
 		<div class="layout">
@@ -669,6 +767,7 @@ function initialize() {
 		</div>
 		
 		<script src="js/ITAhM.js"></script>
+		<script src="js/object.js"></script>
 		<script>
 
 var resources = document.getElementById("resources"),
@@ -676,7 +775,8 @@ var resources = document.getElementById("resources"),
 	listItem = document.querySelector(".item"),
 	gcm = document.getElementById("gcm"),
 	menu = document.getElementById("menu"),
-	custom = document.getElementById("custom");
+	custom = document.getElementById("custom"),
+	backup = document.getElementById("backup");
 	
 window.gcm.elements["host"].value = sessionStorage.host;
 
@@ -722,11 +822,7 @@ document.getElementById("syslog").onsubmit = function (e) {
 	onDump(this.elements["date"]);
 };
 
-window.gcm.elements["disable"].onclick = function (e) {
-	e.preventDefault();
-
-	onDisableGCM();
-};
+window.gcm.elements["disable"].onclick = onDisableGCM;
 
 window.gcm.onsubmit = function (e) {
 	e.preventDefault();
@@ -752,7 +848,10 @@ document.getElementById("top").onsubmit = function (e) {
 	onModifyTopN(this.elements["top"].value);
 };
 
+backup.onsubmit = onBackup;
+backup.elements["restore"].onchange = onRestore;
 document.getElementById("dashboard").onsubmit = onModifyDashboard;
+document.getElementById("test").onsubmit = onTest;
 window.sms.elements["enable"].onclick = onEnableSMS;
 custom.onsubmit = onEditCustom;
 menu.onsubmit = onMenuFix;

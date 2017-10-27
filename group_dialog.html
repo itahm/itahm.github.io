@@ -182,8 +182,13 @@ function onCancel(e) {
 	top.closeDialog();
 }
 
+/**
+ * group을 삭제했을때는 device와 마찬가지로 연결되어 있는 link를 끊어주고
+ * 이 group을 parent로 갖는 device의 pos 정보도 수정해 주어야 한다.
+ */
 function onRemoveGroup() {
-	if (confirm("삭제하겠습니까?")) {
+	if (confirm("삭제시에는 구성도의 변경사항이 서버와 동기화 됩니다.\n"+
+		"삭제하겠습니까?")) {
 		document.body.classList.add("loading");
 		
 		top.sendRequest({
@@ -192,17 +197,36 @@ function onRemoveGroup() {
 				key: window.group.id,
 				value: null
 			}, function (data) {
-				for (var ip in top.databases.position[window.group.id].ifEntry) {
-					delete top.databases.position[ip].ifEntry[window.group.id];
-				}
+				var posData = top.databases.position;
 				
 				top.databases.device = data;
 				
-				delete top.databases.position[window.group.id];
+				// 연관 link 정보 삭제
+				for (var ip in posData[window.group.id].ifEntry) {
+					delete posData[ip].ifEntry[window.group.id];
+				}
 				
-				window.opener.reload();
+				// group의 position 정보 삭제
+				delete posData[window.group.id];
 				
-				top.closeDialog();
+				// group을 parent로 갖는 device의 pos 정보 갱신
+				for (var ip in posData) {
+					if(posData[ip].parent === window.group.id) {
+						delete posData[ip].parent;
+					}
+				}
+				
+				top.sendRequest({
+					command: "push",
+					database: "position",
+					data: posData
+				}, function () {
+					document.body.classList.remove("loading");
+					
+					window.opener.reload();
+					
+					top.closeDialog();
+				});
 			});
 	}
 	else {
@@ -217,15 +241,15 @@ function createID() {
 	
 	for (var id in devData) {
 		group = devData[id];
-	try {
+		
 		if (!group.group || group.id.indexOf(GROUP_TAG) === -1) {
 			continue;
 		}
-	}catch(e) {console.log(group);}
-		id = Math.max(parseInt(group.id.split(GROUP_TAG)[1]), max);
+		
+		max = Math.max(parseInt(group.id.split(GROUP_TAG)[1]), max);
 	}
 	
-	return max++;
+	return ++max;
 }
 
 function initialize(id) {
@@ -233,7 +257,7 @@ function initialize(id) {
 	
 	if (id) {
 		window.group = top.databases.device[id];
-		console.log(window.group);
+		
 		form.elements.name.value = window.group.name;
 		form.elements.type.value = window.group.type;
 		

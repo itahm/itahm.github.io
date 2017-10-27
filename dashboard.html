@@ -632,7 +632,9 @@ function setTop(topData, list, args) {
 		
 		(function (value) {
 			if (isNaN(value)) {
-				list.appendChild(createGaugeItem(ip, args.toString(value.value), value.rate, args.id, value.index));
+				if (value.value || !args.skipZero) {
+					list.appendChild(createGaugeItem(ip, args.toString(value.value), value.rate, args.id, value.index));
+				}
 			}
 			else if (value || !args.skipZero) {
 				list.appendChild(createTopItem(ip, args.sortByRate? toPercentageString(value): args.toString(value)));

@@ -136,6 +136,7 @@ label {
 #list> ul {
 	border-bottom: 1px solid #c1c3d1;
 	padding: 0.5em;
+	cursor: pointer;
 }
 
 #list> ul >li:first-child {
@@ -279,16 +280,20 @@ function onShowStatus() {
 }
 
 function initialize() {
-	var df = document.createDocumentFragment();
-	
 	if ("custom" in top.databases.config) {
-		window.customs = top.databases.config.custom.split(",");
+		var customs = top.databases.config.custom;
 		
-		forEach(window.customs, function (custom) {
-			df.appendChild(document.createElement("li")).textContent = custom;
-		});
-		
-		window.header.insertBefore(df, window.header.lastElementChild);
+		if (customs) {
+			var df = document.createDocumentFragment();
+			
+			window.customs = customs.split(",");
+			
+			forEach(window.customs, function (custom) {
+				df.appendChild(document.createElement("li")).textContent = custom;
+			});
+			
+			window.header.insertBefore(df, window.header.lastElementChild);
+		}
 	}
 	
 	initList();
