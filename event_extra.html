@@ -30,9 +30,21 @@ ul {
 
 .item {
 	padding: 0; margin: 0;
+	position: relative;
 	display: flex;
 	align-items: center;
 	border-bottom: 1px solid #c1c3d1;
+	margin-left: 3em;
+}
+
+.item::before {
+	content: "";
+	height: 1em; width: 1em;
+	position: absolute; top: 50%; left: -2em;
+	background-repeat: no-repeat;
+	background-image: url("img/normal.png");
+	background-size: 1em;
+	transform: translateY(-50%);
 }
 
 .item> li {
@@ -57,8 +69,16 @@ ul {
 	background-color: red;
 }
 
+.item.shutdown::before {
+	background-image: url("img/warning.png");
+}
+
 .item.critical {
 	background-color: orange;
+}
+
+.item.critical::before {
+	background-image: url("img/siren.png");
 }
 
 		</style>

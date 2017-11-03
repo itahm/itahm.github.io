@@ -615,7 +615,7 @@ function initialize() {
 				<form id="clean">
 					데이터 보관 기간(일) :
 					<input type="number" min="0" max="365" name="clean">
-					<input type="submit" value="적용" disabled>
+					<input type="submit" value="적용" class="root">
 					<i>(데이터 정리 기능을 사용하지 않는 경우 0)</i>
 				</form>
 			<li>
@@ -625,7 +625,7 @@ function initialize() {
 						<option>1
 						<option>5
 					</select>
-					<input type="submit" value="적용" disabled>
+					<input type="submit" value="적용" class="root">
 				</form>
 			<li>
 				<form id="display">
@@ -634,13 +634,13 @@ function initialize() {
 						<option value="name" selected>장비명
 						<option value="address">IP 주소
 					</select>
-					<input type="submit" value="적용" disabled>
+					<input type="submit" value="적용" class="root">
 				</form>
 			<li>
 				<form id="top">
 					Top N : 
 					<input type="number" min="1" max="10" name="top">
-					<input type="submit" value="적용" disabled>
+					<input type="submit" value="적용" class="root">
 				</form>	
 			<li>
 				<form id="menu">
@@ -650,21 +650,21 @@ function initialize() {
 							<option value="auto">자동
 							<option value="fix">고정
 						</select>
-						<input type="submit" value="적용" disabled>
+						<input type="submit" value="적용" class="root">
 					</label>
 				</form>
 			<li>
 				<form id="custom">
 					장비정보 항목 추가 : 
 					<input type="text" name="custom" placeholder="라벨1 [,라벨2 ...]">
-					<input type="submit" value="적용" disabled>
+					<input type="submit" value="적용" class="root">
 					<i>콤마(,)로 구분</i>
 				</form>
 			<li>
 				<form id="backup">
 					설정 복구 : 
-					<input type="file" name="restore" value="복구">
-					<input type="submit" value="백업">
+					<input type="file" name="restore" value="복구" class="root">
+					<input type="submit" value="백업" class="root">
 				</form>
 		</ul>
 	
@@ -702,18 +702,18 @@ function initialize() {
 					<input type="checkbox" name="failureRate">
 					snmp 오류
 			</ol>
-			<input type="submit" value="적용" disabled>
+			<input type="submit" value="적용" class="root">
 		</form>
 		
 		<form id="account">
-			<h2>계정 <input type="image" src="img/plus.png" title="계정 추가" disabled></h2>
+			<h2>계정 <input type="image" src="img/plus.png" title="계정 추가" class="root"></h2>
 			<div class="box">
 				<ul id="account_list" class="list"></ul>
 			</div>
 		</form>
 		
 		<form id="profile">
-			<h2>프로파일 <input type="image" src="img/plus.png" title="프로파일 추가" disabled></h2>
+			<h2>프로파일 <input type="image" src="img/plus.png" title="프로파일 추가" class="root"></h2>
 			<div class="box">
 				<ul id="profile_list" class="list"></ul>
 				<i>등록된 Profile은 변경할 수 없습니다. 삭제후 추가하십시오. (사용중인 Profile은 삭제할 수 없습니다.)</i>
@@ -722,9 +722,9 @@ function initialize() {
 		
 		<form id="sms">
 			<h2>
-				<input type="checkbox" name="enable">
+				<input type="checkbox" name="enable" class="root">
 				SMS
-				<input type="image" src="img/plus.png" title="알림 추가" disabled>
+				<input type="image" src="img/plus.png" title="알림 추가" class="root">
 			</h2>
 			<div class="box">
 				<ul id="sms_list" class="list"></ul>
@@ -735,7 +735,7 @@ function initialize() {
 			<h2>
 				<input type="checkbox" name="disable" checked title="중지">
 				GCM(Google Cloud Messaging)
-				<input type="image" src="img/plus.png" title="알림 추가" disabled>
+				<input type="image" src="img/plus.png" title="알림 추가" class="root">
 			</h2>
 			<div class="box">
 				<input type="text" name="host"><input type="submit" value="사용">
@@ -780,10 +780,11 @@ var resources = document.getElementById("resources"),
 	
 window.gcm.elements["host"].value = sessionStorage.host;
 
-if (sessionStorage.level == 0) {
-	[].forEach.call(document.querySelectorAll("input[type=submit], input[type=image]"), function (input) {
-		input.disabled = false;
-	});
+if (parseInt(sessionStorage.level)) {
+	[].forEach.call(document.querySelectorAll(".root"),
+		function (e) {
+			e.disabled = true;
+		});
 }
 
 document.getElementById("account").onsubmit = function (e) {
