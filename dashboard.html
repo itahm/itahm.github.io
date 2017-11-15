@@ -111,16 +111,18 @@ ul {
 
 .summary {
 	display: flex;
+	justify-content: space-between;
 	font-weight: bold;
+	margin: 3px 0;
 }
 
 .summary> li {
-	flex: 1;
-	padding: 3px;
+	
 }
 
 .summary> li:first-child {
-	flex: 2;
+	width: 120px;
+	overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 
 header {
@@ -157,30 +159,6 @@ header> ul> li:nth-child(3) {
 	align-items: center;
 }
 
-#summary_list> .summary> li:not(:first-child)::after {
-	margin: auto;
-	content: attr(data-value);
-	width: 40px; height: 40px;
-	border-radius: 50%;
-	background: linear-gradient(to top,  rgba(187,187,187,1) 0%,rgba(119,119,119,1) 99%);
-	box-shadow: inset 0 -5px 15px rgba(255,255,255,0.4), inset -2px -1px 40px rgba(0,0,0,0.4), 0 0 1px #000;
-	display: flex;
-	justify-content: center;
-	align-items: center;
-}
-
-#summary_list> .summary> li:nth-child(2)::after {
-	background: linear-gradient(to top,  hsla(0, 75%, 50%, 1) 0%, hsla(0, 75%, 30%,1) 99%);
-}
-
-#summary_list> .summary> li:nth-child(3)::after {
-	background: linear-gradient(to top,  hsla(30, 75%, 50%, 1) 0%, hsla(30, 75%, 30%,1) 99%);
-}
-
-#summary_list> .summary> li:nth-child(4)::after {
-	background: linear-gradient(to top,  hsla(120, 75%, 50%, 1) 0%, hsla(120, 75%, 30%,1) 99%);
-}
-
 .list_item {
 	font-size: 12px;
 	display: flex;
@@ -190,7 +168,7 @@ header> ul> li:nth-child(3) {
 	/*box-sizing: border-box;*/
 }
 
-._list_item:hover {
+..list_item:hover {
 	background-color: #fff;
 	color: #0084ff;
 	outline: 1px solid #0084ff;
@@ -259,7 +237,6 @@ body.name .list_item> li:nth-child(2) {
 	background: linear-gradient(to right, rgba(0, 255, 0, 0.5), #0f0);
 }
 
-
 .agent_status {
 	display: flex;
 	padding: .5em;
@@ -301,7 +278,7 @@ body.name .list_item> li:nth-child(2) {
 }
 
 /* bounce >> */
-.ball {
+.bounce {
 	position: relative;
 	width: 60px;
 	height: 120px;
@@ -309,34 +286,47 @@ body.name .list_item> li:nth-child(2) {
 	font-weight: bold;
 }
 
-.ball div:first-child {
-	position: absolute; top: 0; left: 0;
-	width: 100%;
-	height: 50%;
+.ball {
 	border-radius: 50%;
-	background: linear-gradient(to top,  rgba(187,187,187,1) 0%,rgba(119,119,119,1) 99%);
 	box-shadow: inset 0 -5px 15px rgba(255,255,255,0.4), inset -2px -1px 40px rgba(0,0,0,0.4), 0 0 1px #000;
 	display: flex;
 	justify-content: center;
 	align-items: center;
+}
+
+.bounce >.ball {
+	position: absolute; top: 0; left: 0;
+	width: 100%;
+	height: 50%;
 	animation: bounce 10s infinite;
 }
 
-.green.ball div:first-child {
-	background: linear-gradient(to top,  hsla(120, 75%, 50%,1) 0%, hsla(120, 75%, 30%,1) 99%);
+.summary >.ball {
+	position: relative;
+	width: 40px; height: 40px;
 }
 
-.orange.ball div:first-child {
-	background: linear-gradient(to top,  hsla(30, 75%, 50%,1) 0%, hsla(30, 75%, 30%,1) 99%);
+.green.ball {
+	background-color: #0f0;
+}
+
+.orange.ball {
+	background-color: #f60;
+}
+
+.bounce >.orange.ball {
 	animation-delay: .5s;
 }
 
-.red.ball div:first-child {
-	background: linear-gradient(to top,  hsla(0, 75%, 50%,1) 0%, hsla(0, 75%, 30%,1) 99%);
+.red.ball {
+	background: #f00;
+}
+
+.bounce >.red.ball {
 	animation-delay: 1s;
 }
 
-.ball div:first-child:before {
+.ball:before {
 	content: "";
 	position: absolute;
 	width: 50%;
@@ -344,14 +334,14 @@ body.name .list_item> li:nth-child(2) {
 	border-radius: 50%;
 	left: 25%;
 	top: 5%;
-	background: linear-gradient(to bottom,  rgba(232,232,232,1) 0%,rgba(232,232,232,1) 1%,rgba(255,255,255,0) 100%);
+	background: linear-gradient(to bottom, rgba(232,232,232,1), rgba(255,255,255,0));
 }
 
-.ball div:first-child::after {
+.ball::after {
 	content: attr(data-value);
 }
 
-.ball div:last-child {
+.bounce div:last-child {
 	position: absolute; bottom: 0;
 	width: 100%;
 	height: 20%;
@@ -360,7 +350,7 @@ body.name .list_item> li:nth-child(2) {
 	align-items: center;
 }
 
-.ball div:last-child::after {
+.bounce div:last-child::after {
 	content: "";
 	width: 100%;
 	height: 80%;
@@ -445,7 +435,7 @@ function initialize() {
 	
 	document.body.classList.remove("loading");
 	
-	window.setInterval(update, 10000);
+	//window.setInterval(update, 10000);
 }
 
 function createTopList(resource) {
@@ -597,12 +587,22 @@ function getTime() {
 }
 
 function createStatusItem(label, critical, alert, normal, sum) {
-	var ul = document.createElement("ul");
+	var ul = document.createElement("ul"),
+		li;
 	
 	ul.appendChild(document.createElement("li")).textContent = label;
-	ul.appendChild(document.createElement("li")).dataset.value = alert;
-	ul.appendChild(document.createElement("li")).dataset.value = critical;
-	ul.appendChild(document.createElement("li")).dataset.value = normal;
+	
+	li = ul.appendChild(document.createElement("li"));
+	li.dataset.value = alert;
+	li.className = "ball red";
+	
+	li = ul.appendChild(document.createElement("li"));
+	li.dataset.value = critical;
+	li.className = "ball orange";
+	
+	li = ul.appendChild(document.createElement("li"));
+	li.dataset.value = normal;
+	li.className = "ball green";
 	
 	ul.className = "summary";
 	
@@ -722,16 +722,16 @@ function onEvent(ip) {
 			</header>
 			
 			<div class="top">
-				<div class="ball red">
-					<div id="alert"></div>
+				<div class="bounce">
+					<div id="alert" class="ball red"></div>
 					<div></div>
 				</div>
-				<div class="ball orange">
-					<div id="critical"></div>
+				<div class="bounce">
+					<div id="critical"  class="ball orange"></div>
 					<div></div>
 				</div>
-				<div class="ball green">
-					<div id="normal"></div>
+				<div class="bounce">
+					<div id="normal"  class="ball green"></div>
 					<div></div>
 				</div>
 			</div>
