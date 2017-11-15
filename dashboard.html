@@ -190,7 +190,7 @@ header> ul> li:nth-child(3) {
 	/*box-sizing: border-box;*/
 }
 
-..list_item:hover {
+._list_item:hover {
 	background-color: #fff;
 	color: #0084ff;
 	outline: 1px solid #0084ff;
@@ -236,29 +236,29 @@ body.name .list_item> li:nth-child(2) {
 }
 
 .list_item> li:last-child.red {
-	border-color: red;
+	border-color: #f00;
 }
 
 .list_item> li:last-child.red >div {
-	/*background-image: linear-gradient(rgba(255, 0, 0, 0.6) 20%, red, rgba(255, 0, 0, 0.6) 20%);*/
-	background-color: red;
+	background: linear-gradient(to right, rgba(255, 0, 0, 0.5), #f00);
 }
 
 .list_item> li:last-child.orange {
-	border-color: orange;
+	border-color: #f60;
 }
 
 .list_item> li:last-child.orange >div {
-	background-color: orange;
+	background: linear-gradient(to right, rgba(255, 96, 0, 0.5), #f60);
 }
 
 .list_item> li:last-child.green {
-	border-color: green;
+	border-color: #0f0;
 }
 
 .list_item> li:last-child.green >div {
-	background-color: green;
+	background: linear-gradient(to right, rgba(0, 255, 0, 0.5), #0f0);
 }
+
 
 .agent_status {
 	display: flex;
