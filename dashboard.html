@@ -51,8 +51,18 @@ article> div:first-child {
 	margin: 1em;
 }
 
-article> div:last-child {
+/*article> div:last-child {*/
+#event_widget {
 	flex: none;
+	height: 140px;
+}
+
+#event_widget >.head {
+	height: 10px;
+	margin-bottom: 10px;
+}
+
+#event_widget >.frame {
 	height: 120px;
 }
 
@@ -100,13 +110,15 @@ ul {
 	padding: .5em 1em;
 }
 
-.right {
+footer {
 	width: 320px;
-	overflow-y: auto;
+	display: flex;
+	flex-direction: column;
 }
 
 #top_list {
 	flex: 1;
+	overflow-y: auto;
 }
 
 .summary {
@@ -273,6 +285,16 @@ body.name .list_item> li:nth-child(2) {
 	}
 }
 
+.head {
+	flex: none; height: 12px;
+	background-color: #ddd;
+	border-radius: 3px;
+}
+
+.frame {
+	flex: 1;
+}
+	
 .layout {
 	display: none;
 }
@@ -431,11 +453,22 @@ function initialize() {
 
 	document.getElementById("top_list").appendChild(df);
 	
+	window.eventWidget.ondragstart = onDragStart;
+	
+	window.aside.ondragover = onDragOver;
+	window.aside.ondrop = onDragDrop;
+	
+	window.article.ondragover = onDragOver;
+	window.article.ondrop = onDragDrop;
+	
+	window.footer.ondragover = onDragOver;
+	window.footer.ondrop = onDragDrop;
+	
 	update();
 	
 	document.body.classList.remove("loading");
 	
-	window.setInterval(update, 10000);
+	//window.setInterval(update, 10000);
 }
 
 function createTopList(resource) {
@@ -701,6 +734,24 @@ function createTopItem(ip, value) {
 	return item;
 }
 
+function onDragStart(e) {
+	
+}
+
+function onDragOver(e) {
+	e.preventDefault();
+
+	e.dataTransfer.dropEffect = "move";
+}
+
+function onDragDrop(e) {
+	e.preventDefault();
+	
+	if (window.eventWidget.parentNode != this) {
+		this.appendChild(window.eventWidget);
+	}
+}
+
 // public
 function onEvent(ip) {
 	window.eventFrame.contentWindow.location.reload();
@@ -744,14 +795,17 @@ function onEvent(ip) {
 			<div>
 				<iframe src="map_extra.html" id="map" width="100%" height="100%"></iframe>
 			</div>
-			<div>
-				<iframe src="event_extra.html" id="event" width="100%" height="100%"></iframe>
+			<div draggable="true" id="event_widget">
+				<div class="head"></div>
+				<div class="frame">
+					<iframe src="event_extra.html" id="event" width="100%" height="100%"></iframe>
+				</div>
 			</div>
 		</article>
 		
-		<div class="right">
+		<footer>
 			<div id="top_list"></div>
-		</div>
+		</footer>
 			
 		<div class="bg_loading"></div>
 		<script src="/js/ITAhM.js"></script>
@@ -760,7 +814,11 @@ function onEvent(ip) {
 var summaryList = document.getElementById("summary_list"),
 	eventFrame = document.getElementById("event"),
 	mapFrame = document.getElementById("map"),
+	eventWidget = document.getElementById("event_widget"),
 	topList = {},
+	aside = document.querySelector("aside"),
+	article = document.querySelector("article"),
+	footer = document.querySelector("footer"),
 	alert = document.getElementById("alert"),
 	critical = document.getElementById("critical"),
 	normal = document.getElementById("normal"),
