@@ -46,40 +46,133 @@ article {
 	flex-direction: column;
 }
 
-article> div:first-child {
+.map {
 	flex: 1;
-	margin: 1em;
+	border: 3px solid #0084ff;
+	box-sizing: border-box;
+	border-radius: 3px;
+	position: relative;
+	background: url("img/world.png") no-repeat center center fixed;
+	background-size: cover;
+	user-select: none;
+	animation-duration: .5s;
+	animation-timing-function:  cubic-bezier(.9, .1, .9, .1);
 }
 
-/*article> div:last-child {*/
+svg {
+	position: absolute; top: 0; right: 0; bottom: 0; left: 0;
+	width: 100%; height: 100%;
+	background-color: rgba(0, 0, 0, 0.8);
+}
+
+/* svg*/
+text::selection {
+	background: none;
+}
+
+text {
+	font-family: tahoma, arial, "맑은 고딕";
+	font-size: 10px;
+	fill: #fff;
+	text-anchor: middle;
+}
+
+#line line {
+	stroke: #a17f1a/*836953*/;
+	stroke-width: 1;
+	animation: 5s line infinite;
+}
+
+@keyframes line {
+	0% {
+		stroke: #ddd;
+		stroke-width: .5;
+	}
+	20% {
+		stroke: #a17f1a;
+		stroke-width: 1;
+	}/*
+	100% {
+		stroke: #a17f1a;
+		stroke-width: 1;
+	}*/
+}
+
+#line text {
+	font-size: 11px;
+	fill: #aaa;
+}
+
+#device text {
+	font-size: 12px;
+}
+
+.device >circle {
+	pointer-events: all;
+	stroke-width: 5px;
+	stroke: none;
+	fill: none;
+	animation: alert 2s infinite;
+}
+
+.device.critical >circle {
+	stroke: #fa0;
+}
+
+.device.shutdown >circle {
+	stroke: #f00; 
+}
+
+@keyframes initialize {
+	from {
+		/*transform: rotate(0) scale(.1);*/
+		transform: scale(0.1);
+	}
+    to {
+    	/*transform: rotate(360deg) scale(1);*/
+    	transform: scale(1);
+    }
+}
+
+@keyframes alert {
+	from {
+    	stroke-opacity: 0;
+    }
+    to {
+    	stroke-opacity: 1;
+    }
+}
+
+svg.name tspan:last-child,
+svg:not(.name) tspan:first-child {
+	display: none;
+}
+
 #event_widget {
 	flex: none;
 	height: 140px;
+	position: relative;
+	padding-top: 20px;
+	box-sizing: border-box;
 }
 
-#event_widget >.head {
-	height: 10px;
-	margin-bottom: 10px;
+#event_list {
+	overflow-y: auto;
+	height: 100%;
 }
 
-#event_widget >.frame {
-	height: 120px;
+#event_widget::after {
+	content: "";
+	position: absolute; top: 0; right: 0; left: 0; height: 10px;
+	background-color: #ddd;
+	border-radius: 3px;
 }
 
 iframe {
 	border: none;
 }
 
-#map {
-	border: 5px solid #0084ff;
-	box-sizing: border-box;
-	border-radius: 5px;
-	margin-bottom: 5px;
-}
-
 section {
-	/*display: flex;
-	flex: 1 1 auto;*/
 	min-width: 260px;
 	margin: 0 .5em;
 	flex-direction: column;
@@ -425,6 +518,63 @@ body.name .list_item> li:nth-child(2) {
 }
 
 /* << bounce */
+
+/* event >> */
+.item {
+	padding: 0; margin: 0;
+	position: relative;
+	display: flex;
+	align-items: center;
+	border-bottom: 1px solid #c1c3d1;
+	margin-left: 3em;
+}
+
+.item::before {
+	content: "";
+	height: 1em; width: 1em;
+	position: absolute; top: 50%; left: -2em;
+	background-repeat: no-repeat;
+	background-image: url("img/normal.png");
+	background-size: 1em;
+	transform: translateY(-50%);
+}
+
+.item> li {
+	padding: .5em;
+	box-sizing: border-box;
+	overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+.item> li:nth-child(1) {
+	width: 100px;
+}
+
+.item> li:nth-child(2) {
+	flex: 1;
+}
+
+.item> li:nth-child(3) {
+	flex: 2;
+}
+
+.item.shutdown {
+	background-color: red;
+}
+
+.item.shutdown::before {
+	background-image: url("img/warning.png");
+}
+
+.item.critical {
+	background-color: orange;
+}
+
+.item.critical::before {
+	background-image: url("img/siren.png");
+}
+
+/* << event */
+
 		</style>
 		
 		<script>
@@ -464,7 +614,15 @@ function initialize() {
 	window.footer.ondragover = onDragOver;
 	window.footer.ondrop = onDragDrop;
 	
+	resetEvent();
+	
+	if (top.databases.local.widget) {
+		moveWidget(window[top.databases.local.widget]);
+	}
+	
 	update();
+	
+	initMap();
 	
 	document.body.classList.remove("loading");
 	
@@ -735,27 +893,93 @@ function createTopItem(ip, value) {
 }
 
 function onDragStart(e) {
-	
 }
 
 function onDragOver(e) {
 	e.preventDefault();
-
-	e.dataTransfer.dropEffect = "move";
 }
 
 function onDragDrop(e) {
 	e.preventDefault();
 	
-	if (window.eventWidget.parentNode != this) {
-		this.appendChild(window.eventWidget);
+	if (window.eventWidget.parentNode == this) {
+		return;
 	}
+	
+	top.databases.local.widget = this.nodeName.toLowerCase();
+	
+	moveWidget(this);
+}
+
+function moveWidget(parent) {
+	parent.appendChild(window.eventWidget);
+	
+	window.eventList.scrollTop = window.eventList.scrollHeight;
+	
+	resizeMap();
+}
+
+function onDragEnd(e) {
+	e.preventDefault();
+}
+
+function resetEvent() {	
+	top.sendRequest({
+		command: "extra",
+		extra: "log",
+		date: new Date().setHours(0, 0, 0, 0)
+	}, function (data) {
+		var df = document.createDocumentFragment(),
+			indexArray = Object.keys(data);
+			count = indexArray.length;
+		
+		indexArray = indexArray.sort(function (a, b) {
+			return parseInt(a) - parseInt(b);
+		});
+		
+		for (var i=0, log, device; i<count; i++) {
+			log = data[indexArray[i]];
+			device = top.databases.device[log.ip];
+		
+			df.appendChild(createItem((device && device.name) || log.ip, log.date, log.message, log.status, log.type));
+		}
+		
+		window.eventList.appendChild(df);
+		
+		window.eventList.scrollTop = window.eventList.scrollHeight;
+	});
+}
+
+// private
+function createItem(name, date, message, status, type) {
+	var item = document.createElement("ul");
+	
+	item.appendChild(document.createElement("li")).textContent = toTimeString(date);
+	item.appendChild(document.createElement("li")).textContent = name;
+	item.appendChild(document.createElement("li")).textContent = message;
+	
+	item.classList.add("item");
+	
+	if (!status && (type === "critical" || type === "shutdown")) {
+		item.classList.add(type);
+	}
+	
+	return item;
+}
+
+// static
+function toTimeString(mills) {
+	var date = new Date(mills),
+		hh = date.getHours(),
+		mm = date.getMinutes(),
+		ss = date.getSeconds();
+	
+	return (hh > 9? "": "0") + hh +":"+ (mm > 9? "": "0") + mm +":"+ (ss > 9? "": "0") + ss;
 }
 
 // public
 function onEvent(ip) {
-	window.eventFrame.contentWindow.location.reload();
-	window.mapFrame.contentWindow.location.reload();
+	window.location.reload();
 }
 
 		</script>
@@ -792,14 +1016,19 @@ function onEvent(ip) {
 		</aside>
 		
 		<article>
-			<div>
-				<iframe src="map_extra.html" id="map" width="100%" height="100%"></iframe>
+			<div class="map">
+				<svg id="map">
+					<defs>
+						<circle r="35" id="circle"></circle>
+					</defs>
+					<g id="transform" transform="translate(0, 0) scale(1, 1) translate(0, 0)">
+						<g id="line"></g>
+						<g id="device"></g>
+					</g>
+				</svg>
 			</div>
 			<div draggable="true" id="event_widget">
-				<div class="head"></div>
-				<div class="frame">
-					<iframe src="event_extra.html" id="event" width="100%" height="100%"></iframe>
-				</div>
+				<div id="event_list"></div>
 			</div>
 		</article>
 		
@@ -809,12 +1038,12 @@ function onEvent(ip) {
 			
 		<div class="bg_loading"></div>
 		<script src="/js/ITAhM.js"></script>
+		<script src="js/Draggable.js"></script>
 		<script>
 
 var summaryList = document.getElementById("summary_list"),
-	eventFrame = document.getElementById("event"),
-	mapFrame = document.getElementById("map"),
 	eventWidget = document.getElementById("event_widget"),
+	eventList = document.getElementById("event_list"),
 	topList = {},
 	aside = document.querySelector("aside"),
 	article = document.querySelector("article"),
@@ -882,6 +1111,422 @@ var summaryList = document.getElementById("summary_list"),
 if ("display" in top.databases.config) {
 	document.body.classList[top.databases.config.display == "name"? "add": "remove"]("name");
 }
+
+(function () {
+	var svgNS = "http://www.w3.org/2000/svg",
+		xlinkNS = "http://www.w3.org/1999/xlink",
+		ICON_SIZE = 40,
+		OFFSET_C = ICON_SIZE * Math.sin(Math.PI /4),
+		OFFSET_R = OFFSET_C - ICON_SIZE /2;
+	
+	var mapCanvas = document.getElementById("map"),
+		deviceCanvas = document.getElementById("device"),
+		lineCanvas = document.getElementById("line"),
+		transform = document.getElementById("transform").transform.baseVal,
+		fragment = document.createDocumentFragment(),
+		linkData = {},
+		svgData = {},
+		checked = {},
+		scale = 1,
+		isDragging = false,
+		delay;
+	
+	new Draggable(mapCanvas);
+	
+	mapCanvas.addEventListener("dragon", onDragStart);
+	mapCanvas.addEventListener("drag", onDragMove);
+	mapCanvas.addEventListener("dragoff", onDragEnd);
+	
+	if ("display" in top.databases.config) {
+		mapCanvas.classList[top.databases.config.display == "name"? "add": "remove"]("name");
+	}
+	
+	mapCanvas.addEventListener("wheel", function (e) {
+		zoom(e.deltaY < 0? scale *= 1.1: scale /= 1.1);
+	});
+	
+	window.addEventListener("resize", tryResize);
+	
+	window.resizeMap = resize;
+	window.initMap = initialize;
+	
+	function resize() {
+		rect = mapCanvas.getBoundingClientRect();
+		
+		transform.getItem(0).setTranslate(rect.width /2, rect.height /2);
+	}
+	
+	function tryResize() {
+		clearTimeout(delay);
+		
+		delay = setTimeout(resize, 500);
+	}
+	
+	function zoom(ratio) {
+		scale = ratio;
+		
+		transform.getItem(1).setScale(ratio, ratio);
+	}
+	
+	function moveMap(x, y) {
+		transform.getItem(2).setTranslate(x, y);
+	}
+	
+	function onDragStart(e) {
+		isDragging = true;
+	}
+
+	function onDragMove(e) {
+		var data = e.detail;
+		
+		moveMap(data.dragX / scale, data.dragY / scale);
+	}
+
+	function onDragEnd(e) {
+		var matrix = transform.getItem(2).matrix;
+
+		moveAllDevice(matrix.e, matrix.f);
+
+		moveMap(0, 0);
+	}
+		
+	function moveAllDevice(x, y) {
+		var group = top.databases.local.parent, moved;
+		
+		for (var ip in top.databases.device) {
+			pos = top.databases.position[ip];
+			
+			if (pos.parent !== group) {
+				continue;
+			}
+			
+			moved = moveDevice(ip, x, y);
+			
+			pos.x = moved.x;
+			pos.y = moved.y;
+		}
+	}
+
+	function drawLine(x, y, data, direct) {
+		var svgDevice, pos,
+			x1, y1, x2, y2;
+
+		svgDevice = data.svg;
+		
+		if (direct) {
+			pos = top.databases.position[data.peer2];
+			
+			svgDevice.setAttribute("x1", x);
+			svgDevice.setAttribute("y1", y);
+			
+			x1 = x;
+			y1 = y;
+			x2 = pos.x;
+			y2 = pos.y;
+		}
+		else {
+			pos = top.databases.position[data.peer1];
+			
+			svgDevice.setAttribute("x2", x);
+			svgDevice.setAttribute("y2", y);
+			
+			x1 = pos.x;
+			y1 = pos.y;
+			x2 = x;
+			y2 = y;
+		}
+		
+		data.name1.setAttribute("x", (x1 *2 + x2) /3);
+		data.name1.setAttribute("y", (y1 *2 + y2) /3);
+		
+		data.name2.setAttribute("x", (x2 *2 + x1) /3);
+		data.name2.setAttribute("y", (y2 *2 + y1) /3);
+	}
+
+	function addDevice(ip, pos) {
+		var device = top.databases.device[ip],
+			svgDevice = document.createElementNS(svgNS, "g"),
+			svgIcon = document.createElementNS(svgNS, "image"),
+			svgBG = document.createElementNS(svgNS, "circle"),
+			svgLabel = document.createElementNS(svgNS, "text"),
+			svgAddr = document.createElementNS(svgNS, "tspan"),
+			svgName = document.createElementNS(svgNS, "tspan");
+			
+		if (!pos) {
+			top.databases.position[ip] = pos = {x: 0, y: 0};
+		}
+		
+		svgIcon.setAttribute("x", ICON_SIZE *-1 /2);
+		svgIcon.setAttribute("y", ICON_SIZE *-1 /2);
+		svgIcon.setAttribute("width", ICON_SIZE +"px");
+		svgIcon.setAttribute("height", ICON_SIZE +"px");
+		
+		svgBG.setAttribute("r", OFFSET_C);
+		svgBG.setAttribute("cx", 0);
+		svgBG.setAttribute("cy", 0);
+		
+		svgDevice.setAttribute("transform", "translate("+ pos.x +","+ pos.y +")");
+		
+		svgName.textContent = device.name;
+		svgAddr.textContent = device.ip;
+		
+		svgLabel.appendChild(svgName);
+		svgLabel.appendChild(svgAddr);
+		
+		svgLabel.setAttribute("x", 0);
+		svgLabel.setAttribute("y", OFFSET_C + 16);
+		// text baseline이 글자의 밑을 기준으로 하므로 글자 크기만큼 내려준다.
+		
+		svgDevice.appendChild(svgIcon);
+		svgDevice.appendChild(svgBG);
+		svgDevice.appendChild(svgLabel);
+		
+		addClass(svgDevice, "device");
+		
+		deviceCanvas.appendChild(svgDevice);
+		
+		svgData[ip] = svgDevice;
+		
+		drawDevice(ip);
+	}
+
+	function drawDevice(ip) {
+		var device = top.databases.device[ip],
+			svgDevice = svgData[ip],
+			svgIcon = svgDevice.querySelector("image"),
+			pos = top.databases.position[ip],
+			icon = getIcon(device.type || "unknown"),
+			monitor = top.databases.monitor[ip];
+		
+		removeClass(svgDevice, "shutdown", "critical");
+		
+		if (!monitor) {
+			svgIcon.setAttributeNS(xlinkNS, "xlink:href", icon.disabled);
+		}
+		else {
+			svgIcon.setAttributeNS(xlinkNS, "xlink:href", icon.src);
+			
+			if (monitor.shutdown) {
+				addClass(svgDevice, "shutdown");
+			}
+			else if (monitor.critical) {
+				addClass(svgDevice, "critical");
+			}
+		}
+	}
+
+	function getDevice(svgDevice) {
+		if (!hasClass(svgDevice, "device")) {
+			svgDevice = svgDevice.parentNode;
+		}
+		
+		return hasClass(svgDevice, "device")? svgDevice: null;
+	}
+
+	function addClass(e, className) {
+		var cls = e.getAttribute("class"),
+			classList = cls? cls.split(" "): [];
+		
+		for (var i=1, _i=arguments.length; i<_i; i++) {
+			if (classList.indexOf(className) === -1) {
+				classList.push(className);
+			}
+		}
+		
+		e.setAttribute("class", classList.join(" "));
+	}
+
+	function removeClass(e, className) {
+		var cls = e.getAttribute("class"),
+			classList = cls? cls.split(" "): [],
+			index;
+		
+		for (var i=1; i<arguments.length; i++) {
+			className = arguments[i];
+			
+			index = classList.indexOf(className);
+			
+			if (index !== -1) {
+				classList.splice(index, 1);
+			}
+		}
+		
+		e.setAttribute("class", classList.join(" "));
+	}
+
+	function hasClass(e, className) {
+		var cls = e.getAttribute("class"),
+			classList = cls? cls.split(" "): [];
+		
+		for (var i=1; i<arguments.length; i++) {
+			if (classList.indexOf(arguments[i]) == -1) {
+				return false;
+			}
+		}
+		
+		return true;
+	}
+
+	function moveDevice(ip, x, y) {
+		var device = top.databases.device[ip],
+			pos = top.databases.position[ip],
+			link = linkData[ip],
+			data;
+
+		var svgDevice = svgData[ip];
+		
+		x = Math.round((x + pos.x) /10) *10;
+		y = Math.round((y + pos.y) /10) *10;
+		
+		svgDevice.setAttribute("transform", "translate("+ x +","+ y +")");
+		
+		for (var peerIP in link) {
+			data = link[peerIP];
+		
+			drawLine(x, y, data, data.peer1 === ip);
+		}
+		
+		return {
+			x: x,
+			y: y
+		};
+	}
+
+	function createLabel(port, x1, y1, x2, y2) {
+		var labelSvg = document.createElementNS(svgNS, "text");
+		
+		labelSvg.textContent = port && port.name || "";
+		
+		moveLabel(labelSvg, x1, y1, x2, y2);
+		
+		return labelSvg;
+	}
+		
+	function moveLabel(labelSvg, x1, y1, x2, y2) {
+		labelSvg.setAttribute("x", (x1 *2 + x2) /3);
+		labelSvg.setAttribute("y", (y1 *2 + y2) /3);
+	}
+
+	function addLine(ip, pos) {
+		var device = top.databases.device[ip],
+			ifEntry = pos.ifEntry,
+			peerList = {},
+			peerPos, peerIP, link, lineSvg,
+			labelSvg;
+		
+		linkData[ip] = peerList;
+		
+		for (var peerIP in ifEntry) {
+			peerPos = top.databases.position[peerIP];
+			
+			// TODO 라벨이 없는 경우에는 그려주지 않는것이 성능에 유리할것.
+			labelSvg = createLabel(ifEntry[peerIP], pos.x, pos.y, peerPos.x, peerPos.y);
+			
+			// peer가 먼저 svg 만들었다면 공유
+			if (linkData[peerIP]) {
+				link = linkData[peerIP][ip];
+					
+				link.name2 = labelSvg;
+			}
+			else {
+				lineSvg = document.createElementNS(svgNS, "line");
+				
+				lineSvg.setAttribute("x1", pos.x);
+				lineSvg.setAttribute("y1", pos.y);
+				lineSvg.setAttribute("x2", peerPos.x);
+				lineSvg.setAttribute("y2", peerPos.y);
+				
+				link = {
+					peer1: ip,
+					name1: labelSvg,
+					peer2: peerIP,
+					svg: lineCanvas.appendChild(lineSvg)
+				};
+			}
+			
+			// label이 선보다 위에 그려지도록 나중에 붙여줌
+			lineCanvas.appendChild(labelSvg);
+			
+			peerList[peerIP] = link;
+		}
+	}
+
+	// 그룹이 현재 구성도 depth에서 그려질수도 안그려질수도 있음
+	function setGroupStatus(id, status) {
+		// 최상위
+		if (!id) {
+			return;
+		}
+		
+		// 그릴수 있는 조건
+		if (id in svgData) {
+			addClass(svgData[id], status);
+		}
+		// 그릴수 없는 조건
+		else {
+			if (id in top.databases.position) {
+				setGroupStatus(top.databases.position[id].parent, status);
+			}
+			else {
+				console.log(id+" 의 position 정보를 얻을수 없어 구성도에 표시할 수 없습니다.");
+			}
+		}
+	}
+	
+	function initialize() {
+		var shutdown = {},
+			critical = {},
+			pos;
+		
+		for (var ip in top.databases.device) {
+			pos = top.databases.position[ip];
+
+			// 특별한 상황(버그)에서 device의 pos 정보가 없을 수 있음
+			if (!pos) {
+				console.log(ip+" 의 position 정보를 얻을수 없어 구성도에 표시할 수 없습니다.");
+				
+				continue;
+			}
+			
+			if (pos.parent === undefined) {
+				addDevice(ip, pos);
+				addLine(ip, pos);
+			}
+			// upper 그룹일수도 lower 그룹일수도 있음
+			// upper 그룹은 대상이 아님
+			// 모니터링 대상장비 이어야 함
+			else if (pos.parent && ip in top.databases.monitor) {
+				if (top.databases.monitor[ip].shutdown) {
+					shutdown[pos.parent] = true;
+				}
+				else if (top.databases.monitor[ip].critical) {
+					critical[pos.parent] = true;
+				}
+			}
+		}
+		
+		for (var id in shutdown) {
+			setGroupStatus(id, "shutdown");
+		}
+		
+		for (var id in critical) {
+			setGroupStatus(id, "critical");
+		}
+		
+		resize();
+		
+		mapCanvas.parentNode.style.animationName = "initialize";
+	}
+	
+	function displayIFName(show) {
+		document.body.classList[show? "add": "remove"]("ifname");
+	}
+
+	function getIcon(type) {
+		return top.databases.icon[type] || top.databases.local.icon[type];
+	}
+
+}) ();
 
 initialize();
 
