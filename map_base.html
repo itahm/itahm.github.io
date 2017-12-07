@@ -27,12 +27,6 @@ body, input, button {
 	padding: 0; 
 }
 
-nav {
-	position: absolute; top: 0; left: 0;
-	width: 100px; height: 100px;
-	background-color: red;
-}
-
 #map {
 	width: 100%; height: 100%;
 	animation-duration: .5s;
@@ -70,10 +64,6 @@ text {
 		stroke: #a17f1a;
 		stroke-width: 1;
 	}*/
-}
-
-body.extra #anchor {
-	display: none;
 }
 
 #line text {
@@ -464,10 +454,6 @@ function onSelectDevice(ip, svgDevice, check) {
 }
 
 function selectDevice(ip, svgDevice) {
-	if (document.body.classList.contains("extra") || window.selected == ip) {
-		return;
-	}
-	
 	var monitor = top.databases.monitor[ip],
 		pos = top.databases.position[ip];
 	
@@ -801,19 +787,7 @@ function setGroupStatus(id, status) {
 	}
 }
 
-function getTopGroup(id) {
-	if (id in window.svgData) {
-		return window.svgData[id];
-	}
-	
-	if (top.databases.position[id].parent) {
-		return getTopGroup(top.databases.position[id].parent);
-	}
-	
-	return undefined;
-}
-
-function initialize(extra) {
+function initialize() {
 	var group = top.databases.local.parent,
 		shutdown = {},
 		critical = {},
@@ -863,10 +837,6 @@ function initialize(extra) {
 		showSelectedDevice(ip);
 	}
 	
-	if (extra) {
-		document.body.classList.add("extra");
-	}
-	
 	top.databases.local.selected = undefined;
 }
 
@@ -914,7 +884,10 @@ function onShowChart(ip) {
 //abstract
 function onShowAlarm(ip) {
 }
-		
+
+function resetStatus(ip) {
+	
+}
 		</script>
 	</head>
 	
