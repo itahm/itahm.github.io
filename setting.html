@@ -561,7 +561,7 @@ function onTest(e) {
 	}, function (data) {
 		document.body.classList.remove("loading");
 		
-		var rows = [], row;
+		var rows = ["ip, sysObjectID, hrProcessorEntry, hrStorageEntry, ifEntry"], row;
 		
 		for (var ip in data) {
 			row = data[ip];
