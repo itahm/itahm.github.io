@@ -9,13 +9,17 @@
 		<style>
 
 @import "css/itahm.css";
-@import "css/calendar.css";
 
 body {
 	position: fixed; top: 10px; right: 10px; bottom: 10px; left: 10px;
 	margin: 0; padding: 0;
 	display: flex;
 	flex-direction: column;
+}
+
+input[type=date] {
+	font-family: arial, tahoma, "맑은 고딕";
+	font-size: 10pt;
 }
 
 header {
@@ -120,77 +124,57 @@ footer span.label::after {
 	content: attr(title);
 }
 
-.dialog {
+.popup {
 	position: fixed; top:0; right: 0; bottom: 0; left: 0; 
 	display: flex; justify-content: center; align-items: center;
 	background-color: rgba(0, 0, 0, .6);
 }
 
-.dialog_1 {
+.dialog {
+	width: 400px;
+	box-sizing: border-box;
 	padding: 20px;
 	background-color: #fff;
 	border: 3px solid #000;
 }
 
-.dialog_1_1 {
-	display: flex;
-	position: relative;
-}
-
-.dialog_1_1 span {
-	flex: 1;
-	padding: 1em;
-	font-weight: bold; font-size: 16px;
-}
-
-.dialog_1_1 span:hover {
-	cursor: pointer;
-	text-decoration: underline;
-}
-
-.dialog_2 {
-	position: absolute; top:0; right: 0; bottom: 0; left: 0; 
-	display: flex; justify-content: center; align-items: center;
-}
-
-.dialog_2_1 {
-	background-color: #fff;
-	padding: .5em;
-	border: 2px solid #0084ff;
-}
-
-.dialog_2_1_1 {
-	text-align: right;
-}
-
-.dialog_1 form {
+.dialog >div {
 	display: flex;
 }
 
-.dialog_1 form input {
+.dialog >div >* {
 	flex: 1;
-	padding: .5em;
+}
+
+.dialog >div:last-child {
+	margin-top: 1em;
+}
+
+.dialog >div input {
+	display: block;
+	width: 100%;
+	box-sizing: border-box;
+	padding: 0.5em;
+}
+
+.dialog >div:last-child >input {
 	border-radius: 1.2em;
 	background-color: #0084ff;
 	color: #fff;
-	border: .2em solid transparent;
+	border: 0.2em solid transparent;
 }
 
-.dialog_1 input:hover {
+.dialog >div:last-child >input:hover {
 	background-color: #fff;
 	color: #0084ff;
 	border-color: #0084ff;
-}
-
-.dialog:not(.picker) .dialog_2 {
-	display: none;
 }
 
 .layout {
 	display: none;
 }
 
-body:not(.set) .dialog {
+body:not(.set) .popup {
 	display: none;
 }
 
@@ -354,18 +338,13 @@ function resetArea() {
 	window.areaEndDate.title = getDateText(window.dateList[window.rightPos]);
 }
 
-function reload(start, end) {
-	var date = new Date(end);
-	
-	window.start = start;
-	window.end = end;
-	window.today = start;
+function reload(from, to) {
+	window.today = window.start = from.setHours(0, 0, 0, 0);
+	window.end = to.setHours(0, 0, 0, 0);
 	
 	window.chartWindow.location.reload();
 	
-	while(window.grid.firstChild) {
-		window.grid.removeChild(window.grid.firstChild);
-	}
+	clear(window.grid);
 	
 	window.leftPos = window.dayCount -2;
 	window.rightPos = 0;
@@ -373,10 +352,46 @@ function reload(start, end) {
 	initialize();
 }
 
+function setValueAsDate(e, d) {
+	if ("valueAsDate" in e) {
+		d = new Date(d.getTime());
+		
+		d.setHours(9, 0, 0, 0);
+		
+		e.valueAsDate = d;
+	}
+	else {
+		var mm = d.getMonth() +1,
+			dd = d.getDate();
+		
+		e.value = [d.getFullYear(), mm > 9? mm: "0"+ mm, dd > 9? dd: "0"+ dd].join('-');
+	}
+}
+
+function getValueAsDate(e) {
+	var date;
+	
+	if ("valueAsDate" in e) {
+		date = e.valueAsDate;
+	}
+	else {
+		date = new Date(e.value);
+	}
+	
+	date.setHours(0, 0, 0, 0);
+	
+	return date;
+}
+
+function clear(e) {
+	for (var child; child = e.firstChild; ) {
+		e.removeChild(child);
+	}
+}
 		</script>
 	</head>
 	
-	<body>
+	<body class="set">
 		
 		<header>
 			<nav>
@@ -392,11 +407,6 @@ function reload(start, end) {
 				<button id="print" title="인쇄">
 					<img width="16" height="16" src="img/printer16.png"> 인쇄
 				</button>
-				<!--a href="status.html">
-					<button>
-						<img width="16" height="16" src="img/close.png">닫기
-					</button>
-				</a-->
 			</nav>
 		</header>
 		
@@ -416,25 +426,24 @@ function reload(start, end) {
 			</div>
 		</footer>
 		
-		<div class="dialog">
-			<div class="dialog_1">
-				<div class="dialog_1_1">
-					<span id="set_start"></span>
-					<span id="set_end"></span>
+		<div class="popup">
+			<form class="dialog" autocomplete="off">
+				<h3>기간설정</h3>
+				<div>
+					<div>
+						<p>from</p>
+						<input type="date" id="set_start" value="2017-12-05">
+					</div>
+					<div>
+						<p>to</p>
+						<input type="date" id="set_end" value="2017-12-12">
+					</div>
 				</div>
-				<form class="dialog_1_2" autocomplete="off">
+				<div>
 					<input type="reset" value="cancel">
 					<input type="submit" value="apply">
-				</form>
-			</div>
-			<div class="dialog_2">
-				<div class="dialog_2_1">
-					<div class="dialog_2_1_1">
-						<img id="close" src="/img/close.png" title="닫기">
-					</div>
-					<div id="date"></div>
 				</div>
-			</div>
+			</form>
 		</div>
 		
 		<div class="layout">
@@ -532,52 +541,29 @@ initialize();
 	var form = document.querySelector("form"),
 		start = document.getElementById("set_start"),
 		end = document.getElementById("set_end"),
-		date = new Date(),
-		picker, selectDate;
-		
+		kst = new Date();
 	
-	start.textContent = toDateString(date);
-		
-	date.setDate(date.getDate() +1);
-		
-	end.textContent = toDateString(date);
+	kst.setDate(kst.getDate() +1);
 	
-	form.addEventListener("submit", onApply);
-	form.addEventListener("reset", onCancel);
+	setValueAsDate(end, kst); 
 	
-	start.onclick = onSelectDate;
-	end.onclick = onSelectDate;
+	kst.setDate(kst.getDate() -7);
 	
-	document.getElementById("set").onclick = function () {console.log("?");
-		document.body.classList.add("set");
-	};
+	setValueAsDate(start, kst);
 	
-	document.getElementById("close").onclick = function () {
-		document.querySelector(".dialog").classList.remove("picker");
-	}
-	
-	picker = new ITAhM.Calendar("date", function (date) {
-		selectDate(date);
-	});
-	
-	/**
-	 * callback method
-	 */
-	 function onApply(e) {
+	form.addEventListener("submit", function (e) {
 		e.preventDefault();
 		
-		var from = new Date(start.textContent).setHours(0, 0, 0, 0),
-			to = new Date(end.textContent).setHours(0, 0, 0, 0);
+		var from = getValueAsDate(start),
+			to = getValueAsDate(end);
 		
 		if (from === to) {
 			return alert("서로 다른 날짜를 선택하세요.");
 		}
 	
 		if (from > to) {
-			var tmp = start.textContent;
-			
-			start.textContent = end.textContent;
-			end.textContent = tmp;
+			setValueAsDate(start, to);
+			setValueAsDate(end, from);
 			
 			reload(to, from);
 		}
@@ -585,35 +571,16 @@ initialize();
 			reload(from, to);
 		}
 		
-		closeDialog();
-	}
-	
-	function onCancel(e) {
-		closeDialog();
-	}
-	
-	function closeDialog() {
 		document.body.classList.remove("set");
-	}
+	});
 	
-	function toDateString(date) {
-		var mm = date.getMonth() +1,
-			dd = date.getDate();
-		
-		return date.getFullYear() +"-"+ (mm > 9? mm: "0"+ mm) +"-"+ (dd > 9? dd: "0"+ dd);
-	}
-
-	function onSelectDate() {
-		picker.move(new Date(this.textContent), true);
-		
-		selectDate = function (id, date) {
-			document.getElementById(id).textContent = toDateString(date);
-			
-			document.querySelector(".dialog").classList.remove("picker");
-		}.bind(window, this.id);
-		
-		document.querySelector(".dialog").classList.add("picker");
-	}
+	form.addEventListener("reset", function (e) {
+		document.body.classList.remove("set");
+	});
+	
+	document.getElementById("set").onclick = function () {
+		document.body.classList.add("set");
+	};
 	
 })({});
 
