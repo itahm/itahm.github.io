@@ -59,16 +59,11 @@ div.table li:last-child {
 	flex: 3;
 }
 
-body:not(.v2c) .v2c,
-body:not(.v3) .v3 {
+body.v3 .version,
+body:not(.v3) .version.v3 {
 	display: none;
 }
-/*
-body.v2c .v2c,
-body.v3 .v3 {
-	display: flex;
-}
-*/
+
 footer{
 	display: flex;
 }
@@ -108,17 +103,17 @@ body:not(.warning) .warning {
 					<ul>
 						<li>snmp version 
 						<li>
-							<label><input type="radio" value="v1" name="version" disabled>v1</label>
+							<label><input type="radio" value="v1" name="version">v1</label>
 							<label><input type="radio" value="v2c" name="version" checked>v2c</label>
 							<label><input type="radio" value="v3" name="version">v3</label>
 					</ul>
-					<ul class="v2c">
+					<ul class="version">
 						<li>community 
 						<li>
 							<input type="text" name="community" class="table text"
 								placeholder="snmp community string">
 					</ul>
-					<ul class="v3">
+					<ul class="version v3">
 						<li>user 
 						<li>
 							<input type="text" name="user" class="table text"
@@ -308,9 +303,6 @@ function initialize(name) {
 		form.elements["udp"].value = profile.udp;
 		document.querySelector("input[name=version][value="+ profile.version +"]").checked = true;
 		
-		if (profile.version === "v2c") {
-			form.elements["community"].value = profile.community;
-		}
 		else if (profile.version === "v3") {
 			form.elements["user"].value = profile.user;
 			
@@ -326,6 +318,9 @@ function initialize(name) {
 				}
 			}
 		}
+		else {
+			form.elements["community"].value = profile.community;
+		}
 		
 		document.body.classList.add(profile.version);
 		
@@ -339,8 +334,6 @@ function initialize(name) {
 		document.querySelector("input[type=submit]").disabled = true;
 	}
 	else {
-		document.body.classList.add("v2c");
-		
 		form.elements["name"].focus();
 	}
 }
