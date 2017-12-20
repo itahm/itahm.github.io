@@ -303,7 +303,7 @@ function initialize(name) {
 		form.elements["udp"].value = profile.udp;
 		document.querySelector("input[name=version][value="+ profile.version +"]").checked = true;
 		
-		else if (profile.version === "v3") {
+		if (profile.version === "v3") {
 			form.elements["user"].value = profile.user;
 			
 			if ("md5" in profile) {
