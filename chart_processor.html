@@ -29,13 +29,18 @@ body {
 	display: flex;
 }
 
-body:not(.row) #chart {
+#chart.sum >iframe:not(:first-child),
+#chart:not(.sum) >iframe:first-child {
+	display: none;
+}
+
+#chart.col {
 	flex-direction: column;
 	overflow-y: auto;
 	overflow-x: hidden;
 }
 
-body.row #chart {
+#chart.row {
 	flex-direction: row;
 	overflow-y: hidden;
 	overflow-x: auto;
@@ -86,11 +91,17 @@ function initialize(from, to, start, end) {
 			end: to
 		};
 	
+	window.chartList["0"] = df.appendChild(document.createElement("iframe"));
+	
+	window.chartCount = 0;
+	
 	for (var index in entry) {
 		window.chartList[index] = df.appendChild(document.createElement("iframe"));
+		
+		window.chartCount++;
 	}
 	
-	document.getElementById("chart").appendChild(df);
+	chartLayer.appendChild(df);
 	
 	for (var index in entry) {
 		request.index = index;
@@ -105,6 +116,14 @@ function initialize(from, to, start, end) {
 }
 
 function onSummaryResponse(index, data) {
+	summarizeResponse(index, data);
+	
+	if (--window.chartCount === 0) {
+		summarizeChart();
+	}
+}
+
+function summarizeResponse(index, data) {
 	var chart = window.chartList[index];
 	
 	window.summaryList[index] = new ITAhM.ChartSummaryData(data);
@@ -112,6 +131,39 @@ function onSummaryResponse(index, data) {
 	chart.onload = onLoadChart.bind(undefined, index);
 	
 	chart.src = "chart_base.html";
+}
+
+function summarizeChart() {
+	var summaryData = {},
+		data, avg, min, max;
+	
+	window.summaryList["0"] = {};
+	
+	for (var index in window.summaryList) {
+		data = window.summaryList[index].data;
+		
+		for (var mills in data) {
+			if (!(mills in summaryData)) {
+				summaryData[mills] = {
+					avg: [],
+					min: [],
+					max: []
+				};
+			}
+			
+			summaryData[mills].avg.push(data[mills].avg);
+			summaryData[mills].min.push(data[mills].min);
+			summaryData[mills].max.push(data[mills].max);
+		}
+	}
+	
+	for (var mills in summaryData) {
+		summaryData[mills].avg = summaryData[mills].avg.reduce(function (a, b) {return a + b;}) / summaryData[mills].avg.length;
+		summaryData[mills].min = Math.min.apply(undefined, summaryData[mills].min);
+		summaryData[mills].max = Math.max.apply(undefined, summaryData[mills].max);
+	}
+	
+	summarizeResponse("0", summaryData);
 }
 
 function onLoadChart(index) {
@@ -138,7 +190,7 @@ function onDetailResponse(index, data) {
  * private
  */
 function drawProcessor(index) {	
-	if (window.chartList[index].contentWindow.draw(window.start, window.end) && window.detail) {
+	if (window.chartList[index].contentWindow.draw(window.start, window.end) && window.detail && index !== "0") {
 		window.detailRequest.index = index;
 		
 		top.sendRequest(window.detailRequest, onDetailResponse.bind(undefined, index));
@@ -251,11 +303,12 @@ function buildSummaryFile(chartWindow) {
 		</header>
 		<nav>
 			<select id="view">
-				<option value="add">가로 보기
-				<option value="remove" selected>세로 보기
+				<option value="sum" selected>모아 보기
+				<option value="row">가로 보기
+				<option value="col">세로 보기
 			</select>
 		</nav>
-		<div id="chart">
+		<div id="chart" class="sum">
 		</div>
 		
 		<script src="js/ITAhM.js"></script>	
@@ -263,6 +316,7 @@ function buildSummaryFile(chartWindow) {
 		<script>
 
 var node = top.snmp,
+	chartLayer = document.getElementById("chart"),
 	chartList = {},
 	summaryList = {},
 	detail,
@@ -291,7 +345,7 @@ if(!top.ip || !window.node) {
 }
 
 document.getElementById("view").onchange = function () {
-	document.body.classList[this.value]("row");
+	chartLayer.className = this.value;
 }
 
 		</script>

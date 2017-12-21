@@ -2,8 +2,8 @@
 <html>
 	<head>
 		<meta charset="UTF-8">
-		<meta http-equiv="Content-Script-Type" content="text/javascript">
-		<meta http-equiv="Content-Style-Type" content="text/css">
+		<meta http-equiv="Cache-Control" content="No-Cache">
+		
 		<title>ITAhM</title>
 		
 		<style>
@@ -142,7 +142,7 @@ function onResize() {
 	resize();
 	
 	drawChart();
-	
+		
 	if (window.detailData && window.detailKeys) {
 		drawDetail();
 	}
@@ -153,6 +153,10 @@ function resize() {
 		width = rect.width - MARGIN *2,
 		height = rect.height - MARGIN *2 - DATE_AXIS_HEIGHT,
 		reset = false;
+	
+	if (rect.width === 0 || rect.height === 0) {
+		return false;
+	}
 	
 	window.graph.transform.baseVal.getItem(0).setTranslate(0, height);
 	
@@ -166,8 +170,9 @@ function resize() {
 	hoverHAvg.setAttribute("x2", width);
 	hoverHMin.setAttribute("x2", width);
 	
-	//hoverDate.style.top = (height + MARGIN) + "px";
 	hoverDate.style.top = "0";
+	
+	return true;
 }
 
 function drawGrid() {
@@ -431,9 +436,17 @@ function draw(start, end) {
  * private
  */
 function drawChart() {
+	if (!window.rect.width) {
+		return false;
+	}
+	
 	var x, y, dateArray, date;
 
 	window.chartSummary = window.summaryData.parseData(window.start, window.end);
+	
+	if (!window.chartSummary) {
+		return false;
+	}
 	
 	window.tpp = (window.end - window.start) / window.rect.width;
 	
@@ -445,10 +458,6 @@ function drawChart() {
 	
 	clear(window.leftAxis);
 	clear(window.rightAxis);
-	
-	if (!window.chartSummary) {
-		return false;
-	}
 	
 	drawGraph();
 	
@@ -465,6 +474,8 @@ function detail(detailData) {
 	window.detailKeys = window.detailData.parseData(window.start, window.end);
 	
 	drawDetail();
+	
+	return true;
 }
 
 function drawDetail() {
@@ -560,7 +571,7 @@ function onValueToString(value) {
 		<script src="js/ITAhM.js"></script>
 		<script src="js/object.js"></script>
 		<script>
-
+		
 var svgNS = "http://www.w3.org/2000/svg",
 	xlinkNS = "http://www.w3.org/1999/xlink",
 	MONTH_NAME = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
