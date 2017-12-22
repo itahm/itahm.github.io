@@ -24,7 +24,6 @@ function sendRequest(database) {
 	
 	xhr.open("POST", url, true);
 	xhr.withCredentials = true;
-	xhr.timeout = 12000;
 	xhr.onloadend = onComplete.bind(xhr, database);
 	xhr.send(JSON.stringify(request));
 }
@@ -59,7 +58,6 @@ function listen() {
 
 	xhr.open("POST", url, true);
 	xhr.withCredentials = true;
-	xhr.timeout = 60000;
 	xhr.onload = onEvent;
 	xhr.onerror = onError;
 	xhr.ontimeout = listen;

@@ -346,7 +346,7 @@ document.getElementById("signout").onclick = function () {
 (function (window, undefined){
 	
 	if (sessionStorage.host && sessionStorage.port) {
-		var xhr = new ITAhM.Communicator(sessionStorage.host, sessionStorage.port, 5000);
+		var xhr = new ITAhM.Communicator(sessionStorage.host, sessionStorage.port);
 		
 		window.sendRequest = function (request, onResponse) {
 			xhr.sendRequest(request, function (status, response) {		
