@@ -61,12 +61,18 @@ td:last-child {
 	text-align: center;
 }
 
+input[type=date] {
+	font-family: arial, tahoma, "맑은 고딕";
+}
+
+form >input {
+	padding: 0.5em;
+}
+
 	</style>
 	<script>
 
-function initialize() {try{
-	var entry, index, resource;
-	
+function initialize() {
 	document.title = (function (sysName) {
 		return window.ip + (sysName? (" ["+ sysName +"]"): "");
 	})(window.snmp.sysName);
@@ -76,7 +82,15 @@ function initialize() {try{
 	document.getElementById("type").textContent = window.device.type;
 	document.getElementById("label").textContent = window.device.label;
 	
-	loadFrame(document.getElementById("response"), "chart_responseTime.html");
+	resetServer();
+}
+
+function resetServer() {
+	var entry, index, resource;
+	
+	document.body.classList.add("loading");
+	
+	loadFrame(window.rSection.appendChild(document.createElement("iframe")), "chart_responseTime.html");
 	
 	entry = window.snmp.hrProcessorEntry;
 	
@@ -106,8 +120,6 @@ function initialize() {try{
 			break;
 		}
 	}
-	
-	document.body.classList.remove("loading");}catch(e) {console.log(e);}
 }
 
 function loadFrame(iframe, src) {
@@ -117,6 +129,59 @@ function loadFrame(iframe, src) {
 
 function onLoadFrame() {
 	this.contentWindow.initialize(window.start, window.end, window.start, window.end);
+}
+
+function setValueAsDate(e, d) {
+	if ("valueAsDate" in e) {
+		d = new Date(d.getTime());
+		
+		d.setHours(9, 0, 0, 0);
+		
+		e.valueAsDate = d;
+	}
+	else {
+		var mm = d.getMonth() +1,
+			dd = d.getDate();
+		
+		e.value = [d.getFullYear(), mm > 9? mm: "0"+ mm, dd > 9? dd: "0"+ dd].join('-');
+	}
+}
+
+function getValueAsDate(e) {
+	var date;
+	
+	if ("valueAsDate" in e) {
+		date = e.valueAsDate;
+	}
+	else {
+		date = new Date(e.value);
+	}
+	
+	date.setHours(0, 0, 0, 0);
+	
+	return date;
+}
+
+function onResetDate(e) {
+	e.preventDefault();
+	
+	document.body.classList.add("loading");
+	
+	window.start = getValueAsDate(this.elements["from"]).getTime();
+	window.end = getValueAsDate(this.elements["to"]).getTime();
+	
+	clear(window.rSection);
+	clear(window.lSection);
+	
+	resetServer();
+	
+	document.body.classList.remove("loading");
+}
+
+function clear(e) {
+	for (var child; child = e.firstChild; ) {
+		e.removeChild(child);
+	}
 }
 
 	</script>
@@ -139,9 +204,12 @@ function onLoadFrame() {
 					<td id="name"></td>
 					<td id="type"></td>
 					<td id="label"></td>
-					<td id="period">
-						<input type="date">
-						<input type="date">
+					<td>
+						<form id="period">
+							<input type="date" name="from">
+							<input type="date" name="to">
+							<input type="submit" value="적용">
+						</form>
 					</td>
 				</tr>
 			</tbody>
@@ -149,9 +217,7 @@ function onLoadFrame() {
 	</header>
 	<article>
 		<section id="left"></section>
-		<section id="right">
-			<iframe id="response"></iframe>
-		</section>
+		<section id="right"></section>
 	</article>
 	
 	<div class="bg_loading"></div>
@@ -161,15 +227,23 @@ var origin = "server",
 	databases = opener.top.databases,
 	ip = window.location.search.substring(1),
 	device = opener.top.databases.device[ip],
+	period = document.getElementById("period"),
 	lSection = document.getElementById("left"),
 	rSection = document.getElementById("right"),
 	start, end;
+
+window.period.onsubmit = onResetDate;
 
 (function (date) {
 	date.setHours(0, 0, 0, 0);
 	
 	window.start = date.setDate(date.getDate() -6);
+	
+	setValueAsDate(window.period.elements["from"], date);
+	
 	window.end = date.setDate(date.getDate() +7);
+	
+	setValueAsDate(window.period.elements["to"], date);
 })(new Date());
 
 sendRequest({
@@ -179,6 +253,8 @@ sendRequest({
 	window.snmp = snmp;
 	
 	initialize();
+	
+	document.body.classList.remove("loading");
 });
 
 	</script>
