@@ -185,17 +185,9 @@ label {
 }
 
 #count {
-	border: 2px ridge #fff;
-	width: 100px; height: 100%;
-	position: relative;
-	color: #fff;
-	font-size: 18px; font-weight: bold;
-}
-
-#count::after {
-	content: attr(data-value);
-	position: absolute; top: 50%; left: 50%;
-	transform: translateX(-50%) translateY(-50%);
+	font-size: 30px; font-weight: bold; color: #fff;
+	display: inline-block;
+	margin: 0 30px;
 }
 
 #action >img,
@@ -205,8 +197,7 @@ label {
 }
 
 #action:not(.selected),
-#action:not(.snmp) >#status,
-#action:not(.snmp) >#alarm {
+#action:not(.snmp) >.snmp {
 	display: none;
 }
 
@@ -279,6 +270,10 @@ function onShowStatus() {
 	top.showChart(window.selectedIP);
 }
 
+function onShowServer() {
+	top.showServer(window.selectedIP);
+}
+
 function initialize() {
 	if ("custom" in top.databases.config) {
 		var customs = top.databases.config.custom;
@@ -316,7 +311,7 @@ function initList() {
 	}
 	
 	// ie는 ParentNode interface의 properties를 지원하지 않음.
-	document.getElementById("count").dataset.value
+	document.getElementById("count").textContent
 		= df.children? df.children.length: df.querySelectorAll("ul").length;
 	
 	list.appendChild(df);
@@ -488,7 +483,7 @@ function filterDeviceList(keyword) {
 		row = next;
 	}
 	
-	document.getElementById("count").dataset.value = df.children.length;
+	document.getElementById("count").textContent = df.children.length;
 	
 	list.appendChild(df);
 }
@@ -511,7 +506,7 @@ function selectLabel(label) {
 		}
 	}
 	
-	document.getElementById("count").dataset.value = df.children.length;
+	document.getElementById("count").textContent = df.children.length;
 	
 	list.appendChild(df);
 }
@@ -619,7 +614,7 @@ function forEach(a, f) {
 		<article>
 			<aside>
 				<nav>
-					<div id="count"></div>
+					<i id="count"></i>
 					<div>
 						<select id="label">
 							<optgroup>
@@ -636,8 +631,9 @@ function forEach(a, f) {
 					<div id="action">
 						<img id="map" src="img/location.png" title="구성도에서 장비보기">
 						<img id="edit" src="img/edit.png" title="장비의 정보 편집">
-						<img id="status" src="img/chart.png" title="장비의 상태 보기">
-						<img id="alarm" src="img/alarm.png" title="장비의 성능 임계 설정">
+						<img id="status" class="snmp" src="img/chart.png" title="장비의 상태 보기">
+						<img id="server" class="snmp" src="img/information.png" title="장비의 이력 보기">
+						<img id="alarm" class="snmp" src="img/alarm.png" title="장비의 성능 임계 설정">
 					</div>
 				</nav>
 				<form id="form">
@@ -710,6 +706,7 @@ document.getElementById("map").onclick = onMap;
 document.getElementById("edit").onclick = onEdit;
 document.getElementById("alarm").onclick = onSetAlarm;
 document.getElementById("status").onclick = onShowStatus;
+document.getElementById("server").onclick = onShowServer;
 
 initialize();
 

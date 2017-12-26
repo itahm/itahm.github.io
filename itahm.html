@@ -165,8 +165,7 @@ section {
 
 body:not(.log) .log,
 body:not(.dialog) #dialog,
-body:not(.auto) >.handle,
-#message {
+body:not(.auto) >.handle {
 	display: none;
 }
 
@@ -190,6 +189,16 @@ function showChart(ip, resource, index) {
 	}
 	
 	chart.focus();
+}
+
+function showServer(ip) {
+	var server = window.server[ip];
+
+	if (server && !server.closed) {
+		server.close();
+	}
+	
+	(window.server[ip] = window.open("server.html?"+ ip)).focus();
 }
 
 // public
@@ -225,6 +234,12 @@ function clearLog() {
 	window.logCount = 0;
 	
 	document.body.classList.remove("log");
+}
+
+function reload() {
+	window.onbeforeunload = undefined;
+	
+	location.reload();
 }
 
 function initialize(databases) {
@@ -270,7 +285,6 @@ function initialize(databases) {
 					<li><h1><a href="list.html" target="main">장비목록</a></h1>
 					<li><h1><a href="map.html" target="main">구성도</a></h1>
 					<li><h1><a href="event.html" target="main">이벤트</a></h1>
-					<li><h1><a href="report.html" target="main">리포트</a></h1>
 				</ul>
 				<ul>
 					<li><a id="signout"></a>
@@ -301,6 +315,7 @@ var count = document.getElementById("count"),
 	dialog = document.getElementById("dialog"),
 	log = document.getElementById("log"),
 	chart = {},
+	server = {},
 	sound = new Audio("siren.mp3"),
 	logCount = 0;
 
@@ -312,13 +327,13 @@ window.onunload = function () {
 	for (var ip in window.chart) {
 		window.chart[ip].close();
 	}
+	
+	for (var ip in window.server) {
+		window.server[ip].close();
+	}
 };
 
-document.getElementById("reload").onclick = function () {
-	window.onbeforeunload = undefined;
-	
-	location.reload();
-};
+document.getElementById("reload").onclick = reload;
 
 document.getElementById("message").onclick = function () {
 	window.dialog.onload = undefined;
@@ -362,13 +377,18 @@ document.getElementById("signout").onclick = function () {
 						location.href = "connect.html";
 					}
 					else if (status === 409) { // conflict
-						alert("다른 관리자 계정이 데이터베이스를 수정하였습니다.");
+						alert("다른 관리자 계정이 데이터베이스를 수정하였습니다.\n"+ response.error);
 					}
 					else if (status === 400) { // bad request
 						alert("잘못된 요청입니다.\n"+ response.error);
 					}
+					else if (status === 503) { // bad request
+						alert("서버가 올바르게 동작하지 않습니다.\n"+ response.error);
+					}
 					else {
-						alert("에이전트가 응답하지 않습니다.\nstatus: "+ status);
+						alert("에이전트가 응답하지 않습니다.\n"+
+							"status: "+ status +"\n"+
+							(response? response.error: ""));
 					}
 				}
 			});

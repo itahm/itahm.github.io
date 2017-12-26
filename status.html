@@ -564,7 +564,9 @@ function createIFaceGuage(admin, oper, index, name, descr, alias, bandwidth, inB
 function initialize() {
 	var entry;
 	
-	document.title = window.ip + "["+ window.snmp.sysName +"]";
+	document.title = (function (sysName) {
+		return window.ip + (sysName? (" ["+ sysName +"]"): "");
+	})(window.snmp.sysName);
 	
 	document.getElementById("reset").onclick = function () {
 		sendRequest({
@@ -933,7 +935,8 @@ function onSelectResource(resource, index) {
 	<script src="js/snmp.js"></script>
 	<script>
 	
-	var sendRequest = opener.top.sendRequest,
+	var origin = "status",
+		sendRequest = opener.top.sendRequest,
 		showDialog = opener.top.showDialog,
 		databases = opener.top.databases,
 		realtime = {},
