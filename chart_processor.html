@@ -58,13 +58,17 @@ nav {
 	text-align: right;
 }
 
-header {
-	position: relative;
+h2 {
+	text-align: center;
+	margin: 5px;
 }
 
-h1 {
-	color: #fff;
-	margin: 0;
+#legend {
+	text-align: right;
+}
+
+body.server #view {
+	display: none;
 }
 
 @media print {
@@ -299,7 +303,8 @@ function buildSummaryFile(chartWindow) {
 	
 	<body>
 		<header>
-			<h1>프로세서 로드</h1>
+			<h2><i>"</i> Processor Load <i>"</i></h2>
+			<div id="legend">Max load: 100%</div>
 		</header>
 		<nav>
 			<select id="view">
@@ -342,6 +347,10 @@ var node = top.snmp,
 
 if(!top.ip || !window.node) {
 	throw "!";
+}
+
+if (top.origin === "server") {
+	document.body.classList.add("server");
 }
 
 document.getElementById("view").onchange = function () {
