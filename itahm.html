@@ -73,12 +73,22 @@ nav ul:first-child a {
 	text-shadow: 1px 1px 1px #000;
 	padding: .2em 1em;
 	border-radius: 1em;
+	position: relative;
 }
 
 nav ul:first-child a:hover {
 	color: #4d525a;
 	text-shadow: none;
 	background-color: #fff;
+}
+
+nav ul:first-child a:hover::after {
+	content: "";
+	position: absolute;
+	top: 100%; left: 50%;
+	transform: translateX(-50%);
+	border: 10px solid transparent;
+	border-top-color: #fff;
 }
 
 nav ul:last-child {
@@ -165,7 +175,8 @@ section {
 
 body:not(.log) .log,
 body:not(.dialog) #dialog,
-body:not(.auto) >.handle {
+body:not(.auto) >.handle,
+#message {
 	display: none;
 }
 
