@@ -444,10 +444,6 @@ function drawChart() {
 
 	window.chartSummary = window.summaryData.parseData(window.start, window.end);
 	
-	if (!window.chartSummary) {
-		return false;
-	}
-	
 	window.tpp = (window.end - window.start) / window.rect.width;
 	
 	clear(window.dateAxis);
@@ -463,7 +459,7 @@ function drawChart() {
 	
 	drawValueAxis();
 	
-	return true;
+	return window.chartSummary? true: false;
 }
 
 /**
