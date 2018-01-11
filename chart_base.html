@@ -178,25 +178,31 @@ function resize() {
 function drawGrid() {
 	var path = new ITAhM.Path(window.grid),
 		height = window.rect.height,
-		width = window.rect.width;
+		width = window.rect.width,
+		countXarr = [],
+		countX, countY;
 
 	clear(window.grid);
 	
-	window.blockWidth = width / 24;
-	
-	while (blockWidth < MIN_AXIS_HSPACE) {
-		blockWidth *= 2;
-	}
-	
-	window.blockHeight = height / Math.round(height / MIN_AXIS_VSPACE);
-	
-	for (var x = 0, roundedX ; x <= width; x += blockWidth) {
-		roundedX = Math.round(x) -.5;
+	for (var i=0, arr=[24, 12, 8, 6, 4, 3, 2, 1]; i<arr.length; i++) {
+		countX = arr[i];
 		
-		path.moveTo(x, 0).lineTo(roundedX, height);
+		if (countX *MIN_AXIS_HSPACE < width) {
+			break;
+		}
 	}
 	
-	for (var y = 0, roundedY ; y <= height; y += blockHeight) {
+	window.blockWidth = width / countX;
+	
+	for (var x = 0, i=0; i<=countX; i++, x += blockWidth) {
+		path.moveTo(x, 0).lineTo(Math.round(x) -.5, height);
+	}
+	
+	countY = Math.max(1, Math.floor(height / MIN_AXIS_VSPACE));
+	
+	window.blockHeight = height / countY;	
+	
+	for (var y = 0, i=0, roundedY ; i <= countY; i++, y += blockHeight) {
 		roundedY = Math.round(y) -.5;
 		
 		path.moveTo(0, roundedY).lineTo(width, roundedY);
@@ -278,7 +284,6 @@ function drawGraph() {
 	var fillMax = new ITAhM.Path(window.graph),
 		fillMin = new ITAhM.Path(window.graph),
 		strokeAvg = new ITAhM.Path(window.graph),
-		//strokeMin = new ITAhM.Path(window.graph),
 		high = window.chartSummary.high,
 		blocks = window.chartSummary.keys,
 		dateArray, date, mills, yAvg, yMax, yMin;
@@ -286,24 +291,17 @@ function drawGraph() {
 	window.low = window.chartSummary.low,
 	window.yRatio = window.rect.height / (high - window.low);
 	
-	//strokeMax.set("stroke", window.color);
-	//strokeMax.set("stroke-width", 2);
-	//strokeMax.set("fill", "none");
 	strokeAvg.set("stroke", "#fff");
 	strokeAvg.set("stroke-width", 3);
 	strokeAvg.set("fill", "none");
-	////strokeMin.set("stroke", window.color);
-	//strokeMin.set("fill", "none");
-	//strokeMin.set("stroke-width", 2);
 	
 	fillMax.set("fill", window.color);
 	
 	fillMin.set("class", "fill_min")
 	
-	//strokeMax.beginPath();
 	fillMax.beginPath();
 	strokeAvg.beginPath();
-	//strokeMin.beginPath();
+	
 	fillMin.beginPath();
 	
 	for (var i=0, _i=blocks.length; i<_i; i++) {
