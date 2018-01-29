@@ -518,7 +518,8 @@ document.getElementById("realtime").onclick = function () {
 		top.realtime[window.resource][window.index].focus();
 	}
 	else {
-		top.realtime[window.resource][window.index] = window.open("realtime.html?resource="+ window.resource +"&index="+ window.index, "_blank", "width=600, height=300, resizable=yes", false);
+		top.realtime[window.resource][window.index]
+			= window.open("realtime.html?resource="+ window.resource +"&index="+ window.index, "_blank", "width=600, height=300, resizable=yes", false);
 	}
 };
 

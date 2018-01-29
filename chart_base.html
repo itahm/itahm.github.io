@@ -64,10 +64,6 @@ path.detail {
 	fill: none;
 }
 
-path.fill_min {
-	fill: #4d525a;
-}
-
 #axis_left text {
 	text-anchor: end;
 }
@@ -128,10 +124,6 @@ nav input[type="checkbox"]:checked ~img.lock {
 @media print {
 	text {
 		fill: #000;
-	}
-	
-	path.fill_min {
-		fill: #fff;
 	}
 }
 
@@ -281,8 +273,8 @@ function drawGraph() {
 		return;
 	}
 	
-	var fillMax = new ITAhM.Path(window.graph),
-		fillMin = new ITAhM.Path(window.graph),
+	
+	var fill = new Test(),
 		strokeAvg = new ITAhM.Path(window.graph),
 		high = window.chartSummary.high,
 		blocks = window.chartSummary.keys,
@@ -295,14 +287,9 @@ function drawGraph() {
 	strokeAvg.set("stroke-width", 3);
 	strokeAvg.set("fill", "none");
 	
-	fillMax.set("fill", window.color);
+	fill.fill = window.color;
 	
-	fillMin.set("class", "fill_min")
-	
-	fillMax.beginPath();
 	strokeAvg.beginPath();
-	
-	fillMin.beginPath();
 	
 	for (var i=0, _i=blocks.length; i<_i; i++) {
 		dateArray = blocks[i];
@@ -316,12 +303,8 @@ function drawGraph() {
 		yMax = (y.max - window.low) * window.yRatio;
 		yMin = (y.min - window.low) * window.yRatio;
 		
-		fillMax.moveTo(x, 0);
-		fillMax.lineTo(x, yMax);
-		
-		fillMin.moveTo(x, 0);
-		fillMin.lineTo(x, yMin);
-		
+		fill.initialize(x, yMax, yMin);
+				
 		strokeAvg.moveTo(x, yAvg);
 		
 		for (var j=1,_j=dateArray.length; j<_j; j++) {
@@ -332,40 +315,60 @@ function drawGraph() {
 			
 			strokeAvg.lineTo(x, yAvg);
 			
-			fillMax.lineTo(x, yMax);
-			fillMin.lineTo(x, yMin);
-			
 			yMax = (y.max - window.low) * window.yRatio;
 			yMin = (y.min - window.low) * window.yRatio;
 			yAvg = (y.avg - window.low) * window.yRatio;
 			
 			strokeAvg.lineTo(x, yAvg);
 			
-			fillMax.lineTo(x, yMax);
-			fillMin.lineTo(x, yMin);
+			fill.add(x, yMax, yMin);
 		}
 		
 		date = new Date(mills);
 	
 		x = (date.setHours(date.getHours() +1) - window.start) / window.tpp;
 		
-		fillMax.lineTo(x, yMax);
-		fillMin.lineTo(x, yMin);
-		
 		strokeAvg.lineTo(x, yAvg);
 		
-		fillMax.lineTo(x, 0);
-		fillMin.lineTo(x, 0);
-		
-		fillMax.closePath();
-		fillMin.closePath();
-		
-		fillMax.draw();
-		fillMin.draw();
+		this.graph.appendChild(fill.draw(x, yMin));
 		
 		strokeAvg.draw();
 	}
 }
+
+function Test(x, max, min) {
+	this.initialize(x, max, min);
+}
+
+Test.prototype = {
+	initialize: function (x, fY, bY) {
+		this.o = [x, fY];
+		this.f = [];
+		this.b = [["V", bY, "H", x].join("")];
+	},
+	add: function (x, fY, bY) {
+		this.f[this.f.length] = ["H", x, "V", fY].join("");
+		this.b[this.b.length] = ["V", bY, "H", x].join("");
+	},
+	draw: function (x, y) {
+		const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+		
+		this.b.reverse();
+		
+		path.setAttribute("d", 
+			["M", this.o.join(" ")].join("")
+			+ this.f.join("")
+			+ ["H", x].join("")
+			+ ["V", y].join("")
+			+ this.b.join("") +"z");
+		
+		if (this.fill) {
+			path.setAttribute("fill", this.fill);
+		}
+		
+		return path;
+	}
+};
 
 function drawDateAxis() {
 	var text, date, h, pY, pM, pD;
@@ -534,7 +537,7 @@ function afterPrint() {
 function onValueToString(value) {
 	return value;
 }
-		
+
 		</script>
 	</head>
 	
@@ -542,7 +545,8 @@ function onValueToString(value) {
 		<svg id="chart">
 			<g transform="translate(0, 0)" id="group">
 		        <g transform="translate(0, 0)" id="axis_date" />
-		        <g transform="translate(0, 0) scale(1 -1)" id="graph" />
+		        <g transform="translate(0, 0) scale(1 -1)" id="graph">
+		        </g>
 		        <g transform="translate(0, 0)" id="axis_left" />
 				<g transform="translate(0, 0)" id="axis_right" />
 		        <g transform="translate(0, 0)" id="grid" />

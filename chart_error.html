@@ -76,6 +76,10 @@ h3.output {
 	color: #f60;
 }
 
+body.server #view {
+	display: none;
+}
+
 @media print {
 	nav {
 		display: none;
@@ -310,6 +314,12 @@ document.getElementById("view").onchange = function () {
 	document.body.classList[this.value]("row");
 }
 
+/**
+ * initialize
+ */
+if (top.origin === "server") {
+	document.body.classList.add("server");
+}
 		</script>
 	
 	</body>

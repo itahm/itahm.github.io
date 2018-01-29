@@ -155,6 +155,11 @@ body:not(.dialog) form {
 	display: none;
 }
 
+body.server #view,
+body.server #edit {
+	display: none;
+}
+
 @media print {
 	nav {
 		display: none;
@@ -438,6 +443,9 @@ var chartIn = document.getElementById("chart_in"),
 	form = document.querySelector("form"),
 	detail;
 
+/**
+ * event
+ */
 form.onsubmit = function (e) {
 	e.preventDefault();
 	
@@ -472,6 +480,12 @@ document.getElementById("edit").onclick = function () {
 	document.getElementById("speed").focus();
 }
 
+/**
+ * initialize
+ */
+if (top.origin === "server") {
+	document.body.classList.add("server");
+}
 		</script>
 	
 	</body>
