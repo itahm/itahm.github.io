@@ -42,14 +42,15 @@ article section:last-child {
 }
 
 section {
-	padding: 5px;
+	padding: 5px; margin: 5px;
 	border: 3px solid #0084ff;
 	border-radius: 5px;
-	margin: 5px;
+	background-color: #424242;
 }
 
 section:hover:not(.information) {
-	background-color: #777;
+	border-color: #ddd;
+	border-style: dotted;
 	cursor: pointer;
 }
 
@@ -182,11 +183,30 @@ ul {
 	margin: 0; padding: 0;
 }
 
-section.storage li,
-section.throughput li {
-	text-align: center;
-	padding: .5em; margin: 3px;
+section.response_time {
+	min-width: 250px;
+	min-height: 150px;
+}
+
+
+/*
+interface, storage 공통
+*/
+.item {
+	display: flex;
+	align-items: center;
+}
+
+.item >li,
+.title >li {
 	flex: 1;
+}
+
+.item >li {
+	padding: 3px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 
 .title {
@@ -194,80 +214,77 @@ section.throughput li {
 	margin-bottom: 3px;
 }
 
-.title.storage .usage {
-	flex: 2;
-}
-
-.title li {
+.title >li {
+	flex: 1;
 	font-weight: bold;
+	padding: 0.5em;
+	text-align: center;
 }
 
-section.storage .bar {
+.item >li.bar {
 	position: relative;
-	border: 3px solid #ddd;
-	border-radius: 1em;
-	overflow: hidden;
-	box-sizing: border-box;
 }
 
-section.storage .color {
-	position: absolute; top: 0; left: 0;
-	width: 0; height: 100%;
+.item >li >svg {
+	display: block;
+	border: 3px solid #0f0;
+	overflow: hidden;
+	width: 100%; height: 2em; box-sizing: border-box;
+}
+
+.item >li >svg >rect {
+	fill: #0f0;
+	fill-opacity: 0.6;
 	transition: width .5s ease-out;
 }
 
-section.response_time {
-	min-width: 250px;
-	min-height: 150px;
+.item >li.bar::after {
+	content: attr(data-value);
+	position: absolute; top: 50%; left: 50%;
+	transform: translateX(-50%) translateY(-50%);
 }
 
-.i_face.item {
-	display: flex;
-}
-
-.i_face.item> li {
-	text-align: center;
-	padding: .5em; margin: 3px;
-	flex: 1;
-	overflow: hidden;
-}
-
-.item li {
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-}
-
+/*
+interface
+*/
 .i_face.item li:last-child {
 	display: flex;
 }
 
-.i_face.item li:first-child {
+.i_face.item >li:first-child {
 	flex: .2;
+	position: relative;
+	overflow: visible;
 }
 
 .i_face.item:not(.no_select) li:last-child:hover {
 	background-color: #555;
 }
 
-.i_face.item li:last-child div{
+.i_face.item >li:last-child div{
 	flex: 1;
 }
 
-.i_face.item li:first-child::after {
-	content: url("img/ball_green.png");
+.i_face.item >li:first-child::after {
+	content: "";
+	position: absolute; top: 50%; left: 50%;
+	display: inline-block;
+	width: 1em; height: 1em;
+	border-radius: 50%;
+	transform: translateX(-50%) translateY(-50%);
+	background-color: #0f0;
 }
 
 .i_face.item.shutdown li:first-child::after {
-	content: url("img/ball_orange.png"); 
+	background-color: #f00; 
+}
+
+.i_face.item.disabled li:first-child::after {
+	background-color: #ddd; 
 }
 
 .i_face.item.disabled {
 	color: #aaa;
-}
-
-.i_face.item.disabled li:first-child::after {
-	content: url("img/ball_gray.png"); 
 }
 
 .title.throughput li:nth-child(1),
@@ -280,27 +297,47 @@ section.response_time {
 	flex: 2;
 }
 
-.title li {
-	font-weight: bold;
+#i_face .bar.red >svg {
+	border-color: #f00;
 }
 
-#i_face .bar {
-	position: relative;
-	border: 3px solid #ddd;
-	border-radius: 1em;
-	box-sizing: border-box;
+#i_face .bar.red >svg >rect {
+	fill: #f00;
 }
 
-#i_face .bar::after {
-	content: attr(data-value);
-	position: absolute; top: 50%; left: 50%;
-	transform: translateX(-50%) translateY(-50%);
+#i_face .bar.orange >svg {
+	border-color: #ffa500;
 }
 
-#i_face .color {
-	position: absolute; top: 0; left: 0;
-	height: 100%;
-	transition: width .5s ease-out;
+#i_face .bar.orange rect {
+	fill: #ffa500;
+}
+
+/*
+storage
+*/
+.storage.title >li {
+	flex: 1;
+}
+
+.storage.title >li.usage {
+	flex: 2;
+}
+
+.storage.item.red >li >svg {
+	border-color: #f00;
+}
+
+.storage.item.red >li >svg >rect {
+	fill: #f00;
+}
+
+.storage.item.orange >li >svg {
+	border-color: #ffa500;
+}
+
+.storage.item.orange >li >svg >rect {
+	fill: #ffa500;
 }
 
 /**/
@@ -315,20 +352,12 @@ section.response_time {
 	cursor: pointer;
 }
 
-.i_face.item,
-.storage.item,
 .title {
 	display: flex;
 }
 
 section.response_time {
 	display: flex; flex-direction: column;
-}
-
-.storage.item .bar::after {
-	content: attr(data-value);
-	position: absolute; top: 50%; left: 50%;
-	transform: translateX(-50%) translateY(-50%);
 }
 
 #response {
@@ -503,7 +532,19 @@ function createProcGauge(value) {
 
 function createStorageGuage(used, size, label) {
 	var clone = storageGauge.cloneNode(true),
-		usage = (100* used / size).toFixed(2) +"%";;
+		usage = (100* used / size).toFixed(2);
+	
+	if (usage > 90) {
+		clone.classList.add("red");
+	}
+	else if (usage > 70) {
+		clone.classList.add("orange");
+	}
+	else {
+		clone.classList.add("green");
+	}
+	
+	usage = usage +"%";
 	
 	clone.children[0].textContent = label;
 	clone.children[1].textContent = ITAhM.util.toBytesString(size);
@@ -511,15 +552,18 @@ function createStorageGuage(used, size, label) {
 	clone.children[3].dataset.value = usage;
 	
 	setTimeout(function () {
-		clone.children[3].children[0].style.width = usage;
+		clone.children[3].children[0].children[0].style.width = usage;
 	}, 500);
 	
 	return clone;
 }
 	
 function createIFaceGuage(admin, oper, index, name, descr, alias, bandwidth, inBPS, outBPS, inErr, outErr) {
-	var clone = iFaceGauge.cloneNode(true),
-		usageIn, usageOut;
+	const clone = iFaceGauge.cloneNode(true),
+		barIn = clone.children[6],
+		barOut = clone.children[7];
+	
+	let usageIn, usageOut;
 	
 	if (admin != 1) {
 		clone.classList.add("disabled");
@@ -531,22 +575,39 @@ function createIFaceGuage(admin, oper, index, name, descr, alias, bandwidth, inB
 	usageIn = 100* inBPS / bandwidth;
 	usageOut = 100* outBPS / bandwidth;
 	
-	usageIn = (isNaN(usageIn)? 0: usageIn).toFixed(2) +"%";
-	usageOut = (isNaN(usageOut)? 0: usageOut).toFixed(2) +"%";
+	usageIn = (isNaN(usageIn)? 0: usageIn).toFixed(2);
+	usageOut = (isNaN(usageOut)? 0: usageOut).toFixed(2);
+	
+	if (usageIn > 90) {
+		barIn.classList.add("red");
+	}
+	else if (usageIn > 70) {
+		barIn.classList.add("orange");
+	}
+	
+	if (usageOut > 90) {
+		barOut.classList.add("red");
+	}
+	else if (usageOut > 70) {
+		barOut.classList.add("orange");
+	}
+	
+	usageIn = usageIn +"%";
+	usageOut = usageOut +"%";
 	
 	clone.children[1].textContent = name;
 	clone.children[2].textContent = alias;
 	clone.children[3].textContent = ITAhM.util.toBPSString(bandwidth);
 	clone.children[4].textContent = ITAhM.util.toBPSString(inBPS);
 	clone.children[5].textContent = ITAhM.util.toBPSString(outBPS);		
-	clone.children[6].dataset.value = usageIn; 
-	clone.children[7].dataset.value = usageOut;
+	barIn.dataset.value = usageIn; 
+	barOut.dataset.value = usageOut;
 	clone.children[8].children[0].textContent = Math.round(inErr /10);
 	clone.children[8].children[1].textContent = Math.round(outErr /10);
 	
 	setTimeout(function () {
-		clone.children[6].children[0].style.width = usageIn;
-		clone.children[7].children[0].style.width = usageOut;
+		barIn.children[0].children[0].style.width = usageIn;
+		barOut.children[0].children[0].style.width = usageOut;
 	}, 500);
 	
 	clone.title = descr;
@@ -789,7 +850,7 @@ function onSelectResource(resource, index) {
 				</ul>
 			</section>
 			
-			<section class="process">
+			<section class="process information">
 				<h2>프로세스</h2>
 				<div id="process"></div>
 			</section>
@@ -830,9 +891,9 @@ function onSelectResource(resource, index) {
 		<article>
 			
 			<section class="storage">
-				<h2>스토리지 사용</h2>
+				<h2>스토리지</h2>
 				<div>
-					<ul class="storage title">
+					<ul class="title storage">
 						<li>이름
 						<li>크기
 						<li class="usage">사용
@@ -918,7 +979,9 @@ function onSelectResource(resource, index) {
 				<li>
 				<li>
 				<li class="bar">
-					<img src="img/dot_gray.png" class="color">
+					<svg>
+						<rect height="100%" width="0" />
+					</svg>
 			</ul>		
 	
 			<ul class="i_face item">
@@ -929,9 +992,13 @@ function onSelectResource(resource, index) {
 				<li>
 				<li>
 				<li class="bar">
-					<img src="img/dot_green.png" width="0" height="0" class="color">
+					<svg>
+						<rect height="100%" width="0" />
+					</svg>
 				<li class="bar">
-					<img src="img/dot_orange.png" width="0" height="0" class="color">
+					<svg>
+						<rect height="100%" width="0" />
+					</svg>
 				<li>
 					<div></div>
 					<div></div>
@@ -955,7 +1022,7 @@ function onSelectResource(resource, index) {
 		memoryArea = document.getElementById("memory"),
 		interfaceArea = document.getElementById("i_face"),
 		gauge = document.querySelector(".gauge"),
-		processorGauge = document.querySelector(".processor_item"),
+		/*processorGauge = document.querySelector(".processor_item"),*/
 		storageGauge = document.querySelector(".storage.item"),
 		iFaceGauge = document.querySelector(".i_face.item");
 	
