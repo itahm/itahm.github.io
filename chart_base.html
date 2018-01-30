@@ -19,6 +19,17 @@ body {
 	height: 100%;
 }
 
+#graph >path:first-child {
+	stroke-width: 4px;
+	fill-opacity: 0.5;
+}
+
+#graph >path:nth-child(2) {
+	stroke-width: 3px;
+	fill: none;
+	stroke: #fff;
+}
+
 .balloon {
 	position: absolute;
 	padding: 5px;
@@ -274,7 +285,7 @@ function drawGraph() {
 	}
 	
 	
-	var fill = new Test(),
+	var area = new Test(),
 		strokeAvg = new ITAhM.Path(window.graph),
 		high = window.chartSummary.high,
 		blocks = window.chartSummary.keys,
@@ -283,11 +294,7 @@ function drawGraph() {
 	window.low = window.chartSummary.low,
 	window.yRatio = window.rect.height / (high - window.low);
 	
-	strokeAvg.set("stroke", "#fff");
-	strokeAvg.set("stroke-width", 3);
-	strokeAvg.set("fill", "none");
-	
-	fill.fill = window.color;
+	area.color = window.color;
 	
 	strokeAvg.beginPath();
 	
@@ -303,7 +310,7 @@ function drawGraph() {
 		yMax = (y.max - window.low) * window.yRatio;
 		yMin = (y.min - window.low) * window.yRatio;
 		
-		fill.initialize(x, yMax, yMin);
+		area.initialize(x, yMax, yMin);
 				
 		strokeAvg.moveTo(x, yAvg);
 		
@@ -321,7 +328,7 @@ function drawGraph() {
 			
 			strokeAvg.lineTo(x, yAvg);
 			
-			fill.add(x, yMax, yMin);
+			area.add(x, yMax, yMin);
 		}
 		
 		date = new Date(mills);
@@ -330,7 +337,7 @@ function drawGraph() {
 		
 		strokeAvg.lineTo(x, yAvg);
 		
-		this.graph.appendChild(fill.draw(x, yMin));
+		this.graph.appendChild(area.draw(x, yMin));
 		
 		strokeAvg.draw();
 	}
@@ -362,8 +369,9 @@ Test.prototype = {
 			+ ["V", y].join("")
 			+ this.b.join("") +"z");
 		
-		if (this.fill) {
-			path.setAttribute("fill", this.fill);
+		if (this.color) {
+			path.setAttribute("fill", this.color);
+			path.setAttribute("stroke", this.color);
 		}
 		
 		return path;
@@ -545,8 +553,7 @@ function onValueToString(value) {
 		<svg id="chart">
 			<g transform="translate(0, 0)" id="group">
 		        <g transform="translate(0, 0)" id="axis_date" />
-		        <g transform="translate(0, 0) scale(1 -1)" id="graph">
-		        </g>
+		        <g transform="translate(0, 0) scale(1 -1)" id="graph" />
 		        <g transform="translate(0, 0)" id="axis_left" />
 				<g transform="translate(0, 0)" id="axis_right" />
 		        <g transform="translate(0, 0)" id="grid" />
