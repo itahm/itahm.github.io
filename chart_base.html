@@ -19,12 +19,12 @@ body {
 	height: 100%;
 }
 
-#graph >path:first-child {
+#graph >path {
 	stroke-width: 4px;
 	fill-opacity: 0.5;
 }
 
-#graph >path:nth-child(2) {
+#graph >path.line {
 	stroke-width: 3px;
 	fill: none;
 	stroke: #fff;
@@ -66,12 +66,6 @@ text {
 #grid path {
 	stroke: #ddd;
 	stroke-width: .5;
-	fill: none;
-}
-
-path.detail {
-	stroke: #fff;
-	stroke-width: 1;
 	fill: none;
 }
 
@@ -296,6 +290,8 @@ function drawGraph() {
 	
 	area.color = window.color;
 	
+	strokeAvg.set("class", "line");
+	
 	strokeAvg.beginPath();
 	
 	for (var i=0, _i=blocks.length; i<_i; i++) {
@@ -487,7 +483,7 @@ function drawDetail() {
 	var path = new ITAhM.Path(window.graph),
 		mills, y;
 	
-	path.set("class", "detail");
+	path.set("class", "line");
 	path.beginPath();
 	
 	mills = window.detailKeys[0];
