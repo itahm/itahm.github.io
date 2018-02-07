@@ -37,10 +37,6 @@ nav img {
 	cursor: pointer;
 }
 
-article section:last-child {
-	flex: 1;
-}
-
 section {
 	padding: 5px; margin: 5px;
 	border: 3px solid #0084ff;
@@ -48,7 +44,7 @@ section {
 	background-color: #424242;
 }
 
-section:hover:not(.information) {
+section:hover:not(.readonly) {
 	border-color: #ddd;
 	border-style: dotted;
 	cursor: pointer;
@@ -183,11 +179,26 @@ ul {
 	margin: 0; padding: 0;
 }
 
+section {
+	white-space: nowrap;
+	flex: 1 1 0;
+	text-align: center;
+}
+
 section.response_time {
-	min-width: 250px;
+	display: flex; flex-direction: column;
+	flex: 1 1 200px;
 	min-height: 150px;
 }
 
+section.memory {
+	flex: 1 1 200px;
+	text-align: center;
+}
+
+div.tbody {
+	text-align: initial;
+}
 
 /*
 interface, storage 공통
@@ -356,10 +367,6 @@ storage
 	display: flex;
 }
 
-section.response_time {
-	display: flex; flex-direction: column;
-}
-
 #response {
 	position: relative;
 	flex: 1;
@@ -478,6 +485,7 @@ div.frame >div >iframe {
 	border-radius: 50%;
 	position: relative;
 	overflow: hidden;
+	display: inline-block;
 }
 
 #process::after {
@@ -827,7 +835,7 @@ function onSelectResource(resource, index) {
 		
 		<article>
 		
-			<section class="information">
+			<section class="information readonly">
 				<ul>
 					<li>장비명
 					<li id="sys_name">
@@ -850,7 +858,7 @@ function onSelectResource(resource, index) {
 				</ul>
 			</section>
 			
-			<section class="process information">
+			<section class="process readonly">
 				<h2>프로세스</h2>
 				<div id="process"></div>
 			</section>
@@ -898,7 +906,7 @@ function onSelectResource(resource, index) {
 						<li>크기
 						<li class="usage">사용
 					</ul>
-					<div id="storage">
+					<div id="storage" class="tbody">
 					</div>
 				</div>
 			</section>
@@ -938,7 +946,7 @@ function onSelectResource(resource, index) {
 								<span>수신</span>
 							</div>
 					</ul>
-					<div id="i_face">
+					<div id="i_face"  class="tbody">
 					</div>
 				</div>
 			</section>

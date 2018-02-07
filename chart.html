@@ -87,7 +87,7 @@ footer .dot::after {
 	border-radius: 50%;
 }
 
-footer #selector {
+.selector {
 	overflow: hidden;
 }
 
@@ -96,24 +96,48 @@ footer #selector {
 	text-anchor: start;
 }
 
-#area {
+#move {
 	position: absolute;	top: 0; right: 0; bottom: 0; left: 0;
-	border : double #999;
-	border-width: 0 5px;
-	background-color: #777;
+	background-color: #424242;
+	cursor: move;
+	border: 2px ridge #ddd;
+	transition: left 0.3s, right 0.3s;
+}
+
+#prev, #next {
+	position: absolute;	top: 0; bottom: 0;
+}
+
+#prev {
+	left: 0; width: 5px;
+	cursor: e-resize;
+}
+
+#next {
+	right: 0; width: 5px;
+	cursor: e-resize;
+}
+
+#move::before,
+#move::after {
+	position: absolute;
+	white-space: nowrap;
+	pointer-events: none;
+}
+
+#move::before {
+	content: attr(data-start);
+	top: 0; left: 0;
+}
+
+#move::after {
+	content: attr(data-end);
+	right: 0; bottom: 0;
 }
 
 footer .label {
 	position: absolute;
 	white-space: nowrap;
-}
-
-#area span:first-child {
-	top: 0; right: 0;
-}
-
-#area span:last-child {
-	bottom: 0; left: 0;
 }
 
 #start {
@@ -190,7 +214,7 @@ body:not(.set) .popup {
 		<script>
 		
 function resize() {
-	window.sRect = selector.getBoundingClientRect();
+	window.sRect = window.selector.getBoundingClientRect();
 	window.blockWidth =  window.sRect.width / (window.dayCount -1);
 	
 	resetArea();
@@ -227,28 +251,18 @@ function initialize() {
 }
 
 function onSelectStart(e) {
-	var target = e.detail.target;
+	var rect = window.move.getBoundingClientRect();
 	
-	if (target != window.area) {
-		return;
-	}
-	
-	var rect = window.area.getBoundingClientRect();
-	
-	window.target = e.detail.target;
-	window.isDragging = true;
 	window.left = rect.left - window.sRect.left;
 	window.right = window.sRect.width - rect.width - window.left;
 }
 
 function onSelect(e) {
-	if (!window.isDragging) {
-		return;
-	}
+	var event = e.detail;
 	
-	switch(window.move) {
-	case "left":
-		var x = window.left + e.detail.dragX;
+	switch(event.target) {
+	case window.prev:
+		var x = window.left + event.dragX;
 		
 		if (x < 0) {
 			return;
@@ -258,8 +272,8 @@ function onSelect(e) {
 		
 		break;
 		
-	case "right":
-		var x = window.right - e.detail.dragX;
+	case window.next:
+		var x = window.right - event.dragX;
 		
 		if (x < 0) {
 			return;
@@ -269,54 +283,23 @@ function onSelect(e) {
 		
 		break;
 	
-	case "area":
-		var x1 = window.left + e.detail.dragX,
-			x2 = window.right - e.detail.dragX;
+	case window.move:
+		var x1 = window.left + event.dragX,
+			x2 = window.right - event.dragX;
 		
 		if (x1 < 0 || x2 < 0) {
 			return;
 		}
-		
+			
 		onChange(x1, x2);
 		
 		break;
 	}
 }
 
-function onSelectEnd(e) {
-	window.isDragging = false;
-	window.target = undefined;
-}
-
-function onMove(e) {
-	if (window.isDragging) {
-		return;
-	}
-	
-	var rect = area.getBoundingClientRect(),
-		x = e.clientX - rect.left;
-	
-	if (x < MARGINS) {
-		window.move = "left";
-		window.area.style.cursor = 'ew-resize';
-	}
-	else if (rect.width - x < MARGINS) {
-		window.move = "right";
-		window.area.style.cursor = 'ew-resize';
-	}
-	else {
-		window.move = "area";
-		area.style.cursor = 'move';
-	}
-}
-
 function onChange(left, right) {
 	var leftPos = Math.round(left / window.blockWidth),
 		rightPos = Math.round((window.sRect.width - right) / window.blockWidth);
-	
-	if (isNaN(leftPos) || isNaN(rightPos)) {
-		throw "NaN";
-	}
 	
 	if (leftPos >= rightPos) {
 		return;
@@ -335,11 +318,11 @@ function onChange(left, right) {
 }
 
 function resetArea() {
-	window.area.style.left = window.leftPos * blockWidth + "px";
-	window.area.style.right = (window.dayCount -1 - window.rightPos) * blockWidth + "px";
+	window.move.style.left = window.leftPos * blockWidth + "px";
+	window.move.style.right = (window.dayCount -1 - window.rightPos) * blockWidth + "px";
 	
-	window.areaStartDate.title = getDateText(window.dateList[window.leftPos]);
-	window.areaEndDate.title = getDateText(window.dateList[window.rightPos]);
+	window.move.dataset.start = getDateText(window.dateList[window.leftPos]);
+	window.move.dataset.end = getDateText(window.dateList[window.rightPos]);
 }
 
 function reload(from, to) {
@@ -424,10 +407,10 @@ function clear(e) {
 				<span class="label" id="start"></span>
 				<span class="label" id="end"></span>
 			</div>
-			<div id="selector">
-				<div id="area">
-					<span class="label"></span>
-					<span class="label"></span>
+			<div class="selector">
+				<div id="move">
+					<div id="prev"></div>
+					<div id="next"></div>
 				</div>
 			</div>
 		</footer>
@@ -473,15 +456,14 @@ var svg = document.querySelector("svg"),
 	base = document.getElementById("base"),
 	dot = document.querySelector(".dot"),
 	footer = document.querySelector("footer"),
-	area = document.querySelector(".area"),
 	grid = document.getElementById("grid"),
-	left, right, dayCount, blockWidth, sRect,
-	selector = document.getElementById("selector"),
-	area = document.getElementById("area"),
+	selector = document.querySelector(".selector"),
+	prev = document.getElementById("prev"),
+	move = document.getElementById("move"),
+	next = document.getElementById("next"),
 	startDate = document.getElementById("start"),
 	endDate = document.getElementById("end"),
-	areaEndDate = document.querySelector("#area>:first-child"),
-	areaStartDate = document.querySelector("#area>:last-child");
+	left, right, dayCount, blockWidth, sRect;
 
 (function (date) {
 	date.setHours(0, 0, 0, 0);
@@ -531,10 +513,8 @@ window.addEventListener("resize", function () {
 	window.resizeTimer = setTimeout(resize, 300);
 });
 
-selector.addEventListener("mousemove", onMove);
-selector.addEventListener("dragon", onSelectStart);
-selector.addEventListener("drag", onSelect);
-selector.addEventListener("dragoff", onSelectEnd);
+window.selector.addEventListener("dragon", onSelectStart);
+window.selector.addEventListener("drag", onSelect);
 
 window.chart.onload = function () {
 	window.chartWindow.initialize(window.start, window.end, window.today, window.end);
