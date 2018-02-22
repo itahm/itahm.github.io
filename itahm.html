@@ -399,58 +399,48 @@ function notice(status, message) {
 		thread.onmessage = function (e) {
 			var event = e.data;
 			
-			if (event) {
-				switch (event.type) {
-				case "initialize":
-					initialize(event.value);
-					
-					break;
-					
-				case "event":
-					var eventData = event.value;
-					
-					window.logCount++;
-					
-					window.count.textContent = window.logCount > 9? "9+": window.logCount;
-					window.log.textContent = getDeviceName(eventData.ip) +" "+ eventData.message;
-					
-					if (!eventData.status) {
-						window.sound.play();
-					}
-					
-					document.body.classList.add("log");
-					
-					sendRequest({
-							command: "pull",
-							database: "monitor"
-						}
-						, function (data) {
-							window.databases.monitor = data;
-							
-							try {
-								document.getElementById("frame").contentWindow.onEvent(eventData.ip);
-							} catch(e) {}
-						});
-					
-					break;
-					
-				case "error":
-					alert("Agent is not responding.");
-					
-					window.onbeforeunload = undefined;
-					
-					location.href = "connect.html";
-					
-					break;
-				}
-			}
-			else {
-				window.onbeforeunload = undefined;
-			
-				alert("에이전트가 올바르게 응답하지 않습니다.\n\n"
-						+"에이전트의 버전을 확인하십시오.");
+			switch (event.type) {
+			case "initialize":
+				initialize(event.value);
 				
-				//location.href = "/";
+				break;
+				
+			case "event":
+				var eventData = event.value;
+				
+				window.logCount++;
+				
+				window.count.textContent = window.logCount > 9? "9+": window.logCount;
+				window.log.textContent = getDeviceName(eventData.ip) +" "+ eventData.message;
+				
+				if (!eventData.status) {
+					window.sound.play();
+				}
+				
+				document.body.classList.add("log");
+				
+				sendRequest({
+						command: "pull",
+						database: "monitor"
+					}
+					, function (data) {
+						window.databases.monitor = data;
+						
+						try {
+							document.getElementById("frame").contentWindow.onEvent(eventData.ip);
+						} catch(e) {}
+					});
+				
+				break;
+				
+			case "error":
+				alert("Agent is not responding.\nstatus: "+ event.status);
+				
+				window.onbeforeunload = undefined;
+				
+				location.href = "connect.html";
+				
+				break;
 			}
 		};
 		

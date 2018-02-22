@@ -469,11 +469,10 @@ div.frame >header span:hover {
 
 div.frame >div {
 	flex: 1;
-	display: flex;
 }
 
 div.frame >div >iframe {
-	width: 100%;
+	width: 100%; height: 100%;
 	border: none;
 }
 
@@ -531,9 +530,11 @@ function createProcGauge(value) {
 	
 	circularBar.dataset.value = value +"%";
 	
-	setTimeout(function () {
+	setTimeout(function() {
 		circularBar.children[0].childNodes[1].childNodes[3].setAttribute("stroke-dashoffset", 2* Math.PI*(1 - value /100)*45);
 	}, 500);
+	
+	circularBar.classList.add("test");
 	
 	return circularBar;
 }
@@ -560,7 +561,7 @@ function createStorageGuage(used, size, label) {
 	clone.children[3].dataset.value = usage;
 	
 	setTimeout(function () {
-		clone.children[3].children[0].children[0].style.width = usage;
+		clone.children[3].children[0].querySelector("rect").setAttribute("width", usage);
 	}, 500);
 	
 	return clone;
@@ -614,8 +615,8 @@ function createIFaceGuage(admin, oper, index, name, descr, alias, bandwidth, inB
 	clone.children[8].children[1].textContent = Math.round(outErr /10);
 	
 	setTimeout(function () {
-		barIn.children[0].children[0].style.width = usageIn;
-		barOut.children[0].children[0].style.width = usageOut;
+		barIn.children[0].querySelector("rect").setAttribute("width", usageIn);
+		barOut.children[0].querySelector("rect").setAttribute("width", usageOut);
 	}, 500);
 	
 	clone.title = descr;
@@ -1012,68 +1013,69 @@ function onSelectResource(resource, index) {
 					<div></div>
 			</ul>
 		</div>
-	</body>
 	
-	<script src="js/ITAhM.js"></script>
-	<script src="js/snmp.js"></script>
-	<script>
+		<script src="js/ITAhM.js"></script>
+		<script src="js/snmp.js"></script>
+		<script>
 	
-	var origin = "status",
-		sendRequest = opener.top.sendRequest,
-		showDialog = opener.top.showDialog,
-		databases = opener.top.databases,
-		realtime = {},
-		ip = window.location.search.substring(1),
-		device = opener.top.databases.device[ip],
-		processorArea = document.getElementById("processor"),
-		storageArea = document.getElementById("storage"),
-		memoryArea = document.getElementById("memory"),
-		interfaceArea = document.getElementById("i_face"),
-		gauge = document.querySelector(".gauge"),
-		/*processorGauge = document.querySelector(".processor_item"),*/
-		storageGauge = document.querySelector(".storage.item"),
-		iFaceGauge = document.querySelector(".i_face.item");
-	
-	window.onunload = function () {
-		for (var resource in realtime) {
-			for (var index in realtime[resource]) {
-				realtime[resource][index].close();
-			}
+var origin = "status",
+	sendRequest = opener.top.sendRequest,
+	showDialog = opener.top.showDialog,
+	databases = opener.top.databases,
+	realtime = {},
+	ip = window.location.search.substring(1),
+	device = opener.top.databases.device[ip],
+	processorArea = document.getElementById("processor"),
+	storageArea = document.getElementById("storage"),
+	memoryArea = document.getElementById("memory"),
+	interfaceArea = document.getElementById("i_face"),
+	gauge = document.querySelector(".gauge"),
+	/*processorGauge = document.querySelector(".processor_item"),*/
+	storageGauge = document.querySelector(".storage.item"),
+	iFaceGauge = document.querySelector(".i_face.item");
+
+window.onunload = function () {
+	for (var resource in realtime) {
+		for (var index in realtime[resource]) {
+			realtime[resource][index].close();
 		}
-	};
-	
-	document.querySelector(".response_time").onclick = function () {
-		onSelectResource("responseTime");
-	};
-	
-	document.getElementById("realtime_response").onload = function () {
-		this.contentWindow.initialize(window.ip);
-	};
-	
-	document.getElementById("filter").onclick = function () {
-		document.body.classList[this.checked? "add": "remove"]("filter");
-	};
-	
-	document.getElementById("print").onclick = function () {
-		window.print();	
-	};
-	
-	document.getElementById("refresh").onclick = function () {
-		window.location.reload();	
-	};
-	
-	document.querySelector(".frame span").onclick = function () {
-		document.body.classList.remove("frame");;
 	}
+};
+
+document.querySelector(".response_time").onclick = function () {
+	onSelectResource("responseTime");
+};
+
+document.getElementById("realtime_response").onload = function () {
+	this.contentWindow.initialize(window.ip);
+};
+
+document.getElementById("filter").onclick = function () {
+	document.body.classList[this.checked? "add": "remove"]("filter");
+};
+
+document.getElementById("print").onclick = function () {
+	window.print();	
+};
+
+document.getElementById("refresh").onclick = function () {
+	window.location.reload();	
+};
+
+document.querySelector(".frame span").onclick = function () {
+	document.body.classList.remove("frame");;
+}
+
+sendRequest({
+	command: "select",
+	ip: window.ip	
+}, function (snmp) {
+	window.snmp = snmp;
 	
-	sendRequest({
-		command: "select",
-		ip: window.ip	
-	}, function (snmp) {
-		window.snmp = snmp;
-		
-		initialize();
-	});
+	initialize();
+});
 	
-	</script>
+		</script>
+	
+	</body>
 </html>

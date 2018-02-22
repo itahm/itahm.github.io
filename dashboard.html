@@ -57,6 +57,7 @@ article {
 	user-select: none;
 	animation-duration: .5s;
 	animation-timing-function:  cubic-bezier(.9, .1, .9, .1);
+	overflow: hidden;
 }
 
 svg {
@@ -384,10 +385,6 @@ body.name .list_item> li:nth-child(2) {
 	border-radius: 3px;
 }
 
-.frame {
-	flex: 1;
-}
-	
 .layout {
 	display: none;
 }
@@ -624,7 +621,7 @@ function initialize() {
 	
 	initMap();
 	
-	document.body.classList.remove("loading");
+	removeClass(document.body, "loading");
 	
 	window.setInterval(update, 10000);
 }
@@ -642,7 +639,7 @@ function createTopList(resource) {
 }
 
 function update() {
-	document.body.classList.remove("update");
+	removeClass(document.body, "update");
 	
 	top.sendRequest({
 		command: "extra",
@@ -977,6 +974,51 @@ function toTimeString(mills) {
 	return (hh > 9? "": "0") + hh +":"+ (mm > 9? "": "0") + mm +":"+ (ss > 9? "": "0") + ss;
 }
 
+
+function addClass(e, className) {
+	var cls = e.getAttribute("class"),
+		classList = cls? cls.split(" "): [];
+	
+	for (var i=1, _i=arguments.length; i<_i; i++) {
+		if (classList.indexOf(className) === -1) {
+			classList.push(className);
+		}
+	}
+	
+	e.setAttribute("class", classList.join(" "));
+}
+
+function removeClass(e, className) {
+	var cls = e.getAttribute("class"),
+		classList = cls? cls.split(" "): [],
+		index;
+	
+	for (var i=1; i<arguments.length; i++) {
+		className = arguments[i];
+		
+		index = classList.indexOf(className);
+		
+		if (index !== -1) {
+			classList.splice(index, 1);
+		}
+	}
+	
+	e.setAttribute("class", classList.join(" "));
+}
+
+function hasClass(e, className) {
+	var cls = e.getAttribute("class"),
+		classList = cls? cls.split(" "): [];
+	
+	for (var i=1; i<arguments.length; i++) {
+		if (classList.indexOf(arguments[i]) == -1) {
+			return false;
+		}
+	}
+	
+	return true;
+}
+
 // public
 function onEvent(ip) {
 	window.location.reload();
@@ -1109,25 +1151,24 @@ var summaryList = document.getElementById("summary_list"),
 	};
 
 if ("display" in top.databases.config) {
-	document.body.classList[top.databases.config.display == "name"? "add": "remove"]("name");
+	window[top.databases.config.display == "name"? "addClass": "removeClass"](document.body, "name");
 }
 
 (function () {
-	var svgNS = "http://www.w3.org/2000/svg",
+	const svgNS = "http://www.w3.org/2000/svg",
 		xlinkNS = "http://www.w3.org/1999/xlink",
 		ICON_SIZE = 40,
 		OFFSET_C = ICON_SIZE * Math.sin(Math.PI /4),
-		OFFSET_R = OFFSET_C - ICON_SIZE /2;
-	
-	var mapCanvas = document.getElementById("map"),
+		OFFSET_R = OFFSET_C - ICON_SIZE /2,
+		mapCanvas = document.getElementById("map"),
 		deviceCanvas = document.getElementById("device"),
 		lineCanvas = document.getElementById("line"),
 		transform = document.getElementById("transform").transform.baseVal,
 		fragment = document.createDocumentFragment(),
 		linkData = {},
-		svgData = {},
-		checked = {},
-		scale = 1,
+		svgData = {};
+	
+	var scale = 1,
 		isDragging = false,
 		delay;
 	
@@ -1138,7 +1179,7 @@ if ("display" in top.databases.config) {
 	mapCanvas.addEventListener("dragoff", onDragEnd);
 	
 	if ("display" in top.databases.config) {
-		mapCanvas.classList[top.databases.config.display == "name"? "add": "remove"]("name");
+		window[top.databases.config.display == "name"? "addClass": "removeClass"](mapCanvas, "name");
 	}
 	
 	mapCanvas.addEventListener("wheel", function (e) {
@@ -1323,50 +1364,6 @@ if ("display" in top.databases.config) {
 		return hasClass(svgDevice, "device")? svgDevice: null;
 	}
 
-	function addClass(e, className) {
-		var cls = e.getAttribute("class"),
-			classList = cls? cls.split(" "): [];
-		
-		for (var i=1, _i=arguments.length; i<_i; i++) {
-			if (classList.indexOf(className) === -1) {
-				classList.push(className);
-			}
-		}
-		
-		e.setAttribute("class", classList.join(" "));
-	}
-
-	function removeClass(e, className) {
-		var cls = e.getAttribute("class"),
-			classList = cls? cls.split(" "): [],
-			index;
-		
-		for (var i=1; i<arguments.length; i++) {
-			className = arguments[i];
-			
-			index = classList.indexOf(className);
-			
-			if (index !== -1) {
-				classList.splice(index, 1);
-			}
-		}
-		
-		e.setAttribute("class", classList.join(" "));
-	}
-
-	function hasClass(e, className) {
-		var cls = e.getAttribute("class"),
-			classList = cls? cls.split(" "): [];
-		
-		for (var i=1; i<arguments.length; i++) {
-			if (classList.indexOf(arguments[i]) == -1) {
-				return false;
-			}
-		}
-		
-		return true;
-	}
-
 	function moveDevice(ip, x, y) {
 		var device = top.databases.device[ip],
 			pos = top.databases.position[ip],
@@ -1519,7 +1516,7 @@ if ("display" in top.databases.config) {
 	}
 	
 	function displayIFName(show) {
-		document.body.classList[show? "add": "remove"]("ifname");
+		window[show? "addClass": "removeClass"](window.body, "ifname");
 	}
 
 	function getIcon(type) {

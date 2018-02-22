@@ -229,14 +229,21 @@ function getValueAsDate(e) {
 	return date;
 }
 
+function forOf(a, f) {
+	for (let i=0, _i=a.length; i<_i; i++) {
+		f(a[i]);
+	}
+	
+}
+
 function onScrap() {
 	window.ip = window.device.dataset.ip;
 	
-	for (const checkbox of window.resources.querySelectorAll("input[type=checkbox]")) {
+	forOf(window.resources.querySelectorAll("input[type=checkbox]"), function (checkbox) {
 		if(checkbox.checked && checkbox.dataset.resource) {
 			createChart(checkbox.dataset.resource, checkbox.dataset.index);
 		}
-	}
+	});
 	
 	closeDialog();
 }
@@ -268,9 +275,9 @@ function resetDialog() {
 	clear(window.throughput);
 	clear(window.error);
 	
-	for (const checkbox of window.resources.querySelectorAll("input[type=checkbox]")) {
+	forOf(window.resources.querySelectorAll("input[type=checkbox]"), function (checkbox) {
 		checkbox.checked = false;
-	};
+	});
 	
 	window.resources.className = "";
 }
@@ -300,17 +307,17 @@ function onSuccess(snmp) {
 	
 	window.resources.classList.add("rt");
 	
-	for (const index in snmp.hrProcessorEntry) {
+	for (let index in snmp.hrProcessorEntry) {
 		window.resources.classList.add("pl");
 		
 		break;
 	}
 	
-	for (const index in snmp.hrStorageEntry) {
+	for (let index in snmp.hrStorageEntry) {
 		parseStorage(index, snmp.hrStorageEntry);
 	}
 	
-	for (const index in snmp.ifEntry) {
+	for (let index in snmp.ifEntry) {
 		parseInterface(index, snmp.ifEntry);
 	}
 	
@@ -363,11 +370,11 @@ function createRscItem(text, resource, index, descr) {
 }
 
 function onCheckAll(e) {
-	var checked = e.currentTarget.checked;
+	const checked = e.currentTarget.checked;
 	
-	for (const checkbox of this.querySelectorAll("input")) {
+	forOf(this.querySelectorAll("input"), function (checkbox) {
 		checkbox.checked = checked;
-	}
+	});
 }
 
 function clear(e) {
@@ -431,7 +438,7 @@ function setEvent(section) {
 	
 	<div class="dialog">
 		<form id="dialog">
-			<span id="close">&#10006</span>
+			<span id="close">&#10006;</span>
 			<h3 id="device">IP Address</h3>
 			<div class="selector">
 				<input type="text" name="ip" placeholder="A.B.C.D" required value="127.0.0.1" class="padding">
@@ -483,18 +490,6 @@ function setEvent(section) {
  		error = document.querySelector("#resources>div.ie>div:last-child"),
  		sendRequest = opener.top.sendRequest,
  		devivce;
-/*
-	for (const div of document.querySelectorAll("section")) {
-		setDraggable(div);
-	}
-
-	
-	for (const div of document.querySelectorAll("div")) {
-		div.style.backgroundColor = window.color[window.i++];
-		
-		setDraggable(div);
-	}
-	*/
 	
 	/**
 	event

@@ -47,7 +47,10 @@ function onComplete(database) {
 		}
 	}
 	else {
-		postMessage(null);
+		postMessage({
+			type: "error",
+			status: this.status
+		});
 		
 		close();
 	}
@@ -69,6 +72,7 @@ function onError(e) {
 
 	postMessage({
 		type: "error",
+		status: 0
 	});
 }
 
