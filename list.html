@@ -303,7 +303,7 @@ function initList() {
 			continue;
 		}
 		
-		df.appendChild(createRow(deviceData[ip], monitorData[ip], criticalData[ip]));
+		df.appendChild(createRow(deviceData[ip], monitorData[ip]));
 	}
 	
 	// ie는 ParentNode interface의 properties를 지원하지 않음.
@@ -315,7 +315,7 @@ function initList() {
 	document.body.classList.remove("loading");
 }
 
-function createRow(device, monitor, set) {
+function createRow(device, monitor) {
 	var row = document.createElement("ul"),
 		type, labels, label;
 	
@@ -376,29 +376,31 @@ function createRow(device, monitor, set) {
 	return row;
 }
 
-function onSelectDevice(device) {
-	var monitor = top.databases.monitor[device.ip];
-
+function selectDevice(row, ip, monitor) {
 	if (window.selected) {
 		window.selected.classList.remove("selected");
 	}
 	
-	window.selected = this;
-	window.selectedIP = device.ip;
-	
-	this.classList.add("selected");
-	
-	window.action.className = "selected";
-	
-	if (monitor) {
-		if (monitor.protocol === "snmp") {
+	if (row && ip) {
+		window.selected = row;
+		window.selectedIP = ip;
+		
+		window.action.className = "selected";
+		
+		if (monitor && monitor.protocol === "snmp") {
 			window.action.classList.add("snmp");
-			
-			if (top.databases.critical[device.ip]) {
-				window.action.classList.add("set");
-			}
 		}
+		
+		row.classList.add("selected");
 	}
+	else {
+		window.selected = undefined;
+		window.action.className = "";
+	}
+}
+
+function onSelectDevice(device) {
+	selectDevice(this, device.ip, top.databases.monitor[device.ip]);	
 }
 
 function initLabel() {
@@ -416,34 +418,6 @@ function initLabel() {
 	window.label.insertBefore(df, window.label.firstChild);
 }
 
-function onSearch(e) {
-	e.preventDefault();
-	
-	search();
-}
-
-function onReset(e) {
-	e.preventDefault();
-	
-	this.elements["keyword"].value = "";
-	
-	selectLabel(window.label.value);
-}
-
-function onChangeLabel(e) {
-	form.elements["keyword"].value = "";
-	
-	selectLabel(window.label.value);
-}
-
-function search() {
-	document.body.classList.add("loading");
-
-	filterDeviceList(form.elements["keyword"].value);
-	
-	document.body.classList.remove("loading");
-}
-
 function clearDeviceList() {
 	var df = document.createDocumentFragment(),
 		row;
@@ -455,7 +429,31 @@ function clearDeviceList() {
 	return df;
 }
 
-function filterDeviceList(keyword) {
+function onReset(e) {
+	e.preventDefault();
+	
+	changeLabel();
+}
+
+function onChangeLabel(e) {
+	changeLabel();
+}
+
+function changeLabel() {
+	form.elements["keyword"].value = "";
+	
+	selectLabel(window.label.value);
+}
+
+// 선택 초기화 (키워드로 필터링)
+function onSearch(e) {
+	e.preventDefault();
+	
+	document.body.classList.add("loading");
+
+	selectDevice();
+	
+	const keyword = form.elements["keyword"].value;
 	var row = clearDeviceList().firstChild,
 		next, cols,
 		df = document.createDocumentFragment(),
@@ -484,11 +482,16 @@ function filterDeviceList(keyword) {
 	document.getElementById("count").textContent = count;
 	
 	list.appendChild(df);
+
+	document.body.classList.remove("loading");
 }
 
+// 선택 초기화 (라벨별로 필터링)
 function selectLabel(label) {
 	let df = document.createDocumentFragment(),
 		count = 0;
+	
+	selectDevice();
 	
 	for (var ip in window.deviceMapping) {
 		df.appendChild(window.deviceMapping[ip]);
@@ -513,7 +516,10 @@ function selectLabel(label) {
 	list.appendChild(df);
 }
 
+// 선택 초기화 (상태별로 필터링)
 function onSelectStatus (src, className) {
+	selectDevice();
+	
 	document.body.classList.remove("normal", "critical", "shutdown", "disabled");
 	
 	if (className) {
