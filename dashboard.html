@@ -309,8 +309,6 @@ body.name .list_item> li:nth-child(2) {
 
 .list_item> li:last-child::after {
 	content: attr(data-value);
-	/*display: inline-block;
-	animation: flow 1s;*/
 }
 
 .list_item> li:last-child >div {
@@ -449,7 +447,7 @@ body.name .list_item> li:nth-child(2) {
 	background: linear-gradient(to bottom, rgba(232,232,232,1), rgba(255,255,255,0));
 }
 
-.ball::after {
+.ball.ready::after {
 	content: attr(data-value);
 }
 
@@ -479,7 +477,7 @@ body.name .list_item> li:nth-child(2) {
 	4% {
 		top: 40%;
 		height: 50%;
-		animtion-timing-function: ease-out;
+		animation-timing-function: ease-out;
 	}
 	5% {
 		top: 45%;
@@ -623,7 +621,7 @@ function initialize() {
 	
 	removeClass(document.body, "loading");
 	
-	window.setInterval(update, 10000);
+	window.setInterval(update, 5000);
 }
 
 function createTopList(resource) {
@@ -641,23 +639,17 @@ function createTopList(resource) {
 function update() {
 	removeClass(document.body, "update");
 	
-	top.sendRequest({
-		command: "extra",
-		extra: "top",
-		ip: "127.0.0.1"
-	}, function (response) {
-		var list;
-		
-		for (var resource in window.topList) {
-			list = window.topList[resource];
-			
-			if (resource in response) {
-				setTop(response[resource], list, window.resources[resource]);
-			}
-		}
+	let list;
 	
-		document.body.classList.add("update");
-	});
+	for (var resource in window.topList) {
+		list = window.topList[resource];
+		
+		if (resource in top.topList) {
+			setTop(top.topList[resource], list, window.resources[resource]);
+		}
+	}
+
+	document.body.classList.add("update");
 	
 	initStats();
 }
@@ -724,6 +716,10 @@ function initStats() {
 	window.critical.dataset.value = critical;
 	window.normal.dataset.value = normal;
 	
+	window.alert.classList.add("ready");
+	window.critical.classList.add("ready");
+	window.normal.classList.add("ready");
+	
 	var labels = Object.keys(labelData).sort(function (a, b) {
 		return a > b? 1: -1;
 	});
@@ -782,15 +778,15 @@ function createStatusItem(label, critical, alert, normal, sum) {
 	
 	li = ul.appendChild(document.createElement("li"));
 	li.dataset.value = alert;
-	li.className = "ball red";
+	li.className = "ball red ready";
 	
 	li = ul.appendChild(document.createElement("li"));
 	li.dataset.value = critical;
-	li.className = "ball orange";
+	li.className = "ball orange ready";
 	
 	li = ul.appendChild(document.createElement("li"));
 	li.dataset.value = normal;
-	li.className = "ball green";
+	li.className = "ball green ready";
 	
 	ul.className = "summary";
 	
@@ -1149,6 +1145,10 @@ var summaryList = document.getElementById("summary_list"),
 			skipZero: true
 		}
 	};
+/*
+if (navigator.appVersion.indexOf("Trident") !== -1) {
+	document.body.classList.add("ie");
+}*/
 
 if ("display" in top.databases.config) {
 	window[top.databases.config.display == "name"? "addClass": "removeClass"](document.body, "name");

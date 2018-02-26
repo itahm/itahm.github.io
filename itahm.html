@@ -242,110 +242,6 @@ function reload() {
 	location.reload();
 }
 
-function initialize(databases) {
-	window.databases = databases;
-	
-	databases.local.scale = 1;
-	
-	databases.local.icon = ITAhM.iconData;
-	// TODO ITAhM의 시작.
-	document.title = sessionStorage.host +" @ ITAhM";
-	
-	document.getElementById("frame").src = "dashboard.html";
-	
-	if (databases.config.menu) {
-		document.body.classList.remove("auto");
-	}
-	
-	var group;
-	for (var id in databases.device) {
-		group = databases.device[id];
-		
-		if (!group.group) {
-			continue;
-		}
-		
-		if (!("id" in group)) {
-			group.id = id;
-		}
-	}
-}
-
-	</script>
-	</head>
-	
-	<body class="auto">
-		
-		<div class="handle"></div>
-		
-		<header>
-			<nav class="content_width">
-				<ul>
-					<li><h1><a href="dashboard.html" target="main">대쉬보드</a></h1>
-					<li><h1><a href="list.html" target="main">장비목록</a></h1>
-					<li><h1><a href="map.html" target="main">구성도</a></h1>
-					<li><h1><a href="event.html" target="main">이벤트</a></h1>
-					<li><h1><a id="scrap">스크랩</a></h1>
-				</ul>
-				<ul>
-					<li><a id="signout"></a>
-					<li><a href="setting.html" target="main">설정</a>
-					<li><a href="icon.html" target="main">아이콘</a>
-					<li><a id="reload">재시작</a>
-				</ul>
-			</nav>
-		</header>
-		
-		<section>
-			<iframe id="frame" name="main"></iframe>
-		</section>
-		
-		<div class="log">
-			<span id="count">99</span>
-			<span id="log">message</span>
-		</div>
-		
-		<iframe id="dialog"></iframe>
-		
-		<script src="js/ITAhM.js"></script>
-		<script src="js/object.js"></script>
-		<script src="js/icon.js"></script>
-		<script>
-var count = document.getElementById("count"),
-	dialog = document.getElementById("dialog"),
-	log = document.getElementById("log"),
-	chart = {},
-	sound = new Audio("siren.mp3"),
-	logCount = 0;
-
-window.onbeforeunload = function () {
-	return "close ITAhM.";
-};
-
-window.onunload = function () {
-	for (var ip in window.chart) {
-		window.chart[ip].close();
-	}
-};
-
-document.getElementById("reload").onclick = reload;
-
-document.querySelector('div[class="log"]').onclick = function() {
-	document.getElementById("frame").src = "event.html";
-};
-
-document.getElementById("signout").onclick = function () {
-	if (confirm("로그아웃 하겠습니까?")) {
-		sendRequest({
-				command: "signout"
-			}, function () {
-				window.onbeforeunload = undefined;
-				
-				location.href = "connect.html";
-			});
-	}
-};
-
 function notice(status, message) {
 	message = "\n"+ (message || "");
 
@@ -375,86 +271,240 @@ function notice(status, message) {
 	}
 }
 
-(function (window, undefined){
+function initialize() {
+	// TODO ITAhM의 시작.
+	document.title = sessionStorage.host +" @ ITAhM";
+	document.getElementById("signout").title = sessionStorage.user;
 	
-	if (sessionStorage.host && sessionStorage.port) {
-		var xhr = new ITAhM.Communicator(sessionStorage.host, sessionStorage.port);
+	if (databases.config.menu) {
+		document.body.classList.remove("auto");
+	}
+	
+	// old 버전 호환
+	var group;
+	for (var id in databases.device) {
+		group = databases.device[id];
 		
-		window.sendRequest = function (request, onResponse, custom) {
-			xhr.sendRequest(request, function (status, response) {		
-				if (status === 200) {
-					onResponse(response);
-				}
-				else if (custom) {
-					custom(status, notice);
-				}
-				else {
-					notice(status, response.error);
-				}
-			});
+		if (!group.group) {
+			continue;
 		}
 		
-		var thread = new Worker("initialize.js");
-		
-		thread.onmessage = function (e) {
-			var event = e.data;
-			
-			switch (event.type) {
-			case "initialize":
-				initialize(event.value);
-				
-				break;
-				
-			case "event":
-				var eventData = event.value;
-				
-				window.logCount++;
-				
-				window.count.textContent = window.logCount > 9? "9+": window.logCount;
-				window.log.textContent = getDeviceName(eventData.ip) +" "+ eventData.message;
-				
-				if (!eventData.status) {
-					window.sound.play();
-				}
-				
-				document.body.classList.add("log");
-				
-				sendRequest({
-						command: "pull",
-						database: "monitor"
-					}
-					, function (data) {
-						window.databases.monitor = data;
-						
-						try {
-							document.getElementById("frame").contentWindow.onEvent(eventData.ip);
-						} catch(e) {}
-					});
-				
-				break;
-				
-			case "error":
-				alert("Agent is not responding.\nstatus: "+ event.status);
-				
+		if (!("id" in group)) {
+			group.id = id;
+		}
+	}
+	
+	update();
+	
+	listen();
+}
+
+function onSignOut() {
+	if (confirm("로그아웃 하겠습니까?")) {
+		sendRequest({
+				command: "signout"
+			}, function () {
 				window.onbeforeunload = undefined;
 				
 				location.href = "connect.html";
-				
-				break;
-			}
-		};
+			});
+	}
+};
+
+function onClearChart() {
+	for (var ip in window.chart) {
+		window.chart[ip].close();
+	}
+};
+
+function update() {
+	sendRequest({
+		command: "extra",
+		extra: "top",
+		ip: "127.0.0.1"
+	}, function (response) {
+		var topList = window.topList;
 		
-		document.getElementById("signout").title = sessionStorage.getItem("user");
+		window.topList = response;
 		
-		thread.postMessage("http://"+sessionStorage.host +":"+ sessionStorage.port);
+		if (!topList) {
+			document.getElementById("frame").src = "dashboard.html";
+		}
+		
+		setTimeout(update, 1000);
+	});
+}
+
+function onInitResponse(table, q) {
+	if (this.status == 200) {
+		window.databases[table] = JSON.parse(this.responseText);
+		
+		table = q.pop();
+		
+		if (table) {
+			sendInitRequest(table, q);
+		}
+		else {
+			initialize();
+		}
 	}
 	else {
-		location.href = "/";
+		alert("데이터베이스를 초기화 할 수 없습니다.\n상태: "+ this.status);
+		
+		window.onbeforeunload = undefined;
+		
+		location.href = "connect.html";
+	}
+}
+
+function sendInitRequest(table, q) {
+	const xhr = new XMLHttpRequest();
+	
+	xhr.open("POST", window.agent, true);
+	xhr.withCredentials = true;
+	xhr.onloadend = onInitResponse.bind(xhr, table, q);
+	xhr.send(JSON.stringify({
+		command: "pull",
+		database: table
+	}));
+}
+
+function onEvent() {
+	if (this.status !== 200) {
+		return;
 	}
 	
-}) (window);
+	const event = JSON.parse(this.responseText);
+	
+	window.listener.index = parseInt(event.index) +1;
+	
+	window.logCount++;
+	
+	window.count.textContent = window.logCount > 9? "9+": window.logCount;
+	window.log.textContent = getDeviceName(event.ip) +" "+ event.message;
+	
+	if (!event.status) {
+		window.sound.play();
+	}
+	
+	document.body.classList.add("log");
+	
+	sendRequest({
+		command: "pull",
+		database: "monitor"
+	}, function (data) {
+		window.databases.monitor = data;
+		
+		try {
+			document.getElementById("frame").contentWindow.onEvent(eventData.ip);
+		} catch(e) {}
+	});
+}
 
-document.getElementById("scrap").onclick = window.open.bind(window, "scrap.html");
+function listen() {
+	var xhr = new XMLHttpRequest();
+
+	xhr.open("POST", window.agent, true);
+	xhr.withCredentials = true;
+	
+	xhr.onload = onEvent;
+	xhr.onloadend = listen;
+	
+	xhr.send(JSON.stringify(window.listener));
+}
+
+	</script>
+	</head>
+	
+	<body class="auto">
+		
+		<div class="handle"></div>
+		
+		<header>
+			<nav class="content_width">
+				<ul>
+					<li><h1><a href="dashboard.html" target="main">대쉬보드</a></h1>
+					<li><h1><a href="list.html" target="main">장비목록</a></h1>
+					<li><h1><a href="map.html" target="main">구성도</a></h1>
+					<li><h1><a href="event.html" target="main">이벤트</a></h1>
+					<li><h1><a href="scrap.html" target="about:blank">스크랩</a></h1>
+					<li><h1><a href="status.html?127.0.0.1" target="about:blank">Test</a></h1>
+				</ul>
+				<ul>
+					<li><a id="signout"></a>
+					<li><a href="setting.html" target="main">설정</a>
+					<li><a href="icon.html" target="main">아이콘</a>
+					<li><a id="reload">재시작</a>
+				</ul>
+			</nav>
+		</header>
+		
+		<section>
+			<iframe id="frame" name="main"></iframe>
+		</section>
+		
+		<div class="log">
+			<a href="event.html" target="main">
+				<span id="count">99</span>
+				<span id="log">message</span>
+			</a>
+		</div>
+		
+		<iframe id="dialog"></iframe>
+		
+		<script src="js/ITAhM.js"></script>
+		<script src="js/object.js"></script>
+		<script src="js/icon.js"></script>
+		<script>
+
+if (!sessionStorage.host || !sessionStorage.port) {
+	window.location.href = "/";
+}
+
+var
+	agent = "http://"+sessionStorage.host +":"+ sessionStorage.port,
+	databases = {
+		local: {
+			scale: 1,
+			icon: ITAhM.iconData
+		}
+	},
+	listener = {
+		command: "listen"
+	},
+	count = document.getElementById("count"),
+	dialog = document.getElementById("dialog"),
+	log = document.getElementById("log"),
+	chart = {},
+	sound = new Audio("siren.mp3"),
+	logCount = 0;
+
+window.onbeforeunload = function () {
+	return "close ITAhM.";
+};
+
+window.onunload = onClearChart;
+
+document.getElementById("reload").onclick = reload;
+document.getElementById("signout").onclick = onSignOut;
+	
+window.sendRequest = function (request, onResponse, custom) {
+	new ITAhM.Communicator(sessionStorage.host, sessionStorage.port)
+		.sendRequest(request, function (status, response) {		
+			if (status === 200) {
+				onResponse(response);
+			}
+			else if (custom) {
+				custom(status, notice);
+			}
+			else {
+				notice(status, response && response.error);
+			}
+		});
+}
+
+sendInitRequest("config", ["gcm", "sms", , "icon", "profile", "account", "device", "position", "monitor", "critical"]);
+
 		</script>
 	
 	</body>

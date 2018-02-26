@@ -31,6 +31,7 @@ h2 {
 
 nav {
 	position: absolute; top: 1em; right: 1em;
+	display: none;
 }
 
 nav img {
@@ -104,15 +105,6 @@ div.memory.orange rect.bar {
 
 div.memory.red rect.bar {
 	fill: #f00;
-}
-
-@keyframes bar {
-	0% {
-		transform: scale(1, 0);
-	}
-	100% {
-		transform: scale(1, 1);
-	}
 }
 
 .processor_item {
@@ -206,6 +198,7 @@ interface, storage 공통
 .item {
 	display: flex;
 	align-items: center;
+	margin: 3px 0;
 }
 
 .item >li,
@@ -220,6 +213,35 @@ interface, storage 공통
 	white-space: nowrap;
 }
 
+.item >li.bar {
+	border: 3px solid #0f0;
+	padding: 0;
+	box-sizing: border-box;
+	position: relative;
+}
+
+.item >li.bar >div {
+	display: block;
+	height: 2em;
+	background: linear-gradient(to right, rgba(0, 255, 0, 0.5), #0f0);
+}
+
+.item.red >li {
+	border-color: #f00;
+}
+
+.item.red >li >div {
+	background: linear-gradient(to right, rgba(255, 0, 0, 0.5), #f00);
+}
+
+.item.orange >li {
+	border-color: #ffa500;
+}
+
+.item.orange >li >div {
+	background: linear-gradient(to right, rgba(255, 165, 0, 0.5), #ffa500);
+}
+
 .title {
 	border-bottom: 1px solid #ddd;
 	margin-bottom: 3px;
@@ -232,29 +254,16 @@ interface, storage 공통
 	text-align: center;
 }
 
-.item >li.bar {
-	position: relative;
-}
-
-.item >li >svg {
-	display: block;
-	border: 3px solid #0f0;
-	overflow: hidden;
-	width: 100%; height: 2em; box-sizing: border-box;
-}
-
-.item >li >svg >rect {
-	fill: #0f0;
-	fill-opacity: 0.6;
-	transition: width .5s ease-out;
-}
-
 .item >li.bar::after {
 	content: attr(data-value);
 	position: absolute; top: 50%; left: 50%;
 	transform: translateX(-50%) translateY(-50%);
 }
 
+.item.ready >li.bar >div {
+	animation: hbar 1s;
+	transform-origin: left;
+}
 /*
 interface
 */
@@ -308,22 +317,6 @@ interface
 	flex: 2;
 }
 
-#i_face .bar.red >svg {
-	border-color: #f00;
-}
-
-#i_face .bar.red >svg >rect {
-	fill: #f00;
-}
-
-#i_face .bar.orange >svg {
-	border-color: #ffa500;
-}
-
-#i_face .bar.orange rect {
-	fill: #ffa500;
-}
-
 /*
 storage
 */
@@ -333,22 +326,6 @@ storage
 
 .storage.title >li.usage {
 	flex: 2;
-}
-
-.storage.item.red >li >svg {
-	border-color: #f00;
-}
-
-.storage.item.red >li >svg >rect {
-	fill: #f00;
-}
-
-.storage.item.orange >li >svg {
-	border-color: #ffa500;
-}
-
-.storage.item.orange >li >svg >rect {
-	fill: #ffa500;
 }
 
 /**/
@@ -511,6 +488,23 @@ body.frame article {
 	display: none;
 }
 
+@keyframes bar {
+	0% {
+		transform: scale(1, 0);
+	}
+	100% {
+		transform: scale(1, 1);
+	}
+}
+
+@keyframes hbar {
+	0% {
+		transform: scale(0, 1);
+	}
+	100% {
+		transform: scale(1, 1);
+	}
+}
 		</style>
 		
 		<script>
@@ -534,7 +528,7 @@ function createProcGauge(value) {
 		circularBar.children[0].childNodes[1].childNodes[3].setAttribute("stroke-dashoffset", 2* Math.PI*(1 - value /100)*45);
 	}, 500);
 	
-	circularBar.classList.add("test");
+	circularBar.classList.add("ready");
 	
 	return circularBar;
 }
@@ -560,9 +554,9 @@ function createStorageGuage(used, size, label) {
 	clone.children[2].textContent = ITAhM.util.toBytesString(used);
 	clone.children[3].dataset.value = usage;
 	
-	setTimeout(function () {
-		clone.children[3].children[0].querySelector("rect").setAttribute("width", usage);
-	}, 500);
+	clone.children[3].children[0].style.width = usage;
+	
+	clone.classList.add("ready");
 	
 	return clone;
 }
@@ -614,10 +608,8 @@ function createIFaceGuage(admin, oper, index, name, descr, alias, bandwidth, inB
 	clone.children[8].children[0].textContent = Math.round(inErr /10);
 	clone.children[8].children[1].textContent = Math.round(outErr /10);
 	
-	setTimeout(function () {
-		barIn.children[0].querySelector("rect").setAttribute("width", usageIn);
-		barOut.children[0].querySelector("rect").setAttribute("width", usageOut);
-	}, 500);
+	barIn.children[0].style.width = usageIn;
+	barOut.children[0].style.width = usageOut;
 	
 	clone.title = descr;
 	
@@ -633,6 +625,8 @@ function createIFaceGuage(admin, oper, index, name, descr, alias, bandwidth, inB
 	else {
 		clone.classList.add("no_select");
 	}
+	
+	clone.classList.add("ready");
 	
 	return clone;
 }
@@ -988,9 +982,7 @@ function onSelectResource(resource, index) {
 				<li>
 				<li>
 				<li class="bar">
-					<svg>
-						<rect height="100%" width="0" />
-					</svg>
+					<div></div>
 			</ul>		
 	
 			<ul class="i_face item">
@@ -1001,13 +993,9 @@ function onSelectResource(resource, index) {
 				<li>
 				<li>
 				<li class="bar">
-					<svg>
-						<rect height="100%" width="0" />
-					</svg>
+					<div></div>
 				<li class="bar">
-					<svg>
-						<rect height="100%" width="0" />
-					</svg>
+					<div></div>
 				<li>
 					<div></div>
 					<div></div>

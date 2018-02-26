@@ -164,7 +164,7 @@ function buildDetailFile() {
 		row = ["index,date,storage usage(bytes)"];
 	
 	for (var i=0, _i=detailKeys.length, j=0, mills; i<_i; i++, j++) {
-		mills = block[i];
+		mills = detailKeys[i];
 		
 		row[row.length] = [j, ITAhM.util.toDateTimeString(new Date(mills)), detailData.get(mills)].join(",");
 	}
