@@ -427,7 +427,7 @@ function onReset(e) {
 	
 	this.elements["keyword"].value = "";
 	
-	search();
+	selectLabel(window.label.value);
 }
 
 function onChangeLabel(e) {
@@ -438,8 +438,6 @@ function onChangeLabel(e) {
 
 function search() {
 	document.body.classList.add("loading");
-	// search 결과를 초기화 하기 위해
-	selectLabel(window.label.value);
 
 	filterDeviceList(form.elements["keyword"].value);
 	
@@ -463,6 +461,8 @@ function filterDeviceList(keyword) {
 		df = document.createDocumentFragment(),
 		device;
 	
+	let count = 0;
+	
 	while (row) {
 		next = row.nextSibling;
 		
@@ -472,6 +472,8 @@ function filterDeviceList(keyword) {
 			if (cols[i].textContent.indexOf(keyword) !== -1) {
 				df.appendChild(row);
 				
+				count++;
+				
 				break;
 			}
 		}
@@ -479,30 +481,34 @@ function filterDeviceList(keyword) {
 		row = next;
 	}
 	
-	document.getElementById("count").textContent = df.children.length;
+	document.getElementById("count").textContent = count;
 	
 	list.appendChild(df);
 }
 
 function selectLabel(label) {
-	var df = document.createDocumentFragment();
+	let df = document.createDocumentFragment(),
+		count = 0;
 	
 	for (var ip in window.deviceMapping) {
 		df.appendChild(window.deviceMapping[ip]);
+		
+		count++;
 	}
 	
 	if (window.label.selectedIndex < window.label.options.length -1) {
-		var condition = window.label.selectedIndex === window.label.options.length -2? "[data-unlabeled]": ("."+ label),
+		let condition = window.label.selectedIndex === window.label.options.length -2? "[data-unlabeled]": ("."+ label),
 			rows = [].slice.call(df.querySelectorAll(condition), 0);
 			
 		df = document.createDocumentFragment();
+		count = rows.length;
 		
-		for (var i=0, length=rows.length; i<length; i++) {
+		for (var i=0; i<count; i++) {
 			df.appendChild(rows[i]);
 		}
 	}
 	
-	document.getElementById("count").textContent = df.children.length;
+	document.getElementById("count").textContent = count;
 	
 	list.appendChild(df);
 }
