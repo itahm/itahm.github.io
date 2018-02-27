@@ -647,7 +647,7 @@ function createIFaceGuage(admin, oper, index, name, descr, alias, bandwidth, inB
 	return clone;
 }
 
-function initialize() {console.log("!");
+function initialize() {
 	var entry;
 	
 	document.title = (function (sysName) {
@@ -714,28 +714,28 @@ function initialize() {console.log("!");
 		
 		return text + s;
 	})(window.snmp.lastResponse);
-	console.log(1);
+	
 	if (databases.monitor[window.ip].shutdown || window.snmp.failure === 100) {
 		document.body.classList.add("shutdown");
 	}
 	else {
 		document.getElementById("realtime_response").src = "realtime_response.html"
 	}
-	console.log(2);
+	
 	entry = window.snmp.hrProcessorEntry;
 	for (var index in entry) {
 		initProcessor(entry[index]);
 	}
-	console.log(3);
+	
 	document.querySelector("section.processor").onclick = function () {
 		onSelectResource("processor");
 	};
-	console.log(4);
+	
 	entry = window.snmp.hrStorageEntry;
 	for (var index in entry) {
 		parseStorage(entry[index], index);
 	}
-	console.log(5);
+	
 	entry = window.snmp.ifEntry;
 	for (var index in entry) {
 		initIFace(entry[index], index);
@@ -747,7 +747,7 @@ function initialize() {console.log("!");
 		document.getElementById("process").dataset.value
 			= Object.keys(window.snmp.hrSWRunName).length;
 	}
-	console.log("?");
+	
 	document.body.classList.remove("loading");
 }
 
@@ -763,14 +763,14 @@ function parseStorage(storage, index) {
 		if (storage.hrStorageSize > 0) {
 			initStorage(storage, index);
 		}
-		console.log(8);
+		
 		break;
-	case 2:console.log(10);
+	case 2:
 		initMemory(storage);
 		document.querySelector("section.memory").onclick = function () {
 			onSelectResource("memory", index);
 		};
-		console.log(9);
+		
 		return true;
 	}
 	
@@ -983,10 +983,10 @@ function onSelectResource(resource, index) {
 			<div class="circular_bar" data-value="0%">
 				<svg>
 					<g transform = "translate(50, 50) rotate(-90)">
-						<circle class="bar" cx="0" cy="0" r="45" />
+						<circle class="bar" cx="0" cy="0" r="45"></circle>
 						<circle class="progress bar" cx="0" cy="0" r="45"
 							stroke-dasharray="282.74333882308139146163790449516"
-							stroke-dashoffset="282.74333882308139146163790449516" />
+							stroke-dashoffset="282.74333882308139146163790449516"></circle>
 					</g>
 				</svg>
 			</div>
