@@ -396,7 +396,7 @@ function onEvent() {
 		window.databases.monitor = data;
 		
 		try {
-			document.getElementById("frame").contentWindow.onEvent(eventData.ip);
+			document.getElementById("frame").contentWindow.onEvent(event.ip);
 		} catch(e) {}
 	});
 }
@@ -428,6 +428,7 @@ function listen() {
 					<li><h1><a href="map.html" target="main">구성도</a></h1>
 					<li><h1><a href="event.html" target="main">이벤트</a></h1>
 					<li><h1><a href="scrap.html" target="about:blank">스크랩</a></h1>
+					<li><h1><a href="status.html?127.0.0.1" target="about:blank">Test</a></h1>
 				</ul>
 				<ul>
 					<li><a id="signout"></a>
