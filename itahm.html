@@ -252,9 +252,14 @@ function notice(status, message) {
 		alert("세션이 만료되었습니다.");
 	
 		location.href = "connect.html";
+		
 		break;
 	case 409:
+		window.onbeforeunload = undefined;
+		
 		alert("다른 관리자 계정이 데이터베이스를 수정하였습니다."+ message);
+		
+		window.location.reload();
 		
 		break;
 	case 400:
@@ -311,28 +316,44 @@ function onSignOut() {
 	}
 };
 
-function onClearChart() {
+function onClose() {
 	for (var ip in window.chart) {
 		window.chart[ip].close();
 	}
+	
+	// listen 중인 세션이 종료되면서 onEvent notice 가 발생함
+	window.notice = function () {};
 };
 
-function update() {
-	sendRequest({
-		command: "extra",
-		extra: "top",
-		ip: "127.0.0.1"
-	}, function (response) {
-		var topList = window.topList;
+function onUpdate() {
+	if (this.status === 200) {
+		const topList = window.topList;
 		
-		window.topList = response;
+		window.topList = JSON.parse(this.responseText);
 		
 		if (!topList) {
 			document.getElementById("frame").src = "dashboard.html";
 		}
-		
-		setTimeout(update, 10000);
-	});
+	}
+	else {
+		notice(this.status);
+	}
+	
+	setTimeout(update, 10000);
+}
+
+function update() {
+	const xhr = new XMLHttpRequest();
+	
+	xhr.open("POST", window.agent, true);
+	xhr.withCredentials = true;
+	
+	xhr.onloadend = onUpdate;
+	
+	xhr.send(JSON.stringify({
+		command: "extra",
+		extra: "top"
+	}));
 }
 
 function onInitResponse(table, q) {
@@ -362,53 +383,61 @@ function sendInitRequest(table, q) {
 	
 	xhr.open("POST", window.agent, true);
 	xhr.withCredentials = true;
+	
 	xhr.onloadend = onInitResponse.bind(xhr, table, q);
+	
 	xhr.send(JSON.stringify({
 		command: "pull",
 		database: table
 	}));
 }
 
-function onEvent() {
-	if (this.status !== 200) {
-		return;
-	}
+function onEvent(e) {
+	e.stopPropagation();
 	
-	const event = JSON.parse(this.responseText);
-	
-	window.listener.index = parseInt(event.index) +1;
-	
-	window.logCount++;
-	
-	window.count.textContent = window.logCount > 9? "9+": window.logCount;
-	window.log.textContent = getDeviceName(event.ip) +" "+ event.message;
-	
-	if (!event.status) {
-		window.sound.play();
-	}
-	
-	document.body.classList.add("log");
-	
-	sendRequest({
-		command: "pull",
-		database: "monitor"
-	}, function (data) {
-		window.databases.monitor = data;
+	if (this.status === 200) {
+		const event = JSON.parse(this.responseText);
 		
-		try {
-			document.getElementById("frame").contentWindow.onEvent(event.ip);
-		} catch(e) {}
-	});
+		window.listener.index = parseInt(event.index) +1;
+		
+		window.logCount++;
+		
+		window.count.textContent = window.logCount > 9? "9+": window.logCount;
+		window.log.textContent = getDeviceName(event.ip) +" "+ event.message;
+		
+		if (!event.status) {
+			window.sound.play();
+		}
+		
+		document.body.classList.add("log");
+		
+		sendRequest({
+			command: "pull",
+			database: "monitor"
+		}, function (data) {
+			window.databases.monitor = data;
+			
+			try {
+				document.getElementById("frame").contentWindow.onEvent(event.ip);
+			} catch(e) {}
+		});
+		
+		listen();
+	}
+	else {
+		notice(this.status);
+		
+		setTimeout(listen, 3000);
+	}
 }
 
 function listen() {
-	var xhr = new XMLHttpRequest();
+	const xhr = new XMLHttpRequest();
 
 	xhr.open("POST", window.agent, true);
 	xhr.withCredentials = true;
 	
-	xhr.onload = onEvent;
-	xhr.onloadend = listen;
+	xhr.onloadend = onEvent;
 	
 	xhr.send(JSON.stringify(window.listener));
 }
@@ -482,7 +511,7 @@ window.onbeforeunload = function () {
 	return "close ITAhM.";
 };
 
-window.onunload = onClearChart;
+window.onunload = onClose;
 
 document.getElementById("reload").onclick = reload;
 document.getElementById("signout").onclick = onSignOut;

@@ -107,6 +107,14 @@ input[name="clean"] {
 	margin: .5em 0;
 }
 
+#path:not(:empty)::before {
+	content: "(";
+}
+
+#path:not(:empty)::after {
+	content: ")";
+}
+
 body:not(.gcm) #gcm input[type=image],
 body:not(.gcm) #gcm input[type=checkbox],
 body.gcm #gcm input[type=text],
@@ -210,6 +218,10 @@ function initConfig() {
 	document.getElementById("resource").textContent = configData.resource || 0;
 	document.getElementById("usage").textContent = configData.usage? ITAhM.util.toBytesString(configData.usage): 0;
 	document.getElementById("space").textContent = ITAhM.util.toBytesString(configData.space);
+	
+	if ("path" in configData) {
+		document.getElementById("path").textContent = configData.path;
+	}
 	
 	if ("expire" in configData && configData.expire > 0) {
 		document.getElementById("expire").textContent = new Date(configData.expire).toLocaleString();
@@ -603,7 +615,10 @@ function initialize() {
 		<ul class="common box">
 			<li>자바 버전 : <span id="java"></span>
 			<li>에이전트 버전 : <span id="version"></span>
-			<li>에이전트 저장공간 여유 : <span id="space"></span>
+			<li>
+				에이전트 저장공간 여유 :
+				<span id="space"></span>
+				<i id="path"></i>
 			<li>데이터베이스 로드 : <span id="load">N/A</span>
 			<li>관리 리소스 갯수 : <span id="resource"></span>
 			<li>전일 디스크 사용량 : <span id="usage"></span>
