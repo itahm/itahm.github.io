@@ -19,6 +19,7 @@ body {
 }
 
 aside {
+	position: fixed; top: 0; bottom: 0; left: 0;
 	width: 300px;
 	display: flex;
 	box-sizing: border-box;
@@ -1024,7 +1025,24 @@ function onEvent(ip) {
 		
 	</head>
 	
-	<body class="loading name">
+	<body class="loading name">		
+		<article>
+			<div class="map">
+				<svg id="map">
+					<defs>
+						<circle r="35" id="circle"></circle>
+					</defs>
+					<g id="transform" transform="translate(0, 0) scale(1, 1) translate(0, 0)">
+						<g id="line"></g>
+						<g id="device"></g>
+					</g>
+				</svg>
+			</div>
+			<div draggable="true" id="event_widget">
+				<div id="event_list"></div>
+			</div>
+		</article>
+		
 		<aside>
 			<header>
 				<ul>
@@ -1052,23 +1070,6 @@ function onEvent(ip) {
 			<div id="summary_list"></div>
 			
 		</aside>
-		
-		<article>
-			<div class="map">
-				<svg id="map">
-					<defs>
-						<circle r="35" id="circle"></circle>
-					</defs>
-					<g id="transform" transform="translate(0, 0) scale(1, 1) translate(0, 0)">
-						<g id="line"></g>
-						<g id="device"></g>
-					</g>
-				</svg>
-			</div>
-			<div draggable="true" id="event_widget">
-				<div id="event_list"></div>
-			</div>
-		</article>
 		
 		<footer>
 			<div id="top_list"></div>
@@ -1145,10 +1146,6 @@ var summaryList = document.getElementById("summary_list"),
 			skipZero: true
 		}
 	};
-/*
-if (navigator.appVersion.indexOf("Trident") !== -1) {
-	document.body.classList.add("ie");
-}*/
 
 if ("display" in top.databases.config) {
 	window[top.databases.config.display == "name"? "addClass": "removeClass"](document.body, "name");
