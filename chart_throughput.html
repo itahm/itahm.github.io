@@ -154,8 +154,8 @@ body:not(.dialog) form {
 	display: none;
 }
 
-body.server #view,
-body.server #edit {
+body.ro #view,
+body.ro #edit {
 	display: none;
 }
 
@@ -169,10 +169,10 @@ body.server #edit {
 		<script>
 		
 function initialize(from, to, start, end) {
-	var entry = top.snmp.ifEntry[window.index],
+	var entry = parent.snmp.ifEntry[window.index],
 		request = {
 			command: "query",
-			ip: top.ip,
+			ip: parent.ip,
 			summary: true,
 			index: window.index,
 			start: from,
@@ -181,11 +181,11 @@ function initialize(from, to, start, end) {
 	
 	window.max = entry.ifSpeed;
 	
-	if (!top.device.ifSpeed) {
-		top.device.ifSpeed = {};
+	if (!window.device.ifSpeed) {
+		window.device.ifSpeed = {};
 	}
-	else if (window.index in top.device.ifSpeed) {
-		window.max = top.device.ifSpeed[window.index];
+	else if (window.index in window.device.ifSpeed) {
+		window.max = window.device.ifSpeed[window.index];
 		
 		document.body.classList.add("customized");
 	}
@@ -230,7 +230,7 @@ function onValueToString(value) {
 function sendDetailRequest(database, callback) {
 	var request = {
 			command: "query",
-			ip: top.ip,
+			ip: parent.ip,
 			summary: false,
 			index: window.index,
 			start: window.start,
@@ -351,8 +351,8 @@ function put() {
 	top.sendRequest({
 		command: "put",
 		database: "device",
-		key: top.ip,
-		value: top.device
+		key: parent.ip,
+		value: window.device
 	}, function (data) {
 		top.databases.device = data;
 		
@@ -434,7 +434,8 @@ function put() {
 		<script src="js/object.js"></script>
 		<script>
 
-var chartIn = document.getElementById("chart_in"),
+var device = top.databases.device[parent.ip],
+	chartIn = document.getElementById("chart_in"),
 	chartInWindow = chartIn.contentWindow,
 	chartOut = document.getElementById("chart_out"),
 	chartOutWindow = chartOut.contentWindow,
@@ -448,7 +449,8 @@ var chartIn = document.getElementById("chart_in"),
 form.onsubmit = function (e) {
 	e.preventDefault();
 	
-	top.device.ifSpeed[window.index] = document.getElementById("speed").value * document.getElementById("unit").value;
+	window.device.ifSpeed[window.index]
+		= document.getElementById("speed").value * document.getElementById("unit").value;
 	
 	put();
 };
@@ -464,7 +466,7 @@ document.getElementById("reset").onclick = function (e) {
 		return;
 	}
 	
-	delete top.device.ifSpeed[window.index];
+	delete window.device.ifSpeed[window.index];
 	
 	put();
 };
@@ -482,9 +484,10 @@ document.getElementById("edit").onclick = function () {
 /**
  * initialize
  */
-if (top.origin === "server") {
-	document.body.classList.add("server");
+if (top.origin !== "status") {
+	document.body.classList.add("ro");
 }
+
 		</script>
 	
 	</body>

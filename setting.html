@@ -483,7 +483,7 @@ function onMenuFix(e) {
 		
 		top.databases.config.menu = menu;
 	
-		top.setMenu();
+		top.setMenu(menu);
 	});
 }
 
@@ -527,11 +527,19 @@ function onBackup(e) {
 	}, function (backup) {
 		document.body.classList.remove("loading");
 		
-		var d = new Date(),
-			name = "backup_"+ d.getFullYear() + (d.getMonth() +1) + d.getDate();
-		
 		ITAhM.util.download(new Blob([JSON.stringify(backup)],
-			{ type: "text/json;charset=utf-8;"}), name);
+			{ type: "text/json;charset=utf-8;"}), (function (d){
+				const a = ["backup_", d.getFullYear()];
+				let n = d.getMonth() +1;
+			
+			a[a.length] = n > 9? n: ("0"+ n);
+			
+			n = d.getDate();
+			
+			a[a.length] = n > 9? n: ("0"+ n);
+			
+			return a.join("");
+		})(new Date()));
 	});
 }
 

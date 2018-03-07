@@ -58,31 +58,49 @@ header a:hover {
 }
 
 nav {
+	position: relative;
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
 }
 
-nav ul {
+nav >i {
+	position: absolute; top: 0; right: 0; bottom: 0; left: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 2em;
+	color: rgba(200, 200, 200, 0.5);
+}
+
+nav >i:not(:empty)::before {
+	content: "라이선스가";
+}
+
+nav >i:not(:empty)::after {
+	content: " 에 만료됩니다.";
+}
+
+nav >ul {
 	list-style: none;
 	padding: 0;
 	display: flex;
 }
 
-nav ul:first-child a {
+nav >ul:first-of-type a {
 	text-shadow: 1px 1px 1px #000;
-	padding: .2em 1em;
+	padding: 0.2em 1em;
 	border-radius: 1em;
 	position: relative;
 }
 
-nav ul:first-child a:hover {
+nav >ul:first-of-type a:hover {
 	color: #4d525a;
 	text-shadow: none;
 	background-color: #fff;
 }
 
-nav ul:first-child a:hover::after {
+nav ul:first-of-type a:hover::after {
 	content: "";
 	position: absolute;
 	top: 100%; left: 50%;
@@ -91,11 +109,11 @@ nav ul:first-child a:hover::after {
 	border-top-color: #fff;
 }
 
-nav ul:last-child {
+nav ul:last-of-type {
 	color: #999;
 }
 
-nav ul:last-child a:hover {
+nav ul:last-of-type a:hover {
 	color: #fff;
 }
 
@@ -104,7 +122,7 @@ nav h1 {
 	font-size: 16px;
 }
 
-nav ul:last-child li {
+nav ul:last-of-type li {
 	margin: 5px;
 }
 
@@ -202,8 +220,13 @@ function showChart(ip, resource, index) {
 }
 
 // public
-function setMenu() {
-	document.body.classList[window.databases.config.menu? "remove": "add"]("auto");
+function setMenu(b) {
+	if ("expire" in window.databases.config && databases.config.expire > 0) {
+		document.body.classList.remove("auto");
+	}
+	else {
+		document.body.classList[b? "remove": "add"]("auto");
+	}
 } 
 
 function getDeviceName(ip) {
@@ -276,13 +299,32 @@ function notice(status, message) {
 	}
 }
 
+function toDateString(m) {
+	const d = new Date(m),
+		a = [d.getFullYear()];
+	let n = d.getMonth();
+	
+	a[a.length] = "년 ";
+	a[a.length] = n > 9? n: ("0"+ n);
+	a[a.length] = "월 ";
+	
+	n = d.getDate();
+	
+	a[a.length] = n > 9? n: ("0"+ n);
+	a[a.length] = "일";
+	
+	return a.join("");
+}
+
 function initialize() {
 	// TODO ITAhM의 시작.
 	document.title = sessionStorage.host +" @ ITAhM";
 	document.getElementById("signout").title = sessionStorage.user;
 	
-	if (databases.config.menu) {
-		document.body.classList.remove("auto");
+	setMenu(window.databases.config.menu? true: false);
+	
+	if ("expire" in window.databases.config && databases.config.expire > 0) {
+		document.getElementById("expire").textContent = toDateString(window.databases.config.expire);
 	}
 	
 	// old 버전 호환
@@ -451,12 +493,13 @@ function listen() {
 		
 		<header>
 			<nav class="content_width">
+				<i id="expire"></i>
 				<ul>
 					<li><h1><a href="dashboard.html" target="main">대쉬보드</a></h1>
 					<li><h1><a href="list.html" target="main">장비목록</a></h1>
 					<li><h1><a href="map.html" target="main">구성도</a></h1>
 					<li><h1><a href="event.html" target="main">이벤트</a></h1>
-					<li><h1><a href="scrap.html" target="about:blank">스크랩</a></h1>
+					<li><h1><a href="scrap.html" target="main">스크랩</a></h1>
 				</ul>
 				<ul>
 					<li><a id="signout"></a>

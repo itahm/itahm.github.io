@@ -20,6 +20,8 @@ input {
 
 header {
 	padding: 0.5em;
+	background-color: #efefef;
+	border-bottom: 1px solid #777;
 }
 
 article {
@@ -191,7 +193,9 @@ function setDraggable(e) {
 }
 
 function onAddColumn() {
-	var section = window.section.cloneNode(true);
+	var section = window.section;
+	
+	window.section = section.cloneNode(true);
 	
 	article.appendChild(section);
 	
@@ -289,7 +293,7 @@ function closeDialog() {
 }
 
 function selectDevice(ip) {
-	opener.sendRequest({
+	top.sendRequest({
 		command: "select",
 		ip: ip	
 	}, onSuccess, function (status, notice) {
@@ -406,10 +410,21 @@ function onLoadChart() {
 	this.contentWindow.initialize(from, to, from, to);
 }
 
+function onCloseSection() {
+	if (this.parentNode.querySelectorAll("section").length <= 1) {
+		return alert("적어도 하나의 스크랩이 필요합니다.\n삭제할 수 없습니다.");
+	}
+	
+	if (confirm("이 스크랩을 삭제하겠습니까?")) {
+		this.parentNode.removeChild(this);
+	}
+}
+
 function setEvent(section) {
 	var form = section.querySelector("form");
 	
 	form.onsubmit = onAddResource.bind(section);
+	form.onreset = onCloseSection.bind(section);
 	
 	setDraggable(section);
 }
@@ -476,7 +491,7 @@ function setEvent(section) {
 	
 	<script>
 
- 	var origin = "server",
+ 	var 
  		article = document.querySelector("article"),
  		section = document.querySelector("section"),
  		control = document.getElementById("control"),
@@ -488,7 +503,6 @@ function setEvent(section) {
  		storage = document.querySelector("#resources>div.su>div:last-child"),
  		throughput = document.querySelector("#resources>div.it>div:last-child"),
  		error = document.querySelector("#resources>div.ie>div:last-child"),
- 		sendRequest = opener.top.sendRequest,
  		devivce;
 	
 	/**

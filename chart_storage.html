@@ -48,10 +48,10 @@ h2 {
  * public
  */
 function initialize(from, to, start, end) {
-	var entry = top.snmp.hrStorageEntry[window.resourceIndex],
+	var entry = parent.snmp.hrStorageEntry[window.resourceIndex],
 		request = {
 			command: "query",
-			ip: top.ip,
+			ip: parent.ip,
 			summary: true,
 			database: "hrStorageUsed",
 			index: window.resourceIndex,
@@ -95,7 +95,7 @@ function onValueToString(value) {
 function sendDetailRequest() {
 	top.sendRequest({
 		command: "query",
-		ip: top.ip,
+		ip: parent.ip,
 		summary: false,
 		database: "hrStorageUsed",
 		index: window.resourceIndex,

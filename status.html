@@ -715,7 +715,7 @@ function initialize() {
 		return text + s;
 	})(window.snmp.lastResponse);
 	
-	if (databases.monitor[window.ip].shutdown || window.snmp.failure === 100) {
+	if (window.databases.monitor[window.ip].shutdown || window.snmp.failure === 100) {
 		document.body.classList.add("shutdown");
 	}
 	else {
@@ -826,7 +826,7 @@ function initIFace(iFace, index) {
 			iFace.ifAlias,
 			(function (device) {
 				return device.ifSpeed && device.ifSpeed[index];
-			})(databases.device[window.ip]) || iFace.ifHighSpeed || iFace.ifSpeed,
+			})(window.databases.device[window.ip]) || iFace.ifHighSpeed || iFace.ifSpeed,
 			iFace.ifInBPS || 0,
 			iFace.ifOutBPS || 0,
 			iFace.ifInErrors || 0,
@@ -983,10 +983,10 @@ function onSelectResource(resource, index) {
 			<div class="circular_bar" data-value="0%">
 				<svg>
 					<g transform = "translate(50, 50) rotate(-90)">
-						<circle class="bar" cx="0" cy="0" r="45"></circle>
+						<circle class="bar" cx="0" cy="0" r="45" />
 						<circle class="progress bar" cx="0" cy="0" r="45"
 							stroke-dasharray="282.74333882308139146163790449516"
-							stroke-dashoffset="282.74333882308139146163790449516"></circle>
+							stroke-dashoffset="282.74333882308139146163790449516" />
 					</g>
 				</svg>
 			</div>
@@ -1026,7 +1026,6 @@ var origin = "status",
 	databases = opener.top.databases,
 	realtime = {},
 	ip = window.location.search.substring(1),
-	device = opener.top.databases.device[ip],
 	processorArea = document.getElementById("processor"),
 	storageArea = document.getElementById("storage"),
 	interfaceArea = document.getElementById("i_face"),

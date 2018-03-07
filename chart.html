@@ -444,9 +444,10 @@ function clear(e) {
 		<script>
 
 var chart = document.getElementById("chart"),
-	chartWindow = chart.contentWindow;
+	chartWindow = chart.contentWindow,
+	ip = top.ip, snmp = top.snmp;
 
-var 
+const 
 	MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 	MONTH = ["01월", "02월", "03월", "04월", "05월", "06월", "07월", "08월", "09월", "10월", "11월", "12월"],
 	MARGINS = 5;

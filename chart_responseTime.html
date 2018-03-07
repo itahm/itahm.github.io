@@ -51,7 +51,7 @@ h2 {
 function initialize(from, to, start, end) {
 	top.sendRequest({
 		command: "query",
-		ip: top.ip,
+		ip: parent.ip,
 		summary: true,
 		database: "responseTime",
 		index: 0,
@@ -92,7 +92,7 @@ function onValueToString(value) {
 function sendDetailRequest() {
 	top.sendRequest({
 		command: "query",
-		ip: top.ip,
+		ip: parent.ip,
 		summary: false,
 		database: "responseTime",
 		index: 0,

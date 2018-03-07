@@ -75,7 +75,7 @@ h3.output {
 	color: #f60;
 }
 
-body.server #view {
+body.ro #view {
 	display: none;
 }
 
@@ -89,10 +89,10 @@ body.server #view {
 		<script>
 		
 function initialize(from, to, start, end) {
-	var entry = node.ifEntry[window.resourceIndex],
+	var entry = parent.snmp.ifEntry[window.resourceIndex],
 		request = {
 			command: "query",
-			ip: top.ip,
+			ip: parent.ip,
 			summary: true,
 			index: window.resourceIndex,
 			start: from,
@@ -135,7 +135,7 @@ function onValueToString(value) {
 function sendDetailRequest(database, callback) {
 	var request = {
 			command: "query",
-			ip: top.ip,
+			ip: parent.ip,
 			summary: false,
 			index: window.resourceIndex,
 			start: window.start,
@@ -306,8 +306,7 @@ var chartIn = document.getElementById("chart_in"),
 	chartInWindow = chartIn.contentWindow,
 	chartOut = document.getElementById("chart_out"),
 	chartOutWindow = chartOut.contentWindow,
-	resourceIndex = window.location.search.substring(1),
-	node = top.snmp;
+	resourceIndex = window.location.search.substring(1);
 
 document.getElementById("view").onchange = function () {
 	document.body.classList[this.value]("row");
@@ -316,9 +315,10 @@ document.getElementById("view").onchange = function () {
 /**
  * initialize
  */
-if (top.origin === "server") {
-	document.body.classList.add("server");
+if (top.origin !== "status") {
+	document.body.classList.add("ro");
 }
+
 		</script>
 	
 	</body>
