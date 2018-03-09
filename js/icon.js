@@ -128,6 +128,16 @@ ITAhM.iconData = {
         "src": "img/svg/ups.svg",
         "disabled": "img/svg/disabled/ups.svg"
     },
+    "video recorder": {
+    	"group": "etc",
+        "src": "img/svg/videorecorder.svg",
+        "disabled": "img/svg/disabled/videorecorder.svg"
+    },
+    "security": {
+    	"group": "etc",
+        "src": "img/svg/security.svg",
+        "disabled": "img/svg/disabled/security.svg"
+    },
     "group": {
         "group": "group",
         "src": "img/group.png",
