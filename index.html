@@ -155,15 +155,33 @@ img[src="img/home/preview.png"] {
 }
 
 .preview {
-	text-align: center;
+	display: flex;
+	justify-content: center;
+	overflow: hidden;
 }
 
-.preview img:not(:first-child) {
-	display: none;
+.preview >div {
+	position: relative;
 }
 
-.preview img {
-	animation: slide 5s;
+.preview  >div::after {
+	content: "";
+	position: absolute; top: 0; right: 0; bottom: 0; left: 0;
+	background-color: rgba(255, 255, 255, 0.5);
+}
+	
+.preview  >div:nth-child(3)::after {
+	background-color: rgba(255, 255, 255, 0);
+	animation: preview 3s;
+}
+	
+@keyFrames preview {
+	0% {
+		background-color: rgba(255, 255, 255, 0.5);
+	}
+	100% {
+		background-color: rgba(255, 255, 255, 0);
+	} 
 }
 
 footer {
@@ -173,18 +191,6 @@ footer {
 
 footer img {
 	width: 1em; height: 1em;
-}
-
-@keyframes slide {
-	0% {
-		opacity: 0;
-	}
-	40% {
-		opacity: 1;
-	}
-	100% {
-		opacity: 1;
-	}
 }
 
 	</style>
@@ -295,11 +301,11 @@ footer img {
 	</ul>
 	
 	<div class="preview">
-		<img src="img/home/dashboard.png" height="500">
-		<img src="img/home/status.png" height="500">
-		<img src="img/home/chart.png" height="500">
-		<img src="img/home/map.png" height="500">
-		<img src="img/home/map_zoom.png" height="500">
+		<div><img src="img/home/home_dashboard.png" width="732"></div>
+		<div><img src="img/home/home_summary.png" width="732"></div>
+		<div><img src="img/home/home_chart.png" width="732"></div>
+		<div><img src="img/home/home_zoom.png" width="732"></div>
+		<div><img src="img/home/home_scrap.png" width="732"></div>
 	</div>
 	
 	<footer>
