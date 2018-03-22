@@ -137,21 +137,23 @@ img[src="img/home/preview.png"] {
 
 .reference {
 	margin: 3em auto;
-	display: flex; flex-wrap: wrap; justify-content: center;
-	list-style: none;
 	padding: 0;
-}
-
-.reference >li {
-	flex: 1;
-	font-size: 24px;
-	font-weight: bold;
-	white-space: nowrap;
+	overflow: hidden;
 	text-align: center;
 }
 
-.reference >li >img {
-	vertical-align: middle;
+.reference >table {
+	border-collapse: collapse;
+	width: 1024px;
+	margin: auto;
+	color: #666;
+}
+
+.reference td {
+	border: 1px solid #ddd;
+	padding: 1em;
+	width: 320px;
+	text-align: center;
 }
 
 .preview {
@@ -288,17 +290,6 @@ footer img {
 		</div>
 	</div>
 	
-	<ul class="reference">
-		<li><img src="/img/home/teratower.logo.jpg" height="50">
-		<li><img src="/img/home/aths.logo.png" height="50">
-		<li><img src="/img/home/whec.logo.gif" height="50">
-		<li><img src="/img/home/thirautech.logo.png" height="50">
-		<li><img src="/img/home/kier.logo2.png" height="50">
-		<li>
-			<img src="https://www.pyeongchang2018.com/images/common/logo.png" height="50">
-			평창동계올림픽
-	</ul>
-	
 	<div class="preview">
 		<div><img src="img/home/home_dashboard.png" width="732"></div>
 		<div><img src="img/home/home_summary.png" width="732"></div>
@@ -307,6 +298,48 @@ footer img {
 		<div><img src="img/home/home_scrap.png" width="732"></div>
 	</div>
 	
+	<div class="reference">
+		<table>
+			<tbody>
+				<tr>
+					<td>
+						<img src="https://www.pyeongchang2018.com/images/common/logo.png" height="50">
+						<h2>평창동계올림픽</h2>
+					</td>
+					<td>
+						<img src="/img/home/gcgf.logo.png" height="50">
+						<h2>경기신용보증재단</h2>
+					</td>
+					<td>
+						<img src="/img/home/kier.logo2.png" height="50">
+						<h2>한국에너지기술연구원</h2>				
+					</td>
+					<td>
+						<img src="/img/home/whec.logo.gif" height="50">
+						<h2>바르질라현대엔진</h2>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<img src="/img/home/thirautech.logo.png" height="50">
+						<h2>티라유텍</h2>
+					</td>
+					<td>
+						<img src="/img/home/teratower.logo.jpg" height="50">
+						<h2>테라타워</h2>
+					</td>
+					<td>
+						<img src="/img/favicon.png" height="50">
+					</td>
+					<td>
+						<img src="/img/home/aths.logo.png" height="50">
+						<h2>안산공업고등학교</h2>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+		
 	<footer>
 		<p>
 			<img src="img/favicon.png">
