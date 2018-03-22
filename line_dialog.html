@@ -46,6 +46,10 @@ input[type="checkbox"] {
 	padding: .5em;
 }
 
+.name {
+	overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
 footer {
 	display: flex;
 	margin-top: 1em;
@@ -125,7 +129,7 @@ function onCancel(e) {
 
 function initPort(e, ifEntry) {
 	var df = document.createDocumentFragment(),
-		opt, port;
+		opt, port, count = 0;
 	
 	for (var index in ifEntry) {
 		port = ifEntry[index];
@@ -139,9 +143,11 @@ function initPort(e, ifEntry) {
 		opt.value = index;
 		opt.text = port.ifName;
 		opt.title = port.ifDescr;
+		
+		count++;
 	}
 	
-	if (df.childElementCount > 0) {
+	if (count > 0) {
 		e.appendChild(df);
 		e.selectedIndex = -1;
 		
@@ -168,7 +174,7 @@ function initialize(ip, peerIP) {
 		}, function (data) {
 			var ifEntry = top.databases.position[ip].ifEntry;
 			
-			if (initPort(window.peerLeft, data.ifEntry)) {
+			if (initPort(window.peerLeft, data.ifEntry)) {console.log("left");
 				window.peerLeft.disabled = false;
 			}
 			
@@ -196,7 +202,7 @@ function initialize(ip, peerIP) {
 		}, function (data) {
 			var ifEntry = top.databases.position[peerIP].ifEntry;
 			
-			if (initPort(window.peerRight, data.ifEntry)) {
+			if (initPort(window.peerRight, data.ifEntry)) {console.log("right");
 				window.peerRight.disabled = false;
 			}
 			
@@ -225,7 +231,7 @@ function initialize(ip, peerIP) {
 					<div class="layout_box left">
 						<div class="layout_top">
 							<div id="ip"></div>
-							<div id="name"></div>
+							<div id="name" class="name"></div>
 						</div>
 						<select class="fill_box" id="left" required disabled></select>
 						<div class="loading_mask"></div>
@@ -233,7 +239,7 @@ function initialize(ip, peerIP) {
 					<div class="layout_box right">
 						<div class="layout_top">
 							<div id="peer_ip">192.168.0.1</div>
-							<div id="peer_name"></div>
+							<div id="peer_name" class="name"></div>
 						</div>
 						<select class="fill_box" id="right" required disabled></select>
 						<div class="loading_mask"></div>

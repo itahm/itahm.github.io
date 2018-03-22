@@ -329,13 +329,13 @@ function onDragMove(e) {
 			x = matrix.e;
 			y = matrix.f;
 			
-			window.linkCanvas.classList.add("match");
+			addClass(window.linkCanvas, "match");
 		}
 		else {
 			x += pos.x;
 			y += (pos.y -34);
 			
-			window.linkCanvas.classList.remove("match");
+			removeClass(window.linkCanvas, "match");
 		}
 		
 		window.linkSVG.setAttribute("x2", x);

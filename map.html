@@ -60,7 +60,7 @@ button img {
 }
 
 #edit_mode.edit> button {
-	display: initial;
+	display: inline-block;
 }
 
 #port_name::after {
@@ -120,8 +120,8 @@ function onEvent(ip) {
 	if (window.editMode.classList.contains("edit")) {
 		return;
 	}
-	
-	window.mapWindow.reload();
+
+	window.mapWindow.location.reload();
 }		
 
 function onSetAlarm(ip){
