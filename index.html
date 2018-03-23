@@ -49,7 +49,7 @@ nav {
 }
 
 .title_1_2 h2 {
-	width: 200px;
+	width: 240px;
 	padding: 1em;
 	border: 3px solid #fff;
 	box-sizing: border-box;
@@ -60,6 +60,25 @@ nav {
 	color: #0084ff;
 	background-color: #fff;
 	cursor: pointer;
+}
+
+#free a:visited,
+#free a:link,
+#free a:active {
+	text-decoration: none;
+	color: #0084ff;
+}
+
+#free a:hover {
+	text-decoration: underline;
+}
+
+#free:not(:hover) >span:not(:first-child) {
+	display: none;
+}
+
+#free:hover >span:first-child {
+	display: none;
 }
 
 .target {
@@ -171,17 +190,33 @@ img[src="img/home/preview.png"] {
 	position: absolute; top: 0; right: 0; bottom: 0; left: 0;
 	background-color: rgba(255, 255, 255, 0.5);
 }
+
+.preview  >div {
+	animation: slide 5s infinite;
+}
 	
 .preview  >div:nth-child(3)::after {
 	background-color: rgba(255, 255, 255, 0);
 	animation: preview 3s;
 }
-	
-@keyFrames preview {
+
+@keyFrames slide {
 	0% {
-		background-color: rgba(255, 255, 255, 0.5);
+		transform: translateX(100%);
+	}
+	60% {
+		transform: translateX(0);
 	}
 	100% {
+		transform: translateX(0);
+	}
+}
+
+@keyFrames preview {
+	from {
+		background-color: rgba(255, 255, 255, 0.5);
+	}
+	to {
 		background-color: rgba(255, 255, 255, 0);
 	} 
 }
@@ -222,6 +257,10 @@ footer img {
 			<div class="title_1_2">
 				<h2 id="demo">Demo</h2>
 				<h2 id="connect">Connect</h2>
+				<h2 id="free">
+					<span>Free Download</span>
+					<span><a href="download/ITAhM.exe">exe</a> | <a href="download/ITAhM.jar">jar</a></span>
+				</h2>
 			</div>
 		</div>
 	</div>
@@ -349,6 +388,7 @@ footer img {
 	
 	<script>
 	
+const preview = document.querySelector(".preview"); 
 document.getElementById("demo").onclick = function () {
 	window.location.href = "demo.html";
 };
@@ -357,12 +397,11 @@ document.getElementById("connect").onclick = function () {
 	window.location.href = "connect.html";
 };
 
-(function (preview) {
-	window.setInterval(function () {
-		preview.appendChild(preview.firstElementChild);
-	}, 5000);
-})(document.querySelector(".preview"));
-	
+
+document.querySelector(".preview>div").addEventListener("animationiteration", function () {
+	preview.appendChild(preview.firstElementChild);
+});
+
 	</script>
 </body>
 </html>
