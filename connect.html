@@ -164,7 +164,7 @@ function onConnect(e) {
 			sessionStorage.level = response.level;
 			sessionStorage.version = response.version;
 			
-			window.location.href = [MAJOR, MINOR, 3, REVISION].join(".") === response.version? "itahm.html" :"update.html";
+			window.location.href = "itahm.html";
 		}
 		else if (status === 401) {
 			window.comment.textContent = "Incorrect username or password.";
