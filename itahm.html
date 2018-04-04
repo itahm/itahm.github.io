@@ -71,7 +71,6 @@ nav >i {
 	justify-content: center;
 	font-size: 2em;
 	color: rgba(200, 200, 200, 0.5);
-	z-index: -1;
 }
 
 nav >i:not(:empty)::before {
@@ -303,7 +302,7 @@ function notice(status, message) {
 function toDateString(m) {
 	const d = new Date(m),
 		a = [d.getFullYear()];
-	let n = d.getMonth();
+	let n = d.getMonth() +1;
 	
 	a[a.length] = "년 ";
 	a[a.length] = n > 9? n: ("0"+ n);
