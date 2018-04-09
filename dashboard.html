@@ -49,7 +49,8 @@ article {
 
 .map {
 	flex: 1;
-	border: 3px solid #0084ff;
+	/*border: 3px solid #0084ff;*/
+	border: 3px solid #000;
 	box-sizing: border-box;
 	border-radius: 3px;
 	position: relative;
@@ -187,8 +188,9 @@ section >div:first-child {
 	border-bottom: none;
 	font-weight: bold;
 	color: #fff;
-	background-color: #0084ff;
-	text-shadow: 1px 1px 1px #00f;
+	/*background-color: #0084ff;*/
+	background-color: #000;
+	text-shadow: 1px 1px 1px #777;
 }
 
 section> div:last-child {
@@ -221,6 +223,9 @@ footer {
 	justify-content: space-between;
 	font-weight: bold;
 	margin: 3px 0;
+	padding: 0.5em;
+	background-color: rgba(255, 255, 255, 0.2);
+	border-radius: 5px;
 }
 
 .summary> li {
@@ -319,27 +324,33 @@ body.name .list_item> li:nth-child(2) {
 }
 
 .list_item> li:last-child.red {
-	border-color: #f00;
+	/*border-color: #f00;*/
+	border-color: #8e24aa;
 }
 
 .list_item> li:last-child.red >div {
-	background: linear-gradient(to right, rgba(255, 0, 0, 0.5), #f00);
+	/*background: linear-gradient(to right, rgba(255, 0, 0, 0.5), #f00);*/
+	background: linear-gradient(to right, rgba(142, 36, 170, 0.5), #8e24aa);
 }
 
 .list_item> li:last-child.orange {
-	border-color: #f60;
+	/*border-color: #f60;*/
+	border-color: #f6bf26;
 }
 
 .list_item> li:last-child.orange >div {
-	background: linear-gradient(to right, rgba(255, 96, 0, 0.5), #f60);
+	/*background: linear-gradient(to right, rgba(255, 96, 0, 0.5), #f60);*/
+	background: linear-gradient(to right, rgba(246, 191, 38, 0.5), #f6bf26);
 }
 
 .list_item> li:last-child.green {
-	border-color: #0f0;
+	/*border-color: #0f0;*/
+	border-color: #00897b;
 }
 
 .list_item> li:last-child.green >div {
-	background: linear-gradient(to right, rgba(0, 255, 0, 0.5), #0f0);
+	/*background: linear-gradient(to right, rgba(0, 255, 0, 0.5), #0f0);*/
+	background: linear-gradient(to right, rgba(0, 137, 123, 0.5), #00897b);
 }
 
 .agent_status {
@@ -448,7 +459,7 @@ body.name .list_item> li:nth-child(2) {
 	background: linear-gradient(to bottom, rgba(232,232,232,1), rgba(255,255,255,0));
 }
 
-.ball.ready::after {
+.ready::after {
 	content: attr(data-value);
 }
 
@@ -527,11 +538,11 @@ body.name .list_item> li:nth-child(2) {
 
 .item::before {
 	content: "";
-	height: 1em; width: 1em;
+	height: 2em; width: 2em;
 	position: absolute; top: 50%; left: -2em;
 	background-repeat: no-repeat;
 	background-image: url("img/normal.png");
-	background-size: 1em;
+	background-size: 1.6em;
 	transform: translateY(-50%);
 }
 
@@ -552,19 +563,19 @@ body.name .list_item> li:nth-child(2) {
 .item> li:nth-child(3) {
 	flex: 2;
 }
-
+/*
 .item.shutdown {
 	background-color: red;
 }
-
+*/
 .item.shutdown::before {
 	background-image: url("img/warning.png");
 }
-
+/*
 .item.critical {
 	background-color: orange;
 }
-
+*/
 .item.critical::before {
 	background-image: url("img/siren.png");
 }
@@ -779,15 +790,18 @@ function createStatusItem(label, critical, alert, normal, sum) {
 	
 	li = ul.appendChild(document.createElement("li"));
 	li.dataset.value = alert;
-	li.className = "ball red ready";
+	//li.className = "ball red ready";
+	li.className = "ready";
 	
 	li = ul.appendChild(document.createElement("li"));
 	li.dataset.value = critical;
-	li.className = "ball orange ready";
+	//li.className = "ball orange ready";
+	li.className = "ready";
 	
 	li = ul.appendChild(document.createElement("li"));
 	li.dataset.value = normal;
-	li.className = "ball green ready";
+	//li.className = "ball green ready";
+	li.className = "ready";
 	
 	ul.className = "summary";
 	
