@@ -57,14 +57,7 @@ header a:hover {
 	height: 100%;
 }
 
-nav {
-	position: relative;
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-}
-
-nav >i {
+header >i {
 	position: absolute; top: 0; right: 0; bottom: 0; left: 0;
 	display: flex;
 	align-items: center;
@@ -73,12 +66,19 @@ nav >i {
 	color: rgba(200, 200, 200, 0.5);
 }
 
-nav >i:not(:empty)::before {
+header >i:not(:empty)::before {
 	content: "라이선스가";
 }
 
-nav >i:not(:empty)::after {
-	content: " 에 만료됩니다.";
+header >i:not(:empty)::after {
+	content: " 에 만료됩니다...";
+}
+
+nav {
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
 }
 
 nav >ul {
@@ -492,8 +492,8 @@ function listen() {
 		<div class="handle"></div>
 		
 		<header>
+			<i id="expire"></i>
 			<nav class="content_width">
-				<i id="expire"></i>
 				<ul>
 					<li><h1><a href="dashboard.html" target="main">대시보드</a></h1>
 					<li><h1><a href="list.html" target="main">장비목록</a></h1>
