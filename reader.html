@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="Cache-Control" content="No-Cache">
+
+	<title>Reader @ ITAhM</title>
+	<style>
+
+	</style>
+</head>
+<body>
+
+	<p>group, name, ip, type, profile 순입니다.</p>
+	<input type="file">
+	
+	<script>
+document.querySelector("input[type=file]").onchange = function (e) {
+	var file = e.target.files[0],
+		reader = new FileReader();
+	
+	reader.onload = onLoad.bind(window, reader);
+	reader.onerror = onError;
+	reader.readAsText(file);
+};
+
+function onLoad(reader, e) {
+	var data = reader.result,
+		list = data.split(data.indexOf("\r\n") != -1? "\r\n": "\n");
+		deviceData = {},
+		monitorData = {},
+		ip, stop = false;
+	
+	for (var device, ip, i=0, _i=list.length; i<_i; i++) {
+		device = list[i].split(",");
+		
+		if (device.length !== 5) {
+			
+			if (device.length == 1 && !device[0]) {
+				continue;
+			}
+			
+			alert(i +"열 데이터가 올바르지 않습니다.\n"+ list[i] +"\n"+ device.length +"\n"+ device[0]);
+			
+			return;
+		}
+		console.log(device);
+		ip = device[2].trim();
+		
+		deviceData[ip] = {
+			ip: ip,
+			name: device[1].trim(),
+			label: device[0].trim(),
+			type: device[3].trim(),
+			ifEntry: {},
+			ifSpeed: {}
+		};
+		/*
+		monitorData[ip] = {
+			ip: ip,
+			protocol: "snmp",
+			critical: false,
+			profile: device[4].trim(),
+			shutdown: false
+		};*/
+		monitorData[ip] = {
+				ip: ip,
+				protocol: "icmp",
+				shutdown: false
+			};
+	}
+	
+	//download(new Blob([JSON.stringify(deviceData)], { type: "text/json;charset=utf-8;"}), "device");
+	download(new Blob([JSON.stringify(monitorData)], { type: "text/json;charset=utf-8;"}), "monitor.kier");
+}
+
+function onError(e) {
+	console.log(e.target.error.code);
+}
+
+function download(blob, fileName) {
+	if (window.navigator.msSaveBlob) {
+		window.navigator.msSaveBlob(blob, fileName);
+	}
+	else {
+		var a = document.createElement("a"),
+			event = document.createEvent("MouseEvent");
+			
+		a.setAttribute("download", fileName);
+		a.setAttribute("href", URL.createObjectURL(blob));
+		
+		event.initEvent("click", true, true);
+		a.dispatchEvent(event);
+	}
+}
+
+	</script>
+</body>
+</html>
