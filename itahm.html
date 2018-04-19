@@ -324,8 +324,10 @@ function initialize() {
 	
 	setMenu(window.databases.config.menu? true: false);
 	
-	if ("expire" in window.databases.config && databases.config.expire > 0) {
-		document.getElementById("expire").textContent = toDateString(window.databases.config.expire);
+	const config = window.databases.config;
+	
+	if ("expire" in config && config.expire > 0 && !config.license) {
+		document.getElementById("expire").textContent = toDateString(config.expire);
 	}
 	
 	// old 버전 호환
