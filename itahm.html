@@ -222,7 +222,9 @@ function showChart(ip, resource, index) {
 
 // public
 function setMenu(b) {
-	if ("expire" in window.databases.config && databases.config.expire > 0) {
+	const config = window.databases.config;
+	
+	if ("expire" in config && config.expire > 0 && !config.license) {
 		document.body.classList.remove("auto");
 	}
 	else {
