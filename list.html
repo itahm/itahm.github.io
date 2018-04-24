@@ -33,7 +33,7 @@ aside {
 }
 
 header {
-	background-color: #0084ff;
+	background-color: #000;
 	color: #fff;
 	font-weight: bold; text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
 	border-bottom: 4px solid #92a7af;
@@ -250,24 +250,45 @@ body.unlabeled #list> ul:not([data-unlabeled]) {
 		</style>
 		
 		<script>
+// static function
+const REGEXP_IPV4 = new RegExp("^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\."
+	+ "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\."
+	+ "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\."
+	+ "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$");
 
+function IP2Int(s) {
+	const o = REGEXP_IPV4.exec(s);
+	
+	if(o === null || o.length != 5) return 0xffffffff;
+	
+	var n = 0;
+	for(let i=1; i<5; i++) {
+		n <<= 8;
+		n |= o[i];
+	}
+	
+	return n >>> 0;
+}
+		</script>
+		
+		<script>
 function onEdit() {
-	top.showDialog.call(window, "device_dialog.html", window.selectedIP);
+	top.showDialog.call(window, "device_dialog.html", window.selectedID);
 }
 
 function onSetAlarm(){
-	top.showDialog.call(window, "critical_dialog.html", window.selectedIP);
+	top.showDialog.call(window, "critical_dialog.html", window.selectedID);
 }
 
 function onMap() {
-	top.databases.local.parent = top.databases.position[window.selectedIP].parent;
-	top.databases.local.selected = window.selectedIP;
+	top.databases.local.parent = top.databases.position[window.selectedID].parent;
+	top.databases.local.selected = window.selectedID;
 	
 	window.location.href = "map.html";
 }
 
 function onShowStatus() {
-	top.showChart(window.selectedIP);
+	top.showChart(window.selectedID);
 }
 
 function initialize() {
@@ -295,27 +316,33 @@ function initialize() {
 function initList() {
 	var deviceData = window.top.databases.device,
 		df = document.createDocumentFragment(),
-		monitorData = top.databases.monitor;
-		criticalData = top.databases.critical;
+		monitorData = top.databases.monitor,
+		criticalData = top.databases.critical,
+		ipList = Object.keys(deviceData),
+		count = 0;
 	
-	for (var ip in deviceData) {
-		if (deviceData[ip].group) {
+	ipList.sort(function (a, b) {
+		return IP2Int(deviceData[a].ip) - IP2Int(deviceData[b].ip);
+	});
+	
+	for (let id of ipList) {
+		if (deviceData[id].group) {
 			continue;
 		}
 		
-		df.appendChild(createRow(deviceData[ip], monitorData[ip]));
+		df.appendChild(createRow(id, deviceData[id], monitorData[id]));
+		
+		count++;
 	}
 	
-	// ie는 ParentNode interface의 properties를 지원하지 않음.
-	document.getElementById("count").textContent
-		= df.children? df.children.length: df.querySelectorAll("ul").length;
+	document.getElementById("count").textContent = count;
 	
 	list.appendChild(df);
 	
 	document.body.classList.remove("loading");
 }
 
-function createRow(device, monitor) {
+function createRow(id, device, monitor) {
 	var row = document.createElement("ul"),
 		type, labels, label;
 	
@@ -339,7 +366,7 @@ function createRow(device, monitor) {
 	
 	row.appendChild(document.createElement("li")).textContent = device.name; // N.0
 	
-	window.deviceMapping[device.ip] = row;
+	window.deviceMapping[id] = row;
 	
 	if (device.label) {
 		labels = device.label.split(",");
@@ -371,19 +398,19 @@ function createRow(device, monitor) {
 		row.dataset.disabled = true;
 	}
 	
-	row.onclick = onSelectDevice.bind(row, device);
+	row.onclick = onSelectDevice.bind(row, id, monitor);
 	
 	return row;
 }
 
-function selectDevice(row, ip, monitor) {
+function selectDevice(row, id, monitor) {
 	if (window.selected) {
 		window.selected.classList.remove("selected");
 	}
 	
-	if (row && ip) {
+	if (row) {
 		window.selected = row;
-		window.selectedIP = ip;
+		window.selectedID = id;
 		
 		window.action.className = "selected";
 		
@@ -399,8 +426,8 @@ function selectDevice(row, ip, monitor) {
 	}
 }
 
-function onSelectDevice(device) {
-	selectDevice(this, device.ip, top.databases.monitor[device.ip]);	
+function onSelectDevice(id, monitor) {
+	selectDevice(this, id, monitor);	
 }
 
 function initLabel() {
@@ -451,6 +478,8 @@ function onSearch(e) {
 	
 	document.body.classList.add("loading");
 
+	selectLabel(window.label.value);
+	
 	selectDevice();
 	
 	const keyword = form.elements["keyword"].value;
@@ -493,8 +522,8 @@ function selectLabel(label) {
 	
 	selectDevice();
 	
-	for (var ip in window.deviceMapping) {
-		df.appendChild(window.deviceMapping[ip]);
+	for (var id in window.deviceMapping) {
+		df.appendChild(window.deviceMapping[id]);
 		
 		count++;
 	}
@@ -528,7 +557,7 @@ function onSelectStatus (src, className) {
 	
 	icon.src = src;
 	
-	selector.blur();
+	window.selector.blur();
 }
 
 function getIcon(type) {
@@ -550,8 +579,8 @@ function onSave() {
 		});
 	}
 	
-	for (var ip in deviceData) {
-		device = deviceData[ip];
+	for (let id in deviceData) {
+		device = deviceData[id];
 		
 		if (device.group) {
 			continue;
@@ -640,7 +669,6 @@ function forEach(a, f) {
 						<img id="map" src="img/location.png" title="구성도에서 장비보기">
 						<img id="edit" src="img/edit.png" title="장비의 정보 편집">
 						<img id="status" class="snmp" src="img/chart.png" title="장비의 상태 보기">
-						<img class="snmp" src="img/information.png" title="메뉴의 스크랩 기능을 이용하세요.">
 						<img id="alarm" class="snmp" src="img/alarm.png" title="장비의 성능 임계 설정">
 					</div>
 				</nav>
