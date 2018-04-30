@@ -80,12 +80,21 @@ h3 {
 	padding: 0 20px;
 }
 
-h3.input {
+.input {
 	color: #7d7;
 }
 
-h3.output {
+#total_in {
+	display: inline-block;
+	margin-left: 1em;
+}
+.output {
 	color: #f60;
+}
+
+#total_out {
+	display: inline-block;
+	margin-left: 1em;
 }
 
 form {
@@ -209,13 +218,21 @@ function initialize(from, to, start, end) {
 }
 
 function onSummaryInResponse(data) {
-	window.chartInWindow.initialize(new ITAhM.ChartSummaryData(data), window.max, "#7d7", onValueToString);
+	const summaryData = new ITAhM.ChartSummaryData(data);
+	
+	window.summaryInData = summaryData.data;
+	
+	window.chartInWindow.initialize(summaryData, window.max, "#7d7", onValueToString);
 	
 	drawIn();
 }
 
 function onSummaryOutResponse(data) {
-	window.chartOutWindow.initialize(new ITAhM.ChartSummaryData(data), window.max, "#f60", onValueToString);
+	const summaryData = new ITAhM.ChartSummaryData(data);
+	
+	window.summaryOutData = summaryData.data;
+	
+	window.chartOutWindow.initialize(summaryData, window.max, "#f60", onValueToString);
 	
 	drawOut();
 }
@@ -260,6 +277,8 @@ function onDetailOutResponse(data) {
  * private
  */
 function drawIn() {
+	window.totalIn.textContent = getTotalBytes(window.summaryInData, window.start, window.end);
+	
 	if (window.chartInWindow.draw(window.start, window.end) && window.detail) {
 		sendDetailRequest("ifInOctets", onDetailInResponse);
 	}
@@ -269,9 +288,44 @@ function drawIn() {
  * private
  */
 function drawOut() {
+	window.totalOut.textContent = getTotalBytes(window.summaryOutData, window.start, window.end);
+	
 	if (window.chartOutWindow.draw(window.start, window.end) && window.detail) {
 		sendDetailRequest("ifOutOctets", onDetailOutResponse);
 	}
+}
+
+function toBytesString(bytes) {
+	var unit = ["Bytes", "KBytes", "MBytes", "GBytes", "TBytes"];
+	
+	for(var i=0, _i=unit.length -1; i<_i; i++) {
+		if (bytes > 999) {
+			bytes /= 1024;
+		}
+		else {
+			break;
+		}
+	}
+		
+	return bytes.toFixed(2) + unit[i];
+}
+
+function getTotalBytes(summaryData, start, end) {
+	var total = 0,
+		hour = end,
+		date = new Date(hour),
+		data;
+	
+	while (start < hour) {
+		hour = date.setHours(date.getHours() -1);
+		data = summaryData[hour];
+		
+		if (data && "avg" in data) {
+			total += data.avg;
+		}
+	}
+	
+	return toBytesString(total *60 *60 /8);
 }
 
 function testDetail() {
@@ -417,13 +471,13 @@ function put() {
 		</nav>
 		<div id="chart">
 			<div class="chart">
-				<h3 class="input">Input</h3>
+				<h3 class="input">Input <i id="total_in"></i></h3>
 				<div>
 					<iframe id="chart_in" src="chart_base.html"></iframe>
 				</div>
 			</div>
 			<div class="chart">
-				<h3 class="output">Output</h3>
+				<h3 class="output">Output <i id="total_out"></i></h3>
 				<div>
 					<iframe id="chart_out" src="chart_base.html"></iframe>
 				</div>
@@ -436,11 +490,14 @@ function put() {
 
 var device = top.databases.device[parent.ip],
 	chartIn = document.getElementById("chart_in"),
+	totalIn = document.getElementById("total_in"),
 	chartInWindow = chartIn.contentWindow,
 	chartOut = document.getElementById("chart_out"),
+	totalOut = document.getElementById("total_out"),
 	chartOutWindow = chartOut.contentWindow,
 	index = window.location.search.substring(1),
 	form = document.querySelector("form"),
+	summaryInData, summaryOutData,
 	detail;
 
 /**

@@ -27,7 +27,7 @@ Array.prototype.fill = Array.prototype.fill || function (val) {
 		toBytesString: function (bytes) {
 			var unit = ["Bytes", "KBytes", "MBytes", "GBytes", "TBytes"];
 			
-			for(var i=0, _i=unit.length; i<_i; i++) {
+			for(var i=0, _i=unit.length -1; i<_i; i++) {
 				if (bytes > 999) {
 					bytes /= 1024;
 				}
@@ -46,7 +46,7 @@ Array.prototype.fill = Array.prototype.fill || function (val) {
 			
 			var unit = ["bps", "Kbps", "Mbps", "Gbps", "Tbps"];
 			
-			for(var i=0, _i=unit.length; i<_i; i++) {
+			for(var i=0, _i=unit.length -1; i<_i; i++) {
 				if (bandwidth > 999) {
 					bandwidth /= 1000;
 				}
