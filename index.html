@@ -21,11 +21,6 @@ nav {
 	margin: auto;
 }
 
-.logo {
-	font-size: 42px;
-	font-weight: 900;
-}
-
 .title {
 	position: relative;
 	background: url("img/home/title.gif") no-repeat center;
@@ -162,14 +157,13 @@ img[src="img/home/preview.png"] {
 }
 
 .reference >table {
-	border-collapse: collapse;
+	border: none;
 	width: 1024px;
 	margin: auto;
 	color: #666;
 }
 
 .reference td {
-	border: 1px solid #ddd;
 	padding: 1em;
 	width: 320px;
 	text-align: center;
@@ -198,6 +192,15 @@ img[src="img/home/preview.png"] {
 .preview  >div:nth-child(3)::after {
 	background-color: rgba(255, 255, 255, 0);
 	animation: preview 3s;
+}
+
+.map {
+	width: 100%; max-width: 1024px; height: 520px;
+	margin: auto;
+}
+
+#map {
+	width: 100%; height: 100%;
 }
 
 @keyFrames slide {
@@ -236,8 +239,7 @@ footer img {
 
 	<nav>
 		<div class="logo">
-			<img src="img/favicon.png" width="32" height="32">
-			<strong>ITAhM</strong>
+			<img src="img/logo.png" height="52">
 		</div>
 	</nav>
 	
@@ -369,6 +371,7 @@ footer img {
 					</td>
 					<td>
 						<img src="/img/favicon.png" height="50">
+						<h2> </h2>
 					</td>
 					<td>
 						<img src="/img/home/aths.logo.png" height="50">
@@ -378,14 +381,47 @@ footer img {
 			</tbody>
 		</table>
 	</div>
-		
+	
+	<div class="map">
+		<div id="map"></div>
+	</div>
+	
 	<footer>
 		<p>
 			<img src="img/favicon.png">
 			서울툭별시 성북구 동소문로 63, 6층 10호 010-2538-6433 itahm2014@gmail.com
 		</p>
 	</footer>
+	<script>
+function myMap() {
+	const lat = 37.591542,
+		lng = 127.012263,
+		map = new google.maps.Map(document.getElementById("map"), {
+			center:new google.maps.LatLng(lat, lng),
+			zoom: 14,
+		}),
+		marker = new google.maps.Marker({
+			label: {
+				text: "서울특별시 성북구 동소문로 63, 6층 10호",
+				color: "#333",
+				fontWeight: "bold"
+			},
+			position: {
+				lat:  lat,
+				lng: lng
+			},
+			map: map,
+			icon: {
+				url: "/img/favicon.png",
+				labelOrigin: new google.maps.Point(0, 50),
+				scaledSize: new google.maps.Size(36, 36)
+			}
+		});
 	
+	marker.setAnimation(google.maps.Animation.BOUNCE);
+}
+	</script>
+	<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB3lDcxrcNH8nH4thkJ7v2Grhf2309d5TA&callback=myMap"></script>
 	<script>
 	
 const preview = document.querySelector(".preview"); 
@@ -394,7 +430,7 @@ document.getElementById("demo").onclick = function () {
 };
 
 document.getElementById("connect").onclick = function () {
-	window.location.href = "connect.html";
+	window.location.href = "itahm.html";
 };
 
 
