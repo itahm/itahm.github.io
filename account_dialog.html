@@ -61,8 +61,19 @@ footer{
 	display: flex;
 }
 
-footer input {
+footer> input {
 	flex: 1;
+	border-radius: 1.2em;
+	background-color: #0084ff;
+	color: #fff;
+	border: .2em solid transparent;
+	padding: .5em;
+}
+
+footer> input:hover {
+	background-color: #fff;
+	color: #0084ff;
+	border-color: #0084ff;
 }
 
 body:not(.removable) .remove {
@@ -114,8 +125,8 @@ body:not(.removable) .remove {
 				</div>
 				<label class="remove"><input type="checkbox" name="remove" disabled>remove</label>
 				<footer>
-					<input type="reset" class="r_button" value="cancel">
-					<input type="submit" class="r_button" value="apply" disabled>
+					<input type="reset" value="cancel">
+					<input type="submit" value="apply" disabled>
 				</footer>
 			</form>
 		</div>
@@ -123,15 +134,11 @@ body:not(.removable) .remove {
 		<script src="js/md5.js"></script>
 		<script>
 
-if (top === window) {
-	throw "";
-}
-
 var form = document.querySelector("form");
 
 form.addEventListener("reset", onCancel);
 
-if (sessionStorage.level == 0) {
+if (top.databases.local.level === 0) {
 	form.addEventListener("submit", onApply);
 	
 	document.querySelector("input[type=submit]").disabled = false;
@@ -139,6 +146,7 @@ if (sessionStorage.level == 0) {
 	form.elements.remove.onclick = onRemove;
 	form.elements.remove.disabled = false;
 }
+
 
 /**
  * callback method

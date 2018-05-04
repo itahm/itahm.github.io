@@ -320,13 +320,21 @@ function toDateString(m) {
 }
 
 function initialize() {
-	// TODO ITAhM의 시작.
+	// TODO ITAhM의 시작.	
+	const config = window.databases.config;
+	
+	if (!config.license && !config.expire) {
+		alert("라이선스가 확인되지 않습니다.");
+		
+		window.location.href = "/";
+		
+		return;
+	}
+	
 	document.title = sessionStorage.host +" @ ITAhM";
 	document.getElementById("signout").title = sessionStorage.user;
 	
-	setMenu(window.databases.config.menu? true: false);
-	
-	const config = window.databases.config;
+	setMenu(config.menu? true: false);
 	
 	if ("expire" in config && config.expire > 0 && !config.license) {
 		document.getElementById("expire").textContent = toDateString(config.expire);
@@ -541,6 +549,7 @@ var
 	agent = "http://"+sessionStorage.host +":"+ sessionStorage.port,
 	databases = {
 		local: {
+			level: sessionStorage.level,
 			scale: 1,
 			icon: ITAhM.iconData
 		}

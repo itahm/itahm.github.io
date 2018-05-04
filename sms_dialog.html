@@ -38,7 +38,9 @@ input[type="checkbox"] {
 }
 
 div.table {
-	margin-bottom: 10px;
+	border: 1px solid #aaa;
+	padding: 1em;
+	margin-bottom: 5px;
 }
 
 div.table ul {
@@ -64,12 +66,24 @@ body:not(.v3) .v3 {
 	display: none;
 }
 
-footer{
+footer {
 	display: flex;
+	margin-top: 1em;
 }
 
-footer input {
+footer> input {
 	flex: 1;
+	border-radius: 1.2em;
+	background-color: #0084ff;
+	color: #fff;
+	border: .2em solid transparent;
+	padding: .5em;
+}
+
+footer> input:hover {
+	background-color: #fff;
+	color: #0084ff;
+	border-color: #0084ff;
 }
 
 body:not(.removable) .remove,
@@ -194,7 +208,6 @@ function sendRequest(id, sms) {
 	
 		<div class="dialog rounded">
 			<form autocomplete="off">
-				<h2>sms user</h2>
 				<div class="table">
 					<ul>
 						<li>User ID 
@@ -218,8 +231,8 @@ function sendRequest(id, sms) {
 				</div>
 				<label class="remove"><input type="checkbox" name="remove" disabled>remove</label>
 				<footer>
-					<input type="reset" class="r_button" value="cancel">
-					<input type="submit" class="r_button" value="apply" disabled>
+					<input type="reset" value="cancel">
+					<input type="submit" value="apply" disabled>
 				</footer>
 			</form>
 		</div>
@@ -227,18 +240,16 @@ function sendRequest(id, sms) {
 		<script>
 
 var form = document.querySelector("form");
-	
-form.onreset = onCancel;
 
-if (sessionStorage.level == 0) {
+if (top.databases.local.level === 0) {
 	form.addEventListener("submit", onApply);
 	form.elements["remove"].onclick = onRemove;
 	form.elements["remove"].disabled = false;
 	document.querySelector("input[type=submit]").disabled = false;
 }
 
+form.onreset = onCancel;
 form.elements["number"].onfocus = onFocusNumber;
-
 form.elements["number"].onblur = onCheckNumber;
 
 

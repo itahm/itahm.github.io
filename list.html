@@ -242,8 +242,7 @@ label {
 body.normal #list> ul:not([data-normal]),
 body.critical #list> ul:not([data-critical]),
 body.shutdown #list> ul:not([data-shutdown]),
-body.disabled #list> ul:not([data-disabled]),
-body.unlabeled #list> ul:not([data-unlabeled]) {
+body.disabled #list> ul:not([data-disabled]) {
 	display: none;
 }
 
@@ -378,9 +377,6 @@ function createRow(id, device, monitor) {
 			
 			window.labelData[label] = null;
 		}
-	}
-	else {
-		row.dataset.unlabeled = true;
 	}
 	
 	if (monitor) {			

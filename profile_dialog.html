@@ -64,12 +64,24 @@ body:not(.v3) .version.v3 {
 	display: none;
 }
 
-footer{
+footer {
 	display: flex;
+	margin-top: 1em;
 }
 
-footer input {
+footer> input {
 	flex: 1;
+	border-radius: 1.2em;
+	background-color: #0084ff;
+	color: #fff;
+	border: .2em solid transparent;
+	padding: .5em;
+}
+
+footer> input:hover {
+	background-color: #fff;
+	color: #0084ff;
+	border-color: #0084ff;
 }
 
 body:not(.removable) .remove,
@@ -137,17 +149,13 @@ body:not(.warning) .warning {
 				<label class="remove"><input type="checkbox" name="remove" disabled>remove</label>
 				<i class="warning">사용중인 프로파일은 삭제할 수 없습니다.</i>
 				<footer>
-					<input type="reset" class="r_button" value="cancel">
-					<input type="submit" class="r_button" value="apply" disabled>
+					<input type="reset" value="cancel">
+					<input type="submit" value="apply" disabled>
 				</footer>
 			</form>
 		</div>
 		
 		<script>
-	
-if (top === window) {
-	throw "";
-}
 
 var form = document.querySelector("form"),
 	version = document.querySelectorAll("input[name=version]");
@@ -177,13 +185,12 @@ form.elements["en_priv"].onclick = function () {
 	enableElement(window.form.elements["privacy"], this.checked);
 };
 
-if (sessionStorage.level == 0) {
+if (top.databases.local.level === 0) {
 	form.addEventListener("submit", onApply);
 	form.elements["remove"].onclick = onRemove;
 	form.elements["remove"].disabled = false;
 	document.querySelector("input[type=submit]").disabled = false;
 }
-
 
 /**
  * callback method

@@ -781,9 +781,6 @@ function setGroupStatus(id, status) {
 		if (id in top.databases.position) {
 			setGroupStatus(top.databases.position[id].parent, status);
 		}
-		else {
-			console.log(id+" 의 position 정보를 얻을수 없어 구성도에 표시할 수 없습니다.");
-		}
 	}
 }
 
@@ -796,11 +793,13 @@ function initialize() {
 	for (var ip in top.databases.device) {
 		pos = top.databases.position[ip];
 
-		// 특별한 상황(버그)에서 device의 pos 정보가 없을 수 있음
+		// 동기화 안된 node의 pos 정보가 없음
 		if (!pos) {
-			console.log(ip+" 의 position 정보를 얻을수 없어 구성도에 표시할 수 없습니다.");
-			
-			continue;
+			top.databases.position[ip] = pos = {
+				x: 0,
+				y: 0,
+				ifEntry: {}
+			};
 		}
 		
 		if (pos.parent === group) {
@@ -932,10 +931,6 @@ function resetStatus(ip) {
 		<script src="js/ITAhM.js"></script>
 		<script src="js/Draggable.js"></script>
 		<script>
-
-if (sessionStorage.level == 0) {
-	document.body.classList.add("root");
-}
 		
 var svgNS = "http://www.w3.org/2000/svg",
 	xlinkNS = "http://www.w3.org/1999/xlink",
@@ -945,7 +940,6 @@ var svgNS = "http://www.w3.org/2000/svg",
 
 var mapCanvas = document.getElementById("map"),
 	deviceCanvas = document.getElementById("device"),
-	//toolCanvas = document.getElementById("tool"),
 	lineCanvas = document.getElementById("line"),
 	transform = document.getElementById("transform").transform.baseVal,
 	linkCanvas = document.getElementById("link"),
@@ -962,6 +956,10 @@ var mapCanvas = document.getElementById("map"),
 	checked = {},
 	scale = 1,
 	isDragging = false;
+
+if (top.databases.local.level === 0) {
+	document.body.classList.add("root");
+}
 
 new Draggable(mapCanvas);
 

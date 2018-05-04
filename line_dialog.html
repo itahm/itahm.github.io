@@ -174,7 +174,7 @@ function initialize(ip, peerIP) {
 		}, function (data) {
 			var ifEntry = top.databases.position[ip].ifEntry;
 			
-			if (initPort(window.peerLeft, data.ifEntry)) {console.log("left");
+			if (initPort(window.peerLeft, data.ifEntry)) {
 				window.peerLeft.disabled = false;
 			}
 			
@@ -202,7 +202,7 @@ function initialize(ip, peerIP) {
 		}, function (data) {
 			var ifEntry = top.databases.position[peerIP].ifEntry;
 			
-			if (initPort(window.peerRight, data.ifEntry)) {console.log("right");
+			if (initPort(window.peerRight, data.ifEntry)) {
 				window.peerRight.disabled = false;
 			}
 			
@@ -261,7 +261,7 @@ var form = document.querySelector("form"),
 	
 form.onreset = onCancel;
 
-if (sessionStorage.level == 0) {
+if (top.databases.local.level === 0) {
 	form.addEventListener("submit", onApply);
 	form.elements["remove"].onclick = onRemove;
 	form.elements["remove"].disabled = false;

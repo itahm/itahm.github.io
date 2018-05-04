@@ -1490,11 +1490,13 @@ if ("display" in top.databases.config) {
 		for (var ip in top.databases.device) {
 			pos = top.databases.position[ip];
 
-			// 특별한 상황(버그)에서 device의 pos 정보가 없을 수 있음
-			if (!pos) {
-				console.log(ip+" 의 position 정보를 얻을수 없어 구성도에 표시할 수 없습니다.");
-				
-				continue;
+			// 동기화 안된 node의 pos 정보가 없음
+			if (!pos) {console.log("!");
+				top.databases.position[ip] = pos = {
+					x: 0,
+					y: 0,
+					ifEntry: {}
+				};
 			}
 			
 			if (pos.parent === undefined) {

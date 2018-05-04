@@ -801,9 +801,9 @@ var resources = document.getElementById("resources"),
 	custom = document.getElementById("custom"),
 	backup = document.getElementById("backup");
 	
-window.gcm.elements["host"].value = sessionStorage.host;
+window.gcm.elements["host"].value = "http://itahm.com";
 
-if (parseInt(sessionStorage.level)) {
+if (top.databases.local.level > 0) {
 	[].forEach.call(document.querySelectorAll(".root"),
 		function (e) {
 			e.disabled = true;

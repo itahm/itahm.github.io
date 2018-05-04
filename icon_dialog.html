@@ -57,11 +57,22 @@ div.table input[type="text"] {
 
 footer {
 	display: flex;
+	margin-top: 1em;
 }
 
-footer input {
+footer> input {
 	flex: 1;
+	border-radius: 1.2em;
+	background-color: #0084ff;
+	color: #fff;
+	border: .2em solid transparent;
 	padding: .5em;
+}
+
+footer> input:hover {
+	background-color: #fff;
+	color: #0084ff;
+	border-color: #0084ff;
 }
 
 input[type="checkbox"] {
@@ -104,26 +115,20 @@ body:not(.customized) .customizable {
 				<label class="customizable"><input type="checkbox" name="reset" disabled>reset</label>
 			</div>
 			<footer>
-				<input type="reset" class="r_button" value="Cancel">
-				<input type="submit" class="r_button" value="Apply">
+				<input type="reset" value="Cancel">
+				<input type="submit" value="Apply" disabled>
 			</footer>
 		</form>
 		
 		<script>
-	
-if (top === window) {
-	throw "";
-}
 
 var form = document.querySelector("form");
 
 form.addEventListener("reset", onCancel);
 
-if (sessionStorage.level == 0) {
+if (top.databases.local.level === 0) {
 	form.addEventListener("submit", onApply);
-}
-else {
-	document.querySelector("input[type=submit]").disabled = true;
+	document.querySelector("input[type=submit]").disabled = false;
 }
 
  function onApply(e) {
@@ -171,7 +176,7 @@ window.initialize = function (type) {
 		form.elements.url.value = icon.src;
 		form.elements.disabled.value = icon.disabled;
 		
-		if (sessionStorage.level == 0) {
+		if (top.databases.local.level === 0) {
 			form.elements.reset.onclick = onReset;
 			form.elements.reset.disabled = false;
 		}

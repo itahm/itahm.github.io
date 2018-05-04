@@ -73,13 +73,23 @@ input[type="checkbox"] {
 }
 
 footer {
-	margin-top: 5px;
 	display: flex;
+	margin-top: 1em;
 }
 
-footer input {
+footer> input {
 	flex: 1;
+	border-radius: 1.2em;
+	background-color: #0084ff;
+	color: #fff;
+	border: .2em solid transparent;
 	padding: .5em;
+}
+
+footer> input:hover {
+	background-color: #fff;
+	color: #0084ff;
+	border-color: #0084ff;
 }
 
 body:not(.monitor) .monitor {
@@ -126,8 +136,8 @@ body.initialized .search {
 			</div>
 			
 			<footer>
-				<input type="reset" class="r_button" value="Cancel">
-				<input type="submit" class="r_button" value="Apply">
+				<input type="reset"  value="Cancel">
+				<input type="submit" value="Apply" disabled>
 			</footer>
 		</form>
 		
@@ -142,11 +152,9 @@ form.addEventListener("reset", onCancel);
 
 window.mask.onchange = onSelect;
 
-if (sessionStorage.level == 0) {
+if (top.databases.local.level === 0) {
 	form.addEventListener("submit", onApply);
-}
-else {
-	document.querySelector("input[type=submit]").disabled = true;
+	document.querySelector("input[type=submit]").disabled = false;
 }
 
 function onSelect(e) {
@@ -160,7 +168,7 @@ function onApply(e) {
 			command: "extra",
 			extra: "search",
 			network: form.elements.network.value,
-			mask: window.mask[window.mask.selectedIndex].text
+			mask: parseInt(window.mask.options[window.mask.selectedIndex].text)
 		};
 	
 	top.sendRequest(request, function (data) {

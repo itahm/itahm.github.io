@@ -453,10 +453,6 @@ function initialize(ip) {
 		
 		<script>
 
-if (top === window) {
-	throw "";
-}
-
 var resourceString = {
 		"processor": "Processor load",
 		"memory": "Physical memory",
@@ -469,7 +465,7 @@ var form = document.querySelector("form"),
 
 form.addEventListener("reset", onClose);
 
-if (sessionStorage.level == 0) {
+if (top.databases.local.level == 0) {
 	document.body.classList.add("authorized");
 	
 	form.elements.resource.onchange = onSelectResource;

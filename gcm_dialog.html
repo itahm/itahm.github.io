@@ -110,12 +110,13 @@ var form = document.querySelector("form");
 
 form.addEventListener("reset", onCancel);
 
-if (sessionStorage.level == 0) {
+if (top.databases.local.level === 0) {
 	form.addEventListener("submit", onApply);
 	form.elements.remove.onclick = onRemove;
 	form.elements.remove.disabled = false;
 	document.querySelector("input[type=submit]").disabled = false;
 }
+
 
 /**
  * callback method

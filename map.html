@@ -158,7 +158,7 @@ function onSetAlarm(ip){
 var map = document.getElementById("map"),
 	editMode = document.getElementById("edit_mode");
 
-if (sessionStorage.level == 0) {
+if (top.databases.local.level === 0) {
 	document.body.classList.add("root");
 }
 

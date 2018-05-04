@@ -25,6 +25,8 @@ form {
 }
 
 .table {
+	border: 1px solid #aaa;
+	padding: 1em;
 	margin-bottom: 5px;
 }
 
@@ -89,10 +91,19 @@ footer> input:hover {
 	border-color: #0084ff;
 }
 
-body:not(.monitor) .monitor,
-body:not(.removable) .remove,
-body.initialized .search,
-body:not(.redirected) {
+body:not(.monitor) .monitor {
+	display: none;
+}
+
+body:not(.removable) .remove {
+	display: none;
+}
+
+body.initialized .search {
+	display: none;
+}
+
+body.dummy .ip {
 	display: none;
 }
 
@@ -103,13 +114,10 @@ body.loading {
 		</style>
 		
 		<script>
-(function (version) {
-	const major = "2.0.3.";
-	
-	if (version.indexOf(major) === major.indexOf(major) && parseInt(version.split(major)[1]) === 2) {
-		window.location.href = "device_dialog.2.0.3.2.html";
-	}
-}) (top.databases.config.version);
+		// static function
+function isIPv4(s) {
+    return s.match(/^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/)? true: false;
+}
 		</script>
 		
 		<script>
@@ -167,59 +175,63 @@ function onSearch() {
 function onApply(e) {
 	e.preventDefault();
 	
-	var ip = form.elements.ip.value;
-	
-	// 생성
-	if (!window.device) {
-		if (ip in top.databases.device) {
-			alert("IP address already exists.");
-			
-			//form.elements.ip1.select();
-			form.elements.ip.select();
-			
-			return;
-		}
-		
-		window.device = {
-			ifSpeed: {}	
+	const device = window.id? top.databases.device[id]: {
+			ifSpeed: {}
 		};
-		
-		// 생성인 경우 position 정보는 갱신되지 않으므로 임의로 넣어준다.
-		/*top.databases.position[ip] = {
-			x: 0,
-			y: 0,
-			ifEntry: {}
-		};*/
-		
-	}
 	
-	window.device.name = form.elements.name.value;
-	window.device.ip = ip;
-	window.device.type = form.elements.type.value;
-	window.device.label = trimLabel(form.elements.label.value);
+	device.ip = form.elements["ip"].value;
+	device.name = form.elements["name"].value;
+	device.type = form.elements["type"].value;
+	device.label = trimLabel(form.elements["label"].value);
 	
 	for (var custom in window.custom) {
-		window.device[custom] = window.custom[custom].value;
+		device[custom] = window.custom[custom].value;
 	}
 	
-	if (top.databases.local.parent) {
-		top.databases.position[ip].parent = top.databases.local.parent;
+	// 생성
+	if (!window.id) {
+		top.sendRequest({
+			command: "put",
+			database: "device",
+			key: "",
+			value: device
+		}, function (data) {
+			const id = Object.keys(data)[0],
+				pos = {
+					x: 0,
+					y: 0,
+					ifEntry: {}
+				};
+			
+			top.databases.position[id] = pos; 
+			
+			if (top.databases.local.parent) {
+				pos.parent = top.databases.local.parent;
+			}
+			
+			saveDevice(id, device);
+		});
+	}
+	else {
+		top.sendRequest({
+			command: "put",
+			database: "device",
+			key: window.id,
+			value: device
+		}, function () {
+			saveDevice(window.id, device);		
+		});
+	}
+}
+
+function saveDevice(id, device) {
+	top.databases.device[id] = device;
+	
+	if (window.opener) {
+		window.opener.reload();
 	}
 	
-	top.sendRequest({
-		command: "put",
-		database: "device",
-		key: ip,
-		value: window.device
-	}, function (data) {
-		top.databases.device = data;
-		
-		if (window.opener) {
-			window.opener.reload();
-		}
-		
-		top.closeDialog();
-	});
+	top.closeDialog();
 }
 
 function onCancel(e) {
@@ -239,41 +251,40 @@ function onRemoveDevice() {
 		document.body.classList.add("loading");
 		
 		top.sendRequest({
-				command: "put",
-				database: "device",
-				key: window.device.ip,
-				value: null
-			}, function (data) {
-				var posData = top.databases.position;
-				
-				top.databases.device = data;
-				
-				// device의 monitor 정보 삭제
-				delete top.databases.monitor[window.device.ip];
-				
-				// device의 critical 정보 삭제
-				delete top.databases.monitor[window.device.ip];
-				
-				// 연관 link 정보 삭제
-				for (var ip in posData[window.device.ip].ifEntry) {
-					delete posData[ip].ifEntry[window.device.ip];
+			command: "put",
+			database: "device",
+			key: window.id,
+			value: null
+		}, function () {
+			const posData = top.databases.position;
+			
+			// device 정보 삭제
+			delete top.databases.device[window.id];
+			
+			// device의 monitor 정보 삭제
+			delete top.databases.monitor[window.id];
+			
+			// device의 critical 정보 삭제
+			delete top.databases.critical[window.id];
+			
+			// 연관 link 정보 삭제
+			if (posData[window.id]) {
+				for (var ip in posData[window.id].ifEntry) {
+					if (posData[ip]) {
+						delete posData[ip].ifEntry[window.id];
+					}
 				}
-				
-				// device의 position 정보 삭제
-				delete posData[window.device.ip];				
-				
-				top.sendRequest({
-					command: "push",
-					database: "position",
-					data: posData
-				}, function (data) {
-					document.body.classList.remove("loading");
-					
-					window.opener.reload();
-					
-					top.closeDialog();
-				});
-			});
+			}				
+			
+			// device의 position 정보 삭제
+			delete posData[window.id];				
+			
+			document.body.classList.remove("loading");
+			
+			window.opener.reload();
+			
+			top.closeDialog();
+		});
 	}
 	else {
 		this.checked = false;
@@ -289,7 +300,7 @@ function onMonitorDevice(e) {
 			return top.sendRequest({
 				command: "put",
 				database: "monitor",
-				key: window.device.ip,
+				key: window.id,
 				value: this.value === "none"? null: {
 					protocol: this.value
 				}
@@ -323,8 +334,9 @@ function trimLabel(labels) {
 	return result.join(",");
 }
 
-function initialize(ip) {
+function initialize(id) {
 	window.opener = this && this.location;
+	window.id = id;
 	
 	if ("custom" in top.databases.config) {
 		var customs = top.databases.config.custom,
@@ -350,33 +362,42 @@ function initialize(ip) {
 		document.getElementById("custom").appendChild(df);
 	}
 	
-	if (ip) {
-		window.device = top.databases.device[ip];
+	if (id) {
+		const device = top.databases.device[id];
 		
-		form.elements.name.value = device.name || "";
+		form.elements["name"].value = device.name || "";
 		
-		form.elements.ip.value = ip;
-		form.elements.ip.disabled = true;
-		form.elements.type.value = device.type;
+		form.elements["ip"].value = device.ip;
+		form.elements["type"].value = device.type;
 		// 저장할때는 trim으로 다 붙여서 넣지만 보여줄때는 보기 좋게 한칸씩 띈다.
-		form.elements.label.value = device.label && (device.label.split(",")).join(", ") || "";
+		form.elements["label"].value = device.label && (device.label.split(",")).join(", ") || "";
 		
 		for (var custom in window.custom) {
 			window.custom[custom].value = device[custom] || "";
 		}
 		
-		var monitor = top.databases.monitor[ip];
+		if (device.ip) {
+			const monitor = top.databases.monitor[id];
 		
-		form.elements.monitor.value = monitor? monitor.protocol: "none";
-		
-		document.body.classList.add("monitor");
-		
-		if (top.databases.local.level === 0) {
-			document.body.classList.add("removable");
-			form.elements.remove.onclick = onRemoveDevice;
+			if (monitor) {
+				form.elements["monitor"].value = monitor.protocol;
+				
+				form.elements["ip"].disabled = true;
+			}
+			else {
+				form.elements["monitor"].value = "none";
+			}
 			
-			form.elements.monitor.onchange = onMonitorDevice;
-			form.elements.monitor.onclick = function () {
+			document.body.classList.add("monitor");
+		}
+		
+		if (top.databases.local.level == 0) {
+			document.body.classList.add("removable");
+			
+			form.elements["remove"].onclick = onRemoveDevice;
+			
+			form.elements["monitor"].onchange = onMonitorDevice;
+			form.elements["monitor"].onclick = function () {
 				window.monitor = this.value;
 			}
 		}
@@ -394,14 +415,11 @@ function initialize(ip) {
 	<body>
 	
 		<form class="rounded">
-			<h2>장비</h2>
 			<div class="table">
-				<ul>
+				<ul class="ip">
 					<li>ip 주소
 					<li>
-						<input type="text" name="ip"  
-							pattern="^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$" 
-							required autofocus>
+						<input type="text" name="ip" autofocus>
 				</ul>
 				<ul>
 					<li>이름
@@ -455,18 +473,17 @@ var form = document.querySelector("form"),
 	monitor = "none",
 	custom = {};
 
-form.elements.type.appendChild(buildType());
+form.elements["type"].appendChild(buildType());
 
-form.elements.search.onclick = onSearch;
+form.elements["search"].onclick = onSearch;
 
 form.addEventListener("reset", onCancel);
 
 if (top.databases.local.level === 0) {
-	form.addEventListener("submit", onApply);
 	document.querySelector("input[type=submit]").disabled = false;
+	form.addEventListener("submit", onApply);
 }
 
-document.body.classList.add("redirected");
 	</script>
 	
 	</body>
