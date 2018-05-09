@@ -549,7 +549,7 @@ var
 	agent = "http://"+sessionStorage.host +":"+ sessionStorage.port,
 	databases = {
 		local: {
-			level: sessionStorage.level,
+			level: parseInt(sessionStorage.level),
 			scale: 1,
 			icon: ITAhM.iconData
 		}
