@@ -336,10 +336,22 @@ function setMenu(b) {
 	}
 } 
 
+// public
+// ip / id 버전에 따라
 function getDeviceName(ip) {
-	var device = window.databases.device[ip];
+	const deviceData = window.databases.device;
+	
+	if (ip in deviceData) {
+		return deviceData[ip].name || ip;
+	}	
+	
+	for (let id in deviceData) {
+		if (deviceData[id].ip === ip) {
+			return deviceData[id].name || ip;
+		}
+	}
 
-	return device? device.name: ip;
+	return ip;
 }
 
 function showDialog() {
@@ -586,9 +598,10 @@ function onConnect(e) {
 	
 	const ip = this.elements["ip"];
 	
+	/* domain 일 수도
 	if (!isIPv4(ip.value)) {
 		return ip.select();
-	}
+	}*/
 	
 	const tcp = this.elements["tcp"];
 	
@@ -853,7 +866,7 @@ var agent = "http://",
 		const args = agent.split(":");
 		
 		if (args.length === 2) {
-			if (isIPv4(args[0])) {
+			//if (isIPv4(args[0])) { doamin 일 수도
 				connect.elements["ip"].value = args[0];
 				
 				if (!isNaN(args[1]) && args[1] > -1 && args[1] < 65536) {
@@ -863,7 +876,7 @@ var agent = "http://",
 					
 					return trySignIn(signin.elements["username"]);
 				}
-			}
+			//}
 		}
 		
 		cancel();

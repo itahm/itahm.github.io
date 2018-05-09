@@ -682,9 +682,9 @@ function initStats() {
 		window.summaryList.removeChild(window.summaryList.firstChild);
 	}
 	
-	for (var ip in deviceData) {
-		device = deviceData[ip];
-		monitor = monitorData[ip];
+	for (var id in deviceData) {
+		device = deviceData[id];
+		monitor = device.ip && monitorData[device.ip];
 	
 		if (!monitor) {
 			continue;
@@ -853,7 +853,7 @@ function createGaugeItem(ip, value, rate, resource, index) {
 	
 	item.className = "list_item";
 	
-	item.appendChild(document.createElement("li")).textContent = top.databases.device[ip].name || ip;
+	item.appendChild(document.createElement("li")).textContent = top.getDeviceName(ip);
 	item.appendChild(document.createElement("li")).textContent = ip;
 	
 	bar = item.appendChild(document.createElement("li"));
@@ -880,14 +880,14 @@ function createTopItem(ip, value) {
 	
 	item.className = "list_item";
 	
-	item.appendChild(document.createElement("li")).textContent = top.databases.device[ip].name || ip;
+	item.appendChild(document.createElement("li")).textContent = top.getDeviceName(ip);
 	item.appendChild(document.createElement("li")).textContent = ip;
 	
 	bar = item.appendChild(document.createElement("li"));
 	bar.dataset.value = value;
 	
 	if (value.substring(value.length -1, value.length) == "%") {
-		var p = value.substring(0, value.length -1);
+		let p = value.substring(0, value.length -1);
 		
 		bar.appendChild(document.createElement("div")).style.width = value;
 		
@@ -1246,14 +1246,14 @@ if ("display" in top.databases.config) {
 	function moveAllDevice(x, y) {
 		var group = top.databases.local.parent, moved;
 		
-		for (var ip in top.databases.device) {
-			pos = top.databases.position[ip];
+		for (var id in top.databases.device) {
+			pos = top.databases.position[id];
 			
 			if (pos.parent !== group) {
 				continue;
 			}
 			
-			moved = moveDevice(ip, x, y);
+			moved = moveDevice(id, x, y);
 			
 			pos.x = moved.x;
 			pos.y = moved.y;
@@ -1296,8 +1296,8 @@ if ("display" in top.databases.config) {
 		data.name2.setAttribute("y", (y2 *2 + y1) /3);
 	}
 
-	function addDevice(ip, pos) {
-		var device = top.databases.device[ip],
+	function addDevice(id, pos) {
+		var device = top.databases.device[id],
 			svgDevice = document.createElementNS(svgNS, "g"),
 			svgIcon = document.createElementNS(svgNS, "image"),
 			svgBG = document.createElementNS(svgNS, "circle"),
@@ -1306,7 +1306,7 @@ if ("display" in top.databases.config) {
 			svgName = document.createElementNS(svgNS, "tspan");
 			
 		if (!pos) {
-			top.databases.position[ip] = pos = {x: 0, y: 0};
+			top.databases.position[id] = pos = {x: 0, y: 0};
 		}
 		
 		svgIcon.setAttribute("x", ICON_SIZE *-1 /2);
@@ -1338,18 +1338,18 @@ if ("display" in top.databases.config) {
 		
 		deviceCanvas.appendChild(svgDevice);
 		
-		svgData[ip] = svgDevice;
+		svgData[id] = svgDevice;
 		
-		drawDevice(ip);
+		drawDevice(id);
 	}
 
-	function drawDevice(ip) {
-		var device = top.databases.device[ip],
-			svgDevice = svgData[ip],
+	function drawDevice(id) {
+		var device = top.databases.device[id],
+			svgDevice = svgData[id],
 			svgIcon = svgDevice.querySelector("image"),
-			pos = top.databases.position[ip],
+			pos = top.databases.position[id],
 			icon = getIcon(device.type || "unknown"),
-			monitor = top.databases.monitor[ip];
+			monitor = device.ip && top.databases.monitor[device.ip];
 		
 		removeClass(svgDevice, "shutdown", "critical");
 		
@@ -1376,13 +1376,13 @@ if ("display" in top.databases.config) {
 		return hasClass(svgDevice, "device")? svgDevice: null;
 	}
 
-	function moveDevice(ip, x, y) {
-		var device = top.databases.device[ip],
-			pos = top.databases.position[ip],
-			link = linkData[ip],
+	function moveDevice(id, x, y) {
+		var device = top.databases.device[id],
+			pos = top.databases.position[id],
+			link = linkData[id],
 			data;
 
-		var svgDevice = svgData[ip];
+		var svgDevice = svgData[id];
 		
 		x = Math.round((x + pos.x) /10) *10;
 		y = Math.round((y + pos.y) /10) *10;
@@ -1392,7 +1392,7 @@ if ("display" in top.databases.config) {
 		for (var peerIP in link) {
 			data = link[peerIP];
 		
-			drawLine(x, y, data, data.peer1 === ip);
+			drawLine(x, y, data, data.peer1 === id);
 		}
 		
 		return {
@@ -1416,14 +1416,14 @@ if ("display" in top.databases.config) {
 		labelSvg.setAttribute("y", (y1 *2 + y2) /3);
 	}
 
-	function addLine(ip, pos) {
-		var device = top.databases.device[ip],
+	function addLine(id, pos) {
+		var device = top.databases.device[id],
 			ifEntry = pos.ifEntry,
 			peerList = {},
 			peerPos, peerIP, link, lineSvg,
 			labelSvg;
 		
-		linkData[ip] = peerList;
+		linkData[id] = peerList;
 		
 		for (var peerIP in ifEntry) {
 			peerPos = top.databases.position[peerIP];
@@ -1433,7 +1433,7 @@ if ("display" in top.databases.config) {
 			
 			// peer가 먼저 svg 만들었다면 공유
 			if (linkData[peerIP]) {
-				link = linkData[peerIP][ip];
+				link = linkData[peerIP][id];
 					
 				link.name2 = labelSvg;
 			}
@@ -1446,7 +1446,7 @@ if ("display" in top.databases.config) {
 				lineSvg.setAttribute("y2", peerPos.y);
 				
 				link = {
-					peer1: ip,
+					peer1: id,
 					name1: labelSvg,
 					peer2: peerIP,
 					svg: lineCanvas.appendChild(lineSvg)
@@ -1487,12 +1487,12 @@ if ("display" in top.databases.config) {
 			critical = {},
 			pos;
 		
-		for (var ip in top.databases.device) {
-			pos = top.databases.position[ip];
+		for (var id in top.databases.device) {
+			pos = top.databases.position[id];
 
 			// 동기화 안된 node의 pos 정보가 없음
-			if (!pos) {console.log("!");
-				top.databases.position[ip] = pos = {
+			if (!pos) {
+				top.databases.position[id] = pos = {
 					x: 0,
 					y: 0,
 					ifEntry: {}
@@ -1500,17 +1500,17 @@ if ("display" in top.databases.config) {
 			}
 			
 			if (pos.parent === undefined) {
-				addDevice(ip, pos);
-				addLine(ip, pos);
+				addDevice(id, pos);
+				addLine(id, pos);
 			}
 			// upper 그룹일수도 lower 그룹일수도 있음
 			// upper 그룹은 대상이 아님
 			// 모니터링 대상장비 이어야 함
-			else if (pos.parent && ip in top.databases.monitor) {
-				if (top.databases.monitor[ip].shutdown) {
+			else if (pos.parent && device.ip && device.ip in top.databases.monitor) {
+				if (top.databases.monitor[device.ip].shutdown) {
 					shutdown[pos.parent] = true;
 				}
-				else if (top.databases.monitor[ip].critical) {
+				else if (top.databases.monitor[device.ip].critical) {
 					critical[pos.parent] = true;
 				}
 			}

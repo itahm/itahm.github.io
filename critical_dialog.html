@@ -382,7 +382,7 @@ function initialize(ip) {
 
 	list.appendChild(df);
 
-	document.getElementById("name").textContent = top.databases.device[ip].name;
+	document.getElementById("name").textContent = top.getDeviceName(ip);
 	document.getElementById("ip").textContent = ip;
 	
 	top.sendRequest({

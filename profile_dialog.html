@@ -346,9 +346,9 @@ function initialize(name) {
 }
 
 function isIdleProfile(name) {
-	var monitorData = top.databases.monitor;
+	const monitorData = top.databases.monitor;
 
-	for (var ip in monitorData) {
+	for (let ip in monitorData) {
 		monitor = monitorData[ip];
 		
 		if (monitor.profile === name) {

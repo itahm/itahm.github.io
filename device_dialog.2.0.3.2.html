@@ -269,9 +269,9 @@ function onRemoveDevice() {
 			
 			// 연관 link 정보 삭제
 			if (posData[window.id]) {
-				for (var ip in posData[window.id].ifEntry) {
-					if (posData[ip]) {
-						delete posData[ip].ifEntry[window.id];
+				for (var id in posData[window.id].ifEntry) {
+					if (posData[id]) {
+						delete posData[id].ifEntry[window.id];
 					}
 				}
 			}				
@@ -297,10 +297,12 @@ function onMonitorDevice(e) {
 			alert("사용 가능한 프로파일이 존재하지 않습니다.\n"+ "\n" +"먼저 프로파일을 생성하십시오.");
 		}
 		else {
+			const device = top.databases.device[window.id];
+			
 			return top.sendRequest({
 				command: "put",
 				database: "monitor",
-				key: window.id,
+				key: device.ip,
 				value: this.value === "none"? null: {
 					protocol: this.value
 				}
@@ -377,7 +379,7 @@ function initialize(id) {
 		}
 		
 		if (device.ip) {
-			const monitor = top.databases.monitor[id];
+			const monitor = top.databases.monitor[device.ip];
 		
 			if (monitor) {
 				form.elements["monitor"].value = monitor.protocol;

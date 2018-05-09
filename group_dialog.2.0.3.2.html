@@ -207,17 +207,19 @@ function onRemoveGroup() {
 			delete top.databases.device[window.id];
 			
 			// group을 parent로 갖는 device의 pos 정보 갱신
-			for (let ip in posData) {
-				if(posData[ip].parent === window.id) {
-					delete posData[ip].parent;
+			for (let id in posData) {
+				if(posData[id].parent === window.id) {
+					delete posData[id].parent;
 				}
 			}
 			
 			// 연관 link 정보 삭제
 			if (posData[window.id]) {
-				for (let ip in posData[window.id].ifEntry) {
-					if (posData[ip]) {
-						delete posData[ip].ifEntry[window.id];
+				const ifEntry = posData[window.id].ifEntry;
+				
+				for (let id in ifEntry) {
+					if (posData[id]) {
+						delete posData[id].ifEntry[window.id];
 					}
 				}
 			}

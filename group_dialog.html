@@ -206,17 +206,17 @@ function onRemoveGroup() {
 				top.databases.device = data;
 				
 				// 연관 link 정보 삭제
-				for (var ip in posData[window.group.id].ifEntry) {
-					delete posData[ip].ifEntry[window.group.id];
+				for (let id in posData[window.group.id].ifEntry) {
+					delete posData[id].ifEntry[window.group.id];
 				}
 				
 				// group의 position 정보 삭제
 				delete posData[window.group.id];
 				
 				// group을 parent로 갖는 device의 pos 정보 갱신
-				for (var ip in posData) {
-					if(posData[ip].parent === window.group.id) {
-						delete posData[ip].parent;
+				for (let id in posData) {
+					if(posData[id].parent === window.group.id) {
+						delete posData[id].parent;
 					}
 				}
 				

@@ -132,7 +132,6 @@ ul {
 	border-bottom: 1px solid #c1c3d1;
 }
 
-
 		</style>
 		
 	</head>
@@ -228,12 +227,11 @@ function sendRequest(mills) {
 }
 
 function createItem(log) {
-	var device = top.databases.device[log.ip],
-		ul = document.createElement("ul"), icon;
+	var ul = document.createElement("ul"), icon;
 	
 	icon = ul.appendChild(document.createElement("li")).appendChild(document.createElement("img"));
 	ul.appendChild(document.createElement("li")).textContent = toTimeString(log.date);
-	ul.appendChild(document.createElement("li")).textContent = (device && device.name) || log.ip;
+	ul.appendChild(document.createElement("li")).textContent = top.getDeviceName(log.ip);
 	ul.appendChild(document.createElement("li")).textContent = log.message;
 	
 	ul.classList.add("item");

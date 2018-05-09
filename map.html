@@ -87,8 +87,8 @@ function editDevice(key) {
 	top.showDialog.call(window, key && top.databases.device[key].group? "group_dialog.html": "device_dialog.html", key);
 }
 
-function editLine(ip, peerIP) {
-	top.showDialog.call(window, "line_dialog.html", ip, peerIP);
+function editLine(id, peerID) {
+	top.showDialog.call(window, "line_dialog.html", id, peerID);
 }
 
 function selectGroup(id) {
@@ -183,7 +183,7 @@ document.getElementById("edit").onclick = function () {
 
 window.map.onload = function () {
 	var mapWindow = window.map.contentWindow,
-		scale, ip;
+		scale;
 	
 	window.mapWindow = mapWindow;
 	

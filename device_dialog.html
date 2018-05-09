@@ -167,50 +167,46 @@ function onSearch() {
 function onApply(e) {
 	e.preventDefault();
 	
-	var ip = form.elements.ip.value;
+	var device;
 	
 	// 생성
-	if (!window.device) {
-		if (ip in top.databases.device) {
+	if (window.id) {
+		device = top.databases.device[window.id];
+	}
+	else {
+		window.id = form.elements["ip"].value;
+		
+		if (window.id in top.databases.device) {
 			alert("IP address already exists.");
 			
-			//form.elements.ip1.select();
-			form.elements.ip.select();
+			form.elements["ip"].select();
 			
 			return;
 		}
 		
-		window.device = {
+		device = {
+			ip: window.id,
 			ifSpeed: {}	
 		};
-		
-		// 생성인 경우 position 정보는 갱신되지 않으므로 임의로 넣어준다.
-		/*top.databases.position[ip] = {
-			x: 0,
-			y: 0,
-			ifEntry: {}
-		};*/
-		
 	}
 	
-	window.device.name = form.elements.name.value;
-	window.device.ip = ip;
-	window.device.type = form.elements.type.value;
-	window.device.label = trimLabel(form.elements.label.value);
+	device.name = form.elements["name"].value;
+	device.type = form.elements["type"].value;
+	device.label = trimLabel(form.elements["label"].value);
 	
 	for (var custom in window.custom) {
-		window.device[custom] = window.custom[custom].value;
+		device[custom] = window.custom[custom].value;
 	}
 	
 	if (top.databases.local.parent) {
-		top.databases.position[ip].parent = top.databases.local.parent;
+		top.databases.position[window.id].parent = top.databases.local.parent;
 	}
 	
 	top.sendRequest({
 		command: "put",
 		database: "device",
-		key: ip,
-		value: window.device
+		key: window.id,
+		value: device
 	}, function (data) {
 		top.databases.device = data;
 		
@@ -241,7 +237,7 @@ function onRemoveDevice() {
 		top.sendRequest({
 				command: "put",
 				database: "device",
-				key: window.device.ip,
+				key: window.id,
 				value: null
 			}, function (data) {
 				var posData = top.databases.position;
@@ -249,18 +245,18 @@ function onRemoveDevice() {
 				top.databases.device = data;
 				
 				// device의 monitor 정보 삭제
-				delete top.databases.monitor[window.device.ip];
+				delete top.databases.monitor[window.id];
 				
 				// device의 critical 정보 삭제
-				delete top.databases.monitor[window.device.ip];
+				delete top.databases.monitor[window.id];
 				
 				// 연관 link 정보 삭제
-				for (var ip in posData[window.device.ip].ifEntry) {
-					delete posData[ip].ifEntry[window.device.ip];
+				for (let id in posData[window.id].ifEntry) {
+					delete posData[id].ifEntry[window.id];
 				}
 				
 				// device의 position 정보 삭제
-				delete posData[window.device.ip];				
+				delete posData[window.id];
 				
 				top.sendRequest({
 					command: "push",
@@ -289,7 +285,7 @@ function onMonitorDevice(e) {
 			return top.sendRequest({
 				command: "put",
 				database: "monitor",
-				key: window.device.ip,
+				key: window.id,
 				value: this.value === "none"? null: {
 					protocol: this.value
 				}
@@ -323,8 +319,10 @@ function trimLabel(labels) {
 	return result.join(",");
 }
 
-function initialize(ip) {
+function initialize(id) {
 	window.opener = this && this.location;
+	
+	window.id = id;
 	
 	if ("custom" in top.databases.config) {
 		var customs = top.databases.config.custom,
@@ -350,33 +348,33 @@ function initialize(ip) {
 		document.getElementById("custom").appendChild(df);
 	}
 	
-	if (ip) {
-		window.device = top.databases.device[ip];
+	if (id) {
+		const device = top.databases.device[id];
 		
-		form.elements.name.value = device.name || "";
+		form.elements["name"].value = device.name || "";
 		
-		form.elements.ip.value = ip;
-		form.elements.ip.disabled = true;
-		form.elements.type.value = device.type;
+		form.elements["ip"].value = device.ip;
+		form.elements["ip"].disabled = true;
+		form.elements["type"].value = device.type;
 		// 저장할때는 trim으로 다 붙여서 넣지만 보여줄때는 보기 좋게 한칸씩 띈다.
-		form.elements.label.value = device.label && (device.label.split(",")).join(", ") || "";
+		form.elements["label"].value = device.label && (device.label.split(",")).join(", ") || "";
 		
 		for (var custom in window.custom) {
 			window.custom[custom].value = device[custom] || "";
 		}
 		
-		var monitor = top.databases.monitor[ip];
+		var monitor = top.databases.monitor[id];
 		
-		form.elements.monitor.value = monitor? monitor.protocol: "none";
+		form.elements["monitor"].value = monitor? monitor.protocol: "none";
 		
 		document.body.classList.add("monitor");
 		
 		if (top.databases.local.level === 0) {
 			document.body.classList.add("removable");
-			form.elements.remove.onclick = onRemoveDevice;
+			form.elements["remove"].onclick = onRemoveDevice;
 			
-			form.elements.monitor.onchange = onMonitorDevice;
-			form.elements.monitor.onclick = function () {
+			form.elements["monitor"].onchange = onMonitorDevice;
+			form.elements["monitor"].onclick = function () {
 				window.monitor = this.value;
 			}
 		}
@@ -455,9 +453,9 @@ var form = document.querySelector("form"),
 	monitor = "none",
 	custom = {};
 
-form.elements.type.appendChild(buildType());
+form.elements["type"].appendChild(buildType());
 
-form.elements.search.onclick = onSearch;
+form.elements["search"].onclick = onSearch;
 
 form.addEventListener("reset", onCancel);
 

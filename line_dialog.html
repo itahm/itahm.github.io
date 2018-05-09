@@ -30,7 +30,7 @@ input[type="checkbox"] {
 }
 
 .layout_top {
-	height: 50px;
+	height: 70px;
 }
 
 .layout_box {
@@ -91,13 +91,13 @@ body:not(.removable) .remove{
 function onApply(e) {
 	e.preventDefault();
 
-	top.databases.position[window.ip].ifEntry[window.peerIP]
+	top.databases.position[window.id].ifEntry[window.peerID]
 		= window.peerLeft.disabled? null: {
 			index: window.peerLeft.value,
 			name: window.peerLeft.options[window.peerLeft.selectedIndex].text
 		};
 	
-	top.databases.position[window.peerIP].ifEntry[window.ip]
+	top.databases.position[window.peerID].ifEntry[window.id]
 		= window.peerRight.disabled? null: {
 			index: window.peerRight.value,
 			name: window.peerRight.options[window.peerRight.selectedIndex].text
@@ -110,13 +110,11 @@ function onApply(e) {
 
 function onRemove(e) {
 	if (!confirm("연결을 삭제하겠습니까?")) {
-		this.checked = false;
-		
-		return;
+		return this.checked = false;
 	}
 	
-	delete top.databases.position[window.ip].ifEntry[window.peerIP];
-	delete top.databases.position[window.peerIP].ifEntry[window.ip];
+	delete top.databases.position[window.id].ifEntry[window.peerID];
+	delete top.databases.position[window.peerID].ifEntry[window.id];
 	
 	window.opener.reload();
 	
@@ -151,70 +149,56 @@ function initPort(e, ifEntry) {
 		e.appendChild(df);
 		e.selectedIndex = -1;
 		
-		return true;
+		e.disabled = false;
 	}
 }
 
-function initialize(ip, peerIP) {	
-	window.opener = this && this.location;
-	window.ip = ip;
-	window.peerIP = peerIP;
+function setPort(device, id, peerID, e1, e2, box, selectBox) {
+	const monitorData = top.databases.monitor;
 	
-	document.getElementById("ip").textContent = ip;
-	document.getElementById("name").textContent = top.databases.device[ip].name;
+	e1.textContent = device.ip;
+	e2.textContent = device.name;
 	
-	if (ip in top.databases.monitor && top.databases.monitor[ip].protocol === "snmp") {
-		var box = document.querySelector(".layout_box.left");
-		
+	if (device.ip && device.ip in monitorData && monitorData[device.ip].protocol === "snmp") {
 		box.classList.add("loading");
 		
 		top.sendRequest({
 			command: "select",
-			ip: ip
+			ip: device.ip
 		}, function (data) {
-			var ifEntry = top.databases.position[ip].ifEntry;
+			const ifEntry = top.databases.position[id].ifEntry;
 			
-			if (initPort(window.peerLeft, data.ifEntry)) {
-				window.peerLeft.disabled = false;
-			}
+			initPort(selectBox, data.ifEntry);
 			
-			if (peerIP in ifEntry) {
-				window.peerLeft.value = ifEntry[peerIP].index;
+			if (peerID in ifEntry) {
+				selectBox.value = ifEntry[peerID].index;
 			}
 				
-			this.classList.remove("loading");
-		}.bind(box));
+			box.classList.remove("loading");
+		});
 	}
+}
+
+function initialize(id, peerID) {
+	var device;
 	
-	document.getElementById("peer_ip").textContent = peerIP;
-	document.getElementById("peer_name").textContent = top.databases.device[peerIP].name;
+	window.opener = this && this.location;
+	window.id = id;
+	window.peerID = peerID;
 	
-	entry = top.databases.position[peerIP].ifEntry;
+	setPort(top.databases.device[id], id, peerID,
+		document.getElementById("ip"),
+		document.getElementById("name"),
+		document.querySelector(".layout_box.left"),
+		window.peerLeft);
 	
-	if (peerIP in top.databases.monitor && top.databases.monitor[peerIP].protocol === "snmp") {
-		var box = document.querySelector(".layout_box.right");
-		
-		box.classList.add("loading");
-		
-		top.sendRequest({
-			command: "select",
-			ip: peerIP
-		}, function (data) {
-			var ifEntry = top.databases.position[peerIP].ifEntry;
-			
-			if (initPort(window.peerRight, data.ifEntry)) {
-				window.peerRight.disabled = false;
-			}
-			
-			if (ip in ifEntry) {
-				window.peerRight.value = ifEntry[ip].index;
-			}
-			
-			this.classList.remove("loading");
-		}.bind(box));
-	}
+	setPort(top.databases.device[peerID], peerID, id,
+			document.getElementById("peer_ip"),
+			document.getElementById("peer_name"),
+			document.querySelector(".layout_box.right"),
+			window.peerRight);
 	
-	if (peerIP in top.databases.position[ip].ifEntry) {
+	if (peerID in top.databases.position[id].ifEntry) {
 		document.body.classList.add("removable");
 	}
 }
@@ -230,16 +214,16 @@ function initialize(ip, peerIP) {
 				<div class="layout">
 					<div class="layout_box left">
 						<div class="layout_top">
-							<div id="ip"></div>
-							<div id="name" class="name"></div>
+							<h3 id="name" class="name"></h3>
+							<i id="ip"></i>
 						</div>
 						<select class="fill_box" id="left" required disabled></select>
 						<div class="loading_mask"></div>
 					</div>
 					<div class="layout_box right">
 						<div class="layout_top">
-							<div id="peer_ip">192.168.0.1</div>
-							<div id="peer_name" class="name"></div>
+							<h3 id="peer_name" class="name"></h3>
+							<i id="peer_ip"></i>
 						</div>
 						<select class="fill_box" id="right" required disabled></select>
 						<div class="loading_mask"></div>

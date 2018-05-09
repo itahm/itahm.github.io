@@ -232,11 +232,24 @@ function setMenu(b) {
 	}
 } 
 
+// public
+// ip/id 버전에 따라
 function getDeviceName(ip) {
-	var device = window.databases.device[ip];
+	const deviceData = window.databases.device;
+	
+	if (ip in deviceData) {
+		return deviceData[ip].name || ip;
+	}	
+	
+	for (let id in deviceData) {
+		if (deviceData[id].ip === ip) {
+			return deviceData[id].name || ip;
+		}
+	}
 
-	return device? device.name: ip;
+	return ip;
 }
+
 
 function showDialog() {
 	var opener = this,
@@ -549,7 +562,7 @@ var
 	agent = "http://"+sessionStorage.host +":"+ sessionStorage.port,
 	databases = {
 		local: {
-			level: parseInt(sessionStorage.level),
+			level: sessionStorage.level,
 			scale: 1,
 			icon: ITAhM.iconData
 		}
