@@ -22,6 +22,12 @@ body {
 	position: relative;
 }
 
+section {
+	border: 1px solid #aaa;
+	padding: 1em;
+	margin: 1em 0;
+}
+
 ul {
 	list-style: none;
 	padding: 0; margin: 0;
@@ -29,7 +35,7 @@ ul {
 
 h2 {
 	background-color: #0084ff;
-	padding: 1em; margin: 0;
+	padding: 10px; margin: 0;
 	color: #fff;
 }
 
@@ -41,11 +47,6 @@ h2 {
 	display: inline-block;
 	float: right;
 	font-size: 0.8em;
-}
-
-header {
-	padding: .5em 0;
-	border-bottom: 1px solid #aaa;
 }
 
 header> .item> li {
@@ -90,6 +91,9 @@ header> .item {
 #list {
 	max-height: 120px;
 	overflow: auto;
+	margin: 10px 0;
+	border-top: 1px solid #aaa;
+	border-bottom: 1px solid #aaa;
 }
 
 #list> .item> li {
@@ -109,11 +113,6 @@ select {
 
 input[type="checkbox"] {
 	vertical-align: middle;
-}
-
-form {
-	border-top: 1px solid #ddd;
-	padding-top: 1em;
 }
 
 .form {
@@ -401,25 +400,25 @@ function initialize(ip) {
 	
 	<body class="loading">
 		
-		<div class="dialog dialog_width rounded">
+		<form autocomplete="off" class="dialog dialog_width rounded">
 			<h2>
 				<span id="ip">IP주소</span>
 				임계 설정
 			</h2>
 			<h3 id="name">이름</h3>
 			
-			<header>
-				<ul class="item">
-					<li class="resource">성능지표
-					<li class="index">구분
-					<li class="limit">임계값(%)
-					<li title="삭제">
-				</ul>
-			</header>
-		
-			<div id="list"></div>
+			<section>
+				<header>
+					<ul class="item">
+						<li class="resource">성능지표
+						<li class="index">구분
+						<li class="limit">임계값(%)
+						<li title="삭제">
+					</ul>
+				</header>
 			
-			<form autocomplete="off">
+				<div id="list"></div>
+				
 				<div class="form">
 					<ul>
 						<li>성능 지표
@@ -442,12 +441,12 @@ function initialize(ip) {
 							<input name="limit" type="number" min="1" max="100" required>
 					</ul>
 				</div>
-				<footer>
-					<input type="reset" value="close">
-					<input type="submit" value="apply" disabled>
-				</footer>
-			</form>
-		</div>
+			</section>
+			<footer>
+				<input type="reset" value="close">
+				<input type="submit" value="apply" disabled>
+			</footer>
+		</form>
 		
 		<div class="bg_loading"></div>
 		
@@ -468,7 +467,7 @@ form.addEventListener("reset", onClose);
 if (top.databases.local.level == 0) {
 	document.body.classList.add("authorized");
 	
-	form.elements.resource.onchange = onSelectResource;
+	form.elements["resource"].onchange = onSelectResource;
 	
 	form.onsubmit = onApply;
 

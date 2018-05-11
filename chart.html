@@ -41,7 +41,7 @@ nav {
 }
 
 nav img {
-	vertical-align: middle;
+	cursor: pointer;
 }
 
 circle {
@@ -197,11 +197,27 @@ footer span.label::after {
 	border-color: #0084ff;
 }
 
-.layout {
-	display: none;
+.realtime.popup >div {
+	width: 600px; height: 300px;
+	position: relative;
 }
 
-body:not(.set) .popup {
+#close {
+	position: absolute; top: 0; right: 0;
+	font-size: 2em;
+	font-weight: bold;
+	cursor: pointer;
+}
+
+#realtime_frame {
+	border: none;
+	width: 100%; height: 100%;
+	background-color: #fff;
+}
+
+.layout,
+body:not(.set) .set,
+body:not(.realtime) .realtime {
 	display: none;
 }
 
@@ -226,7 +242,14 @@ function getDateText(mills) {
 	return MONTH[date.getMonth()] + (dd >9? "": "0") + dd +"일";
 }
 
-function initialize() {
+function initialize(resource, index) {
+	window.resource = resource;
+	window.index = index;
+	
+	initChart();
+}
+
+function initChart() {
 	var date = new Date(window.start);
 	
 	window.dateList = [];
@@ -247,6 +270,8 @@ function initialize() {
 	window.endDate.title = getDateText(window.end);
 	
 	resize();
+	
+	window.chart.src = "chart_"+ window.resource +".html";
 }
 
 function onSelectStart(e) {
@@ -335,7 +360,7 @@ function reload(from, to) {
 	window.leftPos = window.dayCount -2;
 	window.rightPos = 0;
 	
-	initialize();
+	initChart();
 }
 
 function setValueAsDate(e, d) {
@@ -381,18 +406,10 @@ function clear(e) {
 		
 		<header>
 			<nav>
-				<button id="set">
-					<img width="16" height="16" src="img/calendar.png">기간설정
-				</button>
-				<button id="realtime">
-					<img width="16" height="16" src="img/realtime.png"> 실시간 그래프
-				</button>
-				<button id="save" title="CSV 파일로 저장">
-					<img width="16" height="16" src="img/save.png"> 저장
-				</button>
-				<button id="print" title="인쇄">
-					<img width="16" height="16" src="img/printer16.png"> 인쇄
-				</button>
+				<img id="set" width="16" height="16" src="img/calendar.png" title="기간 설정">
+				<img id="realtime" width="16" height="16" src="img/realtime.png" title="실시간 그래프">
+				<img id="save" width="16" height="16" src="img/save.png" title="CSV 파일로 저장">
+				<img id="print" width="16" height="16" src="img/printer16.png" title="인쇄">
 			</nav>
 		</header>
 		
@@ -414,7 +431,7 @@ function clear(e) {
 			</div>
 		</footer>
 		
-		<div class="popup">
+		<div class="popup set">
 			<form class="dialog" autocomplete="off">
 				<h3>기간설정</h3>
 				<div>
@@ -434,6 +451,13 @@ function clear(e) {
 			</form>
 		</div>
 		
+		<div class="popup realtime">
+			<div>
+				<span id="close" title="실시간 차트 닫기">&#10006;</span>
+				<iframe id="realtime_frame" width="100%" height="100%"></iframe>
+			</div>
+		</div>
+		
 		<div class="layout">
 			<span class="dot"></span>
 		</div>
@@ -443,16 +467,16 @@ function clear(e) {
 		<script src="js/object.js"></script>
 		<script>
 
-var chart = document.getElementById("chart"),
-	chartWindow = chart.contentWindow,
-	ip = top.ip, snmp = top.snmp;
-
 const 
 	MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 	MONTH = ["01월", "02월", "03월", "04월", "05월", "06월", "07월", "08월", "09월", "10월", "11월", "12월"],
 	MARGINS = 5;
 
-var svg = document.querySelector("svg"),
+var resource, index,
+	chartFrame = document.getElementById("chart"),
+	chartWindow = chartFrame.contentWindow,
+	rtFrame = document.getElementById("realtime_frame"),
+	svg = document.querySelector("svg"),
 	base = document.getElementById("base"),
 	dot = document.querySelector(".dot"),
 	footer = document.querySelector("footer"),
@@ -474,11 +498,6 @@ var svg = document.querySelector("svg"),
 })(new Date());
 
 
-(function (search) {
-	window.resource = search[0].split("=")[1],
-	window.index =  search[1].split("=")[1];
-})(window.location.search.substring(1).split("&"));
-
 document.onselectstart = function (e) {
 	return false;
 };
@@ -492,17 +511,17 @@ document.getElementById("print").onclick = function () {
 };
 
 document.getElementById("realtime").onclick = function () {
-	if (!top.realtime[window.resource]) {
-		top.realtime[window.resource] = {};
-	}
+	window.rtFrame.src = "realtime_chart.html";
 	
-	if (top.realtime[window.resource][window.index]) {
-		top.realtime[window.resource][window.index].focus();
-	}
-	else {
-		top.realtime[window.resource][window.index]
-			= window.open("realtime.html?resource="+ window.resource +"&index="+ window.index, "_blank", "width=600, height=300, resizable=yes", false);
-	}
+	document.body.classList.add("realtime");
+};
+
+document.getElementById("close").onclick = function () {
+	document.body.classList.remove("realtime");
+};
+
+document.getElementById("set").onclick = function (e) {
+	document.body.classList.add("set");
 };
 
 window.addEventListener("resize", function () {
@@ -516,13 +535,15 @@ window.addEventListener("resize", function () {
 window.selector.addEventListener("dragon", onSelectStart);
 window.selector.addEventListener("drag", onSelect);
 
-window.chart.onload = function () {
-	window.chartWindow.initialize(window.start, window.end, window.today, window.end);
+window.chartFrame.onload = function () {
+	this.contentWindow.initialize(window.start, window.end, window.today, window.end, window.index);
 };	
 
-new Draggable(window.selector);
+window.rtFrame.onload = function () {
+	this.contentWindow.initialize(window.resource, window.index);
+};
 
-initialize();
+new Draggable(window.selector);
 
 (function(window) {
 	var form = document.querySelector("form"),
@@ -563,16 +584,8 @@ initialize();
 	
 	form.addEventListener("reset", function (e) {
 		document.body.classList.remove("set");
-	});
-	
-	document.getElementById("set").onclick = function () {
-		document.body.classList.add("set");
-	};
-	
+	});	
 })({});
-
-window.chart.src = "chart_"+ window.resource +".html?"+ window.index;
-
 		</script>
 	
 	</body>

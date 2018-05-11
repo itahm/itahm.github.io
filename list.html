@@ -276,7 +276,7 @@ function onEdit() {
 }
 
 function onSetAlarm(){
-	top.showDialog.call(window, "critical_dialog.html", window.selectedID);
+	top.showDialog.call(window, "critical_dialog.html", top.databases.device[window.selectedID].ip);
 }
 
 function onMap() {
@@ -287,7 +287,7 @@ function onMap() {
 }
 
 function onShowStatus() {
-	top.showChart(window.selectedID);
+	top.showStatus(window.selectedID);
 }
 
 function initialize() {
@@ -318,18 +318,19 @@ function initList() {
 		monitorData = top.databases.monitor,
 		criticalData = top.databases.critical,
 		ipList = Object.keys(deviceData),
-		count = 0;
+		count = 0, device;
 	
 	ipList.sort(function (a, b) {
 		return IP2Int(deviceData[a].ip) - IP2Int(deviceData[b].ip);
 	});
 	
 	for (let id of ipList) {
-		if (deviceData[id].group) {
+		device = deviceData[id];
+		if (device.group) {
 			continue;
 		}
 		
-		df.appendChild(createRow(id, deviceData[id], monitorData[id]));
+		df.appendChild(createRow(id, device, monitorData[device.ip]));
 		
 		count++;
 	}

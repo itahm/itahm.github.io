@@ -88,19 +88,20 @@ body.ro #view {
 		</style>
 		<script>
 		
-function initialize(from, to, start, end) {
-	var entry = parent.snmp.ifEntry[window.resourceIndex],
+function initialize(from, to, start, end, index) {
+	var entry = top.snmp.ifEntry[index],
 		request = {
 			command: "query",
-			ip: parent.ip,
+			ip: top.ip,
 			summary: true,
-			index: window.resourceIndex,
+			index: index,
 			start: from,
 			end: to
 		};
 	
 	document.getElementById("if_name").textContent = entry.ifName;
 	
+	window.detailRequest.index = index;
 	window.start = start;
 	window.end = end;
 	
@@ -133,18 +134,11 @@ function onValueToString(value) {
  * private
  */
 function sendDetailRequest(database, callback) {
-	var request = {
-			command: "query",
-			ip: parent.ip,
-			summary: false,
-			index: window.resourceIndex,
-			start: window.start,
-			end: window.end
-		};
+	window.detailRequest.start = window.start;
+	window.detailRequest.end = window.end;
+	window.detailRequest.database = database;
 	
-	request.database = database;
-	
-	top.sendRequest(request, callback);
+	top.sendRequest(window.detailRequest, callback);
 }
 
 /**
@@ -306,7 +300,11 @@ var chartIn = document.getElementById("chart_in"),
 	chartInWindow = chartIn.contentWindow,
 	chartOut = document.getElementById("chart_out"),
 	chartOutWindow = chartOut.contentWindow,
-	resourceIndex = window.location.search.substring(1);
+	detailRequest = {
+		ip: top.ip,
+		command: "query",
+		summary: false
+	};
 
 document.getElementById("view").onchange = function () {
 	document.body.classList[this.value]("row");

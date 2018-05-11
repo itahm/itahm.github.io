@@ -492,13 +492,14 @@ function drawChart() {
 /**
  * public
  */
-function detail(detailData) {
+// dataOnly: if true do not draw
+function detail(detailData, dataOnly) {
 	window.detailData = detailData;
 	window.detailKeys = window.detailData.parseData(window.start, window.end);
 	
-	drawDetail();
-	
-	return true;
+	if (!dataOnly) {
+		drawDetail();
+	}
 }
 
 function drawDetail() {

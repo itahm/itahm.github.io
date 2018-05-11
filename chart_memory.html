@@ -48,23 +48,19 @@ h2 {
 /**
  * public
  */
-function initialize(from, to, start, end) {
-	var entry = parent.snmp.hrStorageEntry[window.resourceIndex];
+function initialize(from, to, start, end, index) {
+	var entry = top.snmp.hrStorageEntry[index];
 	
-	if (!entry) {
-		alert("잘못된 경로로 호출되었습니다.");
-		
-		return;
-	}
+	window.detailRequest.index = index;
 	
 	window.max = entry.hrStorageSize * entry.hrStorageAllocationUnits;
 	
 	top.sendRequest({
 		command: "query",
-		ip: parent.ip,
+		ip: top.ip,
 		summary: true,
 		database: "hrStorageUsed",
-		index: window.resourceIndex,
+		index: index,
 		start: from,
 		end: to
 	}, onSummaryResponse);
@@ -97,15 +93,10 @@ function onValueToString(value) {
  * private
  */
 function sendDetailRequest() {
-	top.sendRequest({
-		command: "query",
-		ip: parent.ip,
-		summary: false,
-		database: "hrStorageUsed",
-		index: window.resourceIndex,
-		start: window.start,
-		end: window.end
-	}, onDetailResponse);
+	window.detailRequest.start = window.start;
+	window.detailRequest.end = window.end;
+	
+	top.sendRequest(window.detailRequest, onDetailResponse);
 }
 
 
@@ -226,7 +217,12 @@ function getFile() {
 
 var chart = document.getElementById("chart"),
 	chartWindow = chart.contentWindow,
-	resourceIndex = window.location.search.substring(1);
+	detailRequest = {
+		ip: top.ip,
+		command: "query",
+		summary: false,
+		database: "hrStorageUsed"
+	};
 
 		</script>
 	

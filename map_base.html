@@ -867,7 +867,7 @@ function onEditDevice(id) {
 }
 
 //abstract
-function onEditLine(id, peerIP) {
+function onEditLine(id, peerID) {
 	
 }
 
@@ -880,12 +880,12 @@ function onShowChart(id) {
 }
 
 //abstract
-function onShowAlarm(id) {
+function onShowAlarm(ip) {
 }
-
+/*
 function resetStatus(id) {
 	
-}
+}*/
 		</script>
 	</head>
 	
@@ -978,7 +978,7 @@ chartAnchor.onclick = function (e) {
 };
 
 alarmAnchor.onclick = function (e) {
-	onShowAlarm(window.selected);
+	onShowAlarm(top.databases.device[window.selected].ip);
 	
 	e.stopPropagation();
 };

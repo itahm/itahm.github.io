@@ -225,8 +225,8 @@ window.map.onload = function () {
 	mapWindow.onSelectGroup = selectGroup;
 	mapWindow.onEditLine = editLine;
 	
-	mapWindow.onShowChart = function (ip){
-		top.showChart(ip);
+	mapWindow.onShowChart = function (id){
+		top.showStatus(id);
 	}
 	
 	mapWindow.onShowAlarm = onSetAlarm;

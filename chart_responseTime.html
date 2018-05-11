@@ -48,10 +48,10 @@ h2 {
 /**
  * public
  */
-function initialize(from, to, start, end) {
+function initialize(from, to, start, end, index) {
 	top.sendRequest({
 		command: "query",
-		ip: parent.ip,
+		ip: top.ip,
 		summary: true,
 		database: "responseTime",
 		index: 0,
@@ -84,21 +84,6 @@ function onDetailResponse(data) {
  */
 function onValueToString(value) {
 	return value.toFixed(0) +"ms";
-}
-
-/**
- * private
- */
-function sendDetailRequest() {
-	top.sendRequest({
-		command: "query",
-		ip: parent.ip,
-		summary: false,
-		database: "responseTime",
-		index: 0,
-		start: window.start,
-		end: window.end
-	}, onDetailResponse);
 }
 
 /**
@@ -155,10 +140,12 @@ function drawResponse() {
 	var date = new Date(window.start);
 	
 	if (window.chartWindow.draw(window.start, window.end) && date.setDate(date.getDate() +1) === window.end) {
-		sendDetailRequest();
+		window.detailRequest.start = window.start;
+		window.detailRequest.end = window.end;
+		
+		top.sendRequest(window.detailRequest, onDetailResponse);
 	}
 }
-
 
 /**
  * public
@@ -223,7 +210,14 @@ function getFile() {
 var chart = document.getElementById("chart"),
 	chartWindow = chart.contentWindow,
 	cursor = document.getElementById("cursor"),
-	max = 10000;
+	max = 10000,
+	detailRequest = {
+		ip: top.ip,
+		command: "query",
+		summary: false,
+		database: "responseTime",
+		index: 0
+	};
 
 document.getElementById("legend").textContent = "Timeout : "+ max +"ms";
 

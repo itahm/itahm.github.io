@@ -296,34 +296,26 @@ function isIPv4(ip) {
 
 		</script>
 		<script>
-/** itahm **/
 
-function showChart(ip, resource, index) {
-	var chart = window.chart[ip];
+//public
+function showStatus(id, resource, index) {
+	var	statusWindow = window.statusWindow[id];
 
-	if (chart && !chart.closed) {
-		chart.close();
+	if (statusWindow && !statusWindow.closed) {
+		statusWindow.close();
 	}
 	
-	window.chart[ip] = chart = window.open("status.html?"+ ip);
+	statusWindow = window.open("status.html", id);
+	
+	window.statusWindow[id] = statusWindow;
 	
 	if (resource) {
-		chart.onload = function () {
-			chart.onSelectResource && chart.onSelectResource(resource, index);
+		statusWindow.onload = function () {
+			statusWindow.onSelectResource(resource, index);
 		};
 	}
 	
-	chart.focus();
-}
-
-function setHeader() {
-	setMenu(window.databases.config.menu? true: false);
-	
-	const config = window.databases.config;
-	
-	if ("expire" in config && config.expire > 0 && !config.license) {
-		document.getElementById("expire").textContent = toDateString(window.databases.config.expire);
-	}
+	statusWindow.focus();
 }
 
 // public
@@ -354,6 +346,7 @@ function getDeviceName(ip) {
 	return ip;
 }
 
+// public
 function showDialog() {
 	var opener = this,
 		url = Array.prototype.shift.call(arguments),
@@ -368,8 +361,19 @@ function showDialog() {
 	window.dialog.src = url;
 }
 
+// public
 function closeDialog() {
 	document.body.classList.remove("dialog");
+}
+
+function setHeader() {
+	setMenu(window.databases.config.menu? true: false);
+	
+	const config = window.databases.config;
+	
+	if ("expire" in config && config.expire > 0 && !config.license) {
+		document.getElementById("expire").textContent = toDateString(window.databases.config.expire);
+	}
 }
 
 function clearLog() {
@@ -581,8 +585,8 @@ function initialize (data) {
 }
 
 function onClose(e) {
-	for (let ip in window.chart) {
-		window.chart[ip].close();
+	for (let ip in window.statusWindow) {
+		window.statusWindow[ip].close();
 	}
 	
 	// listen 중인 세션이 종료되면서 onEvent notice 가 발생함
@@ -649,7 +653,7 @@ function postRequest(request, onResponse, timeout) {
 		xhr.timeout = timeout;
 	}
 	
-	xhr.send(request);
+	xhr.send(JSON.stringify(request));
 }
 
 // private
@@ -684,11 +688,11 @@ function onSignIn(e) {
 	
 	document.body.classList.add("loading");
 	
-	postRequest(JSON.stringify({
-			command: "signin",
-			username: this.elements["username"].value,
-			password: hex_md5(this.elements["password"].value)
-		}), function () {
+	postRequest({
+		command: "signin",
+		username: this.elements["username"].value,
+		password: hex_md5(this.elements["password"].value)
+	}, function () {
 		document.body.classList.remove("loading");
 		
 		switch(this.status) {
@@ -711,9 +715,9 @@ function onSignIn(e) {
 }
 
 function echo(f) {
-	postRequest(JSON.stringify({
+	postRequest({
 		command: "signin"
-	}), function () {
+	}, function () {
 		f(this.status, this.responseText && JSON.parse(this.responseText) || undefined);
 	}, 10000);
 }
@@ -747,9 +751,9 @@ function trySignIn(username) {
 
 function onSignOut() {
 	if (confirm("로그아웃 하겠습니까?")) {
-		postRequest(JSON.stringify({
+		postRequest({
 			command: "signout"
-		}), function () {
+		}, function () {
 			window.location.reload();
 		}, 10000);
 	}
@@ -849,7 +853,7 @@ var agent = "http://",
 	count = document.getElementById("count"),
 	dialog = document.getElementById("dialog"),
 	log = document.getElementById("log"),
-	chart = {},
+	statusWindow = {},
 	sound = new Audio("siren.mp3"),
 	logCount = 0;
 
@@ -889,6 +893,7 @@ var agent = "http://",
 
 document.getElementById("signout").addEventListener("click", onSignOut);
 window.addEventListener("unload", onClose);
+
 		</script>
 	
 	</body>

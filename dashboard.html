@@ -868,7 +868,7 @@ function createGaugeItem(ip, value, rate, resource, index) {
 	}
 	
 	item.onclick = function () {
-		top.showChart(ip, resource, index);
+		top.showStatus(ip, resource, index);
 	}
 	
 	return item;
@@ -895,7 +895,7 @@ function createTopItem(ip, value) {
 	}
 	
 	item.onclick = function () {
-		top.showChart(ip);
+		top.showStatus(ip);
 	}
 	
 	return item;

@@ -96,11 +96,11 @@ body.ro #view {
  * public
  */
 function initialize(from, to, start, end) {
-	var entry = parent.snmp.hrProcessorEntry,
+	var entry = top.snmp.hrProcessorEntry,
 		df = document.createDocumentFragment(),
 		request = {
 			command: "query",
-			ip: parent.ip,
+			ip: top.ip,
 			summary: true,
 			database: "hrProcessorLoad",
 			start: from,
@@ -197,19 +197,21 @@ function onValueToString(value) {
 /**
  * private
  */
-function onDetailResponse(index, data) {
-	window.chartList[index].contentWindow.detail(new ITAhM.ChartData(data));
+function onDetailResponse(index, dataOnly, data) {
+	window.chartList[index].contentWindow.detail(new ITAhM.ChartData(data), dataOnly);
 }
 
 
 /**
  * private
  */
-function drawProcessor(index) {	
-	if (window.chartList[index].contentWindow.draw(window.start, window.end) && window.detail && index !== "0") {
+function drawProcessor(index) {
+	const dataOnly = !window.chartList[index].contentWindow.draw(window.start, window.end);
+	
+	if (window.detail && index !== "0") {
 		window.detailRequest.index = index;
 		
-		top.sendRequest(window.detailRequest, onDetailResponse.bind(undefined, index));
+		top.sendRequest(window.detailRequest, onDetailResponse.bind(undefined, index, dataOnly));
 	}
 }
 
@@ -346,8 +348,8 @@ var chartLayer = document.getElementById("chart"),
 		"#1ba1e2",
 		"#093346"],
 	detailRequest = {
+		ip: top.ip,
 		command: "query",
-		ip: parent.ip,
 		summary: false,
 		database: "hrProcessorLoad",
 	},
