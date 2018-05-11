@@ -324,8 +324,11 @@ function initList() {
 		return IP2Int(deviceData[a].ip) - IP2Int(deviceData[b].ip);
 	});
 	
-	for (let id of ipList) {
+	for (let i=0, _i=ipList.length, id; i<_i; i++) {
+		id = ipList[i];
+	
 		device = deviceData[id];
+	
 		if (device.group) {
 			continue;
 		}

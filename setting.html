@@ -482,10 +482,10 @@ function onEditCustom(e) {
 function onEditIftype(e) {
 	e.preventDefault();
 	
-	var iftypes = [], n;
+	var iftypes = [];
 	
-	for (let iftype of this.elements["iftype"].value.split(",")) {
-		n = iftype.trim();
+	for (let arr = this.elements["iftype"].value.split(","), i=0, _i=arr.length, n; i<_i; i++) {
+		n = arr[i].trim();
 		
 		if (!isNaN(n)) {
 			iftypes[iftypes.length] = n;
