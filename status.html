@@ -714,9 +714,12 @@ function initialize() {
 
 function toDateString(millis) {
 	var date = new Date(millis),
-		ar = [date.getFullYear()];
+		ar = [date.getFullYear()],
+		ymd = [date.getMonth() +1, date.getDate(), date.getHours(), date.getMinutes(), date.getSeconds()];
 	
-	for (let d of [date.getMonth() +1, date.getDate(), date.getHours(), date.getMinutes(), date.getSeconds()]) {
+	for (let i=0, _i=ymd.length, d; i<_i; i++) {
+		d = ymd[i];
+		
 		ar[ar.length] = d < 10? "0": ""+ d;
 	}
 	
