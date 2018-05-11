@@ -202,23 +202,26 @@ body:not(.auto) >.handle {
 	<script src="js/google.js"></script>
 	<script>
 
-function showStatus(ip, resource, index) {
-	var chart = window.chart[ip];
+function showStatus(id, resource, index) {
+	var	statusWindow = window.statusWindow[id];
 
-	if (chart && !chart.closed) {
-		chart.close();
+	if (statusWindow && !statusWindow.closed) {
+		statusWindow.close();
 	}
 	
-	window.chart[ip] = chart = window.open("status.html?"+ ip);
+	statusWindow = window.open("status.html", id);
+	
+	window.statusWindow[id] = statusWindow;
 	
 	if (resource) {
-		chart.onload = function () {
-			chart.onSelectResource && chart.onSelectResource(resource, index);
+		statusWindow.onload = function () {
+			statusWindow.onSelectResource(resource, index);
 		};
 	}
 	
-	chart.focus();
-}
+	statusWindow.focus();
+	}
+
 
 // public
 function setMenu(b) {
@@ -249,7 +252,6 @@ function getDeviceName(ip) {
 
 	return ip;
 }
-
 
 function showDialog() {
 	var opener = this,
@@ -573,7 +575,7 @@ var
 	count = document.getElementById("count"),
 	dialog = document.getElementById("dialog"),
 	log = document.getElementById("log"),
-	chart = {},
+	statusWindow = {},
 	sound = new Audio("siren.mp3"),
 	logCount = 0;
 

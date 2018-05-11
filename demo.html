@@ -298,22 +298,24 @@ function isIPv4(ip) {
 		<script>
 /** itahm **/
 
-function showStatus(ip, resource, index) {
-	var chart = window.chart[ip];
+function showStatus(id, resource, index) {
+	var	statusWindow = window.statusWindow[id];
 
-	if (chart && !chart.closed) {
-		chart.close();
+	if (statusWindow && !statusWindow.closed) {
+		statusWindow.close();
 	}
 	
-	window.chart[ip] = chart = window.open("status.html?"+ ip);
+	statusWindow = window.open("status.html", id);
+	
+	window.statusWindow[id] = statusWindow;
 	
 	if (resource) {
-		chart.onload = function () {
-			chart.onSelectResource && chart.onSelectResource(resource, index);
+		statusWindow.onload = function () {
+			statusWindow.onSelectResource(resource, index);
 		};
 	}
 	
-	chart.focus();
+	statusWindow.focus();
 }
 
 function setHeader() {
@@ -336,10 +338,22 @@ function setMenu(b) {
 	}
 } 
 
+//public
+//ip/id 버전에 따라
 function getDeviceName(ip) {
-	var device = window.databases.device[ip];
+	const deviceData = window.databases.device;
+	
+	if (ip in deviceData) {
+		return deviceData[ip].name || ip;
+	}	
+	
+	for (let id in deviceData) {
+		if (deviceData[id].ip === ip) {
+			return deviceData[id].name || ip;
+		}
+	}
 
-	return device? device.name: ip;
+	return ip;
 }
 
 function showDialog() {
@@ -673,7 +687,7 @@ var agent = "http://demo.itahm.com:2014",
 	count = document.getElementById("count"),
 	dialog = document.getElementById("dialog"),
 	log = document.getElementById("log"),
-	chart = {},
+	statusWindow = {},
 	sound = new Audio("siren.mp3"),
 	logCount = 0;
 

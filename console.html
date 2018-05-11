@@ -2,7 +2,7 @@
 <html>
 	<head>
 		<meta charset="UTF-8">
-		<title>Connect @ ITAhM</title>
+		<title>ITAhM</title>
 		
 		<style>
 
@@ -287,16 +287,8 @@ body:not(.dialog) #dialog {
 
 		</style>
 		<script src="js/google.js"></script>
+
 		<script>
-/** static **/
-
-function isIPv4(ip) {
-	return ip.match(/^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/)
-}
-
-		</script>
-		<script>
-
 //public
 function showStatus(id, resource, index) {
 	var	statusWindow = window.statusWindow[id];
@@ -870,17 +862,15 @@ var agent = "http://",
 		const args = agent.split(":");
 		
 		if (args.length === 2) {
-			//if (isIPv4(args[0])) { doamin 일 수도
-				connect.elements["ip"].value = args[0];
+			connect.elements["ip"].value = args[0];
+			
+			if (!isNaN(args[1]) && args[1] > -1 && args[1] < 65536) {
+				connect.elements["tcp"].value = args[1];
 				
-				if (!isNaN(args[1]) && args[1] > -1 && args[1] < 65536) {
-					connect.elements["tcp"].value = args[1];
-					
-					window.agent += agent;
-					
-					return trySignIn(signin.elements["username"]);
-				}
-			//}
+				window.agent += agent;
+				
+				return trySignIn(signin.elements["username"]);
+			}
 		}
 		
 		cancel();
