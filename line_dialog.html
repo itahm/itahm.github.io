@@ -178,7 +178,7 @@ function setPort(device, id, peerID, e1, e2, box, selectBox) {
 			
 			initPort(selectBox, data.ifEntry);
 			
-			if (peerID in ifEntry) {
+			if (ifEntry[peerID]) {
 				selectBox.value = ifEntry[peerID].index;
 			}
 				
