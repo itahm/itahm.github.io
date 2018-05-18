@@ -2,7 +2,7 @@
 <html>
 	<head>
 		<meta charset="UTF-8">
-		<title>Connect @ ITAhM</title>
+		<title>ITAhM Console</title>
 		
 		<style>
 
@@ -310,6 +310,16 @@ function showStatus(id, resource, index) {
 	statusWindow.focus();
 }
 
+function setHeader() {
+	setMenu(window.databases.config.menu? true: false);
+	
+	const config = window.databases.config;
+	
+	if ("expire" in config && config.expire > 0 && !config.license) {
+		document.getElementById("expire").textContent = toDateString(window.databases.config.expire);
+	}
+}
+
 // public
 function setMenu(b) {
 	if ("expire" in window.databases.config && databases.config.expire > 0) {
@@ -352,16 +362,6 @@ function showDialog() {
 // public
 function closeDialog() {
 	document.body.classList.remove("dialog");
-}
-
-function setHeader() {
-	setMenu(window.databases.config.menu? true: false);
-	
-	const config = window.databases.config;
-	
-	if ("expire" in config && config.expire > 0 && !config.license) {
-		document.getElementById("expire").textContent = toDateString(window.databases.config.expire);
-	}
 }
 
 function clearLog() {
@@ -424,17 +424,24 @@ function onInitialize() {
 	// TODO ITAhM의 시작.
 	setHeader();
 	
-	// old 버전 호환
-	var group;
-	for (var id in databases.device) {
-		group = databases.device[id];
+	// old 버전 호환, indexing
+	var device;
+	
+	const deviceData = window.databases.device;
+	
+	for (let id in deviceData) {
+		device = deviceData[id];
 		
-		if (!group.group) {
+		if (device.ip) {
+			window.index[device.ip] = id;
+		}
+		
+		if (!device.group) {
 			continue;
 		}
 		
-		if (!("id" in group)) {
-			group.id = id;
+		if (!("id" in device)) {
+			device.id = id;
 		}
 	}
 	
@@ -521,7 +528,7 @@ function onEvent(e) {
 		window.logCount++;
 		
 		window.count.textContent = window.logCount > 9? "9+": window.logCount;
-		window.log.textContent = getDeviceName(event.ip) +" "+ event.message;
+		window.log.textContent = window.databases.device[getDeviceID(event.ip)].name +" "+ event.message;
 		
 		if (!event.status) {
 			window.sound.play();
