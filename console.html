@@ -521,14 +521,15 @@ function onEvent(e) {
 	e.stopPropagation();
 	
 	if (this.status === 200) {
-		const event = JSON.parse(this.responseText);
+		const event = JSON.parse(this.responseText),
+			id = getDeviceID(event.ip);
 		
 		window.listener.index = parseInt(event.index) +1;
 		
 		window.logCount++;
 		
 		window.count.textContent = window.logCount > 9? "9+": window.logCount;
-		window.log.textContent = window.databases.device[getDeviceID(event.ip)].name +" "+ event.message;
+		window.log.textContent = (id && window.databases.device[id].name || "")  +" "+ event.message;
 		
 		if (!event.status) {
 			window.sound.play();
