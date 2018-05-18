@@ -233,24 +233,18 @@ function setMenu(b) {
 	else {
 		document.body.classList[b? "remove": "add"]("auto");
 	}
-} 
+}
 
-// public
-// ip/id 버전에 따라
-function getDeviceName(ip) {
-	const deviceData = window.databases.device;
-	
-	if (ip in deviceData) {
-		return deviceData[ip].name || ip;
-	}	
-	
-	for (let id in deviceData) {
-		if (deviceData[id].ip === ip) {
-			return deviceData[id].name || ip;
-		}
+function setDevice(id, device) {
+	if (device.ip) {
+		window.index[device.ip] = id;
 	}
+	
+	window.databases[id] = device;
+}
 
-	return ip;
+function getDeviceID(ip) {
+	return window.index[ip];
 }
 
 function showDialog() {
@@ -473,7 +467,7 @@ function onEvent(e) {
 		window.logCount++;
 		
 		window.count.textContent = window.logCount > 9? "9+": window.logCount;
-		window.log.textContent = getDeviceName(event.ip) +" "+ event.message;
+		window.log.textContent = window.databases.device[getDeviceID(event.ip)].name +" "+ event.message;
 		
 		if (!event.status) {
 			window.sound.play();
@@ -572,6 +566,7 @@ var
 	listener = {
 		command: "listen"
 	},
+	index = {},
 	count = document.getElementById("count"),
 	dialog = document.getElementById("dialog"),
 	log = document.getElementById("log"),

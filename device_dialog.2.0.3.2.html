@@ -230,7 +230,7 @@ function onApply(e) {
 }
 
 function saveDevice(id, device) {
-	top.databases.device[id] = device;
+	top.setDevice(id, device);
 	
 	if (window.opener) {
 		window.opener.reload();
@@ -251,8 +251,7 @@ function onCancel(e) {
  * 서버와 position 동기화를 진행한다.
  */
 function onRemoveDevice() {
-	if (confirm("삭제시에는 구성도의 변경사항이 서버와 동기화 됩니다.\n"+
-		"삭제하겠습니까?")) {
+	if (confirm("장비를 삭제하겠습니까?")) {
 		document.body.classList.add("loading");
 		
 		top.sendRequest({

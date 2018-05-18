@@ -29,8 +29,28 @@ body, input, button {
 
 #map {
 	width: 100%; height: 100%;
-	animation-duration: .5s;
-	animation-timing-function:  cubic-bezier(.9, .1, .9, .1);
+}
+
+header, nav {
+	position: absolute; top: 5px;
+}
+
+header {
+	left: 5px;
+}
+
+nav {
+	right: 5px;
+	padding: 5px;
+	background-color: #ddd;
+}
+
+nav >img {
+	display: block;
+}
+
+nav >img:not(:nth-of-type(1)) {
+	border-top: 1px solid #777;
 }
 
 /* svg*/
@@ -48,28 +68,11 @@ text {
 #line line {
 	stroke: #a17f1a/*836953*/;
 	stroke-width: 1;
-	animation: 5s line infinite;
-}
-
-@keyframes line {
-	0% {
-		stroke: #ddd;
-		stroke-width: .5;
-	}
-	20% {
-		stroke: #a17f1a;
-		stroke-width: 1;
-	}/*
-	100% {
-		stroke: #a17f1a;
-		stroke-width: 1;
-	}*/
 }
 
 #line text {
 	font-size: 11px;
 	fill: #aaa;
-	cursor: pointer;
 }
 
 #link line {
@@ -85,40 +88,8 @@ text {
 #device text {
 	font-size: 12px;
 }
-/*
-use.critical {
-	stroke-width: 5;
-	stroke: rgba(255, 255, 0, .5);
-	fill: none;
-}
-
-use.shutdown {
-	stroke-width: 5;
-	stroke: rgba(255, 0, 0, .5);
-	fill: none;
-	animation: alert 2s infinite;
-}
-*/
-@keyframes initialize {
-	from {
-		transform: rotate(0) scale(.1);
-	}
-    to {
-    	transform: rotate(360deg) scale(1);
-    }
-}
-
-@keyframes alert {
-	from {
-    	stroke-opacity: 0;
-    }
-    to {
-    	stroke-opacity: 1;
-    }
-}
 
 body.loading g,
-#anchor:not(.snmp) #chart_anchor,
 #anchor:not(.snmp) #alarm_anchor {
 	display: none;
 }
@@ -136,7 +107,6 @@ body.loading g,
 	stroke-width: 5px;
 	stroke: none;
 	fill: none;
-	animation: alert 2s infinite;
 }
 
 .device.checked circle {
@@ -157,7 +127,6 @@ body.loading g,
 }
 
 #parent {
-	fill: #fff;
 	stroke: #ddd; stroke-width: 5px;
 }
 
@@ -172,7 +141,6 @@ body.loading g,
 
 body.name tspan:last-child,
 body:not(.name) tspan:first-child,
-body:not(.ifname) #line text,
 body:not(.root) .root,
 body:not(.selected) #anchor,
 body:not(.submap) .parent {
@@ -542,7 +510,7 @@ function addDevice(id, pos) {
 	if (device.group) {
 		svgDevice.onmouseenter = onEnter.bind(svgDevice, id);
 		svgDevice.onmouseleave = onLeave.bind(svgDevice);
-		svgDevice.ondblclick = onSelectGroup.bind(svgDevice, id);
+		svgDevice.ondblclick = onEnterGroup.bind(svgDevice, id);
 	}
 	
 	svgName.textContent = device.name;
@@ -709,6 +677,10 @@ function resetChecked() {
 	window.checked = {};
 }
 
+function showStatus(index) {
+	top.showStatus();
+}
+
 function moveLabel(labelSvg, x1, y1, x2, y2) {
 	labelSvg.setAttribute("x", (x1 *2 + x2) /3);
 	labelSvg.setAttribute("y", (y1 *2 + y2) /3);
@@ -731,9 +703,6 @@ function addLine(id, pos) {
 			labelSvg = document.createElementNS(svgNS, "text");
 			
 			labelSvg.textContent = port.name;
-			labelSvg.onclick = function () {
-				top.showStatus(id, "throughput", port.index);
-			}
 			
 			moveLabel(labelSvg, pos.x, pos.y, peerPos.x, peerPos.y);
 		}
@@ -841,18 +810,26 @@ function initialize() {
 	}
 	
 	top.databases.local.selected = undefined;
+	
+	document.body.classList.remove("loading");
 }
 
 function onLink(id, e) {
-	onEditLine(id, e.detail.peer);
-}
-
-function displayIFName(show) {
-	document.body.classList[show? "add": "remove"]("ifname");
+	top.showDialog.call(window, "line_dialog.html", id, e.detail.peer);
 }
 
 function getIcon(type) {
 	return window.top.databases.icon[type] || window.top.databases.local.icon[type];
+}
+
+function onSave() {
+	top.sendRequest({
+		command: "push",
+		database: "position",
+		data: window.top.databases.position
+	}, function (response) {
+		alert("구성의 변경사항을 저장하였습니다.");
+	});
 }
 
 (function(print) {
@@ -867,34 +844,16 @@ function getIcon(type) {
 	};
 })(window.print);
 
-//abstract
-function onEditDevice(id) {	
-}
-
-//abstract
-function onEditLine(id, peerID) {
+function onEnterGroup(id) {
+	top.databases.local.parent = id;
 	
+	window.location.reload();
 }
 
-//abstract
-function onSelectGroup(id) {	
-}
-
-//abstract
-function onShowChart(id) {
-}
-
-//abstract
-function onShowAlarm(ip) {
-}
-/*
-function resetStatus(id) {
-	
-}*/
 		</script>
 	</head>
 	
-	<body class="loading name ifname">
+	<body class="loading name">
 		<svg id="map">
 			<defs>
 				<circle r="35" id="circle"></circle>
@@ -911,10 +870,6 @@ function resetStatus(id) {
 				<g id="device"></g>
 				<!--g id="tool"-->
 					<g id="anchor">
-						<image xlink:href="img/svg/chart.svg" id="chart_anchor" x="-42" y="-8" 
-							width="16" height="16" cursor="pointer"><!-- -34 -16/2, -16/2 -->
-							<title>이 장비의 차트를 봅니다.</title>
-						</image>
 						<image xlink:href="img/svg/information.svg" id="edit_anchor" x="26" y="-8"
 							width="16" height="16" cursor="pointer"><!-- 34 -16/2, -16/2 -->
 							<title>이 장비의 정보를 수정합니다.</title>
@@ -923,15 +878,24 @@ function resetStatus(id) {
 							width="16" height="16" cursor="pointer"><!-- -16/2, -34 -16/2 -->
 							<title>이 앵커를 드래그하여 다른 장비와 연결합니다.</title>
 						</image>
-						<image xlink:href="img/svg/alarm.svg" id="alarm_anchor" class="root" x="-8" y="26"
-							width="16" height="16" cursor="pointer"><!-- -16/2, 34 -16/2 -->
+						<image xlink:href="img/svg/alarm.svg" id="alarm_anchor" class="root" x="-42" y="-8"
+							width="16" height="16" cursor="pointer"><!-- -34 -16/2, -16/2 -->
 							<title>성능의 임계값을 설정합니다.</title>
 						</image>
 					</g>
 				<!--/g-->
 			</g>
 		</svg>
-		
+		<header>
+			<img id="add_device" src="img/add_device.png" width="32px" height="32px" title="장비 추가">
+			<img id="add_group" src="img/add_group.png" width="32px" height="32px" title="그룹 추가">
+			<img id="save" src="img/save3.png" width="32px" height="32px" title="변경사항 저장">
+		</header>
+		<nav>
+			<img src="img/zoomo.png" width="16" height="16" title="대시보드로 복귀" id="restore">
+			<img src="img/plus.png" width="16" height="16" title="맵 확대" id="zoom_in">
+			<img src="img/minus.png" width="16" height="16" title="맵 축소" id="zoom_out">
+		</nav>
 		<script src="js/ITAhM.js"></script>
 		<script src="js/Draggable.js"></script>
 		<script>
@@ -949,7 +913,6 @@ var mapCanvas = document.getElementById("map"),
 	linkCanvas = document.getElementById("link"),
 	linkSVG = linkCanvas.querySelector("line"),
 	anchor = document.getElementById("anchor"),
-	chartAnchor = document.getElementById("chart_anchor"),
 	alarmAnchor = document.getElementById("alarm_anchor"),
 	editAnchor = document.getElementById("edit_anchor"),
 	linkAnchor = document.getElementById("link_anchor"),
@@ -959,6 +922,7 @@ var mapCanvas = document.getElementById("map"),
 	svgData = {},
 	checked = {},
 	scale = 1,
+	schedule,
 	isDragging = false;
 
 if (top.databases.local.level === 0) {
@@ -975,21 +939,29 @@ mapCanvas.addEventListener("dragoff", onDragEnd);
 document.onselectstart = function () {
 	return false;
 }
-	
-chartAnchor.onclick = function (e) {
-	onShowChart(window.selected);
-	
-	e.stopPropagation();
+
+document.getElementById("restore").onclick = function () {
+	window.location.href = "dashboard.2.0.3.2.html";
+}
+
+document.getElementById("add_device").onclick = function () {
+	top.showDialog.call(window, "device_dialog.html");
 };
 
+document.getElementById("add_group").onclick = function () {
+	top.showDialog.call(window, "group_dialog.html");
+};
+
+document.getElementById("save").onclick = onSave;
+
 alarmAnchor.onclick = function (e) {
-	onShowAlarm(top.databases.device[window.selected].ip);
+	top.showDialog.call(window, "critical_dialog.html", top.databases.device[window.selected].ip);
 	
 	e.stopPropagation();
 };
 
 editAnchor.onclick = function (e) {
-	onEditDevice(window.selected);
+	top.showDialog.call(window, top.databases.device[window.selected].group? "group_dialog.html": "device_dialog.html", window.selected);
 	
 	e.stopPropagation();
 };
@@ -998,12 +970,36 @@ if (top.databases.local.parent) {
 	document.body.classList.add("submap");
 	
 	parentAnchor.ondblclick = function (e) {
-		onSelectGroup(top.databases.position[top.databases.local.parent].parent);
+		onEnterGroup(top.databases.position[top.databases.local.parent].parent);
 	};
 	
 	parentAnchor.onmouseenter = onEnter.bind(parentAnchor, top.databases.position[top.databases.local.parent].parent);
 	parentAnchor.onmouseleave = onLeave.bind(parentAnchor);
 }
+
+window.addEventListener("resize", function () {
+	clearTimeout(window.schedule);
+	
+	window.schedule = setTimeout(resize, 500);
+});
+
+document.getElementById("zoom_in").onclick = function () {
+	zoom(window.scale *= 1.1);
+	
+	window.top.databases.local.scale = scale;
+}
+
+document.getElementById("zoom_out").onclick = function () {
+	zoom(window.scale /= 1.1);
+	
+	window.top.databases.local.scale = scale;
+}
+
+window.addEventListener("wheel", function (e) {
+	zoom(e.deltaY < 0? scale *= 1.1: scale /= 1.1);
+	
+	window.top.databases.local.scale = scale;
+});
 
 resize();
 
@@ -1011,9 +1007,7 @@ if ("display" in top.databases.config) {
 	document.body.classList[top.databases.config.display == "name"? "add": "remove"]("name");
 }
 
-document.body.classList.remove("loading");
-
-mapCanvas.style.animationName = "initialize";
+initialize();
 
 		</script>
 	

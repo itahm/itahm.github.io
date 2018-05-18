@@ -47,10 +47,6 @@ ul {
 	display: none;
 }
 
-img[src="img/plus.png"]:hover {
-	cursor: pointer;
-}
-
 #dashboard {
 	position: relative;
 }
@@ -739,14 +735,14 @@ function initialize() {
 		</form>
 		
 		<form id="account">
-			<h2>계정 <input type="image" src="img/plus.png" title="계정 추가" class="root"></h2>
+			<h2>계정 <input type="button" value="추가" title="계정 추가" class="root"></h2>
 			<div class="box">
 				<ul id="account_list" class="list"></ul>
 			</div>
 		</form>
 		
 		<form id="profile">
-			<h2>프로파일 <input type="image" src="img/plus.png" title="프로파일 추가" class="root"></h2>
+			<h2>프로파일 <input type="button" value="추가" title="프로파일 추가" class="root"></h2>
 			<div class="box">
 				<ul id="profile_list" class="list"></ul>
 				<i>등록된 Profile은 변경할 수 없습니다. 삭제후 추가하십시오. (사용중인 Profile은 삭제할 수 없습니다.)</i>
@@ -757,7 +753,7 @@ function initialize() {
 			<h2>
 				<input type="checkbox" name="enable" class="root">
 				SMS
-				<input type="image" src="img/plus.png" title="알림 추가" class="root">
+				<input type="button" value="추가" title="알림 추가" class="root">
 			</h2>
 			<div class="box">
 				<ul id="sms_list" class="list"></ul>

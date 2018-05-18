@@ -2,7 +2,7 @@
 <html>
 	<head>
 		<meta charset="UTF-8">
-		<title>ITAhM</title>
+		<title>Connect @ ITAhM</title>
 		
 		<style>
 
@@ -320,22 +320,18 @@ function setMenu(b) {
 	}
 } 
 
-// public
-// ip / id 버전에 따라
-function getDeviceName(ip) {
-	const deviceData = window.databases.device;
-	
-	if (ip in deviceData) {
-		return deviceData[ip].name || ip;
-	}	
-	
-	for (let id in deviceData) {
-		if (deviceData[id].ip === ip) {
-			return deviceData[id].name || ip;
-		}
+//public
+function setDevice(id, device) {
+	if (device.ip) {
+		window.index[device.ip] = id;
 	}
+	
+	window.databases.device[id] = device;
+}
 
-	return ip;
+//public
+function getDeviceID(ip) {
+	return window.index[ip];
 }
 
 // public
@@ -842,6 +838,7 @@ var agent = "http://",
 	listener = {
 		command: "listen"
 	},
+	index = {},
 	count = document.getElementById("count"),
 	dialog = document.getElementById("dialog"),
 	log = document.getElementById("log"),

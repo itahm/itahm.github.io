@@ -2,7 +2,7 @@
 <html>
 	<head>
 		<meta charset="UTF-8">
-		<title>ITAhM</title>
+		<title>ITAhM Demo</title>
 		
 		<style>
 
@@ -339,21 +339,17 @@ function setMenu(b) {
 } 
 
 //public
-//ip/id 버전에 따라
-function getDeviceName(ip) {
-	const deviceData = window.databases.device;
-	
-	if (ip in deviceData) {
-		return deviceData[ip].name || ip;
-	}	
-	
-	for (let id in deviceData) {
-		if (deviceData[id].ip === ip) {
-			return deviceData[id].name || ip;
-		}
+function setDevice(id, device) {
+	if (device.ip) {
+		window.index[device.ip] = id;
 	}
+	
+	window.databases.device[id] = device;
+}
 
-	return ip;
+//public
+function getDeviceID(ip) {
+	return window.index[ip];
 }
 
 function showDialog() {
@@ -434,17 +430,24 @@ function onInitialize() {
 	// TODO ITAhM의 시작.
 	setHeader();
 	
-	// old 버전 호환
-	var group;
-	for (var id in databases.device) {
-		group = databases.device[id];
+	// old 버전 호환, indexing
+	var device;
+	
+	const deviceData = window.databases.device;
+	
+	for (let id in deviceData) {
+		device = deviceData[id];
 		
-		if (!group.group) {
+		if (device.ip) {
+			window.index[device.ip] = id;
+		}
+		
+		if (!device.group) {
 			continue;
 		}
 		
-		if (!("id" in group)) {
-			group.id = id;
+		if (!("id" in device)) {
+			device.id = id;
 		}
 	}
 	
@@ -460,7 +463,7 @@ function onUpdate() {
 		if (!window.initialized) {
 			window.initialized = true;
 			
-			window.frame.src = "dashboard.html";
+			window.frame.src = "dashboard.2.0.3.2.html";
 		}
 	}
 	else {
@@ -531,7 +534,7 @@ function onEvent(e) {
 		window.logCount++;
 		
 		window.count.textContent = window.logCount > 9? "9+": window.logCount;
-		window.log.textContent = getDeviceName(event.ip) +" "+ event.message;
+		window.log.textContent = window.databases.device[getDeviceID(event.ip)].name +" "+ event.message;
 		
 		if (!event.status) {
 			window.sound.play();
@@ -640,9 +643,8 @@ function sendRequest(request, onResponse, custom) {
 				<nav>
 					<i id="expire"></i>
 					<ul>
-						<li><h1><a href="dashboard.html" target="main">대시보드</a></h1>
+						<li><h1><a href="dashboard.2.0.3.2.html" target="main">대시보드</a></h1>
 						<li><h1><a href="list.html" target="main">장비목록</a></h1>
-						<li><h1><a href="map.html" target="main">구성도</a></h1>
 						<li><h1><a href="event.html" target="main">이벤트</a></h1>
 						<li><h1><a href="scrap.html" target="main">스크랩</a></h1>
 					</ul>
@@ -684,6 +686,7 @@ var agent = "http://demo.itahm.com:2014",
 	listener = {
 		command: "listen"
 	},
+	index = {},
 	count = document.getElementById("count"),
 	dialog = document.getElementById("dialog"),
 	log = document.getElementById("log"),
@@ -697,9 +700,9 @@ window.addEventListener("unload", onClose);
 	document.body.classList.add("loading");
 	
 	postRequest({
-			command: "signin",
-			username: "guest1",
-			password: "15dac3875ad0f994a832043be841dc7e"
+		command: "signin",
+		username: "guest1",
+		password: "15dac3875ad0f994a832043be841dc7e"
 		}, function () {
 		document.body.classList.remove("loading");
 		

@@ -381,7 +381,7 @@ function initialize(ip) {
 
 	list.appendChild(df);
 
-	document.getElementById("name").textContent = top.getDeviceName(ip);
+	document.getElementById("name").textContent = top.databases.device[top.getDeviceID(ip)].name;
 	document.getElementById("ip").textContent = ip;
 	
 	top.sendRequest({

@@ -166,15 +166,14 @@ function onApply(e) {
 			parent: top.databases.local.parent
 		};
 	}
-	var r = {
-			command: "put",
-			database: "device",
-			key: group.id,
-			value: group
-		};
 	
-	top.sendRequest(r, function (data) {
-		top.databases.device = data;
+	top.sendRequest({
+		command: "put",
+		database: "device",
+		key: group.id,
+		value: group
+	}, function () {
+		top.databases.device[group.id] = group;
 		
 		window.opener.reload();
 		
@@ -200,10 +199,11 @@ function onRemoveGroup() {
 				database: "device",
 				key: window.group.id,
 				value: null
-			}, function (data) {
+			}, function () {
 				var posData = top.databases.position;
 				
-				top.databases.device = data;
+				// group 정보 삭제
+				delete top.databases.device[window.group.id];
 				
 				// 연관 link 정보 삭제
 				for (let id in posData[window.group.id].ifEntry) {

@@ -213,8 +213,11 @@ function onApply(e) {
 		database: "device",
 		key: window.id,
 		value: device
-	}, function (data) {
-		top.databases.device = data;
+	}, function (/*data*/) {
+		// 이전 버전에서는 database 전체가 콜백 되기 때문에 아래와 같이 했지만
+		// top.databases.device = data;
+		// setDevice를 적용해 주기 위해 아래와 같이 변경
+		top.setDevice(window.id, device);
 		
 		if (window.opener) {
 			window.opener.reload();
@@ -245,10 +248,11 @@ function onRemoveDevice() {
 				database: "device",
 				key: window.id,
 				value: null
-			}, function (data) {
+			}, function (/*data*/) {
 				var posData = top.databases.position;
 				
-				top.databases.device = data;
+				// device 정보 삭제
+				delete top.databases.device[window.id];
 				
 				// device의 monitor 정보 삭제
 				delete top.databases.monitor[window.id];
@@ -268,7 +272,7 @@ function onRemoveDevice() {
 					command: "push",
 					database: "position",
 					data: posData
-				}, function (data) {
+				}, function () {
 					document.body.classList.remove("loading");
 					
 					window.opener.reload();

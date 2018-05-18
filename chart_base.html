@@ -158,6 +158,10 @@ nav input[type="checkbox"]:checked ~img.lock {
 		<script>
 		
 function onResize() {
+	if (!window.summaryData) {
+		return;
+	}
+	
 	resize();
 	
 	drawChart();
@@ -625,17 +629,43 @@ var chart = document.getElementById("chart"),
 	summaryData, chartSummary, detailData, chartDetail,
 	rect = {};
 
-window.addEventListener("resize", function () {
-	if (!window.summaryData) {
-		return;
+// resize
+(function (delay) {
+	var running = false,
+		start;
+	
+	function optimize(timestamp) {
+		if (timestamp - start > delay) {
+			onResize();
+			
+			start = undefined;
+		}
+		else {
+			requestAnimationFrame(optimize);
+		}
 	}
 	
-	if (window.resizeTimer) {
-		clearTimeout(window.resizeTimer);
-	}
+	window.addEventListener("resize", function() {
+		if (running) {
+			return;
+		}
+			
+		running = true;
 	
-	window.resizeTimer = setTimeout(onResize, 300);
-});
+		requestAnimationFrame(function(timestamp) {
+			if (isNaN(start)) {
+				start = timestamp;
+				
+				requestAnimationFrame(optimize);
+			}
+			else {
+				start = timestamp;
+			}
+			
+			running = false;
+		});
+	});
+})(300);
 
 window.chart.addEventListener("mouseleave", function (e) {
 	fragment.appendChild(window.hover);

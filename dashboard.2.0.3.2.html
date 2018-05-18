@@ -19,13 +19,11 @@ body {
 }
 
 aside {
-	position: fixed; top: 0; bottom: 0; left: 0;
+	position: absolute; top: 0; bottom: 0; left: 0;
 	pointer-events: none;
 	width: 300px;
-	display: flex;
 	box-sizing: border-box;
 	padding: .5em;
-	flex-direction: column;
 	text-shadow: 1px 1px 1px #000;
 }
 
@@ -38,8 +36,8 @@ aside> .top {
 
 #summary_list {
 	position: relative;
-	flex: 1;
 	overflow-y: auto;
+	pointer-events: auto;
 }
 
 article {
@@ -50,7 +48,6 @@ article {
 
 .map {
 	flex: 1;
-	/*border: 3px solid #0084ff;*/
 	border: 3px solid #000;
 	box-sizing: border-box;
 	border-radius: 3px;
@@ -61,6 +58,20 @@ article {
 	animation-duration: .5s;
 	animation-timing-function:  cubic-bezier(.9, .1, .9, .1);
 	overflow: hidden;
+}
+
+.map >nav {
+	position: absolute; top: 0; right: 0;
+	padding: 5px;
+	background-color: #ddd;
+}
+
+.map >nav >img {
+	display: block;
+}
+
+.map >nav >img:not(:nth-of-type(1)) {
+	border-top: 1px solid #777;
 }
 
 svg {
@@ -147,29 +158,9 @@ text {
     }
 }
 
-svg.name tspan:last-child,
-svg:not(.name) tspan:first-child {
+body.name tspan:last-child,
+body:not(.name) tspan:first-child {
 	display: none;
-}
-
-#event_widget {
-	flex: none;
-	height: 140px;
-	position: relative;
-	padding-top: 20px;
-	box-sizing: border-box;
-}
-
-#event_list {
-	overflow-y: auto;
-	height: 100%;
-}
-
-#event_widget::after {
-	content: "";
-	position: absolute; top: 0; right: 0; left: 0; height: 10px;
-	background-color: #ddd;
-	border-radius: 3px;
 }
 
 iframe {
@@ -611,23 +602,6 @@ function initialize() {
 
 	document.getElementById("top_list").appendChild(df);
 	
-	window.eventWidget.ondragstart = onDragStart;
-	
-	window.aside.ondragover = onDragOver;
-	window.aside.ondrop = onDragDrop;
-	
-	window.article.ondragover = onDragOver;
-	window.article.ondrop = onDragDrop;
-	
-	window.footer.ondragover = onDragOver;
-	window.footer.ondrop = onDragDrop;
-	
-	resetEvent();
-	
-	if (top.databases.local.widget) {
-		moveWidget(window[top.databases.local.widget]);
-	}
-	
 	update();
 	
 	initMap();
@@ -833,11 +807,8 @@ function setTop(topData, list, args) {
 		(function (value) {
 			if (isNaN(value)) {
 				if (value.value || !args.skipZero) {
-					list.appendChild(createGaugeItem(ip, args.toString(value.value), value.rate, args.id, value.index));
+					list.appendChild(createTopItem(ip, args.toString(value.value), value.rate, args.id, value.index));
 				}
-			}
-			else if (value || !args.skipZero) {
-				list.appendChild(createTopItem(ip, args.sortByRate? toPercentageString(value): args.toString(value)));
 			}
 		}) (topData[ip]);
 		
@@ -847,14 +818,14 @@ function setTop(topData, list, args) {
 	}
 }
 
-function createGaugeItem(ip, value, rate, resource, index) {
+function createTopItem(ip, value, rate, resource, index) {
 	var item = document.createElement("ul"),
 		id = top.getDeviceID(ip),
 		bar;
 	
 	item.className = "list_item";
 	
-	item.appendChild(document.createElement("li")).textContent = top.databases.device[ip].name;
+	item.appendChild(document.createElement("li")).textContent = top.databases.device[id].name || ip;
 	item.appendChild(document.createElement("li")).textContent = ip;
 	
 	bar = item.appendChild(document.createElement("li"));
@@ -873,92 +844,6 @@ function createGaugeItem(ip, value, rate, resource, index) {
 	}
 	
 	return item;
-}
-
-function createTopItem(ip, value) {
-	var item = document.createElement("ul"),
-		id = top.getDeviceID(ip),
-		bar;
-	
-	item.className = "list_item";
-	
-	item.appendChild(document.createElement("li")).textContent = top.databases.device[ip].name;
-	item.appendChild(document.createElement("li")).textContent = ip;
-	
-	bar = item.appendChild(document.createElement("li"));
-	bar.dataset.value = value;
-	
-	if (value.substring(value.length -1, value.length) == "%") {
-		let p = value.substring(0, value.length -1);
-		
-		bar.appendChild(document.createElement("div")).style.width = value;
-		
-		bar.classList.add(p > 90? "red": p > 70? "orange": "green");
-	}
-	
-	item.onclick = function () {
-		top.showStatus(id);
-	}
-	
-	return item;
-}
-
-function onDragStart(e) {
-}
-
-function onDragOver(e) {
-	e.preventDefault();
-}
-
-function onDragDrop(e) {
-	e.preventDefault();
-	
-	if (window.eventWidget.parentNode == this) {
-		return;
-	}
-	
-	top.databases.local.widget = this.nodeName.toLowerCase();
-	
-	moveWidget(this);
-}
-
-function moveWidget(parent) {
-	parent.appendChild(window.eventWidget);
-	
-	window.eventList.scrollTop = window.eventList.scrollHeight;
-	
-	resizeMap();
-}
-
-function onDragEnd(e) {
-	e.preventDefault();
-}
-
-function resetEvent() {	
-	top.sendRequest({
-		command: "extra",
-		extra: "log",
-		date: new Date().setHours(0, 0, 0, 0)
-	}, function (data) {
-		var df = document.createDocumentFragment(),
-			indexArray = Object.keys(data);
-			count = indexArray.length;
-		
-		indexArray = indexArray.sort(function (a, b) {
-			return parseInt(a) - parseInt(b);
-		});
-		
-		for (var i=0, log, device; i<count; i++) {
-			log = data[indexArray[i]];
-			device = top.databases.device[log.ip];
-		
-			df.appendChild(createItem((device && device.name) || log.ip, log.date, log.message, log.status, log.type));
-		}
-		
-		window.eventList.appendChild(df);
-		
-		window.eventList.scrollTop = window.eventList.scrollHeight;
-	});
 }
 
 // private
@@ -1054,9 +939,11 @@ function onEvent(ip) {
 						<g id="device"></g>
 					</g>
 				</svg>
-			</div>
-			<div draggable="true" id="event_widget">
-				<div id="event_list"></div>
+				<nav>
+					<img src="img/zoomi.png" width="16" height="16" title="전체화면에서 편집" id="edit">
+					<img src="img/plus.png" width="16" height="16" title="맵 확대" id="zoom_in">
+					<img src="img/minus.png" width="16" height="16" title="맵 축소" id="zoom_out">
+				</nav>
 			</div>
 		</article>
 		
@@ -1098,7 +985,6 @@ function onEvent(ip) {
 		<script>
 
 var summaryList = document.getElementById("summary_list"),
-	eventWidget = document.getElementById("event_widget"),
 	eventList = document.getElementById("event_list"),
 	topList = {},
 	aside = document.querySelector("aside"),
@@ -1165,8 +1051,12 @@ var summaryList = document.getElementById("summary_list"),
 	};
 
 if ("display" in top.databases.config) {
-	window[top.databases.config.display == "name"? "addClass": "removeClass"](document.body, "name");
+	window[top.databases.config.display !== "name"? "removeClass": "addClass"](document.body, "name");
 }
+
+document.getElementById("edit").onclick = function () {
+	window.location.href = "map_demo.html";
+};
 
 (function () {
 	const svgNS = "http://www.w3.org/2000/svg",
@@ -1192,13 +1082,17 @@ if ("display" in top.databases.config) {
 	mapCanvas.addEventListener("drag", onDragMove);
 	mapCanvas.addEventListener("dragoff", onDragEnd);
 	
-	if ("display" in top.databases.config) {
-		window[top.databases.config.display == "name"? "addClass": "removeClass"](mapCanvas, "name");
-	}
-	
 	mapCanvas.addEventListener("wheel", function (e) {
 		zoom(e.deltaY < 0? scale *= 1.1: scale /= 1.1);
 	});
+	
+	document.getElementById("zoom_in").onclick = function () {
+		zoom(scale *= 1.1);
+	};
+	
+	document.getElementById("zoom_out").onclick = function () {
+		zoom(scale /= 1.1);
+	};
 	
 	window.addEventListener("resize", tryResize);
 	
@@ -1290,16 +1184,21 @@ if ("display" in top.databases.config) {
 			x2 = x;
 			y2 = y;
 		}
+
+		if (data.name1) {
+			data.name1.setAttribute("x", (x1 *2 + x2) /3);
+			data.name1.setAttribute("y", (y1 *2 + y2) /3);
+		}
 		
-		data.name1.setAttribute("x", (x1 *2 + x2) /3);
-		data.name1.setAttribute("y", (y1 *2 + y2) /3);
-		
-		data.name2.setAttribute("x", (x2 *2 + x1) /3);
-		data.name2.setAttribute("y", (y2 *2 + y1) /3);
+		if (data.name2) {
+			data.name2.setAttribute("x", (x2 *2 + x1) /3);
+			data.name2.setAttribute("y", (y2 *2 + y1) /3);
+		}
 	}
 
 	function addDevice(id, pos) {
 		var device = top.databases.device[id],
+			monitor = device.ip && top.databases.monitor[device.ip],
 			svgDevice = document.createElementNS(svgNS, "g"),
 			svgIcon = document.createElementNS(svgNS, "image"),
 			svgBG = document.createElementNS(svgNS, "circle"),
@@ -1339,6 +1238,12 @@ if ("display" in top.databases.config) {
 		addClass(svgDevice, "device");
 		
 		deviceCanvas.appendChild(svgDevice);
+		
+		if (monitor && monitor.protocol === "snmp") {
+			svgDevice.onclick = function () {
+				top.showStatus(id);
+			};
+		}
 		
 		svgData[id] = svgDevice;
 		
@@ -1422,16 +1327,25 @@ if ("display" in top.databases.config) {
 		var device = top.databases.device[id],
 			ifEntry = pos.ifEntry,
 			peerList = {},
-			peerPos, peerIP, link, lineSvg,
-			labelSvg;
+			peerPos, peerIP, link, lineSvg, port, labelSvg;
 		
 		linkData[id] = peerList;
 		
 		for (var peerIP in ifEntry) {
 			peerPos = top.databases.position[peerIP];
 			
-			// TODO 라벨이 없는 경우에는 그려주지 않는것이 성능에 유리할것.
-			labelSvg = createLabel(ifEntry[peerIP], pos.x, pos.y, peerPos.x, peerPos.y);
+			port = ifEntry[peerIP];
+			
+			if (port) {
+				labelSvg = document.createElementNS(svgNS, "text");
+				
+				labelSvg.textContent = port.name;
+				labelSvg.onclick = function () {
+					top.showStatus(id, "throughput", port.index);
+				};
+				
+				moveLabel(labelSvg, pos.x, pos.y, peerPos.x, peerPos.y);
+			}
 			
 			// peer가 먼저 svg 만들었다면 공유
 			if (linkData[peerIP]) {
@@ -1456,7 +1370,9 @@ if ("display" in top.databases.config) {
 			}
 			
 			// label이 선보다 위에 그려지도록 나중에 붙여줌
-			lineCanvas.appendChild(labelSvg);
+			if (port) {
+				lineCanvas.appendChild(labelSvg);
+			}
 			
 			peerList[peerIP] = link;
 		}

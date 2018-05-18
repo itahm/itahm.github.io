@@ -231,7 +231,7 @@ function createItem(log) {
 	
 	icon = ul.appendChild(document.createElement("li")).appendChild(document.createElement("img"));
 	ul.appendChild(document.createElement("li")).textContent = toTimeString(log.date);
-	ul.appendChild(document.createElement("li")).textContent = top.getDeviceName(log.ip);
+	ul.appendChild(document.createElement("li")).textContent = top.databases.device[top.getDeviceID(log.ip)].name;
 	ul.appendChild(document.createElement("li")).textContent = log.message;
 	
 	ul.classList.add("item");
