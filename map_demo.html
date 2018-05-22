@@ -113,14 +113,6 @@ body.loading g,
 	fill: #fff;
 }
 
-.device.critical circle {
-	stroke: #fa0;
-}
-
-.device.shutdown circle {
-	stroke: #f00; 
-}
-
 .device.hover circle,
 #parent.hover {
 	stroke: #0f0;
@@ -546,20 +538,11 @@ function drawDevice(id) {
 		icon = getIcon(device.type || "unknown"),
 		monitor = device.ip && top.databases.monitor[device.ip];
 	
-	removeClass(svgDevice, "shutdown", "critical");
-	
 	if (!monitor) {
 		svgIcon.setAttributeNS(xlinkNS, "xlink:href", icon.disabled);
 	}
 	else {
 		svgIcon.setAttributeNS(xlinkNS, "xlink:href", icon.src);
-		
-		if (monitor.shutdown) {
-			addClass(svgDevice, "shutdown");
-		}
-		else if (monitor.critical) {
-			addClass(svgDevice, "critical");
-		}
 	}
 }
 
@@ -759,8 +742,6 @@ function setGroupStatus(id, status) {
 
 function initialize() {
 	var group = top.databases.local.parent,
-		shutdown = {},
-		critical = {},
 		device, pos;
 	
 	for (var id in top.databases.device) {
@@ -779,25 +760,6 @@ function initialize() {
 		if (pos.parent === group) {
 			addDevice(id, pos);
 		}
-		// upper 그룹일수도 lower 그룹일수도 있음
-		// upper 그룹은 대상이 아님
-		// 모니터링 대상장비 이어야 함
-		else if (pos.parent && device.ip && device.ip in top.databases.monitor) {
-			if (top.databases.monitor[device.ip].shutdown) {
-				shutdown[pos.parent] = true;
-			}
-			else if (top.databases.monitor[device.ip].critical) {
-				critical[pos.parent] = true;
-			}
-		}
-	}
-	
-	for (var id in shutdown) {
-		setGroupStatus(id, "shutdown");
-	}
-	
-	for (var id in critical) {
-		setGroupStatus(id, "critical");
 	}
 	
 	var id = top.databases.local.selected;
