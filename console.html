@@ -453,7 +453,7 @@ function onInitialize() {
 function onUpdate() {
 	if (this.status === 200) {
 		window.topList = JSON.parse(this.responseText);
-		console.log(window.topList);
+		
 		if (!window.initialized) {
 			window.initialized = true;
 			
