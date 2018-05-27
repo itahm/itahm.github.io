@@ -100,8 +100,14 @@ body:not(.redirected) {
 (function (version) {
 	const major = "2.0.3.";
 	
-	if (version.indexOf(major) === major.indexOf(major) && parseInt(version.split(major)[1]) === 2) {
-		window.location.href = "group_dialog.2.0.3.2.html";
+	if (version.indexOf(major) === major.indexOf(major)) {
+		switch(parseInt(version.split(major)[1])) {
+		case 2:
+		case 3:
+			window.location.href = "2.0.3.2/group_dialog.html";
+			
+			break;
+		}
 	}
 }) (top.databases.config.version);
 		</script>
