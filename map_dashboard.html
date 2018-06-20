@@ -46,20 +46,21 @@ text {
 }
 
 #line line {
-	stroke: #a17f1a/*836953*/;
+	stroke: #0f0;
 	stroke-width: 1;
 }
 
 #line line.animation {
-	stroke: #0f0;
-	animation: 3s line infinite;
+	stroke: #a17f1a;
+	stroke: #777;
+	animation: 5s line infinite;
 }
 
 @keyframes line {
-	50%{
+	0% {
 		stroke-dashoffset: 0;
 	}
-	100% {
+	80%{
 		stroke-dashoffset: 0;
 	}
 }
