@@ -46,13 +46,15 @@ text {
 }
 
 #line line {
-	stroke: #0f0;
+	stroke: #2f4;
+	stroke: #ffd800;
 	stroke-width: 1;
 }
 
 #line line.animation {
 	stroke: #a17f1a;
-	stroke: #777;
+	stroke: #040;
+	stroke: #3d3400;
 	animation: 5s line infinite;
 }
 
@@ -456,7 +458,7 @@ function setAnimation(lineSvg, length) {
 		lineSvg.style.strokeDashoffset = length;
 
 		addClass(lineSvg, "animation");
-	}, Math.random() *3000);
+	}, Math.random() *5000);
 }
 
 function addLine(id, pos) {
@@ -662,7 +664,7 @@ function getIcon(type) {
 				<g id="device"></g>
 			</g>
 		</svg>
-		
+		<button onclick="window.location.reload()" style="position: fixed; right: 10px; bottom: 10px;">reload</button>
 		<script src="js/ITAhM.js"></script>
 		<script src="js/Draggable.js"></script>
 		<script>

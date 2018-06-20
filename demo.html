@@ -903,7 +903,7 @@ function onSignOut() {
 		postRequest({
 			command: "signout"
 		}, function () {
-			window.location.reload();
+			window.location.href = "http://itahm.com";
 		}, 10000);
 	}
 }
@@ -1006,6 +1006,8 @@ var agent = "http://demo.itahm.com:2014",
 	logCount = 0;
 
 window.addEventListener("unload", onClose);
+
+document.getElementById("signout").onclick = onSignOut;
 
 (function () {
 	document.body.classList.add("loading");
