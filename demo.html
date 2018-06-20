@@ -2,7 +2,7 @@
 <html>
 	<head>
 		<meta charset="UTF-8">
-		<title>ITAhM Demo</title>
+		<title>ITAhM Console</title>
 		
 		<style>
 
@@ -287,17 +287,9 @@ body:not(.dialog) #dialog {
 
 		</style>
 		<script src="js/google.js"></script>
+
 		<script>
-/** static **/
-
-function isIPv4(ip) {
-	return ip.match(/^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/)
-}
-
-		</script>
-		<script>
-/** itahm **/
-
+//public
 function showStatus(id, resource, index) {
 	var	statusWindow = window.statusWindow[id];
 
@@ -305,7 +297,7 @@ function showStatus(id, resource, index) {
 		statusWindow.close();
 	}
 	
-	statusWindow = window.open("status.html", id);
+	statusWindow = window.open("/status.html", id);
 	
 	window.statusWindow[id] = statusWindow;
 	
@@ -339,22 +331,14 @@ function setMenu(b) {
 } 
 
 //public
-function setDevice(id, device) {
-	if (device.ip) {
-		window.index[device.ip] = id;
-	}
-	
-	window.databases.device[id] = device;
-}
-
-//public
 function getDeviceID(ip) {
-	return window.index[ip];
+	return window.IDMap[ip];
 }
 
+// public
 function showDialog() {
 	var opener = this,
-		url = Array.prototype.shift.call(arguments),
+		url = [].shift.call(arguments),
 		args = arguments;
 	
 	window.dialog.onload = function () {
@@ -366,6 +350,7 @@ function showDialog() {
 	window.dialog.src = url;
 }
 
+// public
 function closeDialog() {
 	document.body.classList.remove("dialog");
 }
@@ -426,6 +411,57 @@ function toDateString(m) {
 	return a.join("");
 }
 
+function putDevice(id, device) {
+	window.databases.device[id] = device;
+
+	if (device.ip) {
+		window.IDMap[device.ip] = id;
+	}
+}
+
+function forEachDB(name, f) {
+	const database = window.databases[name];
+	
+	for (let key in database) {
+		f(key, database[key]);
+	}
+}
+
+function putDB(name, key, value) {
+	switch(arguments.length) {
+		case 3:
+			window.databases[name][key] = value;
+
+			if (name === "device" && value.ip) {
+				window.IDMap[value.ip] = key;
+			}
+
+			break;
+		case 2:
+			value = window.databases[name][key];
+			
+			delete window.databases[name][key];
+
+			if (name === "device" && value.ip) {
+				delete window.IDMap[value.ip];
+			}
+
+			break;
+	}
+}
+
+function getDB(name, key) {
+	const database = window.databases[name];
+
+	switch(arguments.length) {
+		case 2:
+			return database && database[key];
+
+		case 1:
+			return database;
+	}
+}
+
 function onInitialize() {
 	// TODO ITAhM의 시작.
 	setHeader();
@@ -439,9 +475,9 @@ function onInitialize() {
 		device = deviceData[id];
 		
 		if (device.ip) {
-			window.index[device.ip] = id;
+			window.IDMap[device.ip] = id;
 		}
-		
+
 		if (!device.group) {
 			continue;
 		}
@@ -463,7 +499,7 @@ function onUpdate() {
 		if (!window.initialized) {
 			window.initialized = true;
 			
-			window.frame.src = "dashboard.2.0.3.2.html";
+			window.frame.src = "2.0.3.2/dashboard.html";
 		}
 	}
 	else {
@@ -483,7 +519,8 @@ function update() {
 	
 	xhr.send(JSON.stringify({
 		command: "extra",
-		extra: "top"
+		extra: "top",
+		count: window.databases.config.top || undefined
 	}));
 }
 
@@ -509,6 +546,17 @@ function onInitResponse(table, q) {
 	}
 }
 
+function getDeviceName(ip) {
+	if (!ip) {
+		return "";
+	}
+
+	const id = getDeviceID(ip),
+		device = id && top.getDB("device", id);
+
+	return device? device.name +" ": "";
+}
+
 function sendInitRequest(table, q) {
 	const xhr = new XMLHttpRequest();
 	
@@ -523,6 +571,22 @@ function sendInitRequest(table, q) {
 	}));
 }
 
+function isCritical(critical) {
+	let isCritical = false,
+		resource;
+
+	loop: for (let key in critical) {
+		resource = critical[key];
+		for (let key in resource) {
+			if (resource[key].critical) {
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
 function onEvent(e) {
 	e.stopPropagation();
 	
@@ -534,24 +598,108 @@ function onEvent(e) {
 		window.logCount++;
 		
 		window.count.textContent = window.logCount > 9? "9+": window.logCount;
-		window.log.textContent = window.databases.device[getDeviceID(event.ip)].name +" "+ event.message;
-		
-		if (!event.status) {
-			window.sound.play();
-		}
+
+		("origin" in event? function () {
+			var monitor = window.databases.monitor[event.ip],
+				critical = window.databases.critical[event.ip];
+
+			switch(event.origin) {
+			case "critical":	
+				const value = window.getDB("critical", event.ip)[event.resource][event.rIndex];
+				
+				value.critical = event.critical;
+				value.rate = event.rate;
+
+				if (event.critical) {
+					window.sound.play();
+
+					monitor.critical = true;
+				}
+				else {
+					monitor.critical = isCritical(critical);
+				}
+
+
+	sendRequest({
+		command: "select",
+		ip: event.ip	
+	}, function (snmp) {console.log(snmp.hrProcessorEntry);
+	});
+
+				break;
+
+			case "shutdown":	
+				if (event.shutdown) {
+					window.sound.play();
+				}
+
+				monitor.shutdown = event.shutdown;
+
+				break;
+
+			case "test":
+				if (event.test) {
+					monitor = {
+						shutdown: false,
+						critical: false
+					};
+					
+					if (event.protocol === "snmp") {
+						monitor.profile = event.profile;
+						monitor.protocol = "snmp";
+					}
+					else {
+						monitor.protocol = "icmp";
+					}
+					
+					window.databases.monitor[event.ip] = monitor;
+					
+					if (!getDB("device", event.id)) {
+						putDB("device", event.id, {
+							ip: event.ip,
+							name: "",
+							label: "",
+							type: "unknown",
+							ifSpeed: {}
+						});
+					}
+					
+				}
+
+				break;
+
+			case "system":
+
+				break;
+			}
+
+			window.log.textContent = getDeviceName(event.ip) + event.message;
+
+			try {
+				window.frame.contentWindow.onEvent();
+			} catch(e) {}
+		} : function () {
+			const id = "ip" in event && getDeviceID(event.ip);
+
+			window.log.textContent = (id && window.databases.device[id].name || "")  +" "+ event.message;
+
+			if (!event.status) {
+				window.sound.play();
+			}
+
+			sendRequest({
+				command: "pull",
+				database: "monitor"
+			}, function (data) {
+				window.databases.monitor = data;
+				
+				try {
+					window.frame.contentWindow.onEvent();
+				} catch(e) {}
+			});	
+		}) ();
 		
 		document.body.classList.add("log");
-		
-		sendRequest({
-			command: "pull",
-			database: "monitor"
-		}, function (data) {
-			window.databases.monitor = data;
-			
-			try {
-				window.frame.contentWindow.onEvent(event.ip);
-			} catch(e) {}
-		});
 		
 		listen();
 	}
@@ -578,12 +726,16 @@ function initialize (data) {
 	
 	this.databases.local.level = data.level;
 	
+	if ("username" in data) {
+		document.getElementById("signout").textContent = data.username;
+	}
+	
 	sendInitRequest("config", ["gcm", "sms", , "icon", "profile", "account", "device", "position", "monitor", "critical"]);
 }
 
 function onClose(e) {
-	for (let ip in window.chart) {
-		window.chart[ip].close();
+	for (let ip in window.statusWindow) {
+		window.statusWindow[ip].close();
 	}
 	
 	// listen 중인 세션이 종료되면서 onEvent notice 가 발생함
@@ -592,6 +744,53 @@ function onClose(e) {
 		</script>
 		<script>
 /** signin **/
+ 
+// private
+function onConnect(e) {
+	e.preventDefault();
+	
+	const ip = this.elements["ip"];
+	
+	/* domain 일 수도
+	if (!isIPv4(ip.value)) {
+		return ip.select();
+	}*/
+	
+	const tcp = this.elements["tcp"];
+	
+	if (isNaN(tcp.value) || tcp.value < 0 || tcp.value > 65535) {
+		return tcp.select();
+	}
+	
+	const agent = ip.value +":" +tcp.value;
+	
+	window.agent = "http://"+ agent;
+	
+	document.body.classList.add("loading");
+	
+	echo(function (status) {
+		switch(status) {
+		case 200:
+		case 400:
+			window.location.href = "console.html?"+ agent;
+			
+			break;
+		default:
+			alert("에이전트가 응답하지 않습니다. 상태: "+ status);
+		
+			ip.select();
+		}
+		
+		document.body.classList.remove("loading");
+	});
+}
+
+function onCancel(e) {
+	e.preventDefault();
+	
+	cancel(); 
+}
+
 function postRequest(request, onResponse, timeout) {
 	const xhr = new XMLHttpRequest();
 	
@@ -617,7 +816,7 @@ function parseResponse(onResponse, custom) {
 		custom(this.status, notice);
 	}
 	else {
-		notice(status, response && response.error);
+		notice(this.status, response && response.error);
 	}
 }
 
@@ -629,6 +828,88 @@ function sendRequest(request, onResponse, custom) {
 	xhr.onloadend = parseResponse.bind(xhr, onResponse, custom);
 	
 	xhr.send(JSON.stringify(request));
+}
+
+function onSignIn(e) {
+	e.preventDefault();
+	
+	const form = this;
+	
+	document.body.classList.add("loading");
+	
+	postRequest({
+		command: "signin",
+		username: this.elements["username"].value,
+		password: hex_md5(this.elements["password"].value)
+	}, function () {
+		document.body.classList.remove("loading");
+		
+		switch(this.status) {
+		case 200:
+			initialize(JSON.parse(this.responseText));
+			
+			break;
+		case 401:
+			alert("계정이 존재하지 않거나 비밀번호가 일치하지 않습니다.");
+			
+			form.elements["username"].select();
+			
+			break;
+		default:
+			alert("에이전트가 응답하지 않습니다. 상태: "+ this.status);
+			
+			cancel();
+		}
+	}, 10000);
+}
+
+function echo(f) {
+	postRequest({
+		command: "signin"
+	}, function () {
+		f(this.status, this.responseText && JSON.parse(this.responseText) || undefined);
+	}, 10000);
+}
+
+function trySignIn(username) {
+	document.body.classList.add("loading");
+	
+	echo(function (status, data) {
+		switch(status) {
+		case 200:
+			initialize(data);
+			
+			break;
+		
+		case 400:
+			document.body.classList.add("set");
+			
+			break;
+		default:
+			alert("에이전트가 응답하지 않습니다. 상태: "+ status);
+			
+			cancel();	
+		}
+		
+		document.body.classList.add("ready");
+		document.body.classList.remove("loading");
+		
+		username.select();
+	});
+}
+
+function onSignOut() {
+	if (confirm("로그아웃 하겠습니까?")) {
+		postRequest({
+			command: "signout"
+		}, function () {
+			window.location.reload();
+		}, 10000);
+	}
+}
+
+function cancel() {
+	window.location.href = "console.html";
 }
 
 		</script>
@@ -643,26 +924,57 @@ function sendRequest(request, onResponse, custom) {
 				<nav>
 					<i id="expire"></i>
 					<ul>
-						<li><h1><a href="dashboard.2.0.3.2.html" target="main">대시보드</a></h1>
+						<li><h1><a href="2.0.3.2/dashboard.html" target="main">대시보드</a></h1>
 						<li><h1><a href="list.html" target="main">장비목록</a></h1>
 						<li><h1><a href="event.html" target="main">이벤트</a></h1>
 						<li><h1><a href="scrap.html" target="main">스크랩</a></h1>
 					</ul>
 					<ul>
+						<li><a id="signout" title="로그아웃">로그아웃</a>
 						<li><a href="setting.html" target="main">설정</a>
 						<li><a href="icon.html" target="main">아이콘</a>
 					</ul>
 				</nav>
 			</header>
 		</article>
-				
+		<article class="signin">
+			<div class="signin">
+				<h1>Connect to agent</h1>
+				<form id="connect" class="set">
+					<p>IP Address</p>
+					<input type="text" name="ip" placeholder="IP address" autofocus required>
+					<p>TCP Port</p>
+					<input type="text" name="tcp" placeholder="TCP port" required>
+					<input type="submit" value="Connect" class="button">
+				</form>	
+				<form id="signin" class="account">
+					<p>Username</p>
+					<input type="text" name="username" value="root" required>
+					<p>Password</p>
+					<input type="password" name="password" value="root" required>
+					<div class="flex">
+						<input type="reset" value="Cancel" class="button">
+						<input type="submit" value="Sign in" class="button">
+					</div>
+				</form>
+				<h1>
+					<a href="/">
+						<img width="64" height="64" src="img/favicon.png">
+					</a>
+				</h1>
+				<p>
+					이전 버전의 connect 사용을 원하시는 경우 <a href="connect.html">이동</a>
+				</p>
+			</div>
+		</article>
+		
 		<div class="log">
 			<a href="event.html" target="main">
 				<span id="count">99</span>
 				<span id="log">message</span>
 			</a>
 		</div>
-			
+		
 		<iframe id="dialog"></iframe>
 		
 		<div class="bg_loading"></div>
@@ -676,7 +988,7 @@ function sendRequest(request, onResponse, custom) {
 var agent = "http://demo.itahm.com:2014",
 	initialized = false,
 	frame = document.getElementById("frame"),
-	sendRequest,
+	IDMap = {},
 	databases = {
 		local: {
 			scale: 1,
@@ -686,7 +998,6 @@ var agent = "http://demo.itahm.com:2014",
 	listener = {
 		command: "listen"
 	},
-	index = {},
 	count = document.getElementById("count"),
 	dialog = document.getElementById("dialog"),
 	log = document.getElementById("log"),
