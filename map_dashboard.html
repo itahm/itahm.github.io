@@ -58,7 +58,7 @@ text {
 	animation: 5s line infinite;
 }
 
-@keyframes line {
+@keyframes _line {
 	0% {
 		stroke-dashoffset: 0;
 	}
@@ -85,6 +85,19 @@ text {
 
 #device text {
 	font-size: 12px;
+}
+
+#trace {
+	stroke: red;
+	fill: none;
+	stroke-width: 5px;
+	animation: 1s trace linear infinite;
+}
+
+@keyframes trace {
+	100%{
+		stroke-dashoffset: 0;
+	}
 }
 
 @keyframes initialize {
@@ -190,6 +203,8 @@ function restoreMap() {
 
 function onDragStart(e) {
 	isDragging = true;
+
+	stopAnimation();
 }
 
 function onDragMove(e) {
@@ -204,6 +219,8 @@ function onDragEnd(e) {
 	moveAllDevice(matrix.e, matrix.f);
 
 	moveMap(0, 0);
+
+	startAnimation();
 }
 
 function moveAllDevice(x, y) {
@@ -597,6 +614,90 @@ function setGroupStatus(id, status) {
 	}
 }
 
+function drawAnimation(trace, posData) {
+	const d = [];
+	var pos = posData[trace[0]];
+
+		d[0] = "M"+ pos.x +" "+ pos.y;
+
+	for (let i=1; i<trace.length; i++) {
+		pos = posData[trace[i]];
+
+		d[i] = "L"+ pos.x +" "+ pos.y;
+	}
+
+	window.trace.setAttribute("d", d.join(""));
+
+	const length = window.trace.getTotalLength();
+	
+	window.trace.setAttribute("stroke-dasharray", length +" "+ length);
+	window.trace.setAttribute("stroke-dashoffset", length);
+
+	window.nextTrace = trace[trace.length -1];
+}
+
+function restartAnimation() {
+	runAnimation(window.nextTrace);
+}
+
+function runAnimation(id) {
+	const ifEntry = window.posData[id].ifEntry,
+		trace = [id];
+	var next;
+	
+	for (let id in ifEntry) {
+		next = id;
+
+		break;
+	}
+
+	findNextPeer(trace, id, next, window.posData);
+}
+
+function findNextPeer(trace, origin, id) {
+	const ifEntry = window.posData[id].ifEntry;
+
+	trace[trace.length] = id;
+
+	if (Object.keys(ifEntry).length < 2) {
+		drawAnimation(trace, window.posData);
+	}
+	else {
+		var tmp = [];
+
+		for (let next in ifEntry) {
+			if (next !== origin) {
+				tmp[tmp.length] = next;
+			}
+		}
+
+		findNextPeer(trace, id, tmp[Math.floor(Math.random() * tmp.length)], window.posData);
+	}
+}
+
+function startAnimation() {
+	const tmp = [];
+	var pos;
+
+	for (let id in window.posData) {
+		pos = window.posData[id];
+
+		if (pos.ifEntry && Object.keys(pos.ifEntry).length === 1) {
+			tmp[tmp.length] = id;
+		}
+	}
+	
+	window.trace.addEventListener("animationiteration", restartAnimation);
+
+	runAnimation(tmp[Math.floor(Math.random() * tmp.length)]);
+}
+
+function stopAnimation () {
+	window.trace.removeEventListener("animationiteration", restartAnimation);
+
+	window.trace.setAttribute("d", "");
+}
+
 function initialize() {
 	var group = top.databases.local.parent,
 		shutdown = {},
@@ -638,6 +739,12 @@ function initialize() {
 	for (var id in critical) {
 		setGroupStatus(id, "critical");
 	}
+
+	startAnimation();
+
+	document.body.classList.remove("loading");
+
+	mapCanvas.style.animationName = "initialize";
 }
 
 function getIcon(type) {
@@ -658,6 +765,9 @@ function getIcon(type) {
 			</g>
 			<g id="transform" transform="translate(0, 0) scale(1, 1) translate(0, 0)">
 				<g id="line"></g>
+				<g>
+					<path id="trace"></path>
+				</g>
 				<g id="link">
 					<line x1="0" y1="0" x2="0" y2="0" />
 				</g>
@@ -675,14 +785,17 @@ var svgNS = "http://www.w3.org/2000/svg",
 	OFFSET_C = ICON_SIZE * Math.sin(Math.PI /4),
 	OFFSET_R = OFFSET_C - ICON_SIZE /2;
 
-var mapCanvas = document.getElementById("map"),
+var posData = top.getDB("position"),
+	mapCanvas = document.getElementById("map"),
 	deviceCanvas = document.getElementById("device"),
 	lineCanvas = document.getElementById("line"),
+	trace = document.getElementById("trace"),
 	transform = document.getElementById("transform").transform.baseVal,
 	linkCanvas = document.getElementById("link"),
 	linkSVG = linkCanvas.querySelector("line"),
 	parentAnchor = document.getElementById("parent"),
 	fragment = document.createDocumentFragment(),
+	animation = true,
 	linkData = {},
 	svgData = {},
 	checked = {},
@@ -751,10 +864,6 @@ if ("display" in top.databases.config) {
 })(300);
 
 resize();
-
-document.body.classList.remove("loading");
-
-mapCanvas.style.animationName = "initialize";
 
 		</script>
 	
