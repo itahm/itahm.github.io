@@ -47,24 +47,8 @@ text {
 
 #line line {
 	stroke: #2f4;
-	stroke: #ffd800;
+	stroke: #d4af37;
 	stroke-width: 1;
-}
-
-#line line.animation {
-	stroke: #a17f1a;
-	stroke: #040;
-	stroke: #3d3400;
-	animation: 5s line infinite;
-}
-
-@keyframes _line {
-	0% {
-		stroke-dashoffset: 0;
-	}
-	80%{
-		stroke-dashoffset: 0;
-	}
 }
 
 #line text {
@@ -88,9 +72,9 @@ text {
 }
 
 #trace {
-	stroke: red;
+	stroke: #0f0;
 	fill: none;
-	stroke-width: 5px;
+	stroke-width: 2px;
 	animation: 1s trace linear infinite;
 }
 
@@ -774,7 +758,7 @@ function getIcon(type) {
 				<g id="device"></g>
 			</g>
 		</svg>
-		<button onclick="window.location.reload()" style="position: fixed; right: 10px; bottom: 10px;">reload</button>
+		
 		<script src="js/ITAhM.js"></script>
 		<script src="js/Draggable.js"></script>
 		<script>
