@@ -90,107 +90,7 @@ body:not(.warning) .warning {
 }
 
 		</style>
-		
-	</head>
-	
-	<body>
-	
-		<div class="dialog rounded">
-			<form autocomplete="off">
-				<h2>snmp profile</h2>
-				<div class="table">
-					<ul>
-						<li>profile name 
-						<li>
-							<input type="text" name="name" class="table text"
-								placeholder="snmp profile name" required autofocus>
-						
-					</ul>
-					<ul>
-						<li>udp port 
-						<li>
-							<input type="number" min="1" step="1" value="161" name="udp" class="table text"
-								placeholder="snmp udp port" pattern="\d*" required>
-					</ul>
-					<ul>
-						<li>snmp version 
-						<li>
-							<label><input type="radio" value="v1" name="version">v1</label>
-							<label><input type="radio" value="v2c" name="version" checked>v2c</label>
-							<label><input type="radio" value="v3" name="version">v3</label>
-					</ul>
-					<ul class="version">
-						<li>community 
-						<li>
-							<input type="text" name="community" class="table text"
-								placeholder="snmp community string">
-					</ul>
-					<ul class="version v3">
-						<li>user 
-						<li>
-							<input type="text" name="user" class="table text"
-								placeholder="user name">
-					</ul>
-					<ul class="version v3">
-						<li><div>authentication</div>
-							<label><input type="checkbox" name="en_auth">MD5</label>
-						<li>
-							<input type="password" name="authentication" class="table text"
-								placeholder="user password" disabled>
-					</ul>
-					<ul class="version v3">
-						<li><div>privacy</div>
-							<label><input type="checkbox" name="en_priv">DES</label>
-						<li>
-							<input type="password" name="privacy" class="table text"
-								placeholder="encription password" disabled>
-					</ul>
-				</div>
-				<label class="remove"><input type="checkbox" name="remove" disabled>remove</label>
-				<i class="warning">사용중인 프로파일은 삭제할 수 없습니다.</i>
-				<footer>
-					<input type="reset" value="cancel">
-					<input type="submit" value="apply" disabled>
-				</footer>
-			</form>
-		</div>
-		
 		<script>
-
-var form = document.querySelector("form"),
-	version = document.querySelectorAll("input[name=version]");
-	
-form.addEventListener("reset", onCancel);
-
-[].forEach.call(version, function (version) {
-	version.onchange = onSelectVersion;
-});
-
-form.elements["en_auth"].onclick = function () {
-	enableElement(window.form.elements["authentication"], this.checked);
-	
-	if (!this.checked) {
-		form.elements["en_priv"].checked = this.checked;
-		enableElement(window.form.elements["privacy"], this.checked);
-	}
-};
-
-form.elements["en_priv"].onclick = function () {
-	if (this.checked && !form.elements["en_auth"].checked) {
-		this.checked = false;
-		
-		return;
-	}
-	
-	enableElement(window.form.elements["privacy"], this.checked);
-};
-
-if (top.databases.local.level === 0) {
-	form.addEventListener("submit", onApply);
-	form.elements["remove"].onclick = onRemove;
-	form.elements["remove"].disabled = false;
-	document.querySelector("input[type=submit]").disabled = false;
-}
 
 /**
  * callback method
@@ -376,6 +276,108 @@ function sendRequest(name, profile) {
 		
 		top.closeDialog();
 	});
+}
+
+		</script>
+	</head>
+	
+	<body>
+	
+		<div class="dialog rounded">
+			<form autocomplete="off">
+				<h2>snmp profile</h2>
+				<div class="table">
+					<ul>
+						<li>profile name 
+						<li>
+							<input type="text" name="name" class="table text"
+								placeholder="snmp profile name" required autofocus>
+						
+					</ul>
+					<ul>
+						<li>udp port 
+						<li>
+							<input type="number" min="1" step="1" value="161" name="udp" class="table text"
+								placeholder="snmp udp port" pattern="\d*" required>
+					</ul>
+					<ul>
+						<li>snmp version 
+						<li>
+							<label><input type="radio" value="v1" name="version">v1</label>
+							<label><input type="radio" value="v2c" name="version" checked>v2c</label>
+							<label><input type="radio" value="v3" name="version">v3</label>
+					</ul>
+					<ul class="version">
+						<li>community 
+						<li>
+							<input type="text" name="community" class="table text"
+								placeholder="snmp community string">
+					</ul>
+					<ul class="version v3">
+						<li>user 
+						<li>
+							<input type="text" name="user" class="table text"
+								placeholder="user name">
+					</ul>
+					<ul class="version v3">
+						<li><div>authentication</div>
+							<label><input type="checkbox" name="en_auth">MD5</label>
+						<li>
+							<input type="password" name="authentication" class="table text"
+								placeholder="user password" disabled>
+					</ul>
+					<ul class="version v3">
+						<li><div>privacy</div>
+							<label><input type="checkbox" name="en_priv">DES</label>
+						<li>
+							<input type="password" name="privacy" class="table text"
+								placeholder="encription password" disabled>
+					</ul>
+				</div>
+				<label class="remove"><input type="checkbox" name="remove" disabled>remove</label>
+				<i class="warning">사용중인 프로파일은 삭제할 수 없습니다.</i>
+				<footer>
+					<input type="reset" value="cancel">
+					<input type="submit" value="apply" disabled>
+				</footer>
+			</form>
+		</div>
+		
+		<script>
+
+var form = document.querySelector("form"),
+	version = document.querySelectorAll("input[name=version]");
+	
+form.addEventListener("reset", onCancel);
+
+[].forEach.call(version, function (version) {
+	version.onchange = onSelectVersion;
+});
+
+form.elements["en_auth"].onclick = function () {
+	enableElement(window.form.elements["authentication"], this.checked);
+	
+	if (!this.checked) {
+		form.elements["en_priv"].checked = this.checked;
+		enableElement(window.form.elements["privacy"], this.checked);
+	}
+};
+
+form.elements["en_priv"].onclick = function () {
+	if (this.checked && !form.elements["en_auth"].checked) {
+		this.checked = false;
+		
+		return;
+	}
+	
+	enableElement(window.form.elements["privacy"], this.checked);
+};
+
+if (top.databases.local.level === 0) {
+	form.addEventListener("submit", onApply);
+	form.elements["remove"].onclick = onRemove;
+	form.elements["remove"].disabled = false;
+	document.querySelector("input[type=submit]").disabled = false;
 }
 
 		</script>

@@ -144,16 +144,17 @@ label {
 	background-size: 24px;
 }
 
-#list> ul[data-shutdown] >li:first-child {
-	background-image: url(img/warning.png);
-}
-
-#list> ul[data-critical] >li:first-child {
-	background-image: url(img/siren.png);
-}
 
 #list> ul[data-normal] >li:first-child {
 	background-image: url(img/normal.png);
+}
+
+#list> ul[data-critical=true] >li:first-child {
+	background-image: url(img/siren.png);
+}
+
+#list> ul[data-shutdown] >li:first-child {
+	background-image: url(img/warning.png);
 }
 
 #list> ul[data-disaled] >li:first-child {
@@ -240,7 +241,7 @@ label {
 }
 
 body.normal #list> ul:not([data-normal]),
-body.critical #list> ul:not([data-critical]),
+body.critical #list> ul:not([data-critical=true]),
 body.shutdown #list> ul:not([data-shutdown]),
 body.disabled #list> ul:not([data-disabled]) {
 	display: none;
@@ -272,18 +273,18 @@ function IP2Int(s) {
 		
 		<script>
 function onEdit() {
-	top.showDialog.call(window, "device_dialog.html", window.selectedID);
+	top.showDialog.call(window, "/device_dialog.html", window.selectedID);
 }
 
 function onSetAlarm(){
-	top.showDialog.call(window, "critical_dialog.html", top.databases.device[window.selectedID].ip);
+	top.showDialog.call(window, "/critical_dialog.html", top.getDB("device", window.selectedID).ip);
 }
 
 function onMap() {
 	top.databases.local.parent = top.databases.position[window.selectedID].parent;
 	top.databases.local.selected = window.selectedID;
 	
-	window.location.href = "map.html";
+	window.location.href = "/map_edit.html";
 }
 
 function onShowStatus() {
@@ -313,7 +314,7 @@ function initialize() {
 }
 
 function initList() {
-	var deviceData = window.top.databases.device,
+	var deviceData = top.getDB("device"),
 		df = document.createDocumentFragment(),
 		monitorData = top.databases.monitor,
 		criticalData = top.databases.critical,
@@ -346,7 +347,8 @@ function initList() {
 }
 
 function createRow(id, device, monitor) {
-	var row = document.createElement("ul"),
+	var critical = top.databases.critical[device.ip],
+		row = document.createElement("ul"),
 		type, labels, label;
 	
 	row.appendChild(document.createElement("li")); // N.1
@@ -383,7 +385,7 @@ function createRow(id, device, monitor) {
 		}
 	}
 	
-	if (monitor) {			
+	if (monitor) {
 		if (monitor.shutdown) {
 			row.dataset.shutdown = true;
 		}
@@ -565,8 +567,7 @@ function getIcon(type) {
 }
 
 function onSave() {
-	var deviceData = top.databases.device,
-		devices = {},
+	var devices = {},
 		etc = [],
 		row = [],
 		labels, label, device;
@@ -579,11 +580,9 @@ function onSave() {
 		});
 	}
 	
-	for (let id in deviceData) {
-		device = deviceData[id];
-		
+	top.forEachDB("device", function (id, device) {
 		if (device.group) {
-			continue;
+			return;
 		}
 		
 		if (device.label) {
@@ -598,7 +597,7 @@ function onSave() {
 		else {
 			etc[etc.length] = device;
 		}
-	}
+	});
 	
 	labels = Object.keys(devices).sort(function (a, b) {
 		return a > b? 1: -1;

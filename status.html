@@ -125,27 +125,60 @@ div.bar::after {
 	background-image: linear-gradient(to top, rgba(255, 0, 0, 0.5), #f00);
 }
 
+/* processor*/
+section.processor {
+	position: relative;
+}
+
+section.processor::after {
+	content: "";
+	position: absolute; top: 1em; left: 1em;
+	display: inline-block;
+	width: 1em; height: 1em;
+	border-radius: 50%;
+	background-color: #0f0;
+}
+
+section.processor.critical::after {
+	background-color: #ffa500;
+}
+
 .processor_item {
 	margin: 10px;
 }
 
 .circular_bar {
-	width: 100px;
-	height: 100px;
 	position: relative;
 	display: inline-block;
 }
 
+.circular_bar::after {
+	color: #fff;
+}
+
+.circular_bar:nth-of-type(1)::after {
+	content: "min";
+}
+
+.circular_bar:nth-of-type(2)::after {
+	content: "avg";
+}
+
+.circular_bar:nth-of-type(3)::after {
+	content: "max";
+}
+
 .circular_bar> svg {
-	width: 100%;
-	height: 100%;
+	width: 100px;
+	height: 100px;
+	display: block;
 }
 
 .circular_bar .bar {
 	fill: none;
 	stroke-width: 10;
 	stroke: rgba(128, 128, 128, .5);
-	stroke-cap: round;
+	stroke-linecap: round;
 }
 
 .circular_bar .progress.bar {
@@ -176,7 +209,7 @@ div.bar::after {
 	stroke: #ffa500;
 }
 
-.circular_bar::after {
+.circular_bar::before {
 	content: attr(data-value);
 	position: absolute; top: 50px; left: 50px;
 	transform: translateX(-50%) translateY(-50%);
@@ -204,6 +237,20 @@ section.response_time {
 section.memory {
 	flex: 1 1 200px;
 	text-align: center;
+	position: relative;
+}
+
+section.memory::after {
+	content: "";
+	position: absolute; top: 1em; left: 1em;
+	display: inline-block;
+	width: 1em; height: 1em;
+	border-radius: 50%;
+	background-color: #0f0;
+}
+
+section.memory.critical::after {
+	background-color: #ffa500;
 }
 
 div.tbody {
@@ -314,6 +361,10 @@ interface
 	background-color: #0f0;
 }
 
+.i_face.item.critical li:first-child::after {
+	background-color: #ffa500; 
+}
+
 .i_face.item.shutdown li:first-child::after {
 	background-color: #f00; 
 }
@@ -328,7 +379,8 @@ interface
 
 .title.throughput >li:nth-child(1),
 #i_face li:nth-child(1) {
-	flex: .2;
+	flex: none;
+	width: 2em;
 }
 
 .title.throughput >li:nth-child(6),
@@ -339,14 +391,35 @@ interface
 /*
 storage
 */
-.storage.title >li {
+ul.storage >li {
 	flex: 1;
 }
 
-.storage.title >li.usage {
+ul.storage >li:nth-of-type(1) {
+	flex: none;
+	width: 2em;
+	position: relative;
+	overflow: visible;
+}
+
+ul.storage >:nth-of-type(2),
+ul.storage >:nth-of-type(5) {
 	flex: 2;
 }
 
+ul.storage.item >li:nth-of-type(1)::after {
+	content: "";
+	position: absolute; top: 50%; left: 50%;
+	display: inline-block;
+	width: 1em; height: 1em;
+	border-radius: 50%;
+	transform: translateX(-50%) translateY(-50%);
+	background-color: #0f0;
+}
+
+ul.storage.item.critical >li:nth-of-type(1)::after {
+	background-color: #ffa500;
+}
 /**/
 
 .layout {
@@ -400,7 +473,7 @@ section.information li:first-child {
 
 label.filter {
 	float: right;
-	font-wegith: normal;
+	font-weight: normal;
 	font-size: 12px;
 }
 
@@ -504,15 +577,6 @@ body:not(.debug) .item.i_face >li:nth-of-type(4) {
 	display: none;
 }
 
-@keyframes font {
-	0% {
-		transform: translateX(-50%) translateY(-50%) scale(0.5, 0.5);
-	}
-	100% {
-		transform: translateX(-50%) translateY(-50%) scale(1.2, 1.2);
-	}
-}
-
 @keyframes vbar {
 	0% {
 		transform: scale(1, 0);
@@ -549,11 +613,11 @@ function createProcGauge(value) {
 	
 	circularBar.dataset.value = value +"%";
 	
-	setTimeout(function() {
+	window.processorArea.appendChild(circularBar);
+
+	window.setTimeout(function() {
 		circularBar.children[0].childNodes[1].childNodes[3].setAttribute("stroke-dashoffset", 2* Math.PI*(1 - value /100)*45);
-	}, 500);
-	
-	return circularBar;
+	}, 100);
 }
 
 function createStorageGuage(used, size, label) {
@@ -572,12 +636,12 @@ function createStorageGuage(used, size, label) {
 	
 	usage = usage +"%";
 	
-	clone.children[0].textContent = label;
-	clone.children[1].textContent = ITAhM.util.toBytesString(size);
-	clone.children[2].textContent = ITAhM.util.toBytesString(used);
-	clone.children[3].dataset.value = usage;
+	clone.children[1].textContent = label;
+	clone.children[2].textContent = ITAhM.util.toBytesString(size);
+	clone.children[3].textContent = ITAhM.util.toBytesString(used);
+	clone.children[4].dataset.value = usage;
 	
-	clone.children[3].children[0].style.width = usage;
+	clone.children[4].children[0].style.width = usage;
 	
 	return clone;
 }
@@ -619,7 +683,7 @@ function createIFaceGuage(admin, oper, index, name, descr, alias, type, bandwidt
 	usageIn = usageIn +"%";
 	usageOut = usageOut +"%";
 	
-	clone.children[1].textContent = name;
+	clone.children[1].textContent = name+"("+index+")";
 	clone.children[2].textContent = alias;
 	clone.children[3].textContent = type + "("+ ITAhM.snmp.ifType[type] +")";
 	clone.children[4].textContent = ITAhM.util.toBPSString(bandwidth);
@@ -652,6 +716,19 @@ function createIFaceGuage(admin, oper, index, name, descr, alias, type, bandwidt
 }
 
 function initialize() {
+	const critical = window.databases.critical[window.ip];
+	/*(function () {
+		let resource;
+
+		for (let key1 in critical) {
+			resource = critical[key1];
+			for (let key2 in resource) {
+				if (resource[key2].critical) {
+					console.log(window.ip + " "+ key1 + " "+ (resource[key2].description || ""));
+				}
+			}
+		}
+	})();*/
 	var entry;
 	
 	document.title = window.ip + window.snmp.sysName? (" ["+ window.snmp.sysName +"]"): "";
@@ -685,21 +762,65 @@ function initialize() {
 		window.rtFrame.src = "realtime_response.html"
 	}
 	
-	entry = window.snmp.hrProcessorEntry;
-	for (var index in entry) {
-		initProcessor(entry[index]);
-	}
+	(function(entry, section, critical) {
+		var max, min, avg = 0, load, count = 0;
+
+		for (let index in entry) {
+			load = entry[index];
+
+			if (isNaN(max)) {
+				max = min = avg = load;
+			}
+			else {
+				max = Math.max(max, load);
+				min = Math.min(min, load);
+				avg += load;
+			}
+
+			count++;
+		}
+
+		if (count > 0) {
+			createProcGauge(min);
+			createProcGauge(avg / count);
+			createProcGauge(max);
+
+			document.body.classList.add("processor");
+
+			section.onclick = onSelectResource.bind(window, "processor");
+			
+			if (critical && critical["0"] && critical["0"].critical) {
+				section.classList.add("critical");
+			}
+		}
+
+	})(window.snmp.hrProcessorEntry, document.querySelector("section.processor"), critical && critical["processor"]);
 	
-	document.querySelector("section.processor").onclick = onSelectResource.bind(window, "processor");
+	(function (entry) {
+		var storage;
+
+		for (let index in entry) {
+			storage = entry[index];
+
+			switch(storage.hrStorageType) {
+			case 4:
+				if (storage.hrStorageSize > 0) {
+					initStorage(storage, index, critical && critical["storage"]);
+				}
+				
+				break;
+			case 2:
+				initMemory(storage, index, critical && critical["memory"]);
+				
+				break;
+			}
+		}
+	}) (window.snmp.hrStorageEntry);
 	
-	entry = window.snmp.hrStorageEntry;
-	for (var index in entry) {
-		parseStorage(entry[index], index);
-	}
 	
 	entry = window.snmp.ifEntry;
-	for (var index in entry) {
-		initIFace(entry[index], index, window.device.ifSpeed && window.device.ifSpeed[index]);
+	for (let index in entry) {
+		initIFace(entry[index], index, window.device.ifSpeed && window.device.ifSpeed[index], critical && critical["throughput"]);
 	}
 	
 	if ("hrSWRunName" in window.snmp && Object.keys(window.snmp.hrSWRunName).length > 0) {
@@ -726,41 +847,23 @@ function toDateString(millis) {
 	return ar[0] +"-"+ ar[1] +"-"+ ar[2] +" "+ ar[3] +":"+ ar[4] +":"+ ar[5];
 }
 
-function initProcessor(load) {
-	processorArea.appendChild(createProcGauge(load));
-	
-	document.body.classList.add("processor");
-}
-
-function parseStorage(storage, index) {
-	switch(storage.hrStorageType) {
-	case 4:
-		if (storage.hrStorageSize > 0) {
-			initStorage(storage, index);
-		}
-		
-		break;
-	case 2:
-		initMemory(storage);
-		document.querySelector("section.memory").onclick = onSelectResource.bind(window, "memory", index);
-		
-		return true;
-	}
-	
-	return false;
-}
-
-function initStorage(storage, index) {
-	storageArea.appendChild(
+function initStorage(storage, index, critical) {
+	const item = storageArea.appendChild(
 		createStorageGuage(storage.hrStorageUsed * storage.hrStorageAllocationUnits
-			, storage.hrStorageSize * storage.hrStorageAllocationUnits, storage.hrStorageDescr)
-		).onclick = onSelectResource.bind(window, "storage", index);
+			, storage.hrStorageSize * storage.hrStorageAllocationUnits, storage.hrStorageDescr));
+
+	item.onclick = onSelectResource.bind(window, "storage", index);
 	
+	if (critical && critical[index] && critical[index].critical) {
+		item.classList.add("critical");
+	}
+
 	document.body.classList.add("storage");
 }
 
-function initMemory(memory) {
-	var used = memory.hrStorageUsed * memory.hrStorageAllocationUnits,
+function initMemory(memory, index, critical) {
+	var section = document.querySelector("section.memory"),
+		used = memory.hrStorageUsed * memory.hrStorageAllocationUnits,
 		size = memory.hrStorageSize * memory.hrStorageAllocationUnits,
 		usage = Math.round(100* used / size),
 		bar = document.querySelector("div.memory.bar"),
@@ -783,11 +886,17 @@ function initMemory(memory) {
 	document.getElementById("memory_total").textContent = ITAhM.util.toBytesString(size);
 	document.getElementById("memory_used").textContent = ITAhM.util.toBytesString(used);
 
+	section.onclick = onSelectResource.bind(window, "memory", index);
+
+	if (critical && critical[index] && critical[index].critical) {
+		section.classList.add("critical");
+	}
+
 	document.body.classList.add("memory");
 }
 
-function initIFace(iFace, index, ifSpeed) {
-	interfaceArea.appendChild(
+function initIFace(iFace, index, ifSpeed, critical) {
+	const item = interfaceArea.appendChild(
 		createIFaceGuage(
 			iFace.ifAdminStatus,
 			iFace.ifOperStatus,
@@ -802,6 +911,10 @@ function initIFace(iFace, index, ifSpeed) {
 			iFace.ifInErrors || 0,
 			iFace.ifOutErrors || 0));
 	
+	if (critical && critical[index] && critical[index].critical) {
+		item.classList.add("critical");
+	}
+
 	document.body.classList.add("throughput");
 }
 
@@ -826,8 +939,8 @@ function setIFSpeed(f, index, speed) {
 		window.device.ifSpeed = {};
 	}
 	
-	if (speed) {console.log(speed);
-		window.device.ifSpeed[index] = speed;console.log(window.device);
+	if (speed) {
+		window.device.ifSpeed[index] = speed;
 	}
 	else {
 		delete window.device.ifSpeed[index];
@@ -912,9 +1025,11 @@ function setIFSpeed(f, index, speed) {
 				<h2>스토리지</h2>
 				<div>
 					<ul class="title storage">
+						<li>상태
 						<li>이름
 						<li>크기
-						<li class="usage">사용
+						<li>사용량
+						<li>사용률
 					</ul>
 					<div id="storage" class="tbody">
 					</div>
@@ -997,6 +1112,7 @@ function setIFSpeed(f, index, speed) {
 				<li>
 				<li>
 				<li>
+				<li>
 				<li class="bar">
 					<div></div>
 			</ul>		
@@ -1021,7 +1137,7 @@ function setIFSpeed(f, index, speed) {
 	
 		<script src="js/ITAhM.js"></script>
 		<script src="js/snmp.js"></script>
-		<script>
+		<script type="text/javascript">
 	
 var ip, snmp, ifSpeed,
 	origin = "status",
@@ -1033,7 +1149,6 @@ var ip, snmp, ifSpeed,
 	storageArea = document.getElementById("storage"),
 	interfaceArea = document.getElementById("i_face"),
 	gauge = document.querySelector(".gauge"),
-	/*processorGauge = document.querySelector(".processor_item"),*/
 	storageGauge = document.querySelector(".storage.item"),
 	iFaceGauge = document.querySelector(".i_face.item"),
 	chartFrame = document.getElementById("chart"),
@@ -1082,6 +1197,7 @@ document.querySelector(".frame span").onclick = function () {
 if (location.search.substring(1) === "debug") {
 	document.body.classList.add("debug");
 }
+
 		</script>
 	
 	</body>

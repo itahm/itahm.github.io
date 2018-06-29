@@ -7,7 +7,7 @@
 		<title>dialog</title>
 		
 		<style>
-@import "css/itahm.css";
+@import "/css/itahm.css";
 
 body {
 	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
@@ -21,10 +21,11 @@ form {
 	width: 300px;
 	padding: 20px;
 	background-color: #fff;
-	/*box-shadow: 0px 0px 20px 10px #ddd;*/
 }
 
 .table {
+	border: 1px solid #aaa;
+	padding: 1em;
 	margin-bottom: 5px;
 }
 
@@ -89,28 +90,11 @@ footer> input:hover {
 	border-color: #0084ff;
 }
 
-body:not(.removable) .remove,
-body:not(.redirected) {
+body:not(.removable) .remove {
 	display: none;
 }
 
 		</style>
-
-		<script>
-(function (version) {
-	const major = "2.0.3.";
-	
-	if (version.indexOf(major) === major.indexOf(major)) {
-		switch(parseInt(version.split(major)[1])) {
-		case 2:
-		case 3:
-			window.location.href = "2.0.3.2/group_dialog.html";
-			
-			break;
-		}
-	}
-}) (top.databases.config.version);
-		</script>
 		
 		<script>
 		
@@ -149,42 +133,53 @@ function buildType() {
 function onApply(e) {
 	e.preventDefault();
 	
-	var posData = top.databases.position,
-		group = {
-			name: form.elements["name"].value,
-			type: form.elements["type"].value,
+	const group = window.id? top.getDB("device", window.id): {
 			group: true
-		};
+		},
+		posData = top.databases.position;
 	
-	// 변경
-	if (window.group) {
-		group.id = window.group.id;
+	group.name = form.elements["name"].value;
+	group.type = form.elements["type"].value;
+	
+	if (!window.id) {
+		top.sendRequest({
+			command: "put",
+			database: "device",
+			key: "",
+			value: group
+		}, function (data) {
+			const id = Object.keys(data)[0];
+			
+			top.databases.position[id] = {
+				x: 0,
+				y: 0,
+				ifEntry: {},
+				parent: top.databases.local.parent
+			}; 
+			
+			saveGroup(id, group);
+		});
 	}
-	// 추가
 	else {
-		group.id = GROUP_TAG+ createID();
-		
-		// 추가인 경우 position 정보는 갱신되지 않으므로 임의로 넣어준다.
-		posData[group.id] = {
-			x: 0,
-			y: 0,
-			ifEntry: {},
-			parent: top.databases.local.parent
-		};
+		top.sendRequest({
+			command: "put",
+			database: "device",
+			key: window.id,
+			value: group
+		}, function () {
+			saveGroup(window.id, group);
+		});
+	}
+}
+
+function saveGroup(id, group) {
+	top.putDB("device", id, group);
+	
+	if (window.opener) {
+		window.opener.reload();
 	}
 	
-	top.sendRequest({
-		command: "put",
-		database: "device",
-		key: group.id,
-		value: group
-	}, function () {
-		top.databases.device[group.id] = group;
-		
-		window.opener.reload();
-		
-		top.closeDialog();
-	});
+	top.closeDialog();
 }
 
 function onCancel(e) {
@@ -196,80 +191,62 @@ function onCancel(e) {
  * 이 group을 parent로 갖는 device의 pos 정보도 수정해 주어야 한다.
  */
 function onRemoveGroup() {
-	if (confirm("삭제시에는 구성도의 변경사항이 서버와 동기화 됩니다.\n"+
-		"삭제하겠습니까?")) {
+	if (confirm("선택한 그룹을 삭제하겠습니까?")) {
 		document.body.classList.add("loading");
 		
 		top.sendRequest({
-				command: "put",
-				database: "device",
-				key: window.group.id,
-				value: null
-			}, function () {
-				var posData = top.databases.position;
-				
-				// group 정보 삭제
-				delete top.databases.device[window.group.id];
-				
-				// 연관 link 정보 삭제
-				for (let id in posData[window.group.id].ifEntry) {
-					delete posData[id].ifEntry[window.group.id];
+			command: "put",
+			database: "device",
+			key: window.id,
+			value: null
+		}, function () {
+			var posData = top.databases.position;
+			
+			// group 정보 삭제
+			top.putDB("device", window.id);
+			
+			// group을 parent로 갖는 device의 pos 정보 갱신
+			for (let id in posData) {
+				if(posData[id].parent === window.id) {
+					delete posData[id].parent;
 				}
+			}
+			
+			// 연관 link 정보 삭제
+			if (posData[window.id]) {
+				const ifEntry = posData[window.id].ifEntry;
 				
-				// group의 position 정보 삭제
-				delete posData[window.group.id];
-				
-				// group을 parent로 갖는 device의 pos 정보 갱신
-				for (let id in posData) {
-					if(posData[id].parent === window.group.id) {
-						delete posData[id].parent;
+				for (let id in ifEntry) {
+					if (posData[id]) {
+						delete posData[id].ifEntry[window.id];
 					}
 				}
-				
-				top.sendRequest({
-					command: "push",
-					database: "position",
-					data: posData
-				}, function () {
-					document.body.classList.remove("loading");
-					
-					window.opener.reload();
-					
-					top.closeDialog();
-				});
-			});
+			}
+			
+			// group의 position 정보 삭제
+			delete posData[window.id];
+			
+			document.body.classList.remove("loading");
+			
+			window.opener.reload();
+			
+			top.closeDialog();
+		});
 	}
 	else {
 		this.checked = false;
 	}
 }
 
-function createID() {
-	var devData = top.databases.device,
-		max = 0,
-		group;
-	
-	for (var id in devData) {
-		group = devData[id];
-		
-		if (!group.group || group.id.indexOf(GROUP_TAG) === -1) {
-			continue;
-		}
-		
-		max = Math.max(parseInt(group.id.split(GROUP_TAG)[1]), max);
-	}
-	
-	return ++max;
-}
-
 function initialize(id) {
 	window.opener = this && this.location;
+	window.id = id;
 	
 	if (id) {
-		window.group = top.databases.device[id];
+		const group = top.getDB("device", id);
 		
-		form.elements.name.value = window.group.name;
-		form.elements.type.value = window.group.type;
+		form.elements.name.value = group.name;
+		form.elements.type.value = group.type;
 		
 		if (top.databases.local.level === 0) {
 			document.body.classList.add("removable");
@@ -277,7 +254,7 @@ function initialize(id) {
 		}
 	}
 	else {
-		form.elements.type.selectedIndex = -1;
+		form.elements.type.value = "group";
 	}
 }
 		
@@ -287,7 +264,6 @@ function initialize(id) {
 	<body>
 	
 		<form class="rounded" autocomplete="off">
-			<h2>그룹</h2>
 			<div class="table">
 				<ul>
 					<li>이름
@@ -317,8 +293,6 @@ function initialize(id) {
 		
 		<script>
 
-var GROUP_TAG = "group.";
-
 var form = document.querySelector("form"),
 	group;
 
@@ -331,7 +305,6 @@ if (top.databases.local.level === 0) {
 	document.querySelector("input[type=submit]").disabled = false;
 }
 
-document.body.classList.add("redirected");
 	</script>
 	
 	</body>

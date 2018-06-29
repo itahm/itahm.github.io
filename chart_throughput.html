@@ -40,12 +40,15 @@ body.row #chart {
 
 .chart {
 	flex: 1;
-	display: flex;
-	flex-direction: column;
+	position: relative;
+}
+
+.chart >h3 {
+	position: absolute; top: 0; right: 0; left: 0; height: 20px;
 }
 
 .chart >div {
-	flex: 1;
+	position: absolute; top: 20px; right: 0; left: 0; bottom: 0;
 }
 
 iframe {
@@ -101,6 +104,7 @@ form {
 	padding: 1em;
 	background-color: #f0f0f0;
 	position: absolute; top: 0; right: 0;
+	z-index: 9;
 }
 
 #speed {
@@ -187,7 +191,7 @@ function initialize(from, to, start, end, index) {
 			start: from,
 			end: to
 		};
-	
+	console.log(index, new Date(from).toLocaleString(), new Date(to).toLocaleString())
 	window.detailRequest.index = index;
 	window.start = start;
 	window.end = end;
@@ -220,8 +224,12 @@ function initialize(from, to, start, end, index) {
 	window.form.elements["reset"].onclick = onResetIFSpeed.bind(undefined, index);
 	window.form.onsubmit = onSetIFSpeed.bind(window.form, index);
 }
-
-function onSummaryInResponse(data) {
+function f(data) {
+	for (let date in data) {
+		console.log(new Date(parseInt(date)).toLocaleString(), date);
+	}
+}
+function onSummaryInResponse(data) {f(data);
 	const summaryData = new ITAhM.ChartSummaryData(data);
 	
 	window.summaryInData = summaryData.data;

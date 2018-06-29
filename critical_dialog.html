@@ -115,33 +115,37 @@ input[type="checkbox"] {
 	vertical-align: middle;
 }
 
-.form {
+form {
 	margin-bottom: 10px;
 }
 
-.form ul {
+form ul {
 	display: flex;
 	list-style: none;
 	padding: 0;
 	margin: 0;
 }
 
-.form li:first-child {
+form li:first-child {
 	text-align: right;
 	padding: .5em;
 	flex: 1;
 }
 
-.form li:last-child {
+form li:last-child {
 	flex: 2;
 }
 
-footer {
+div.add {
+	text-align: right;
+}
+
+#footer {
 	display: flex;
 	margin-top: 1em;
 }
 
-footer> input {
+#footer> input {
 	flex: 1;
 	border-radius: 1.2em;
 	background-color: #0084ff;
@@ -150,7 +154,7 @@ footer> input {
 	padding: .5em;
 }
 
-footer> input:hover {
+#footer> input:hover {
 	background-color: #fff;
 	color: #0084ff;
 	border-color: #0084ff;
@@ -173,92 +177,13 @@ footer> input:hover {
 	display: none;
 }
 
-body:not(.authorized) .form,
+body:not(.authorized) form,
 body:not(.authorized) .item li:last-child {
 	display: none;
 }
 
 		</style>
 		<script>
-		
-function onRemove(resource, index, e) {
-	e.stopPropagation();
-	
-	if (confirm("이 설정을 삭제하겠습니까?")) {
-		var critical = top.databases.critical[window.ip];
-		
-		delete critical[resource][index];
-		
-		if (Object.keys(critical[resource]).length === 0) {
-			delete critical[resource];
-			
-			if (Object.keys(critical).length === 0) {
-				delete top.databases.critical[window.ip];
-			}
-		}
-		
-		put();
-	}
-}
-
-function onApply(e) {
-	e.preventDefault();
-	
-	var critical = top.databases.critical[window.ip],
-		eIndex = form.elements["index"],
-		index = eIndex.value,
-		resource;
-	
-	if (!critical) {
-		critical = {};
-		
-		top.databases.critical[window.ip] = critical;
-	}
-	
-	resource = critical[form.elements.resource.value];
-	if (!resource) {
-		resource = {};
-		
-		critical[form.elements.resource.value] = resource;
-	}
-	
-	resource[index] = {
-		limit: form.elements.limit.value,
-	}
-	
-	if (!eIndex.disabled) {
-		resource[index].description= eIndex.options[eIndex.options.selectedIndex].text;
-	}
-	
-	put();
-}
-
-function onClose(e) {
-	if (top.databases.local.isModified) {
-		top.databases.local.isModified = false;
-		
-		opener.location.reload();
-	}
-	
-	top.closeDialog();
-}
-
-function put() {
-	document.body.classList.add("loading");
-	
-	top.sendRequest({
-			command: "put",
-			database: "critical",
-			key: window.ip,
-			value: top.databases.critical[window.ip] || null
-		}, function (data) {
-			top.databases.critical = data;
-			
-			top.databases.local.isModified = true;
-			
-			window.location.reload();
-		});
-}
 
 function onSelectResource() {
 	var resource = form.elements.resource.value,
@@ -343,7 +268,7 @@ function createItem(resource, index, critical) {
 	item.children[0].textContent = resourceString[resource];
 	item.children[1].textContent = critical.description || "";
 	item.children[2].textContent = critical.limit;
-	item.children[3].onclick = onRemove.bind(undefined, resource, index);
+	item.children[3].onclick = onRemove.bind(item, resource, index);
 	
 	item.onclick = onSelectCritical.bind(undefined, resource, index, critical.limit);
 	
@@ -359,29 +284,97 @@ function onSelectCritical(resource, index, limit) {
 	window.form.elements.limit.value = limit;
 }
 
-function initialize(ip) {
-	window.opener = this;
-	window.ip = ip;
+function onRemove(resource, index, e) {
+	e.stopPropagation();
 
-	window.critical = top.databases.critical[ip];
+	delete window.copy[resource][index];
+	
+	if (Object.keys(window.copy[resource]).length === 0) {
+		delete window.copy[resource];
+	}
 
-	form.elements.resource.selectedIndex = -1;
+	resetList();
+}
 
-	var list = document.getElementById("list"),
-		df = document.createDocumentFragment(),
-		criticalResource, limit;
+function onAdd(e) {
+	e.preventDefault();
 
-	for (var resource in critical) {
-		criticalResource = critical[resource];
+	var index = window.form.elements["index"],
+		resource = window.form.elements["resource"];
+
+	if (!window.copy[resource.value]) {
+		window.copy[resource.value] = {};
+	}
+
+	window.copy[resource.value][index.value] = {
+		limit: form.elements["limit"].value,
+		description: index.disabled? undefined: index.options[index.selectedIndex].text
+	};
+
+	resetList();
+}
+
+function resetList() {
+	var df = document.createDocumentFragment(),
+		o, limit;
+
+	for (let e; e=window.list.firstChild;) {
+		window.list.removeChild(e);
+	}
+
+	for (let resource in window.copy) {
+		o = window.copy[resource];
 		
-		for (var index in criticalResource) {
-			df.appendChild(createItem(resource, index, criticalResource[index]));
+		for (let index in o) {
+			df.appendChild(createItem(resource, index, o[index]));
 		}
 	}
 
-	list.appendChild(df);
+	window.list.appendChild(df);
+}
 
-	document.getElementById("name").textContent = top.databases.device[top.getDeviceID(ip)].name;
+function onApply(e) {
+	e.preventDefault();
+
+	document.body.classList.add("loading");
+	
+	if (Object.keys(copy).length === 0) {
+		window.copy = null;
+	}
+
+	top.sendRequest({
+		command: "put",
+		database: "critical",
+		key: window.ip,
+		value: window.copy
+	}, function () {
+		top.getDB("monitor", window.ip).critical = false;
+
+		if (window.copy) {
+			top.putDB("critical", window.ip, window.copy);
+		}
+		else {
+			top.putDB("critical", window.ip);
+		}
+		
+		window.opener && window.opener.reload();
+
+		top.closeDialog();
+	});
+}
+
+function initialize(ip) {
+	window.critical = top.getDB("critical", ip);
+
+	window.opener = this && this.location;
+	window.ip = ip;
+	window.copy = window.critical? JSON.parse(JSON.stringify(window.critical)): {};
+
+	window.form.elements["resource"].selectedIndex = -1;
+
+	resetList();
+
+	document.getElementById("name").textContent = top.getDB("device", top.getDeviceID(ip)).name;
 	document.getElementById("ip").textContent = ip;
 	
 	top.sendRequest({
@@ -392,7 +385,6 @@ function initialize(ip) {
 		
 		document.body.classList.remove("loading");
 	});
-
 }
 
 		</script>
@@ -400,7 +392,7 @@ function initialize(ip) {
 	
 	<body class="loading">
 		
-		<form autocomplete="off" class="dialog dialog_width rounded">
+		<div class="dialog dialog_width rounded">
 			<h2>
 				<span id="ip">IP주소</span>
 				임계 설정
@@ -419,7 +411,7 @@ function initialize(ip) {
 			
 				<div id="list"></div>
 				
-				<div class="form">
+				<form autocomplete="off" id="form">
 					<ul>
 						<li>성능 지표
 						<li>
@@ -440,13 +432,16 @@ function initialize(ip) {
 						<li class="critical">
 							<input name="limit" type="number" min="1" max="100" required>
 					</ul>
-				</div>
+					<div class="add">
+						<input type="submit" value="추가" disabled>
+					</div>
+				</form>
 			</section>
-			<footer>
-				<input type="reset" value="close">
-				<input type="submit" value="apply" disabled>
-			</footer>
-		</form>
+			<form id="footer">
+				<input type="reset" value="취소">
+				<input type="submit" value="적용" disabled>
+			</form>
+		</div>
 		
 		<div class="bg_loading"></div>
 		
@@ -459,19 +454,24 @@ var resourceString = {
 		"throughput": "Interface throughput"
 	};
 
-var form = document.querySelector("form"),
+var critical, copy, 
+	list = document.getElementById("list"),
+	footer = document.getElementById("footer"),
+	form = document.getElementById("form"),
 	item = document.querySelector(".item");
 
-form.addEventListener("reset", onClose);
+footer.onreset = top.closeDialog;
 
-if (top.databases.local.level == 0) {
+if (top.getDB("local").level == 0) {
 	document.body.classList.add("authorized");
-	
-	form.elements["resource"].onchange = onSelectResource;
-	
-	form.onsubmit = onApply;
 
-	document.querySelector("input[type=submit]").disabled = false;
+	window.footer.onsubmit = onApply;
+	window.form.onsubmit = onAdd;
+	window.form.elements["resource"].onchange = onSelectResource;
+
+	[].forEach.call(document.querySelectorAll("input[type=submit]"), function (button) {
+		button.disabled = false;
+	});
 }
 
 		</script>

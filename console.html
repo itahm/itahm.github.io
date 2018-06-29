@@ -297,7 +297,7 @@ function showStatus(id, resource, index) {
 		statusWindow.close();
 	}
 	
-	statusWindow = window.open("status.html", id);
+	statusWindow = window.open("/status.html", id);
 	
 	window.statusWindow[id] = statusWindow;
 	
@@ -331,23 +331,14 @@ function setMenu(b) {
 } 
 
 //public
-function setDevice(id, device) {
-	if (device.ip) {
-		window.index[device.ip] = id;
-	}
-	
-	window.databases.device[id] = device;
-}
-
-//public
 function getDeviceID(ip) {
-	return window.index[ip];
+	return window.IDMap[ip];
 }
 
 // public
 function showDialog() {
 	var opener = this,
-		url = Array.prototype.shift.call(arguments),
+		url = [].shift.call(arguments),
 		args = arguments;
 	
 	window.dialog.onload = function () {
@@ -420,6 +411,57 @@ function toDateString(m) {
 	return a.join("");
 }
 
+function putDevice(id, device) {
+	window.databases.device[id] = device;
+
+	if (device.ip) {
+		window.IDMap[device.ip] = id;
+	}
+}
+
+function forEachDB(name, f) {
+	const database = window.databases[name];
+	
+	for (let key in database) {
+		f(key, database[key]);
+	}
+}
+
+function putDB(name, key, value) {
+	switch(arguments.length) {
+		case 3:
+			window.databases[name][key] = value;
+
+			if (name === "device" && value.ip) {
+				window.IDMap[value.ip] = key;
+			}
+
+			break;
+		case 2:
+			value = window.databases[name][key];
+			
+			delete window.databases[name][key];
+
+			if (name === "device" && value.ip) {
+				delete window.IDMap[value.ip];
+			}
+
+			break;
+	}
+}
+
+function getDB(name, key) {
+	const database = window.databases[name];
+
+	switch(arguments.length) {
+		case 2:
+			return database && database[key];
+
+		case 1:
+			return database;
+	}
+}
+
 function onInitialize() {
 	// TODO ITAhM의 시작.
 	setHeader();
@@ -433,9 +475,9 @@ function onInitialize() {
 		device = deviceData[id];
 		
 		if (device.ip) {
-			window.index[device.ip] = id;
+			window.IDMap[device.ip] = id;
 		}
-		
+
 		if (!device.group) {
 			continue;
 		}
@@ -457,7 +499,7 @@ function onUpdate() {
 		if (!window.initialized) {
 			window.initialized = true;
 			
-			window.frame.src = "dashboard.html";
+			window.frame.src = "/dashboard.html";
 		}
 	}
 	else {
@@ -477,7 +519,8 @@ function update() {
 	
 	xhr.send(JSON.stringify({
 		command: "extra",
-		extra: "top"
+		extra: "top",
+		count: window.databases.config.top || undefined
 	}));
 }
 
@@ -503,6 +546,17 @@ function onInitResponse(table, q) {
 	}
 }
 
+function getDeviceName(ip) {
+	if (!ip) {
+		return "";
+	}
+
+	const id = getDeviceID(ip),
+		device = id && top.getDB("device", id);
+
+	return device? device.name +" ": "";
+}
+
 function sendInitRequest(table, q) {
 	const xhr = new XMLHttpRequest();
 	
@@ -517,36 +571,128 @@ function sendInitRequest(table, q) {
 	}));
 }
 
+function isCritical(critical) {
+	let isCritical = false,
+		resource;
+
+	loop: for (let key in critical) {
+		resource = critical[key];
+		for (let key in resource) {
+			if (resource[key].critical) {
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
 function onEvent(e) {
 	e.stopPropagation();
 	
 	if (this.status === 200) {
-		const event = JSON.parse(this.responseText),
-			id = getDeviceID(event.ip);
+		const event = JSON.parse(this.responseText);
 		
 		window.listener.index = parseInt(event.index) +1;
 		
 		window.logCount++;
 		
 		window.count.textContent = window.logCount > 9? "9+": window.logCount;
-		window.log.textContent = (id && window.databases.device[id].name || "")  +" "+ event.message;
-		
-		if (!event.status) {
-			window.sound.play();
-		}
+
+		("origin" in event? function () {
+			var monitor = window.databases.monitor[event.ip],
+				critical = window.databases.critical[event.ip];
+
+			switch(event.origin) {
+			case "critical":	
+				const value = window.getDB("critical", event.ip)[event.resource][event.rIndex];
+				
+				value.critical = event.critical;
+				value.rate = event.rate;
+
+				if (event.critical) {
+					window.sound.play();
+
+					monitor.critical = true;
+				}
+				else {
+					monitor.critical = isCritical(critical);
+				}
+
+				break;
+
+			case "shutdown":	
+				if (event.shutdown) {
+					window.sound.play();
+				}
+
+				monitor.shutdown = event.shutdown;
+
+				break;
+
+			case "test":
+				if (event.test) {
+					monitor = {
+						shutdown: false,
+						critical: false
+					};
+					
+					if (event.protocol === "snmp") {
+						monitor.profile = event.profile;
+						monitor.protocol = "snmp";
+					}
+					else {
+						monitor.protocol = "icmp";
+					}
+					
+					window.databases.monitor[event.ip] = monitor;
+					
+					if (!getDB("device", event.id)) {
+						putDB("device", event.id, {
+							ip: event.ip,
+							name: "",
+							label: "",
+							type: "unknown",
+							ifSpeed: {}
+						});
+					}
+					
+				}
+
+				break;
+
+			case "system":
+
+				break;
+			}
+
+			window.log.textContent = getDeviceName(event.ip) + event.message;
+
+			try {
+				window.frame.contentWindow.onEvent();
+			} catch(e) {}
+		} : function () {
+			const id = "ip" in event && getDeviceID(event.ip);
+
+			window.log.textContent = (id && window.databases.device[id].name || "")  +" "+ event.message;
+
+			if (!event.status) {
+				window.sound.play();
+			}
+
+			sendRequest({
+				command: "pull",
+				database: "monitor"
+			}, function (data) {
+				window.databases.monitor = data;
+				
+				try {
+					window.frame.contentWindow.onEvent();
+				} catch(e) {}
+			});	
+		}) ();
 		
 		document.body.classList.add("log");
-		
-		sendRequest({
-			command: "pull",
-			database: "monitor"
-		}, function (data) {
-			window.databases.monitor = data;
-			
-			try {
-				window.frame.contentWindow.onEvent(event.ip);
-			} catch(e) {}
-		});
 		
 		listen();
 	}
@@ -611,7 +757,7 @@ function onConnect(e) {
 	
 	const agent = ip.value +":" +tcp.value;
 	
-	window.agent += agent;
+	window.agent = "http://"+ agent;
 	
 	document.body.classList.add("loading");
 	
@@ -663,7 +809,7 @@ function parseResponse(onResponse, custom) {
 		custom(this.status, notice);
 	}
 	else {
-		notice(status, response && response.error);
+		notice(this.status, response && response.error);
 	}
 }
 
@@ -771,11 +917,10 @@ function cancel() {
 				<nav>
 					<i id="expire"></i>
 					<ul>
-						<li><h1><a href="dashboard.html" target="main">대시보드</a></h1>
+						<li><h1><a href="/dashboard.html" target="main">대시보드</a></h1>
 						<li><h1><a href="list.html" target="main">장비목록</a></h1>
-						<li><h1><a href="map.html" target="main">구성도</a></h1>
 						<li><h1><a href="event.html" target="main">이벤트</a></h1>
-						<li><h1><a href="scrap.html" target="main">스크랩</a></h1>
+						<!--li><h1><a href="scrap.html" target="main">스크랩</a></h1-->
 					</ul>
 					<ul>
 						<li><a id="signout" title="로그아웃">로그아웃</a>
@@ -822,7 +967,7 @@ function cancel() {
 				<span id="log">message</span>
 			</a>
 		</div>
-			
+		
 		<iframe id="dialog"></iframe>
 		
 		<div class="bg_loading"></div>
@@ -833,10 +978,10 @@ function cancel() {
 		<script src="js/md5.js"></script>
 		<script>
 
-var agent = "http://",
+var agent,
 	initialized = false,
 	frame = document.getElementById("frame"),
-	sendRequest,
+	IDMap = {},
 	databases = {
 		local: {
 			scale: 1,
@@ -846,7 +991,6 @@ var agent = "http://",
 	listener = {
 		command: "listen"
 	},
-	index = {},
 	count = document.getElementById("count"),
 	dialog = document.getElementById("dialog"),
 	log = document.getElementById("log"),
@@ -872,7 +1016,7 @@ var agent = "http://",
 			if (!isNaN(args[1]) && args[1] > -1 && args[1] < 65536) {
 				connect.elements["tcp"].value = args[1];
 				
-				window.agent += agent;
+				window.agent = "http://" + agent;
 				
 				return trySignIn(signin.elements["username"]);
 			}

@@ -7,7 +7,7 @@
 		<title>dialog</title>
 		
 		<style>
-@import "css/itahm.css";
+@import "/css/itahm.css";
 
 body {
 	position: fixed; top: 0; right: 0; bottom: 0; left: 0;
@@ -21,7 +21,6 @@ form {
 	width: 300px;
 	padding: 20px;
 	background-color: #fff;
-	/*box-shadow: 0px 0px 20px 10px #ddd;*/
 }
 
 h2 {
@@ -31,7 +30,9 @@ h2 {
 }
 
 .table {
-	margin-bottom: 5px;
+	border: 1px solid #aaa;
+	padding: 1em;
+	margin: 1em 0;
 }
 
 .table ul {
@@ -77,7 +78,6 @@ u {
 
 footer {
 	display: flex;
-	margin-top: 1em;
 }
 
 footer> input {
@@ -95,10 +95,19 @@ footer> input:hover {
 	border-color: #0084ff;
 }
 
-body:not(.monitor) .monitor,
-body:not(.removable) .remove,
-body.initialized .search,
-body:not(.redirected) {
+body:not(.monitor) .monitor {
+	display: none;
+}
+
+body:not(.removable) .remove {
+	display: none;
+}
+
+body.initialized .search {
+	display: none;
+}
+
+body.dummy .ip {
 	display: none;
 }
 
@@ -109,13 +118,10 @@ body.loading {
 		</style>
 		
 		<script>
-(function (version) {
-	const major = "2.0.3.";
-	
-	if (version.indexOf(major) === major.indexOf(major) && parseInt(version.split(major)[1]) === 3) {
-		window.location.href = "2.0.3.3/device_dialog.html";
-	}
-}) (top.databases.config.version);
+		// static function
+function isIPv4(s) {
+    return s.match(/^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/)? true: false;
+}
 		</script>
 		
 		<script>
@@ -163,7 +169,7 @@ function buildType() {
 
 function onSearch() {
 	if (Object.keys(top.databases.profile).length > 0) {
-		top.showDialog.call(window, "search_dialog.html");
+		top.showDialog.call(window, "/search_dialog.html");
 	}
 	else {
 		alert("사용 가능한 프로파일이 존재하지 않습니다.\n"+ "\n" +"먼저 프로파일을 생성하십시오.");
@@ -173,58 +179,72 @@ function onSearch() {
 function onApply(e) {
 	e.preventDefault();
 	
-	var device;
-	
-	// 생성
-	if (window.id) {
-		device = top.databases.device[window.id];
-	}
-	else {
-		window.id = form.elements["ip"].value;
-		
-		if (window.id in top.databases.device) {
-			alert("IP address already exists.");
-			
-			form.elements["ip"].select();
-			
-			return;
-		}
-		
-		device = {
-			ip: window.id,
-			ifSpeed: {}	
+	const ip = this.elements["ip"].value,
+		device = window.id? top.getDB("device", window.id) : {
+			ifSpeed: {}
 		};
+
+	if (ip) {
+		if (!isIPv4(ip)) {
+			return this.elements["ip"].select();
+		}
+
+		if (device.ip !== ip && top.getDeviceID(ip)) {
+			return alert("사용중인 IP 입니다.");
+		}
 	}
 	
-	device.name = form.elements["name"].value;
-	device.type = form.elements["type"].value;
-	device.label = trimLabel(form.elements["label"].value);
+	device.ip = ip;
+	device.name = this.elements["name"].value;
+	device.type = this.elements["type"].value;
+	device.label = trimLabel(this.elements["label"].value);
 	
 	for (var custom in window.custom) {
 		device[custom] = window.custom[custom].value;
 	}
 	
-	if (top.databases.local.parent) {
-		top.databases.position[window.id].parent = top.databases.local.parent;
+	// 생성
+	if (!window.id) {
+		top.sendRequest({
+			command: "put",
+			database: "device",
+			key: "",
+			value: device
+		}, function (data) {
+			const id = Object.keys(data)[0],
+				pos = {
+					x: 0,
+					y: 0,
+					ifEntry: {}
+				};
+			
+			top.databases.position[id] = pos; 
+			
+			if (top.databases.local.parent) {
+				pos.parent = top.databases.local.parent;
+			}
+			
+			saveDevice(id, device);
+		});
 	}
+	else {
+		top.sendRequest({
+			command: "put",
+			database: "device",
+			key: window.id,
+			value: device
+		}, function () {
+			saveDevice(window.id, device);		
+		});
+	}
+}
+
+function saveDevice(id, device) {
+	top.putDB("device", window.id, device);
 	
-	top.sendRequest({
-		command: "put",
-		database: "device",
-		key: window.id,
-		value: device
-	}, function (/*data*/) {
-		// 이전 버전에서는 database 전체가 콜백 되기 때문에 아래와 같이 했지만
-		// top.databases.device = data;
-		// setDevice를 적용해 주기 위해 아래와 같이 변경
-		top.setDevice(window.id, device);
-		
-		if (window.opener) {
-			window.opener.reload();
-		}
-		
-		top.closeDialog();
-	});
+	window.opener && window.opener.reload();
+	
+	top.closeDialog();
 }
 
 function onCancel(e) {
@@ -239,47 +259,44 @@ function onCancel(e) {
  * 서버와 position 동기화를 진행한다.
  */
 function onRemoveDevice() {
-	if (confirm("삭제시에는 구성도의 변경사항이 서버와 동기화 됩니다.\n"+
-		"삭제하겠습니까?")) {
+	if (confirm("장비를 삭제하겠습니까?")) {
 		document.body.classList.add("loading");
 		
 		top.sendRequest({
-				command: "put",
-				database: "device",
-				key: window.id,
-				value: null
-			}, function (/*data*/) {
-				var posData = top.databases.position;
-				
-				// device 정보 삭제
-				delete top.databases.device[window.id];
-				
-				// device의 monitor 정보 삭제
-				delete top.databases.monitor[window.id];
-				
-				// device의 critical 정보 삭제
-				delete top.databases.monitor[window.id];
-				
-				// 연관 link 정보 삭제
-				for (let id in posData[window.id].ifEntry) {
-					delete posData[id].ifEntry[window.id];
+			command: "put",
+			database: "device",
+			key: window.id,
+			value: null
+		}, function () {
+			const posData = top.databases.position;
+			
+			// device 정보 삭제
+			top.putDB("device", window.id);
+			
+			// device의 monitor 정보 삭제
+			delete top.databases.monitor[window.id];
+			
+			// device의 critical 정보 삭제
+			delete top.databases.critical[window.id];
+			
+			// 연관 link 정보 삭제
+			if (posData[window.id]) {
+				for (var id in posData[window.id].ifEntry) {
+					if (posData[id]) {
+						delete posData[id].ifEntry[window.id];
+					}
 				}
-				
-				// device의 position 정보 삭제
-				delete posData[window.id];
-				
-				top.sendRequest({
-					command: "push",
-					database: "position",
-					data: posData
-				}, function () {
-					document.body.classList.remove("loading");
-					
-					window.opener.reload();
-					
-					top.closeDialog();
-				});
-			});
+			}				
+			
+			// device의 position 정보 삭제
+			delete posData[window.id];				
+			
+			document.body.classList.remove("loading");
+			
+			window.opener && window.opener.reload();
+			
+			top.closeDialog();
+		});
 	}
 	else {
 		this.checked = false;
@@ -287,24 +304,29 @@ function onRemoveDevice() {
 }
 
 function onMonitorDevice(e) {
+	const device = top.getDB("device", window.id);;
+	
+	if (device.ip != window.form.elements["ip"].value) {
+		return alert("IP를 변경한 경우 먼저 저장 하십시오.");
+	}
+	
 	if (confirm("모니터 설정을 변경하시겠습니까?")) {
 		if (this.value === "snmp" && Object.keys(top.databases.profile).length === 0) {
 			alert("사용 가능한 프로파일이 존재하지 않습니다.\n"+ "\n" +"먼저 프로파일을 생성하십시오.");
 		}
-		else {
+		else {		
 			return top.sendRequest({
 				command: "put",
 				database: "monitor",
-				key: window.id,
+				key: device.ip,
 				value: this.value === "none"? null: {
-					protocol: this.value
+					protocol: this.value,
+					id: window.id
 				}
 			}, function (data) {
 				top.databases.monitor = data;
 				
-				if (window.opener) {
-					window.opener.reload();
-				}
+				window.opener && window.opener.reload();
 				
 				top.closeDialog();
 			});
@@ -329,9 +351,9 @@ function trimLabel(labels) {
 	return result.join(",");
 }
 
+//public
 function initialize(id) {
 	window.opener = this && this.location;
-	
 	window.id = id;
 	
 	if ("custom" in top.databases.config) {
@@ -359,32 +381,41 @@ function initialize(id) {
 	}
 	
 	if (id) {
-		const device = top.databases.device[id];
+		const device = top.getDB("device", window.id);
 		
-		form.elements["name"].value = device.name || "";
+		window.form.elements["name"].value = device.name || "";
 		
-		form.elements["ip"].value = device.ip;
-		form.elements["ip"].disabled = true;
-		form.elements["type"].value = device.type;
+		window.form.elements["ip"].value = device.ip;
+		window.form.elements["type"].value = device.type;
 		// 저장할때는 trim으로 다 붙여서 넣지만 보여줄때는 보기 좋게 한칸씩 띈다.
-		form.elements["label"].value = device.label && (device.label.split(",")).join(", ") || "";
+		window.form.elements["label"].value = device.label && (device.label.split(",")).join(", ") || "";
 		
 		for (var custom in window.custom) {
 			window.custom[custom].value = device[custom] || "";
 		}
 		
-		var monitor = top.databases.monitor[id];
+		if (device.ip) {
+			const monitor = top.databases.monitor[device.ip];
 		
-		form.elements["monitor"].value = monitor? monitor.protocol: "none";
-		
-		document.body.classList.add("monitor");
-		
-		if (top.databases.local.level === 0) {
-			document.body.classList.add("removable");
-			form.elements["remove"].onclick = onRemoveDevice;
+			if (monitor) {
+				window.form.elements["monitor"].value = monitor.protocol;
+				
+				window.form.elements["ip"].disabled = true;
+			}
+			else {
+				window.form.elements["monitor"].value = "none";
+			}
 			
-			form.elements["monitor"].onchange = onMonitorDevice;
-			form.elements["monitor"].onclick = function () {
+			document.body.classList.add("monitor");
+		}
+		
+		if (top.databases.local.level == 0) {
+			document.body.classList.add("removable");
+			
+			window.form.elements["remove"].onclick = onRemoveDevice;
+			
+			window.form.elements["monitor"].onchange = onMonitorDevice;
+			window.form.elements["monitor"].onclick = function () {
 				window.monitor = this.value;
 			}
 		}
@@ -392,7 +423,7 @@ function initialize(id) {
 		document.body.classList.add("initialized");
 	}
 	else {
-		form.elements["type"].value = "unknown";
+		window.form.elements["type"].value = "unknown";
 	}
 }
 		
@@ -406,12 +437,10 @@ function initialize(id) {
 				장비 정보
 			</h2>
 			<div class="table">
-				<ul>
+				<ul class="ip">
 					<li>ip 주소
 					<li>
-						<input type="text" name="ip"  
-							pattern="^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$" 
-							required autofocus>
+						<input type="text" name="ip" autofocus>
 				</ul>
 				<ul>
 					<li>이름
@@ -472,11 +501,10 @@ form.elements["search"].onclick = onSearch;
 form.addEventListener("reset", onCancel);
 
 if (top.databases.local.level === 0) {
-	form.addEventListener("submit", onApply);
 	document.querySelector("input[type=submit]").disabled = false;
+	form.addEventListener("submit", onApply);
 }
 
-document.body.classList.add("redirected");
 	</script>
 	
 	</body>

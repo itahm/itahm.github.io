@@ -69,6 +69,14 @@ ul {
 	box-shadow: 0 8px 10px -4px #000;
 }
 
+.dashboard {
+	display: flex;
+}
+
+.dashboard >form {
+	flex: 1;
+}
+
 #resources li {
 	overflow: hidden;
 }
@@ -85,7 +93,7 @@ ul {
 	cursor: default;
 }
 
-#resources input[type=checkbox] {
+input[type=checkbox] {
 	vertical-align: middle;
 }
 
@@ -103,12 +111,45 @@ input[name="clean"] {
 	margin: .5em 0;
 }
 
+.color {
+	display: inline-block;
+	width: 20px; height: 20px;
+}
+
+.color.primary.red {
+	background-color: #f00;
+}
+
+.color.primary.orange {
+	background-color: #ffa500;
+}
+
+.color.primary.green {
+	background-color: #0f0;
+}
+
+.color.pastel.red {
+	background-color: #8e24aa;
+}
+
+.color.pastel.orange {
+	background-color: #f6bf26;
+}
+
+.color.pastel.green {
+	background-color: #00897b;
+}
+
 #path:not(:empty)::before {
 	content: "(";
 }
 
 #path:not(:empty)::after {
 	content: ")";
+}
+
+body:not(.debug) div.debug {
+	display: none;
 }
 
 		</style>
@@ -151,15 +192,15 @@ function initSMS() {
 }
 
 function onSelectAccount(username) {
-	top.showDialog.call(window, "account_dialog.html", username);
+	top.showDialog.call(window, "/account_dialog.html", username);
 }
 
 function onSelectProfile(name) {
-	top.showDialog.call(window, "profile_dialog.html", name);
+	top.showDialog.call(window, "/profile_dialog.html", name);
 }
 
 function onSelectGCM(id) {
-	top.showDialog.call(window, "gcm_dialog.html", id);
+	top.showDialog.call(window, "/gcm_dialog.html", id);
 }
 
 function createItem(src, key, func) {
@@ -231,6 +272,84 @@ function initConfig() {
 	}
 }
 
+function initCritical() {
+	const critical = document.getElementById("critical");
+	
+	critical.elements["all"].onclick = function () {
+		const ip = critical.elements["ip"];
+
+		ip.value = "";
+		
+		if (this.checked) {
+			ip.disabled = true;
+		}
+		else {
+			ip.disabled = false;
+			ip.focus();
+		}
+	};
+	
+	critical.onsubmit = function (e) {
+		e.preventDefault();
+		
+		const monitorData = top.databases.monitor,
+			overwrite = this.elements["overwrite"].checked;
+		
+		if (overwrite) {
+			if (!confirm("기존 설정을 덮어쓰기 하겠습니까?")) {
+				return;
+			}
+		}
+		
+		var target;
+		
+		if (!this.elements["all"].checked) {
+			const ip = critical.elements["ip"];
+			
+			target = ip.value;
+			
+			if (!target) {
+				return ip.focus();
+			}
+			
+			if (!(target in monitorData && monitorData[target].protocol === "snmp")) {
+				alert("존재하지 않는 모니터링 대상 IP 입니다.");
+				
+				return ip.select();
+			}
+		}
+		
+		document.body.classList.add("loading");
+		
+		top.postRequest({
+			command: "extra",
+			extra: "critical",
+			target: target,
+			resource: this.elements["resource"].value || undefined,
+			rate: this.elements["rate"].value,
+			overwrite: overwrite
+		}, function () {
+			switch(this.status) {
+			case 200:
+				alert("임계를 설정 하였습니다.\n"+
+					"서버와 동기화 하기 위해 재시작 합니다.");
+				
+				top.location.reload();
+				
+				break;
+			case 400:
+				alert("현재 버전에서 지원하지 않는 설정입니다.");
+				
+				break;
+			default:
+				return top.notice(this.status);
+			}
+			
+			document.body.classList.remove("loading");
+		});
+	};
+}
+
 function onSetStorage(clean) {	
 	var clean = parseInt(clean.value);
 	
@@ -267,57 +386,8 @@ function onSetInterval(interval) {
 	});
 }
 
-function onOrderResources(e) {
-	var li = e.target, ul;
-	
-	if (li.nodeName.toLowerCase() !== "li" || !li.previousElementSibling) {
-		return;
-	}
-	
-	li.parentNode.insertBefore(li, li.previousElementSibling);
-}
-
-function onModifyDashboard(e) {
-	e.preventDefault();
-	
-	var elements = window.resources.children,
-		li
-		resources = {};
-	
-	for (var i=0, _i=elements.length; i<_i; i++) {
-		li = elements[i];
-		
-		if (li.querySelector("input:checked")) {
-			resources[i.toString()] = elements[i].dataset.value;
-		}
-	}
-	
-	if (Object.keys(resources).length == 0 && !confirm("선택한 리소스가 없습니다.\n대시보드에 리소스 정보를 표시하지 않겠습니까?")) {
-		return;
-	}
-	
-	document.body.classList.add("loading");
-	
-	top.sendRequest({
-		command: "config",
-		key: "dashboard",
-		value: resources
-	}, function (response) {
-		document.body.classList.remove("loading");
-		
-		top.databases.config.dashboard = resources;
-		
-		alert("대시보드 리소스 정보를 변경하였습니다.");
-	});
-}
-
 function onModifyTopN (n) {
-	if (n < 1) {
-		n = 1;
-	}
-	else if (n > 10) {
-		n = 10;
-	}
+	n = Math.max(n, 1);
 	
 	document.body.classList.add("loading");
 	
@@ -351,7 +421,7 @@ function onModifyDisplay(display) {
 }
 
 function onSelectSMS(id) {
-	top.showDialog.call(window, "sms_dialog.html", id);
+	top.showDialog.call(window, "/sms_dialog.html", id);
 }
 
 function onModifyGCM(host) {
@@ -401,206 +471,45 @@ function onDisableGCM(e) {
 	}
 }
 
-function onEnableSMS(e) {
-	var checked = this.checked;
-	
-	if (confirm("SMS 발송 기능을 "+
-		(checked? "사용 하도록": "사용하지 않도록") +
-		"설정하겠습니까?")) {
-		document.body.classList.add("loading");
-		
-		top.sendRequest({
-			command: "config",
-			key: "sms",
-			value: checked
-		}, function (response) {
-			document.body.classList.remove("loading");
-			
-			top.databases.config.sms = checked;
-		
-			window.location.reload();
-		});
-	}
-	else {
-		e.preventDefault();
-	}
-}
-
-function onMenuFix(e) {
-	e.preventDefault();
-	
-	var menu = this.elements["menu"].value === "fix"? true: false;
-	
-	document.body.classList.add("loading");
-	
-	top.sendRequest({
-		command: "config",
-		key: "menu",
-		value: menu
-	}, function () {
-		document.body.classList.remove("loading");
-		
-		top.databases.config.menu = menu;
-	
-		top.setMenu(menu);
-	});
-}
-
-function onEditCustom(e) {
-	e.preventDefault();
-	
-	var customs = this.elements["custom"].value.split(","),
-		custom;
-	
-	for (var i=0, _i=customs.length; i<_i; i++) {
-		customs[i] = customs[i].trim();
-	}
-	
-	custom = customs.join(",");
-	
-	document.body.classList.add("loading");
-	
-	top.sendRequest({
-		command: "config",
-		key: "custom",
-		value: custom
-	}, function () {
-		document.body.classList.remove("loading");
-		
-		top.databases.config.custom = custom;
-	
-		window.custom.elements["custom"].value = customs.join(", ");
-		
-		alert("장비 정보의 관리 항목을 설정 하였습니다.");
-	});
-}
-
-function onEditIftype(e) {
-	e.preventDefault();
-	
-	var iftypes = [];
-	
-	for (let arr = this.elements["iftype"].value.split(","), i=0, _i=arr.length, n; i<_i; i++) {
-		n = arr[i].trim();
-		
-		if (!isNaN(n)) {
-			iftypes[iftypes.length] = n;
-		}
-	}
-	
-	document.body.classList.add("loading");
-	
-	top.postRequest({
-		command: "config",
-		key: "iftype",
-		value: iftypes.join(",")
-	}, function () {
-		document.body.classList.remove("loading");
-		
-		switch(this.status) {
-		case 200:
-			top.databases.config.iftype = iftypes.join(",");
-		
-			window.iftype.elements["iftype"].value = iftypes.join(", ");
-			
-			alert("인터페이스 성능 수집 대상을 설정 하였습니다.");
-			
-			break;
-		case 400:
-			alert("현재 버전에서 지원하지 않는 설정입니다.");
-			
-			break;
-		default:
-			return top.notice(this.status);
-		}
-	});
-}
-
-function onBackup(e) {
-	e.preventDefault();
-	
-	document.body.classList.add("loading");
-	
-	top.sendRequest({
-		command: "extra",
-		extra: "backup"
-	}, function (backup) {
-		document.body.classList.remove("loading");
-		
-		ITAhM.util.download(new Blob([JSON.stringify(backup)],
-			{ type: "text/json;charset=utf-8;"}), (function (d){
-				const a = ["backup_", d.getFullYear()];
-				let n = d.getMonth() +1;
-			
-			a[a.length] = n > 9? n: ("0"+ n);
-			
-			n = d.getDate();
-			
-			a[a.length] = n > 9? n: ("0"+ n);
-			
-			return a.join("");
-		})(new Date()));
-	});
-}
-
-function onRestore(e) {
-	var file = e.target.files[0],
-		reader = new FileReader();
-	
-	reader.onload = function () {
-		document.body.classList.add("loading");
-		
-		top.sendRequest({
-			command: "extra",
-			extra: "restore",
-			backup: JSON.parse(this.result)
-		}, function () {
-			document.body.classList.remove("loading");
-			
-			alert("복구가 완료되었습니다.");
-			
-			top.reload();
-		});
-	};
-	
-	reader.onerror = function () {
-		alert("백업 파일을 읽어올 수 없습니다.")
-	};
-	
-	reader.readAsText(file);
-}
-
-function onTest(e) {
-	e.preventDefault();
-	
-	document.body.classList.add("loading");
-	
-	top.sendRequest({
-		command: "extra",
-		extra: "test"
-	}, function (data) {
-		document.body.classList.remove("loading");
-		
-		var rows = ["ip, sysObjectID, hrProcessorEntry, hrStorageEntry, ifEntry"], row;
-		
-		for (var ip in data) {
-			row = data[ip];
-			
-			rows[rows.length] = 
-				[ip, row.sysObjectID, row.hrProcessorEntry, row.hrStorageEntry, row.ifEntry].join(',');
-		}
-		
-		ITAhM.util.download(new Blob([rows.join("\n")] ,{
-			type: "text/csv;charset=utf-8;"
-		}), "test.csv");
-	});
-}
-
 function initialize() {
+	var configData = top.databases.config;
+	
 	initConfig();
+	initCritical();
 	initAccount();
 	initProfile();
 	initSMS();
+	
+	(function (form) {
+		form.onsubmit = function (e) {
+			e.preventDefault();
+			
+			document.body.classList.add("loading");
+			
+			top.postRequest({
+				command: "config",
+				key: "requestTimer",
+				value: parseInt(this.elements["timer"].value)
+			}, function () {
+				switch(this.status) {
+				case 200:
+					alert("SNMP 요청주기를 설정 하였습니다.");
+					
+					break;
+				case 400:
+					alert("현재 버전에서 지원하지 않는 설정입니다.");
+					
+					break;
+				default:
+					return top.notice(this.status);
+				}
+				
+				document.body.classList.remove("loading");
+			});	
+		};
+	
+		form.elements["timer"].value = configData.requestTimer || "10000";
+	}) (document.getElementById("request"));
 	
 	if (top.databases.config.gcm !== undefined && top.databases.config.gcm !== null) {
 		document.body.classList.add("gcm");
@@ -634,6 +543,17 @@ function initialize() {
 		<h2>일반</h2>
 		<ul class="common box">
 			<li>
+				<form id="request">
+					SNMP 요청 주기(초) :
+					<select name="timer">
+						<option value="3000">3
+						<option value="10000">10
+						<option value="30000">30
+						<option value="60000">60
+					</select>
+					<input type="submit" value="적용" class="root">
+				</form>
+			<li>
 				<form id="clean">
 					데이터 보관 기간(일) :
 					<input type="number" min="0" max="365" name="clean">
@@ -642,10 +562,10 @@ function initialize() {
 				</form>
 			<li>
 				<form id="interval">
-					데이터 수집 단위(분) :
+					데이터 저장 단위(분) :
 					<select name="interval">
-						<option>1
-						<option>5
+						<option value="1">1
+						<option value="5">5
 					</select>
 					<input type="submit" value="적용" class="root">
 				</form>
@@ -661,7 +581,7 @@ function initialize() {
 			<li>
 				<form id="top">
 					Top N : 
-					<input type="number" min="1" max="10" name="top">
+					<input type="number" min="1" name="top">
 					<input type="submit" value="적용" class="root">
 				</form>	
 			<li>
@@ -698,51 +618,111 @@ function initialize() {
 		</ul>
 	
 		<h2>대시보드</h2>
-		<form id="dashboard" class="box">
-			<ol id="resources">
-				<li data-value="responseTime">
-					<input type="checkbox" name="responseTime">
-					응답속도
-				<li data-value="processor">
-					<input type="checkbox" name="processor">
-					프로세서 로드
-				<li data-value="memory">
-					<input type="checkbox" name="memory">
-					메모리 사용량
-				<li data-value="memoryRate">
-					<input type="checkbox" name="memoryRate">
-					메모리 사용율
-				<li data-value="storage">
-					<input type="checkbox" name="storage">
-					스토리지 사용량
-				<li data-value="storageRate">
-					<input type="checkbox" name="storageRate">
-					스토리지 사용율
-				<li data-value="throughput">
-					<input type="checkbox" name="throughput">
-					통신 사용량
-				<li data-value="throughputRate">
-					<input type="checkbox" name="throughputRate">
-					통신 사용율
-				<li data-value="throughputErr">
-					<input type="checkbox" name="throughputErr">
-					통신 오류
-				<li data-value="failureRate">
-					<input type="checkbox" name="failureRate">
-					snmp 오류
-			</ol>
-			<input type="submit" value="적용" class="root">
+		<div class="box dashboard">
+			<form id="dashboard">
+				<ol id="resources">
+					<li data-value="responseTime">
+						<input type="checkbox" name="responseTime">
+						응답속도
+					<li data-value="processor">
+						<input type="checkbox" name="processor">
+						프로세서 로드
+					<li data-value="memory">
+						<input type="checkbox" name="memory">
+						메모리 사용량
+					<li data-value="memoryRate">
+						<input type="checkbox" name="memoryRate">
+						메모리 사용율
+					<li data-value="storage">
+						<input type="checkbox" name="storage">
+						스토리지 사용량
+					<li data-value="storageRate">
+						<input type="checkbox" name="storageRate">
+						스토리지 사용율
+					<li data-value="throughput">
+						<input type="checkbox" name="throughput">
+						통신 사용량
+					<li data-value="throughputRate">
+						<input type="checkbox" name="throughputRate">
+						통신 사용율
+					<li data-value="throughputErr">
+						<input type="checkbox" name="throughputErr">
+						통신 오류
+					<li data-value="failureRate">
+						<input type="checkbox" name="failureRate">
+						snmp 오류
+				</ol>
+				<input type="submit" value="적용" class="root">
+			</form>
+			<form id="color">
+				<h3>테마</h3>
+				<ul>
+					<li>
+						<input type="radio" name="color" value="primary">
+						<span class="color primary red"></span>
+						<span class="color primary orange"></span>
+						<span class="color primary green"></span>
+					</li>
+					<li>
+						<input type="radio" name="color" value="pastel">
+						<span class="color pastel red"></span>
+						<span class="color pastel orange"></span>
+						<span class="color pastel green"></span>
+					</li>
+				</ul>
+				<input type="submit" value="적용" class="root">
+			</form>
+			<form id="animation">
+				<h3>애니메이션</h3>
+				<ul>
+					<li><input type="radio" name="animation" value="none" required>없음</li>
+					<li><input type="radio" name="animation" value="trace" required>Trace</li>
+				</ul>
+				<input type="submit" value="적용" class="root">
+			</form>
+		</div>
+
+		<form id="critical">
+			<h2>임계 설정</h2>
+			<div class="box">
+				<p>
+					적용 노드 :
+					<input type="text" name="ip">
+					<label><input type="checkbox" name="all">모두</label>
+				</p>
+				<p>
+					성능 지표 :
+					<select name="resource" required>
+						<option value="processor">프로세서 로드</option>
+						<option value="memory">메모리</option>
+						<option value="storage">스토리지</option>
+						<option value="throughput">통신</option>
+						<optgroup>
+							<option value="" selected>모두</option>
+						</optgroup>
+						
+					</select>
+				</p>
+				<p>
+					임계값(%) : <input type="number" min="0" max="100" name="rate" required>
+					<i>임계값을 0으로 설정하면 임계가 삭제됩니다.</i>
+				</p>
+				<p>
+					<label><input type="checkbox" name="overwrite">기존 설정 덮어쓰기</label>
+					<input type="submit" value="실행"><i>서버와 동기화 하기 위해 실행 후 Console을 재시작 합니다.</i>
+				</p>
+			</div>
 		</form>
 		
 		<form id="account">
-			<h2>계정 <input type="button" value="추가" title="계정 추가" class="root"></h2>
+			<h2>계정 <input type="submit" value="추가" title="계정 추가" class="root"></h2>
 			<div class="box">
 				<ul id="account_list" class="list"></ul>
 			</div>
 		</form>
 		
 		<form id="profile">
-			<h2>프로파일 <input type="button" value="추가" title="프로파일 추가" class="root"></h2>
+			<h2>프로파일 <input type="submit" value="추가" title="프로파일 추가" class="root"></h2>
 			<div class="box">
 				<ul id="profile_list" class="list"></ul>
 				<i>등록된 Profile은 변경할 수 없습니다. 삭제후 추가하십시오. (사용중인 Profile은 삭제할 수 없습니다.)</i>
@@ -753,20 +733,24 @@ function initialize() {
 			<h2>
 				<input type="checkbox" name="enable" class="root">
 				SMS
-				<input type="button" value="추가" title="알림 추가" class="root">
+				<input type="submit" value="추가" title="알림 추가" class="root">
 			</h2>
 			<div class="box">
 				<ul id="sms_list" class="list"></ul>
 			</div>
 		</form>
 		
+		<h2>개발자 도구</h2>
+		<form class="box" id="debug">
+			<input type="password" name="password">
+			<input type="submit" value="확인">
+		</form>
 		
-		<form id="test">
-			<h2> </h2>
-			<div class="box">
-				<input type="submit" value="테스트">
-			</div>
-		</form>	
+		<div class="box debug">
+			<button id="test">테스트</button>
+			<button id="test_pos">존재하지 않는 position 확인</button>
+			<button id="remove_pos">존재하지 않는 position 삭제</button>
+		</div>	
 		
 		<div class="bg_loading"></div>
 		
@@ -780,9 +764,11 @@ function initialize() {
 		
 		<script src="js/ITAhM.js"></script>
 		<script src="js/object.js"></script>
+		<script src="js/md5.js"></script>
 		<script>
 
-var resources = document.getElementById("resources"),
+var configData = top.databases.config,
+	resources = document.getElementById("resources"),
 	sms = document.getElementById("sms"),
 	listItem = document.querySelector(".item"),
 	menu = document.getElementById("menu"),
@@ -827,6 +813,55 @@ document.getElementById("interval").onsubmit = function (e) {
 	onSetInterval(this.elements["interval"]);	
 };
 
+(function (form) {
+	const color = form.elements["color"];
+
+	color.value = "color" in window.configData? window.configData.color: "primary";
+
+	form.onsubmit = function (e) {
+		e.preventDefault();
+		
+		document.body.classList.add("loading");
+
+		top.sendRequest({
+			command: "config",
+			key: "color",
+			value: color.value
+		}, function (response) {
+			top.putDB("config", "color", color.value);
+
+			alert("대시보드의 색상 테마를 변경하였습니다.");
+
+			document.body.classList.remove("loading");
+		});
+	};
+}) (document.getElementById("color"));
+
+
+(function (form) {
+	const animation = form.elements["animation"];
+
+	animation.value = "animation" in window.configData? window.configData.animation: "none";
+	
+	form.onsubmit = function (e) {
+		e.preventDefault();
+		
+		document.body.classList.add("loading");
+
+		top.sendRequest({
+			command: "config",
+			key: "animation",
+			value: animation.value
+		}, function (response) {
+			top.putDB("config", "animation", animation.value);
+
+			alert("대시보드의 애니메이션을 변경하였습니다.");
+
+			document.body.classList.remove("loading");
+		});
+	};
+}) (document.getElementById("animation"));
+
 window.sms.onsubmit = function (e) {
 	e.preventDefault();
 	
@@ -845,16 +880,292 @@ document.getElementById("top").onsubmit = function (e) {
 	onModifyTopN(this.elements["top"].value);
 };
 
-backup.onsubmit = onBackup;
-backup.elements["restore"].onchange = onRestore;
-document.getElementById("dashboard").onsubmit = onModifyDashboard;
-document.getElementById("test").onsubmit = onTest;
-window.sms.elements["enable"].onclick = onEnableSMS;
-custom.onsubmit = onEditCustom;
-iftype.onsubmit = onEditIftype;
-menu.onsubmit = onMenuFix;
+document.getElementById("test_pos").onclick = function () {
+	const p = top.getDB("position"),
+		d = top.getDB("device");
+		var i=0;
 
-window.resources.onclick = onOrderResources;
+	for (let id in p) {
+		if (!(id in d)) {
+			i++;
+		}
+	}
+	
+	alert("존재하지 않는 position 정보 : "+ i +" 개 확인");
+};
+
+document.getElementById("remove_pos").onclick = function () {
+	const p = top.getDB("position"),
+		d = top.getDB("device");
+		var i=0;
+
+	for (let id in p) {
+		if (!(id in d)) {
+			delete p[id];
+
+			i++;
+		}
+	}
+
+	document.write(JSON.stringify(p));
+
+return ;
+
+	top.sendRequest({
+		command: "push",
+		database: "position",
+		data: p
+	}, function (response) {
+		alert("존재하지 않는 position 정보 : "+ i +" 개 삭제");
+	});
+};
+
+backup.onsubmit = function (e) {
+	e.preventDefault();
+	
+	document.body.classList.add("loading");
+	
+	top.sendRequest({
+		command: "extra",
+		extra: "backup"
+	}, function (backup) {
+		document.body.classList.remove("loading");
+		
+		ITAhM.util.download(new Blob([JSON.stringify(backup)],
+			{ type: "text/json;charset=utf-8;"}), (function (d){
+				const a = ["backup_", d.getFullYear()];
+				let n = d.getMonth() +1;
+			
+			a[a.length] = n > 9? n: ("0"+ n);
+			
+			n = d.getDate();
+			
+			a[a.length] = n > 9? n: ("0"+ n);
+			
+			return a.join("");
+		})(new Date()));
+	});
+};
+
+backup.elements["restore"].onchange = function (e) {
+	var file = e.target.files[0],
+		reader = new FileReader();
+	
+	reader.onload = function () {
+		document.body.classList.add("loading");
+		
+		top.sendRequest({
+			command: "extra",
+			extra: "restore",
+			backup: JSON.parse(this.result)
+		}, function () {
+			document.body.classList.remove("loading");
+			
+			alert("복구가 완료되었습니다.");
+			
+			top.reload();
+		});
+	};
+	
+	reader.onerror = function () {
+		alert("백업 파일을 읽어올 수 없습니다.")
+	};
+	
+	reader.readAsText(file);
+};
+
+document.getElementById("dashboard").onsubmit = function (e) {
+	e.preventDefault();
+	
+	var elements = window.resources.children,
+		li
+		resources = {};
+	
+	for (var i=0, _i=elements.length; i<_i; i++) {
+		li = elements[i];
+		
+		if (li.querySelector("input:checked")) {
+			resources[i.toString()] = elements[i].dataset.value;
+		}
+	}
+	
+	if (Object.keys(resources).length == 0 && !confirm("선택한 리소스가 없습니다.\n대시보드에 리소스 정보를 표시하지 않겠습니까?")) {
+		return;
+	}
+	
+	document.body.classList.add("loading");
+	
+	top.sendRequest({
+		command: "config",
+		key: "dashboard",
+		value: resources
+	}, function (response) {
+		document.body.classList.remove("loading");
+		
+		top.databases.config.dashboard = resources;
+		
+		alert("대시보드 리소스 정보를 변경하였습니다.");
+	});
+};
+
+document.getElementById("test").onclick = function (e) {
+	document.body.classList.add("loading");
+	
+	top.sendRequest({
+		command: "extra",
+		extra: "test"
+	}, function (data) {
+		document.body.classList.remove("loading");
+		
+		var rows = ["ip, sysObjectID, hrProcessorEntry, hrStorageEntry, ifEntry"], row;
+		
+		for (var ip in data) {
+			row = data[ip];
+			
+			rows[rows.length] = 
+				[ip, row.sysObjectID, row.hrProcessorEntry, row.hrStorageEntry, row.ifEntry].join(',');
+		}
+		
+		ITAhM.util.download(new Blob([rows.join("\n")] ,{
+			type: "text/csv;charset=utf-8;"
+		}), "test.csv");
+	});
+};
+
+window.sms.elements["enable"].onclick = function (e) {
+	var checked = this.checked;
+	
+	if (confirm("SMS 발송 기능을 "+
+		(checked? "사용 하도록": "사용하지 않도록") +
+		"설정하겠습니까?")) {
+		document.body.classList.add("loading");
+		
+		top.sendRequest({
+			command: "config",
+			key: "sms",
+			value: checked
+		}, function (response) {
+			document.body.classList.remove("loading");
+			
+			top.databases.config.sms = checked;
+		
+			window.location.reload();
+		});
+	}
+	else {
+		e.preventDefault();
+	}
+};
+
+custom.onsubmit = function (e) {
+	e.preventDefault();
+	
+	var customs = this.elements["custom"].value.split(","),
+		custom;
+	
+	for (var i=0, _i=customs.length; i<_i; i++) {
+		customs[i] = customs[i].trim();
+	}
+	
+	custom = customs.join(",");
+	
+	document.body.classList.add("loading");
+	
+	top.sendRequest({
+		command: "config",
+		key: "custom",
+		value: custom
+	}, function () {
+		document.body.classList.remove("loading");
+		
+		top.databases.config.custom = custom;
+	
+		window.custom.elements["custom"].value = customs.join(", ");
+		
+		alert("장비 정보의 관리 항목을 설정 하였습니다.");
+	});
+};
+
+iftype.onsubmit = function (e) {
+	e.preventDefault();
+	
+	var iftypes = [];
+	
+	for (let arr = this.elements["iftype"].value.split(","), i=0, _i=arr.length, n; i<_i; i++) {
+		n = arr[i].trim();
+		
+		if (!isNaN(n)) {
+			iftypes[iftypes.length] = n;
+		}
+	}
+	
+	document.body.classList.add("loading");
+	
+	top.postRequest({
+		command: "config",
+		key: "iftype",
+		value: iftypes.join(",")
+	}, function () {		
+		switch(this.status) {
+		case 200:
+			top.databases.config.iftype = iftypes.join(",");
+		
+			window.iftype.elements["iftype"].value = iftypes.join(", ");
+			
+			alert("인터페이스 성능 수집 대상을 설정 하였습니다.");
+			
+			break;
+		case 400:
+			alert("현재 버전에서 지원하지 않는 설정입니다.");
+			
+			break;
+		default:
+			return top.notice(this.status);
+		}
+		
+		document.body.classList.remove("loading");
+	});
+};
+
+menu.onsubmit = function (e) {
+	e.preventDefault();
+	
+	var menu = this.elements["menu"].value === "fix"? true: false;
+	
+	document.body.classList.add("loading");
+	
+	top.sendRequest({
+		command: "config",
+		key: "menu",
+		value: menu
+	}, function () {
+		document.body.classList.remove("loading");
+		
+		top.databases.config.menu = menu;
+	
+		top.setMenu(menu);
+	});
+};
+
+window.resources.onclick = function (e) {
+	var li = e.target, ul;
+	
+	if (li.nodeName.toLowerCase() !== "li" || !li.previousElementSibling) {
+		return;
+	}
+	
+	li.parentNode.insertBefore(li, li.previousElementSibling);
+};
+
+document.getElementById("debug").onsubmit = function (e) {
+	e.preventDefault();
+
+	if (hex_md5(this.elements["password"].value) === "ea5c17d2b6786fce92b087d40b1abb42") {
+
+		document.body.classList.add("debug");
+	}
+	else console.log(hex_md5(this.elements["password"].value));
+};
 
 initialize();
 

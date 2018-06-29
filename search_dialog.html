@@ -22,8 +22,16 @@ form {
 	/*box-shadow: 0px 0px 20px 10px #ddd;*/
 }
 
+h2 {
+	background-color: #0084ff;
+	padding: 10px; margin: 0;
+	color: #fff;
+}
+
 .table {
-	margin-bottom: 5px;
+	border: 1px solid #aaa;
+	padding: 1em;
+	margin: 1em 0;
 }
 
 .table ul {
@@ -171,8 +179,8 @@ function onApply(e) {
 			mask: parseInt(window.mask.options[window.mask.selectedIndex].text)
 		};
 	
-	top.sendRequest(request, function (data) {
-		alert("자동 탐지 요청을 보냈습니다.\n탐지된 장비를 확인하려면 재시작 하십시오.");
+	top.sendRequest(request, function () {
+		alert("자동 탐지 요청을 처리하고 있습니다.");
 		
 		top.closeDialog(true);
 	});

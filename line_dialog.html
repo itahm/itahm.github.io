@@ -194,13 +194,13 @@ function initialize(id, peerID) {
 	window.id = id;
 	window.peerID = peerID;
 	
-	setPort(top.databases.device[id], id, peerID,
+	setPort(top.getDB("device", id), id, peerID,
 		document.getElementById("ip"),
 		document.getElementById("name"),
 		document.querySelector(".layout_box.left"),
 		window.peerLeft);
 	
-	setPort(top.databases.device[peerID], peerID, id,
+	setPort(top.getDB("device", peerID), peerID, id,
 			document.getElementById("peer_ip"),
 			document.getElementById("peer_name"),
 			document.querySelector(".layout_box.right"),

@@ -226,17 +226,58 @@ function sendRequest(mills) {
 	});
 }
 
+function getDeviceName(id) {
+	const device = id && top.getDB("device", id);
+
+	return device && device.name || "";
+}
+
 function createItem(log) {
-	var ul = document.createElement("ul"), icon;
+	var ul = document.createElement("ul"),
+		icon = ul.appendChild(document.createElement("li")).appendChild(document.createElement("img")),
+		id = "ip" in log && top.getDeviceID(log.ip),
+		name = getDeviceName(id),
+		status = 0;
 	
-	icon = ul.appendChild(document.createElement("li")).appendChild(document.createElement("img"));
 	ul.appendChild(document.createElement("li")).textContent = toTimeString(log.date);
-	ul.appendChild(document.createElement("li")).textContent = top.databases.device[top.getDeviceID(log.ip)].name;
-	ul.appendChild(document.createElement("li")).textContent = log.message;
+	ul.appendChild(document.createElement("li")).textContent = name || log.ip;
 	
+	("origin" in log? function () {
+		switch(log.origin) {
+		case "critical":
+			if (log.critical) {
+				status = 1;
+			}
+
+			break;
+
+		case "shutdown":
+			if (log.shutdown) {
+				status = 2;
+			}
+
+			break;
+
+		case "system":
+
+			break;
+
+		case "test":
+			if (!log.test) {
+				status = 2;
+			}
+
+			break;
+		}
+	} : function () {
+		//이전 버전
+	}) ();
+
+	ul.appendChild(document.createElement("li")).textContent = log.message;
+
 	ul.classList.add("item");
 	
-	icon.src = log.status? "img/normal.png": log.type === "shutdown"? "img/warning.png": "img/siren.png";
+	icon.src = status === 1? "/img/siren.png": status === 2? "/img/warning.png": "/img/normal.png";
 	
 	return ul;
 }
