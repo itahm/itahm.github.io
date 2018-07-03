@@ -659,6 +659,10 @@ function onEvent(e) {
 					
 				}
 
+				if (!("message" in event)) {
+					event.message = event.ip +" "+ event.protocol +" 등록 "+ (event.test? "성공": "실패");
+				}
+
 				break;
 
 			case "system":
