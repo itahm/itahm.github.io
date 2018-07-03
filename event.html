@@ -273,6 +273,10 @@ function createItem(log) {
 		//이전 버전
 	}) ();
 
+	if (!("message" in log) && ("ip" in log) && ()"test" in log) && ("protocol" in log)) {
+		log.message = log.ip +" "+ log.protocol +" 등록 "+ (log.test? "성공": "실패");
+	}
+	
 	ul.appendChild(document.createElement("li")).textContent = log.message;
 
 	ul.classList.add("item");
