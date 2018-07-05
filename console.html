@@ -174,6 +174,34 @@ nav ul:last-of-type li {
 	height: 100%;
 }
 
+#status {
+	position: absolute; top: 0; right: 0; bottom: 0; width: 100px;
+	list-style: none; padding: 0; margin: 0;
+	display: flex; flex-direction: column;
+}
+
+#status >li {
+	flex: 1;
+	margin: 1px;
+	border: 1px solid #ddd; border-radius: 3px;
+	display: flex; align-items: center; justify-content: center;
+}
+
+#status >li.normal {
+	border-color: #0f0;
+	background-color: #0f0;
+}
+
+#status >li.status {
+	border-color: #ffa500;
+	background-color: #ffa500;
+}
+
+#status >li.shutdown {
+	border-color: #f00;
+	background-color: #f00;
+}
+
 div.log {
 	position: fixed; right: 10px; top: 10px;
 	cursor: pointer;
@@ -494,6 +522,8 @@ function onInitialize() {
 
 function onUpdate() {
 	if (this.status === 200) {
+		
+
 		window.topList = JSON.parse(this.responseText);
 		
 		if (!window.initialized) {
@@ -502,9 +532,8 @@ function onUpdate() {
 			window.frame.src = "/dashboard.html";
 		}
 	}
-	else {
-		notice(this.status);
-	}
+	
+	setStatus(new Date().getTime() - window.updateStart, this.status);
 	
 	setTimeout(update, 10000);
 }
@@ -517,6 +546,8 @@ function update() {
 	
 	xhr.onloadend = onUpdate;
 	
+	window.updateStart = new Date().getTime();
+
 	xhr.send(JSON.stringify({
 		command: "extra",
 		extra: "top",
@@ -932,6 +963,11 @@ function cancel() {
 						<li><a href="icon.html" target="main">아이콘</a>
 					</ul>
 				</nav>
+				<ul id="status">
+					<li class="normal"></li>
+					<li></li>
+					<li></li>
+				</ul>
 			</header>
 		</article>
 		<article class="signin">
@@ -1001,6 +1037,37 @@ var agent,
 	statusWindow = {},
 	sound = new Audio("siren.mp3"),
 	logCount = 0;
+
+(function (container) {
+	window.setStatus = function (elapse, status) {
+		var item = container.firstElementChild;
+
+		if (!item.classList.contains("normal")) {
+			item = container.insertBefore(container.lastElementChild, item);
+		}
+
+		switch(status) {
+		case 200:
+			item.textContent = elapse + " ms";
+			item.className = "normal";
+			
+			break;
+
+		case 0:
+			item.className = "shutdown";
+			item.className = "";
+
+			break;
+		
+		default:
+			item.textContent = status;
+			item.className = "status";
+		}
+
+		item.title = new Date().toLocaleString();
+	};
+
+}) (document.getElementById("status"));
 
 (function (agent) {
 	const connect = document.getElementById("connect"),

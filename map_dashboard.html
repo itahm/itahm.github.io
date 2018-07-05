@@ -47,7 +47,7 @@ text {
 
 #line line {
 	stroke: #d4af37;
-	stroke-width: 1;
+	stroke-width: 2;
 	animation: 3s blink linear infinite;
 }
 
@@ -212,7 +212,7 @@ function moveAllDevice(x, y) {
 			return;
 		}
 		
-		pos.x = Math.round((x + pos.x) /10) *10;
+		pos.x = Math.round((x + pos.x) /10) *10; 
 		pos.y = Math.round((y + pos.y) /10) *10;
 	
 		window.svgData[id].setAttribute("transform", "translate("+ pos.x +","+ pos.y +")");
