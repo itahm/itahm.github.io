@@ -185,11 +185,13 @@ nav ul:last-of-type li {
 	margin: 1px;
 	border: 1px solid #ddd; border-radius: 3px;
 	display: flex; align-items: center; justify-content: center;
+	text-shadow: 1px 1px 1px #ddd;
 }
 
 #status >li.normal {
-	border-color: #0f0;
+	border-color: #097829;
 	background-color: #0f0;
+	color: #097829;
 }
 
 #status >li.status {
@@ -200,6 +202,10 @@ nav ul:last-of-type li {
 #status >li.shutdown {
 	border-color: #f00;
 	background-color: #f00;
+}
+
+#status >li:empty {
+	display: none;
 }
 
 div.log {
@@ -1055,12 +1061,12 @@ var agent,
 
 		case 0:
 			item.className = "shutdown";
-			item.className = "";
+			item.className = "no response";
 
 			break;
 		
 		default:
-			item.textContent = status;
+			item.textContent = "status "+ status;
 			item.className = "status";
 		}
 
