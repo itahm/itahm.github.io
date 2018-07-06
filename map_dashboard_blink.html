@@ -48,6 +48,18 @@ text {
 #line line {
 	stroke: #d4af37;
 	stroke-width: 2;
+	animation: 3s blink linear infinite;
+}
+
+@keyframes blink {
+	80% {
+		stroke: #d4af37;
+		stroke-width: 1;
+	}
+	100% {
+		stroke: #ddd;
+		stroke-width: 0.5;
+	}
 }
 
 #line text {

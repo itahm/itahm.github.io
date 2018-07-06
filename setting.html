@@ -676,7 +676,7 @@ function initialize() {
 				<h3>애니메이션</h3>
 				<ul>
 					<li><input type="radio" name="animation" value="none" required>없음</li>
-					<li><input type="radio" name="animation" value="trace" required>Trace</li>
+					<li><input type="radio" name="animation" value="blink" required>Blink</li>
 				</ul>
 				<input type="submit" value="적용" class="root">
 			</form>
@@ -837,10 +837,9 @@ document.getElementById("interval").onsubmit = function (e) {
 	};
 }) (document.getElementById("color"));
 
-
 (function (form) {
 	const animation = form.elements["animation"];
-
+console.log("animation" in window.configData);
 	animation.value = "animation" in window.configData? window.configData.animation: "none";
 	
 	form.onsubmit = function (e) {
@@ -860,6 +859,14 @@ document.getElementById("interval").onsubmit = function (e) {
 			document.body.classList.remove("loading");
 		});
 	};
+	/*delete window.configData["animation"];
+	top.sendRequest({
+			command: "push",
+			database: "config",
+			data: window.configData
+		}, function (response) {
+			alert("성공");
+		});*/
 }) (document.getElementById("animation"));
 
 window.sms.onsubmit = function (e) {

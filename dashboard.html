@@ -560,11 +560,18 @@ function initialize() {
 			mapWindow.initialize();
 		};
 
-		if ("animation" in configData && configData.animation !== "none") {
-			map.src = "/map_dashboard_"+ configData.animation +".html";
+		if ("animation" in configData) {
+			switch(configData.animation) {
+				case "none":
+					map.src = "/map_dashboard.html";
+				break;
+
+				default:
+					map.src = "/map_dashboard_"+ configData.animation +".html";
+			}
 		}
 		else {
-			map.src = "/map_dashboard.html";
+			map.src = "/map_dashboard_blink.html";
 		}
 	}) (document.getElementById("map"), top.getDB("config"));
 	

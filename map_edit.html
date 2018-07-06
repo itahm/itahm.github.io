@@ -612,14 +612,14 @@ function onLink(id, e) {
 }
 
 function getIcon(type) {
-	return window.top.databases.icon[type] || window.top.databases.local.icon[type];
+	return top.databases.icon[type] || top.databases.local.icon[type];
 }
 
 function onSave() {
 	top.sendRequest({
 		command: "push",
 		database: "position",
-		data: window.top.databases.position
+		data: top.databases.position
 	}, function (response) {
 		alert("구성의 변경사항을 저장하였습니다.");
 	});
