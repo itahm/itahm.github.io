@@ -738,7 +738,7 @@ function onEvent(e) {
 		listen();
 	}
 	else {
-		notice(this.status);
+		setStatus(0, this.status);
 		
 		setTimeout(listen, 3000);
 	}
