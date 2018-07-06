@@ -1060,8 +1060,8 @@ var agent,
 			break;
 
 		case 0:
+		item.textContent = "no response";
 			item.className = "shutdown";
-			item.className = "no response";
 
 			break;
 		
@@ -1109,6 +1109,13 @@ var agent,
 
 document.getElementById("signout").addEventListener("click", onSignOut);
 window.addEventListener("unload", onClose);
+
+setTimeout(function () {
+	setStatus(0, 0);
+}, 3000);
+setTimeout(function () {
+	setStatus(14, 401);
+}, 5000);
 
 		</script>
 	
