@@ -683,7 +683,7 @@ function createIFaceGuage(admin, oper, index, name, descr, alias, type, bandwidt
 	usageIn = usageIn +"%";
 	usageOut = usageOut +"%";
 	
-	clone.children[1].textContent = name+"("+index+")";
+	clone.children[1].textContent = name;
 	clone.children[2].textContent = alias;
 	clone.children[3].textContent = type + "("+ ITAhM.snmp.ifType[type] +")";
 	clone.children[4].textContent = ITAhM.util.toBPSString(bandwidth);
@@ -717,21 +717,10 @@ function createIFaceGuage(admin, oper, index, name, descr, alias, type, bandwidt
 
 function initialize() {
 	const critical = window.databases.critical[window.ip];
-	/*(function () {
-		let resource;
-
-		for (let key1 in critical) {
-			resource = critical[key1];
-			for (let key2 in resource) {
-				if (resource[key2].critical) {
-					console.log(window.ip + " "+ key1 + " "+ (resource[key2].description || ""));
-				}
-			}
-		}
-	})();*/
+	
 	var entry;
 	
-	document.title = window.ip + window.snmp.sysName? (" ["+ window.snmp.sysName +"]"): "";
+	document.title = window.ip + (window.snmp.sysName? " ["+ window.snmp.sysName +"]": "");
 	
 	document.getElementById("reset").onclick = function () {
 		sendRequest({
