@@ -185,23 +185,21 @@ nav ul:last-of-type li {
 	margin: 1px;
 	border: 1px solid #ddd; border-radius: 3px;
 	display: flex; align-items: center; justify-content: center;
-	text-shadow: 1px 1px 1px #ddd;
 }
 
 #status >li.normal {
-	border-color: #097829;
 	background-color: #0f0;
 	color: #097829;
 }
 
 #status >li.status {
-	border-color: #ffa500;
 	background-color: #ffa500;
+	color: #ba4800;
 }
 
 #status >li.shutdown {
-	border-color: #f00;
-	background-color: #f00;
+	background-color: #666;
+	color: #272727;
 }
 
 #status >li:empty {
@@ -1060,13 +1058,13 @@ var agent,
 			break;
 
 		case 0:
-		item.textContent = "no response";
+		item.textContent = "지연";
 			item.className = "shutdown";
 
 			break;
 		
 		default:
-			item.textContent = "status "+ status;
+			item.textContent = "상태 "+ status;
 			item.className = "status";
 		}
 
