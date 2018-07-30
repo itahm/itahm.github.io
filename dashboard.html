@@ -74,8 +74,9 @@ article {
 	border: none;
 }
 
-iframe {
-	
+iframe.top {
+	width: 320px;
+	border: none;
 }
 
 section {
@@ -96,11 +97,6 @@ section >div:first-child {
 	text-shadow: 1px 1px 1px #777;
 }
 
-section> div:last-child {
-	/*flex: 1;
-	overflow: auto;*/
-}
-
 ul {
 	list-style: none;
 	padding: 0; margin: 0;
@@ -108,17 +104,6 @@ ul {
 
 .list {
 	padding: .5em 1em;
-}
-
-footer {
-	width: 320px;
-	display: flex;
-	flex-direction: column;
-}
-
-#top_list {
-	flex: 1;
-	overflow-y: auto;
 }
 
 .summary {
@@ -170,107 +155,6 @@ header> ul> li:nth-child(3) {
 	align-items: center;
 }
 
-.list_item {
-	font-size: 12px;
-	display: flex;
-	border-bottom: 1px solid #777;
-	cursor: pointer;
-	padding: 1px;
-	/*box-sizing: border-box;*/
-}
-
-.list_item:hover {
-	background-color: #fff;
-	color: #0084ff;
-	outline: 1px solid #0084ff;
-}
-
-.list_item> li {
-	flex: 1;
-	box-sizing: border-box;
-	overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-}
-
-select[name=option] {
-	background-color: #0084ff;
-	border: none;
-	outline: none;
-	color: #fff;
-	float: right;
-}
-
-body:not(.name) .list_item> li:nth-child(1),
-body.name .list_item> li:nth-child(2) {
-	display: none;
-}
-
-.list_item> li:last-child {
-	text-align: right;
-	position: relative;
-	padding: 3px;
-	border: 2px solid transparent;
-	border-radius: 3px;
-}
-
-.list_item> li:last-child::after {
-	content: attr(data-value);
-}
-
-.list_item> li:last-child >div {
-	position: absolute; top: 0; bottom: 0; left: 0;
-	z-index: -1;
-	animation: gauge 1s;
-}
-
-.list_item> li:last-child.red {
-	border-color: #f00;
-}
-
-#top_list.pastel .list_item> li:last-child.red {
-	/*border-color: #f00;*/
-	border-color: #8e24aa;
-}
-
-.list_item> li:last-child.red >div {
-	background: linear-gradient(to right, rgba(255, 0, 0, 0.5), #f00);
-}
-
-#top_list.pastel .list_item> li:last-child.red >div {
-	background: linear-gradient(to right, rgba(142, 36, 170, 0.5), #8e24aa);
-}
-
-.list_item> li:last-child.orange {
-	border-color: #ffa500;
-}
-
-#top_list.pastel .list_item> li:last-child.orange {
-	border-color: #f6bf26;
-}
-
-.list_item> li:last-child.orange >div {
-	background: linear-gradient(to right, rgba(255, 165, 0, 0.5), #ffa500);
-}
-
-#top_list.pastel .list_item> li:last-child.orange >div {
-	background: linear-gradient(to right, rgba(246, 191, 38, 0.5), #f6bf26);
-}
-
-.list_item> li:last-child.green {
-	border-color: #0f0;
-}
-
-#top_list.pastel .list_item> li:last-child.green {
-	border-color: #00897b;
-}
-
-.list_item> li:last-child.green >div {
-	background: linear-gradient(to right, rgba(0, 255, 0, 0.5), #0f0);
-}
-
-#top_list.pastel .list_item> li:last-child.green >div {
-	background: linear-gradient(to right, rgba(0, 137, 123, 0.5), #00897b);
-}
-
 .agent_status {
 	display: flex;
 	padding: .5em;
@@ -287,24 +171,6 @@ body.name .list_item> li:nth-child(2) {
 
 .agent_status li:first-child {
 	text-align: center;
-}
-
-@keyframes flow {
-	0% {
-		transform: translateY(0);
-	}
-	100% {
-		transform: translateY(-100%);
-	}
-}
-
-@keyframes gauge {
-	from {
-		width: 0;
-	}
-	to {
-		width: 100%;
-	}
 }
 
 .head {
@@ -351,7 +217,7 @@ body.name .list_item> li:nth-child(2) {
 }
 
 .orange.ball {
-	background-color: #f60;
+	background-color: #ffa500;
 }
 
 .bounce >.orange.ball {
@@ -444,90 +310,11 @@ body.name .list_item> li:nth-child(2) {
 
 /* << bounce */
 
-/* event >> */
-.item {
-	padding: 0; margin: 0;
-	position: relative;
-	display: flex;
-	align-items: center;
-	border-bottom: 1px solid #c1c3d1;
-	margin-left: 3em;
-}
-
-.item::before {
-	content: "";
-	height: 2em; width: 2em;
-	position: absolute; top: 50%; left: -2em;
-	background-repeat: no-repeat;
-	background-image: url("/img/normal.png");
-	background-size: 1.6em;
-	transform: translateY(-50%);
-}
-
-.item> li {
-	padding: .5em;
-	box-sizing: border-box;
-	overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-}
-
-.item> li:nth-child(1) {
-	width: 100px;
-}
-
-.item> li:nth-child(2) {
-	flex: 1;
-}
-
-.item> li:nth-child(3) {
-	flex: 2;
-}
-/*
-.item.shutdown {
-	background-color: red;
-}
-*/
-.item.shutdown::before {
-	background-image: url("/img/warning.png");
-}
-/*
-.item.critical {
-	background-color: orange;
-}
-*/
-.item.critical::before {
-	background-image: url("/img/siren.png");
-}
-
-/* << event */
-
 		</style>
 		
 		<script>
 
 function initialize() {
-	var df = document.createDocumentFragment();
-	
-	if ("dashboard" in top.databases.config) {
-		var resources = top.databases.config.dashboard,
-			order = Object.keys(resources),
-			resource;
-		
-		[].sort.call(order, function (a, b) {
-			return parseInt(a) - parseInt(b);
-		})
-		
-		for (var i=0, _i=order.length; i<_i; i++) {
-			df.appendChild(createTopList(resources[order[i]]));
-		}
-	}
-	else {
-		for (var id in window.resources) {
-			df.appendChild(createTopList(id));
-		}
-	}
-
-	document.getElementById("top_list").appendChild(df);
-	
 	update();
 	
 	(function (map, configData) {
@@ -580,33 +367,7 @@ function initialize() {
 	window.setInterval(update, 5000);
 }
 
-function createTopList(resource) {
-	var section = document.createElement("section"),
-		list = document.createElement("div");
-
-	section.appendChild(document.createElement("div")).textContent = window.resources[resource].title;
-	section.appendChild(list).className = "list";
-	
-	window.topList[resource] = list;
-	
-	return section;
-}
-
 function update() {
-	removeClass(document.body, "update");
-
-	let list;
-	
-	for (var resource in window.topList) {
-		list = window.topList[resource];
-		
-		if (resource in top.topList) {
-			setTop(top.topList[resource], list, window.resources[resource]);
-		}
-	}
-
-	document.body.classList.add("update");
-	
 	initStats();
 }
 
@@ -732,17 +493,14 @@ function createStatusItem(label, critical, alert, normal, sum) {
 	
 	li = ul.appendChild(document.createElement("li"));
 	li.dataset.value = alert;
-	//li.className = "ball red ready";
 	li.className = "ready";
 	
 	li = ul.appendChild(document.createElement("li"));
 	li.dataset.value = critical;
-	//li.className = "ball orange ready";
 	li.className = "ready";
 	
 	li = ul.appendChild(document.createElement("li"));
 	li.dataset.value = normal;
-	//li.className = "ball green ready";
 	li.className = "ready";
 	
 	ul.className = "summary";
@@ -783,45 +541,6 @@ function setTop(topData, list, args) {
 			break;
 		}
 	}
-}
-
-function createTopItem(ip, value, rate, resource, index) {
-	var item = document.createElement("ul"),
-		id = top.getDeviceID(ip),
-		bar;
-
-		if (!id) {
-			console.log("서버와 동기화 실패 node: "+ ip);
-
-			return item;
-		}
-	
-	item.className = "list_item";
-	
-	item.appendChild(document.createElement("li")).textContent = top.getDB("device", id).name || ip;
-	item.appendChild(document.createElement("li")).textContent = ip;
-	
-	bar = item.appendChild(document.createElement("li"));
-	bar.dataset.value = value;
-			
-	bar.appendChild(document.createElement("div")).style.width = toPercentageString(rate);
-		
-	bar.classList.add(rate > 90? "red": rate > 70? "orange": "green");
-	
-	if (rate > -1) {
-		item.title = toPercentageString(rate);
-	}
-	
-	item.onclick = function () {
-		top.showStatus(id);
-	}
-	
-	bar.onclick = function (e) {
-		e.stopPropagation();
-		
-		top.showStatus(id, resource, index);
-	}
-	return item;
 }
 
 // private
@@ -938,9 +657,7 @@ function hasClass(e, className) {
 			
 		</aside>
 		
-		<footer>
-			<div id="top_list"></div>
-		</footer>
+		<iframe class="top" src="/top.html"></iframe>
 			
 		<div class="bg_loading"></div>
 		<script src="/js/ITAhM.js"></script>
@@ -951,9 +668,7 @@ var configData = top.databases.config,
 	summaryList = document.getElementById("summary_list"),
 	eventList = document.getElementById("event_list"),
 	topList = {},
-	aside = document.querySelector("aside"),
 	article = document.querySelector("article"),
-	footer = document.querySelector("footer"),
 	alert = document.getElementById("alert"),
 	critical = document.getElementById("critical"),
 	normal = document.getElementById("normal"),
@@ -1016,10 +731,6 @@ var configData = top.databases.config,
 
 if ("display" in configData) {
 	window[top.databases.config.display !== "name"? "removeClass": "addClass"](document.body, "name");
-}
-
-if ("color" in configData) {
-	document.getElementById("top_list").classList.add(configData.color);
 }
 
 document.getElementById("edit").onclick = function () {

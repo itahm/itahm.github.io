@@ -1133,7 +1133,6 @@ var ip, snmp, ifSpeed,
 	sendRequest = opener.top.sendRequest,
 	showDialog = opener.top.showDialog,
 	databases = opener.top.databases,
-	realtime = {},
 	processorArea = document.getElementById("processor"),
 	storageArea = document.getElementById("storage"),
 	interfaceArea = document.getElementById("i_face"),
@@ -1142,14 +1141,6 @@ var ip, snmp, ifSpeed,
 	iFaceGauge = document.querySelector(".i_face.item"),
 	chartFrame = document.getElementById("chart"),
 	rtFrame = document.getElementById("realtime_response");
-
-window.onunload = function () {
-	for (var resource in realtime) {
-		for (var index in realtime[resource]) {
-			realtime[resource][index].close();
-		}
-	}
-};
 
 document.querySelector(".response_time").onclick = onSelectResource.bind(window, "responseTime");
 
