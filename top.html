@@ -11,6 +11,13 @@
 
 body {
 	color: #fff;
+	animation: fall 1s cubic-bezier(0, 1.5, 1, 1);
+}
+
+@keyframes fall {
+	from {
+		transform: translateY(-100%);
+	}
 }
 
 .title {
@@ -72,7 +79,16 @@ body.name .list_item> li:nth-child(2) {
 .list_item> li:last-child >div {
 	position: absolute; top: 0; bottom: 0; left: 0;
 	z-index: -1;
-	animation: gauge 1s;
+	animation: gauge 2s;
+}
+
+@keyframes gauge {
+	0% {
+		width: 0;
+	}
+	50% {
+		width: 0;
+	}
 }
 
 .list_item> li:last-child.red {
@@ -121,12 +137,6 @@ body.name .list_item> li:nth-child(2) {
 
 #top_list.pastel .list_item> li:last-child.green >div {
 	background: linear-gradient(to right, rgba(0, 137, 123, 0.5), #00897b);
-}
-
-@keyframes gauge {
-	from {
-		width: 0;
-	}
 }
 
 #tmp_list {
@@ -348,7 +358,7 @@ var list = document.getElementById("top_list");
 initialize();
 
 requestAnimationFrame(function reload(elapsed) {
-	if (elapsed > 5000) {
+	if (elapsed > 8000) {
 		window.location.reload();
 	}
 	else {
