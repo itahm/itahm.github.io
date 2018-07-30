@@ -351,8 +351,9 @@ requestAnimationFrame(function reload(elapsed) {
 	if (elapsed > 5000) {console.log("!");
 		window.location.reload();
 	}
-	
-	requestAnimationFrame(reload);
+	else {
+		requestAnimationFrame(reload);
+	}
 });
 
 		</script>
