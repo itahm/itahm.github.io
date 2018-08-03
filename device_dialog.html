@@ -399,13 +399,14 @@ function initialize(id) {
 		
 			if (monitor) {
 				window.form.elements["monitor"].value = monitor.protocol;
-				
-				window.form.elements["ip"].disabled = true;
 			}
 			else {
 				window.form.elements["monitor"].value = "none";
 			}
 			
+			// ip는 한번 지정하면 변경할 수 없다.
+			window.form.elements["ip"].disabled = true;
+
 			document.body.classList.add("monitor");
 		}
 		
