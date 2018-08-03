@@ -211,17 +211,22 @@ function onApply(e) {
 			key: "",
 			value: device
 		}, function (data) {
-			const id = Object.keys(data)[0],
-				pos = {
+			const pos = {
 					x: 0,
 					y: 0,
 					ifEntry: {}
-				};
+				},
+				parent = top.getDB("local", "parent");
+			var id;
+
+			for (id in data) {
+				break;
+			}
+
+			top.putDB("position", id, pos)
 			
-			top.databases.position[id] = pos; 
-			
-			if (top.databases.local.parent) {
-				pos.parent = top.databases.local.parent;
+			if (parent) {
+				pos.parent = parent;
 			}
 			
 			saveDevice(id, device);
@@ -240,7 +245,7 @@ function onApply(e) {
 }
 
 function saveDevice(id, device) {
-	top.putDB("device", window.id, device);
+	top.putDB("device", id, device);
 	
 	window.opener && window.opener.reload();
 	
