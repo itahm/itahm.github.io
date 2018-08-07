@@ -520,6 +520,10 @@ function initialize() {
 	}) (document.getElementById("request"));
 	
 	(function (form) {
+		function f(timeout, retry) {
+			return (retry << 4) | (0x0f & timeout);
+		}
+
 		form.onsubmit = function (e) {
 			e.preventDefault();
 			
@@ -528,7 +532,7 @@ function initialize() {
 			top.postRequest({
 				command: "config",
 				key: "health",
-				value: this.elements["timeout"].value +":"+ this.elements["retry"].value
+				value: (this.elements["timeout"].value & 0x0f) | (parseInt(this.elements["retry"].value) <<4)
 			}, function () {
 				switch(this.status) {
 				case 200:
@@ -548,13 +552,11 @@ function initialize() {
 		};
 	
 		if ("health" in window.configData) {
-			const values = window.configData.health.split(":");
-
-			form.elements["timeout"].value = values[0];
-			form.elements["retry"].value = values[1];
+			form.elements["timeout"].value =  0x0f & window.configData.health;
+			form.elements["retry"].value = 0x0f & (window.configData.health >> 4);
 		}
 		else {
-			form.elements["timeout"].value = 10000;
+			form.elements["timeout"].value = 10;
 			form.elements["retry"].value = 1;
 		}
 	}) (document.getElementById("health"));
@@ -592,25 +594,29 @@ function initialize() {
 		<ul class="common box">
 			<li>
 				<form id="health">
-					ICMP Health: Timeout(초) 
-					<select name="timeout">
-						<option value="1000">1
-						<option value="2000">2
-						<option value="3000">3
-						<option value="5000">5
-						<option value="10000">10
-					</select>sec,
-					Retry :
-					<select name="retry">
-						<option value="1">1
-						<option value="2">2
-						<option value="3">3
-					</select>
-					<input type="submit" value="적용" class="root">
+					ICMP Health: <input type="submit" value="적용" class="root">
+					<ul>
+						<li>Timeout(초)
+							<select name="timeout">
+								<option value="1">1
+								<option value="2">2
+								<option value="3">3
+								<option value="5">5
+								<option value="10">10
+							</select>
+						</li>
+						<li>Retry :
+							<select name="retry">
+								<option value="1">1
+								<option value="2">2
+								<option value="3">3
+							</select>
+						</li>
+					</ul>
 				</form>
 			<li>
 				<form id="request">
-					SNMP 요청 주기(초) :
+					SNMP (ICMP) 요청 주기(초) :
 					<select name="timer">
 						<option value="3000">3
 						<option value="10000">10
