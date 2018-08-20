@@ -93,6 +93,14 @@ ul {
 	cursor: default;
 }
 
+#expire:empty {
+	display: none;
+}
+
+#expire:not(:empty)::before {
+	content: "라이선스 만료일: ";
+}
+
 input[type=checkbox] {
 	vertical-align: middle;
 }
@@ -588,7 +596,7 @@ function initialize() {
 			<li>데이터베이스 로드 : <span id="load">N/A</span>
 			<li>관리 리소스 갯수 : <span id="resource"></span>
 			<li>전일 디스크 사용량 : <span id="usage"></span>
-			<li>라이센스 만료일 : <span id="expire">N/A</span>
+			<li id="expire"></li>
 		</ul>
 		<h2>일반</h2>
 		<ul class="common box">
