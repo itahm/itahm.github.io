@@ -343,7 +343,8 @@ function createTopItem(ip, value, rate, resource, index) {
 		
 		<script>
 
-var list = document.getElementById("top_list");
+var list = document.getElementById("top_list"),
+	rafID;
 
 (function (configData) {
 	if ("display" in configData && configData.display !== "name") {
@@ -357,14 +358,29 @@ var list = document.getElementById("top_list");
 
 initialize();
 
-requestAnimationFrame(function reload(elapsed) {
-	if (elapsed > 8000) {
-		window.location.reload();
-	}
-	else {
-		requestAnimationFrame(reload);
-	}
-});
+function reload() {
+	const rafID = 
+	window.rafID = requestAnimationFrame(function reload(elapsed) {
+		if (elapsed > 8000) {
+			if (rafID == window.rafID) {
+				window.location.reload();
+			}
+		}
+		else {
+			requestAnimationFrame(reload);
+		}
+	});
+}
+
+window.list.onmouseenter = function () {
+	window.rafID = undefined;
+};
+
+window.list.onmouseleave = function () {
+	reload();
+};
+
+reload();
 
 		</script>
 	
