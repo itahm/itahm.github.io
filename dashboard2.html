@@ -49,8 +49,6 @@ article {
 	background: url("/img/world.png") no-repeat center center fixed;
 	background-size: cover;
 	user-select: none;
-	animation-duration: .5s;
-	animation-timing-function:  cubic-bezier(.9, .1, .9, .1);
 	overflow: hidden;
 }
 
@@ -204,7 +202,6 @@ header> ul> li:nth-child(3) {
 	position: absolute; top: 0; left: 0;
 	width: 100%;
 	height: 50%;
-	/*animation: bounce 10s infinite;*/
 }
 
 .summary >.ball {
@@ -220,16 +217,8 @@ header> ul> li:nth-child(3) {
 	background-color: #ffa500;
 }
 
-.bounce >.orange.ball {
-	animation-delay: .5s;
-}
-
 .red.ball {
 	background: #f00;
-}
-
-.bounce >.red.ball {
-	animation-delay: 1s;
 }
 
 .ball:before {
@@ -262,50 +251,6 @@ header> ul> li:nth-child(3) {
 	height: 80%;
 	border-radius: 50%;
 	background: rgba(20, 20, 20, 0.1);
-	/*animation: shadow 1s;*/
-}
-
-@keyframes bounce {
-	0% {
-		top: 0;
-		animation-timing-function: ease-in;
-	}
-	4% {
-		top: 40%;
-		height: 50%;
-		animation-timing-function: ease-out;
-	}
-	5% {
-		top: 45%;
-		height: 45%;
-		animation-timing-function: ease-in;
-	}
-	6% {
-		top: 30%;
-		height: 50%;
-		animation-timing-function: ease-out;
-	}
-	10% {
-		top: 0;
-		animation-timing-function: ease-in;
-	}
-}
-
-@keyframes shadow {
-	0% {
-		background: rgba(20, 20, 20, .1);
-		animation-timing-function: ease-in;
-	}
-	50% {
-		background: rgba(20, 20, 20, .3);
-		height: 40%;
-		width: 80%;
-		animation-timing-function: ease-out;
-	}
-	100% {
-		background: rgba(20, 20, 20, .1);
-		animation-timing-function: ease-in;
-	}
 }
 
 /* << bounce */
@@ -347,19 +292,8 @@ function initialize() {
 			mapWindow.initialize();
 		};
 
-		if ("animation" in configData) {
-			switch(configData.animation) {
-				case "none":
-					map.src = "/map_dashboard.html";
-				break;
-
-				default:
-					map.src = "/map_dashboard_"+ configData.animation +".html";
-			}
-		}
-		else {
-			map.src = "/map_dashboard_blink.html";
-		}
+		map.src = "/map_dashboard2.html";
+		
 	}) (document.getElementById("map"), top.getDB("config"));
 	
 	removeClass(document.body, "loading");
