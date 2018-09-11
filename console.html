@@ -397,9 +397,7 @@ function notice(status, message) {
 	message = "\n"+ (message || "");
 
 	switch(status) {
-	case 401:
-		window.onbeforeunload = undefined;
-	
+	case 401:	
 		alert("세션이 만료되었습니다.");
 	
 		window.location.reload();
@@ -575,9 +573,7 @@ function onInitResponse(table, q) {
 	else {
 		alert("데이터베이스를 초기화 할 수 없습니다.\n상태: "+ this.status);
 		
-		window.onbeforeunload = undefined;
-		
-		window.location.reload();
+		window.location.href = "/console.html";
 	}
 }
 
@@ -675,23 +671,23 @@ function onEvent(e) {
 					if (event.protocol === "snmp") {
 						monitor.profile = event.profile;
 						monitor.protocol = "snmp";
+
+						// 자동탐색인 경우 device 생성해 주어야함
+						if (!getDB("device", event.id)) {
+							putDB("device", event.id, {
+								ip: event.ip,
+								name: "",
+								label: "",
+								type: "unknown",
+								ifSpeed: {}
+							});
+						}
 					}
 					else {
 						monitor.protocol = "icmp";
 					}
 					
 					window.databases.monitor[event.ip] = monitor;
-					
-					if (!getDB("device", event.id)) {
-						putDB("device", event.id, {
-							ip: event.ip,
-							name: "",
-							label: "",
-							type: "unknown",
-							ifSpeed: {}
-						});
-					}
-					
 				}
 
 				if (!("message" in event)) {
@@ -701,7 +697,9 @@ function onEvent(e) {
 				break;
 
 			case "system":
+				break;
 
+			case "warning":
 				break;
 			}
 
@@ -753,14 +751,12 @@ function listen() {
 	xhr.send(JSON.stringify(window.listener));
 }
 
-function initialize (data) {
+function initialize (account) {
 	document.body.classList.add("authorized");
 	
-	this.databases.local.level = data.level;
-	
-	if ("username" in data) {
-		document.getElementById("signout").textContent = data.username;
-	}
+	document.getElementById("signout").textContent = account.username;
+
+	putDB("local", "level", account.level);
 	
 	sendInitRequest("config", ["gcm", "sms", , "icon", "profile", "account", "device", "position", "monitor", "critical"]);
 }
@@ -869,9 +865,11 @@ function onSignIn(e) {
 	
 	document.body.classList.add("loading");
 	
+	window.username = this.elements["username"].value;
+
 	postRequest({
 		command: "signin",
-		username: this.elements["username"].value,
+		username: window.username,
 		password: hex_md5(this.elements["password"].value)
 	}, function () {
 		document.body.classList.remove("loading");
