@@ -16,7 +16,7 @@ div {
 function postRequest(request, onResponse, timeout) {
 	const xhr = new XMLHttpRequest();
 	
-	xhr.open("POST", "http://demo.itahm.com:2014", true);
+	xhr.open("POST", "http://demo.itahm.com:80", true);
 	xhr.withCredentials = true;
 	xhr.onloadend = onResponse.bind(xhr);
 	
@@ -36,7 +36,7 @@ function postRequest(request, onResponse, timeout) {
 function onSignin(status) {
 	switch(status) {
 	case 200:
-		window.location.href = "http://itahm.com/console.html?demo.itahm.com:2014";
+		window.location.href = "http://itahm.com/console.html?demo.itahm.com:80";
 		
 		break;
 	default:
