@@ -125,7 +125,7 @@ function onApply(e) {
 		right.option = {};
 
 		left.option.color = right.option.color = this.elements["color"].value;
-		left.option.width = right.option.width = this.elements["width"].value;
+		left.option.width = right.option.width = Math.max(this.elements["width"].value, 1);
 	}
 
 	if (!window.lSelect.disabled) {
@@ -321,7 +321,7 @@ function initialize(id, peerID) {
 						색상: <input type="color" name="color" value="#a17f1a">
 					</li>
 					<li>
-						굵기: <input type="number" name="width" value="1">
+						굵기: <input type="number" name="width" value="1" min="1">
 					</li>
 				</ul>
 				<br>
