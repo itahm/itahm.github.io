@@ -825,12 +825,12 @@ function initialize() {
 function toDateString(millis) {
 	var date = new Date(millis),
 		ar = [date.getFullYear()],
-		ymd = [date.getMonth() +1, date.getDate(), date.getHours(), date.getMinutes(), date.getSeconds()];
+		mdh = [date.getMonth() +1, date.getDate(), date.getHours(), date.getMinutes(), date.getSeconds()];
 	
-	for (let i=0, _i=ymd.length, d; i<_i; i++) {
-		d = ymd[i];
+	for (let i=0, _i=mdh.length, d; i<_i; i++) {
+		d = mdh[i];
 		
-		ar[ar.length] = d < 10? "0": ""+ d;
+		ar[ar.length] = (d < 10? "0": "")+ d;
 	}
 	
 	return ar[0] +"-"+ ar[1] +"-"+ ar[2] +" "+ ar[3] +":"+ ar[4] +":"+ ar[5];
