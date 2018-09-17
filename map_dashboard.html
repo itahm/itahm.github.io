@@ -45,11 +45,6 @@ text {
 	text-anchor: middle;
 }
 
-#line line {
-	stroke: #d4af37;
-	stroke-width: 2;
-}
-
 #line text {
 	font-size: 11px;
 	fill: #aaa;
@@ -394,23 +389,30 @@ function addLine(id, pos) {
 		
 		port = ifEntry[peerID];
 		
+		labelSvg = undefined;
+		
 		if (port) {
-			labelSvg = document.createElementNS(svgNS, "text");
-			
-			if (typeof(port) === typeof({}) && "name" in port && "index" in port) {
-				labelSvg.textContent = port.name;
+			if (typeof(port) === typeof({})) {
+				if ("name" in port && "index" in port) {
+					labelSvg = document.createElementNS(svgNS, "text");
 
-				labelSvg.onclick = top.showStatus.bind(undefined, id, "throughput", port.index);
+					labelSvg.textContent = port.name;
+
+					labelSvg.onclick = top.showStatus.bind(undefined, id, "throughput", port.index);
+				}
 			}
-			else {
+			else if (typeof(port) === typeof("")) {
+				labelSvg = document.createElementNS(svgNS, "text");
+
 				labelSvg.textContent = port;
 			}
-			
-			moveLabel(labelSvg, pos.x, pos.y, peerPos.x, peerPos.y);
+
+			if (labelSvg) {
+				labelSvg.setAttribute("x", (pos.x *2 + peerPos.x) /3);
+				labelSvg.setAttribute("y", (pos.y *2 + peerPos.y) /3);
+			}
 		}
-		else {
-			labelSvg = undefined;
-		}
+
 		// peer가 먼저 svg 만들었다면 공유
 		if (window.linkData[peerID]) {
 			link = linkData[peerID][id];
@@ -425,6 +427,15 @@ function addLine(id, pos) {
 			lineSvg.setAttribute("x2", peerPos.x);
 			lineSvg.setAttribute("y2", peerPos.y);
 			
+			if (port && port.option) {
+				lineSvg.setAttribute("stroke-width", port.option.width);
+				lineSvg.setAttribute("stroke", port.option.color);
+			}
+			else {
+				lineSvg.setAttribute("stroke-width", LINE_WIDTH);
+				lineSvg.setAttribute("stroke", LINE_COLOR);
+			}
+
 			link = {
 				peer1: id,
 				name: labelSvg,
@@ -542,6 +553,9 @@ var svgNS = "http://www.w3.org/2000/svg",
 	ICON_SIZE = 40,
 	OFFSET_C = ICON_SIZE * Math.sin(Math.PI /4),
 	OFFSET_R = OFFSET_C - ICON_SIZE /2;
+
+const LINE_COLOR = "#d4af37",
+	LINE_WIDTH = 2;
 
 var posData = top.getDB("position"),
 	mapCanvas = document.getElementById("map"),

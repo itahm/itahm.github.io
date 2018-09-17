@@ -175,7 +175,6 @@ if (top === window) {
 }
 
 var iFrame = document.querySelector("iframe"),
-	date = document.getElementById("date"),
 	list = document.getElementById("list"),
 	today = new Date().setHours(0, 0, 0, 0);
 
@@ -184,8 +183,6 @@ top.clearLog();
 new ITAhM.Calendar("calendar", function (date) {
 	sendRequest(date.getTime());
 });
-
-date.textContent = getDateString(today);
 
 sendRequest(today);
 
@@ -202,26 +199,28 @@ function sendRequest(mills) {
 		extra: "log",
 		date: mills
 	}, function (data) {
-		var df = document.createDocumentFragment(),
-			indexArray = Object.keys(data);
-			count = indexArray.length;
-		
-		indexArray = indexArray.sort(function (a, b) {
-			return parseInt(a) - parseInt(b);
-		});
-		
-		for (var i=0; i<count; i++) {
-			df.appendChild(createItem(data[indexArray[i]]));
+		if (data) {
+			var df = document.createDocumentFragment(),
+				indexArray = Object.keys(data);
+				count = indexArray.length;
+			
+			indexArray = indexArray.sort(function (a, b) {
+				return parseInt(a) - parseInt(b);
+			});
+			
+			for (var i=0; i<count; i++) {
+				df.appendChild(createItem(data[indexArray[i]]));
+			}
+			
+			window.list.appendChild(df);
+			
+			list.scrollTop = list.scrollHeight;		
 		}
-		
-		window.list.appendChild(df);
-		
-		list.scrollTop = list.scrollHeight;
-		
+
 		document.getElementById("count").textContent = count;
-		
-		date.textContent = getDateString(mills);
-		
+
+		document.getElementById("date").textContent = getDateString(mills);
+
 		document.body.classList.remove("loading");
 	});
 }

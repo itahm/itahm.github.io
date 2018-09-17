@@ -45,13 +45,14 @@ function onSignin(status) {
 		window.location.href = "http://itahm.com"; 
 	}
 }
+
 postRequest({
 	command: "signin",
 	username: "guest1",
 	password: "15dac3875ad0f994a832043be841dc7e"
-	}, function () {
-		setTimeout(onSignin.bind(undefined, this.status), 1000);
-	}, 10000);
+}, function () {
+	setTimeout(onSignin.bind(undefined, this.status), 1000);
+}, 10000);
 
 		</script>
 	

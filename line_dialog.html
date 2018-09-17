@@ -45,17 +45,35 @@ input[type="checkbox"] {
 	position: relative;
 	padding: 10px;
 	box-sizing: border-box;
-	width: 160px;
+	width: 180px;
 }
 
-.fill_box {
-	width: 100%;
-	box-sizing: border-box;
+.layout_bottom {
+	display: flex;
+	align-items: center;
+}
+
+.layout_bottom >input {
+	width: 2em;
+	vertical-align: middle;
+}
+
+.layout_bottom >div {
+	flex: 1;
+}
+
+.layout_bottom >div >select {
 	padding: .5em;
+	box-sizing: border-box;
+	width: 100%;
 }
 
 .name {
 	overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+input[name=option]:not(:checked) ~ul {
+	display: none;
 }
 
 footer {
@@ -99,17 +117,29 @@ body:not(.removable) .remove{
 function onApply(e) {
 	e.preventDefault();
 
-	top.databases.position[window.id].ifEntry[window.peerID]
-		= window.peerLeft.disabled? null: {
-			index: window.peerLeft.value,
-			name: window.peerLeft.options[window.peerLeft.selectedIndex].text
-		};
-	
-	top.databases.position[window.peerID].ifEntry[window.id]
-		= window.peerRight.disabled? null: {
-			index: window.peerRight.value,
-			name: window.peerRight.options[window.peerRight.selectedIndex].text
-		};
+	const left = {},
+		right = {};
+
+	if (this.elements["option"].checked) {
+		left.option = {};
+		right.option = {};
+
+		left.option.color = right.option.color = this.elements["color"].value;
+		left.option.width = right.option.width = this.elements["width"].value;
+	}
+
+	if (!window.lSelect.disabled) {
+		left.index = window.lSelect.value;
+		left.name = window.lSelect.options[window.lSelect.selectedIndex].text;
+	}
+
+	if (!window.rSelect.disabled) {
+		right.index = window.rSelect.value;
+		right.name = window.rSelect.options[window.rSelect.selectedIndex].text;
+	}
+
+	top.databases.position[window.id].ifEntry[window.peerID] = left;
+	top.databases.position[window.peerID].ifEntry[window.id] = right;
 	
 	window.opener.reload();
 	
@@ -156,12 +186,10 @@ function initPort(e, ifEntry) {
 	if (count > 0) {
 		e.appendChild(df);
 		e.selectedIndex = -1;
-		
-		e.disabled = false;
 	}
 }
 
-function setPort(device, id, peerID, e1, e2, box, selectBox) {
+function setPort(device, id, peerID, e1, e2, box, check, select) {
 	const monitorData = top.databases.monitor;
 	
 	e1.textContent = device.ip;
@@ -173,20 +201,40 @@ function setPort(device, id, peerID, e1, e2, box, selectBox) {
 		top.sendRequest({
 			command: "select",
 			ip: device.ip
-		}, function (data) {
-			const ifEntry = top.databases.position[id].ifEntry;
-			
-			initPort(selectBox, data.ifEntry);
-			
-			if (ifEntry[peerID]) {
-				selectBox.value = ifEntry[peerID].index;
-			}
+		}, function (node) {
+			if (node) {
+				const ifEntry = top.databases.position[id].ifEntry;
 				
+				initPort(select, node.ifEntry);
+				
+				if (ifEntry[peerID]) {
+					select.value = ifEntry[peerID].index;
+				}
+				
+				select.disabled = false;
+				check.checked = true;
+			}
+
 			box.classList.remove("loading");
 		});
 	}
+
+	check.onclick = function () {
+		if (this.checked) {
+			if (select.length > 0) {
+				select.disabled = false;
+			}
+			else {
+				this.checked = false;
+			}
+		}
+		else {
+			select.disabled = true;
+		}
+	};
 }
 
+// public
 function initialize(id, peerID) {
 	var device;
 	
@@ -198,16 +246,33 @@ function initialize(id, peerID) {
 		document.getElementById("ip"),
 		document.getElementById("name"),
 		document.querySelector(".layout_box.left"),
-		window.peerLeft);
+		window.lCheck,
+		window.lSelect);
 	
 	setPort(top.getDB("device", peerID), peerID, id,
-			document.getElementById("peer_ip"),
-			document.getElementById("peer_name"),
-			document.querySelector(".layout_box.right"),
-			window.peerRight);
-	
-	if (peerID in top.databases.position[id].ifEntry) {
+		document.getElementById("peer_ip"),
+		document.getElementById("peer_name"),
+		document.querySelector(".layout_box.right"),
+		window.rCheck,
+		window.rSelect);
+
+	const ifEntry = top.databases.position[id].ifEntry;
+
+	if (ifEntry && peerID in ifEntry) {
 		document.body.classList.add("removable");
+
+		const data = ifEntry[peerID];
+
+		if (data) {
+			const option = data.option;
+
+			if (option) {
+				document.getElementById("option").checked = true;
+
+				window.form.elements["color"].value = option.color;
+				window.form.elements["width"].value = option.width;
+			}
+		}		
 	}
 }
 
@@ -225,7 +290,13 @@ function initialize(id, peerID) {
 							<h3 id="name" class="name"></h3>
 							<i id="ip"></i>
 						</div>
-						<select class="fill_box" id="left" required disabled></select>
+						<div class="layout_bottom">
+							<input type="checkbox" id="left_check">
+							<div>
+								<select id="left_select" required disabled></select>
+							</div>
+							
+						</div>
 						<div class="loading_mask"></div>
 					</div>
 					<div class="layout_box right">
@@ -233,10 +304,27 @@ function initialize(id, peerID) {
 							<h3 id="peer_name" class="name"></h3>
 							<i id="peer_ip"></i>
 						</div>
-						<select class="fill_box" id="right" required disabled></select>
+						<div class="layout_bottom">
+							<input type="checkbox"  id="right_check">
+							<div>
+								<select id="right_select" required disabled></select>
+							</div>
+						</div>
 						<div class="loading_mask"></div>
 					</div>
 				</div>
+				
+				<input type="checkbox" name="option" id="option">
+				<label for="option">고급</label>
+				<ul>
+					<li>
+						색상: <input type="color" name="color" value="#a17f1a">
+					</li>
+					<li>
+						굵기: <input type="number" name="width" value="1">
+					</li>
+				</ul>
+				<br>
 				<label class="remove"><input type="checkbox" name="remove" disabled>remove</label>
 				<footer>
 					<input type="reset" value="cancel">
@@ -247,8 +335,10 @@ function initialize(id, peerID) {
 		<script>
 
 var form = document.querySelector("form"),
-	peerLeft = document.getElementById("left"),
-	peerRight = document.getElementById("right");
+	lCheck = document.getElementById("left_check"),
+	rCheck = document.getElementById("right_check"),
+	lSelect = document.getElementById("left_select"),
+	rSelect = document.getElementById("right_select");
 	
 form.onreset = onCancel;
 
@@ -258,7 +348,6 @@ if (top.databases.local.level === 0) {
 	form.elements["remove"].disabled = false;
 	document.querySelector("input[type=submit]").disabled = false;
 }
-
 		</script>
 	
 	</body>
