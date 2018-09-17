@@ -497,7 +497,7 @@ function addLine(id, pos) {
 			if (typeof(port) === typeof({})) {
 				if ("name" in port && "index" in port) {
 					labelSvg = document.createElementNS(SVG_NS, "text");
-					
+
 					labelSvg.textContent = port.name;
 
 					labelSvg.onclick = top.showStatus.bind(undefined, id, "throughput", port.index);
@@ -547,7 +547,7 @@ function addLine(id, pos) {
 		}
 		
 		// label이 선보다 위에 그려지도록 나중에 붙여줌
-		if (port) {
+		if (labelSvg) {
 			lineCanvas.appendChild(labelSvg);
 		}
 		
