@@ -191,7 +191,7 @@ function initialize(from, to, start, end, index) {
 			start: from,
 			end: to
 		};
-	console.log(index, new Date(from).toLocaleString(), new Date(to).toLocaleString())
+	
 	window.detailRequest.index = index;
 	window.start = start;
 	window.end = end;
@@ -224,12 +224,8 @@ function initialize(from, to, start, end, index) {
 	window.form.elements["reset"].onclick = onResetIFSpeed.bind(undefined, index);
 	window.form.onsubmit = onSetIFSpeed.bind(window.form, index);
 }
-function f(data) {
-	for (let date in data) {
-		console.log(new Date(parseInt(date)).toLocaleString(), date);
-	}
-}
-function onSummaryInResponse(data) {f(data);
+
+function onSummaryInResponse(data) {
 	const summaryData = new ITAhM.ChartSummaryData(data);
 	
 	window.summaryInData = summaryData.data;

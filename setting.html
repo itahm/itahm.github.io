@@ -824,6 +824,12 @@ function initialize() {
 			</div>
 		</form>
 		
+		<h2>고객 지원</h2>
+		<form class="box" id="support">
+			<input type="text" name="url" placeholder="company/service.html">
+			<input type="submit" value="이동">
+		</form>
+
 		<h2>개발자 도구</h2>
 		<form class="box" id="debug">
 			<input type="password" name="password">
@@ -1249,6 +1255,12 @@ document.getElementById("debug").onsubmit = function (e) {
 		document.body.classList.add("debug");
 	}
 };
+
+(function(form) {
+	form.onsubmit = function () {
+		window.open("/"+ form.elements["url"].value);
+	};
+}) (document.getElementById("support"));
 
 initialize();
 
