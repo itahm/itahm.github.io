@@ -416,23 +416,30 @@ function addLine(id, pos) {
 		
 		port = ifEntry[peerID];
 		
-		if (port) {
-			labelSvg = document.createElementNS(svgNS, "text");
-			
-			if (typeof(port) === typeof({}) && "name" in port && "index" in port) {
-				labelSvg.textContent = port.name;
+		labelSvg = undefined;
 
-				labelSvg.onclick = top.showStatus.bind(undefined, id, "throughput", port.index);
+		if (port) {
+			if (typeof(port) === typeof({})) {
+				if ("name" in port && "index" in port) {
+					labelSvg = document.createElementNS(svgNS, "text");
+				
+					labelSvg.textContent = port.name;
+
+					labelSvg.onclick = top.showStatus.bind(undefined, id, "throughput", port.index);
+				}
 			}
-			else {
+			else if (typeof(port) === typeof("")) {
+				labelSvg = document.createElementNS(svgNS, "text");
+
 				labelSvg.textContent = port;
 			}
-			
-			moveLabel(labelSvg, pos.x, pos.y, peerPos.x, peerPos.y);
+
+			if (labelSvg) {
+				labelSvg.setAttribute("x", (pos.x *2 + peerPos.x) /3);
+				labelSvg.setAttribute("y", (pos.y *2 + peerPos.y) /3);
+			}
 		}
-		else {
-			labelSvg = undefined;
-		}
+		
 		// peer가 먼저 svg 만들었다면 공유
 		if (window.linkData[peerID]) {
 			link = linkData[peerID][id];

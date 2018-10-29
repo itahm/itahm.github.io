@@ -358,7 +358,7 @@ function initialize() {
 			}
 		}
 		else {
-			map.src = "/map_dashboard_blink.html";
+			map.src = "/map_dashboard.html";
 		}
 	}) (document.getElementById("map"), top.getDB("config"));
 	
@@ -667,7 +667,6 @@ function hasClass(e, className) {
 var configData = top.databases.config,
 	summaryList = document.getElementById("summary_list"),
 	eventList = document.getElementById("event_list"),
-	topList = {},
 	article = document.querySelector("article"),
 	alert = document.getElementById("alert"),
 	critical = document.getElementById("critical"),
@@ -753,7 +752,7 @@ document.getElementById("edit").onclick = function () {
 		if (running) {
 			return;
 		}
-			
+		
 		running = true;
 	
 		requestAnimationFrame(function(timestamp) {
