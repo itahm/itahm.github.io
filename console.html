@@ -701,6 +701,10 @@ function onEvent(e) {
 
 			case "warning":
 				break;
+				
+			case "exception":
+				console.log(event.message);
+				break;
 			}
 
 			window.log.textContent = getDeviceName(event.ip) + event.message;
