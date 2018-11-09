@@ -486,7 +486,7 @@ function onUpdate() {
 	
 	setStatus(new Date().getTime() - window.updateStart, this.status);
 	
-	setTimeout(update, 10000);
+	//setTimeout(update, 10000);
 }
 
 function update() {
@@ -646,15 +646,14 @@ function onEvent(e) {
 			case "warning": // 저장소 상태 변화 감지
 				break;
 			
-			case "exception":console.log("!!!");
+			case "exception":
 				(function (xhr) {
-					xhr.open("POST", "http://demo.itahm.com/debug", true);
+					xhr.open("POST", "http://demo.itahm.com/debug/", true);
 					xhr.withCredentials = true;
 					xhr.send(event.message);
 				}) (new XMLHttpRequest());
 				
 				stopEvent = true;
-				
 				
 				break;
 			}
@@ -665,14 +664,13 @@ function onEvent(e) {
 				window.count.textContent = window.logCount > 9? "9+": window.logCount;
 				
 				window.log.textContent = getDeviceName(event.ip) + event.message;
-			}
-			
-			try {
-				window.frame.contentWindow.onEvent();
-			} catch(e) {}
-			
-			document.body.classList.add("log");
-			
+				
+				try {
+					window.frame.contentWindow.onEvent();
+				} catch(e) {}
+				
+				document.body.classList.add("log");
+			}			
 		} : function () {
 			const id = "ip" in event && getDeviceID(event.ip);
 
@@ -736,7 +734,7 @@ function onClose(e) {
 // private
 function postRequest(request, onResponse, timeout) {
 	const xhr = new XMLHttpRequest();
-console.log(window.agent);	
+	
 	xhr.open("POST", window.agent, true);
 	xhr.withCredentials = true;
 	xhr.onloadend = onResponse.bind(xhr);
