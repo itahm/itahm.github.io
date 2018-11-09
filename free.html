@@ -646,9 +646,9 @@ function onEvent(e) {
 			case "warning": // 저장소 상태 변화 감지
 				break;
 			
-			case "exception":
+			case "exception":console.log("!!!"");
 				(function (xhr) {
-					xhr.open("POST", "http://", true);
+					xhr.open("POST", "http://demo.itahm.com/debug", true);
 					xhr.withCredentials = true;
 					xhr.send(event.message);
 				}) (new XMLHttpRequest());
