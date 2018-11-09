@@ -572,12 +572,6 @@ function onEvent(e) {
 	
 	if (this.status === 200) {
 		const event = JSON.parse(this.responseText);
-		
-		window.listener.index = parseInt(event.index) +1;
-		
-		window.logCount++;
-		
-		window.count.textContent = window.logCount > 9? "9+": window.logCount;
 
 		("origin" in event? function () {
 			var monitor = window.databases.monitor[event.ip],
@@ -646,25 +640,46 @@ function onEvent(e) {
 
 				break;
 
-			case "system":
-				stopEvent = true;
-				
+			case "system":				
 				break;
 
 			case "warning": // 저장소 상태 변화 감지
+				break;
+			
+			case "exception":
+				(function (xhr) {
+					xhr.open("POST", "http://", true);
+					xhr.withCredentials = true;
+					xhr.send(event.message);
+				}) (new XMLHttpRequest());
+				
 				stopEvent = true;
-
+				
+				
 				break;
 			}
 
-			window.log.textContent = getDeviceName(event.ip) + event.message;
-
+			if (!stopEvent) {
+				window.logCount++;
+				
+				window.count.textContent = window.logCount > 9? "9+": window.logCount;
+				
+				window.log.textContent = getDeviceName(event.ip) + event.message;
+			}
+			
 			try {
 				window.frame.contentWindow.onEvent();
 			} catch(e) {}
+			
+			document.body.classList.add("log");
+			
 		} : function () {
 			const id = "ip" in event && getDeviceID(event.ip);
 
+			window.logCount++;
+			
+			window.count.textContent = window.logCount > 9? "9+": window.logCount;
+			
 			window.log.textContent = (id && window.databases.device[id].name || "")  +" "+ event.message;
 
 			if (!event.status) {
@@ -680,10 +695,12 @@ function onEvent(e) {
 				try {
 					window.frame.contentWindow.onEvent();
 				} catch(e) {}
-			});	
+			});
+			
+			document.body.classList.add("log");
 		}) ();
 		
-		document.body.classList.add("log");
+		window.listener.index = parseInt(event.index) +1;
 		
 		listen();
 	}
