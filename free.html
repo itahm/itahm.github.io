@@ -773,6 +773,11 @@ function sendRequest(request, onResponse, custom) {
 	xhr.send(JSON.stringify(request));
 }
 
+function test() {
+	sendRequest({
+		command: "debug"
+	}, function () {});
+}
 		</script>
 	</head>
 	
@@ -788,6 +793,7 @@ function sendRequest(request, onResponse, custom) {
 						<li><h1><a href="/dashboard.html" target="main">대시보드</a></h1>
 						<li><h1><a href="list.html" target="main">장비목록</a></h1>
 						<li><h1><a href="event.html" target="main">이벤트</a></h1>
+						<li><h1><a onclick="test()">테스트</a></h1>
 					</ul>
 					<ul></ul>
 				</nav>
