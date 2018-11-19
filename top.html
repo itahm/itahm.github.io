@@ -180,7 +180,7 @@ function initialize() {
 }
 
 function toErrorString(value) {
-	return (value /10).toFixed(0);
+	return value;
 }
 
 function toMillsString(value) {
@@ -229,8 +229,7 @@ function setTop(topData, section) {
 	const
 		skipZero = section.dataset.zero,
 		sortByRate = section.dataset.rate,
-		toString = section.dataset.func,
-		resource = section.dataset.resource,
+		toString = window[section.dataset.func],
 		list = Object.keys(topData).sort(function (a, b) {
 			if (sortByRate) {
 				return topData[b].rate - topData[a].rate;
@@ -246,12 +245,15 @@ function setTop(topData, section) {
 		value = topData[ip];
 		
 		if (value.value || !skipZero) {
-			section.appendChild(createTopItem(ip, window[toString](value.value), value.rate, resource, value.index));
+			section.appendChild(createTopItem(ip, toString(value.value), value.rate, section.id, value.index));
 		}
 	}
 }
 
 function createTopItem(ip, value, rate, resource, index) {
+	if (resource == "throughputErr") {
+			console.log(ip, value, rate, index);
+		}
 	var item = document.createElement("ul"),
 		id = top.getDeviceID(ip),
 		bar;
@@ -284,7 +286,7 @@ function createTopItem(ip, value, rate, resource, index) {
 	
 	bar.onclick = function (e) {
 		e.stopPropagation();
-		
+		console.log(resource);
 		top.showStatus(id, resource, index);
 	}
 	
