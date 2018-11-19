@@ -251,9 +251,6 @@ function setTop(topData, section) {
 }
 
 function createTopItem(ip, value, rate, resource, index) {
-	if (resource == "throughputErr") {
-			console.log(ip, value, rate, index);
-		}
 	var item = document.createElement("ul"),
 		id = top.getDeviceID(ip),
 		bar;
@@ -286,7 +283,7 @@ function createTopItem(ip, value, rate, resource, index) {
 	
 	bar.onclick = function (e) {
 		e.stopPropagation();
-		console.log(resource);
+		
 		top.showStatus(id, resource, index);
 	}
 	
