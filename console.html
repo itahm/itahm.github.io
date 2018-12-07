@@ -393,6 +393,27 @@ function clearLog() {
 	document.body.classList.remove("log");
 }
 
+function getMessage(status) {
+	switch(status) {
+	case 401:	
+		return "세션이 만료되었습니다.";
+	
+		break;
+	case 409:		
+		return "다른 관리자 계정이 데이터베이스를 수정하였습니다.\n"
+			+"콘솔을 다시 시작합니다.";
+		
+	case 400:
+		return "잘못된 요청입니다.";
+		
+	case 503:
+		return "서버가 올바르게 동작하지 않습니다.";
+		
+	default:
+		return "에이전트가 응답하지 않습니다.";
+	}
+}
+
 function notice(status, message) {
 	message = "\n"+ (message || "");
 
@@ -661,6 +682,14 @@ function onEvent(e) {
 
 				break;
 
+			case "monitor":
+
+				if (!event.monitor) {
+					window.sound.play();
+				}
+
+				break;
+
 			case "test":
 				if (event.test) {
 					monitor = {
@@ -704,6 +733,7 @@ function onEvent(e) {
 				
 			case "exception":
 				console.log(event.message);
+				
 				break;
 			}
 
@@ -762,7 +792,7 @@ function initialize (account) {
 
 	putDB("local", "level", account.level);
 	
-	sendInitRequest("config", ["gcm", "sms", , "icon", "profile", "account", "device", "position", "monitor", "critical"]);
+	sendInitRequest("config", ["gcm", "sms", , "icon", "profile", "account", "device", "position", "monitor", "critical", "smtp"]);
 }
 
 function onClose(e) {
@@ -998,12 +1028,9 @@ function cancel() {
 				</form>
 				<h1>
 					<a href="/">
-						<img width="64" height="64" src="img/favicon.png">
+						<img width="64" height="64" src="/img/favicon.png">
 					</a>
 				</h1>
-				<p>
-					이전 버전의 connect 사용을 원하시는 경우 <a href="connect.html">이동</a>
-				</p>
 			</div>
 		</article>
 		

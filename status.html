@@ -40,14 +40,18 @@ nav img {
 
 section {
 	padding: 5px; margin: 5px;
-	border: 3px solid #0084ff;
+	/*border: 3px solid #0084ff;*/
 	border-radius: 5px;
 	background-color: #424242;
 }
 
-section:hover:not(.readonly) {
-	border-color: #ddd;
-	border-style: dotted;
+section.resource:hover {
+	outline:3px dotted #ddd;
+}
+
+section.processor:hover,
+section.memory:hover,
+section.response_time {
 	cursor: pointer;
 }
 
@@ -266,16 +270,15 @@ interface, storage 공통
 	margin: 3px 0;
 }
 
-.item >li,
-.title >li {
-	flex: 1;
-}
-
 .item >li {
-	padding: 3px;
+	padding: 3px 0.5em;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
+}
+
+.item >li.right {
+	text-align: right;
 }
 
 .item >li.bar {
@@ -308,15 +311,19 @@ interface, storage 공통
 }
 
 .title {
+	padding: 0.5em 0;
 	border-bottom: 1px solid #ddd;
 	margin-bottom: 3px;
 }
 
 .title >li {
-	flex: 1;
-	font-weight: bold;
-	padding: 0.5em;
 	text-align: center;
+	font-weight: bold;
+	margin: 0.5em 0;
+}
+
+.title >li:not(:last-of-type) {
+	border-right: 1px solid #555;
 }
 
 .item >li.bar::after {
@@ -333,25 +340,57 @@ interface, storage 공통
 /*
 interface
 */
-.i_face.item li:last-child {
-	display: flex;
+
+.throughput >li {
+	box-sizing: border-box;
+	flex: 1;
 }
 
-.i_face.item >li:first-child {
-	flex: .2;
+.throughput >li.status {
+	flex: none;
+	width: 3em;
+}
+
+.throughput >li.monitor {
+	flex: none;
+	padding: 0;
+}
+
+.throughput >li.bandwidth {
+	flex: none;
+	width: 9em;
+}
+
+.throughput >li.error {
+	flex: none;
+	width: 3em;
+}
+
+.throughput.title >li.fixed {
+	flex: none;
+	width: 25em;
+}
+
+.throughput.item >li.fixed {
+	flex: none;
+	width: 9em;
+}
+
+.throughput.item >li.bar {
+	flex: none;
+	width: 16em;
+}
+
+.throughput.item >li.status {
 	position: relative;
 	overflow: visible;
 }
 
-.i_face.item:not(.no_select) li:last-child:hover {
+.throughput.item:not(.no_select) li:last-child:hover {
 	background-color: #555;
 }
 
-.i_face.item >li:last-child div{
-	flex: 1;
-}
-
-.i_face.item >li:first-child::after {
+.throughput.item >li.status::after {
 	content: "";
 	position: absolute; top: 50%; left: 50%;
 	display: inline-block;
@@ -361,53 +400,44 @@ interface
 	background-color: #0f0;
 }
 
-.i_face.item.critical li:first-child::after {
+.throughput.item.critical li.status::after {
 	background-color: #ffa500; 
 }
 
-.i_face.item.shutdown li:first-child::after {
+.throughput.item.shutdown li.status::after {
 	background-color: #f00; 
 }
 
-.i_face.item.disabled li:first-child::after {
+.throughput.item.disabled li.status::after {
 	background-color: #ddd; 
 }
 
-.i_face.item.disabled {
+.throughput.item.disabled {
 	color: #aaa;
-}
-
-.title.throughput >li:nth-child(1),
-#i_face li:nth-child(1) {
-	flex: none;
-	width: 2em;
-}
-
-.title.throughput >li:nth-child(6),
-.title.throughput >li:nth-child(7) {
-	flex: 2;
 }
 
 /*
 storage
 */
-ul.storage >li {
+.storage >li {
+	box-sizing: border-box;
 	flex: 1;
 }
 
-ul.storage >li:nth-of-type(1) {
+.storage >li.status {
 	flex: none;
-	width: 2em;
+	width: 3em;
 	position: relative;
 	overflow: visible;
 }
 
-ul.storage >:nth-of-type(2),
-ul.storage >:nth-of-type(5) {
-	flex: 2;
+.storage >li.size,
+.storage >li.fixed {
+	flex: none;
+	width: 9em;
 }
 
-ul.storage.item >li:nth-of-type(1)::after {
+.storage.item >li.status::after {
 	content: "";
 	position: absolute; top: 50%; left: 50%;
 	display: inline-block;
@@ -417,7 +447,7 @@ ul.storage.item >li:nth-of-type(1)::after {
 	background-color: #0f0;
 }
 
-ul.storage.item.critical >li:nth-of-type(1)::after {
+ul.storage.item.critical >li.status::after {
 	background-color: #ffa500;
 }
 /**/
@@ -427,7 +457,7 @@ ul.storage.item.critical >li:nth-of-type(1)::after {
 }
 
 .storage.item:hover,
-.i_face.item:not(.no_select):hover {
+.throughput.item:not(.no_select):hover {
 	outline: solid 3px #0084ff;
 	cursor: pointer;
 }
@@ -471,10 +501,19 @@ section.information li:first-child {
 	content: "정상 ";
 }
 
-label.filter {
+label.filter,
+#set_monitor {
 	float: right;
 	font-weight: normal;
 	font-size: 12px;
+}
+
+label.filter {
+	float: right;
+}
+
+#set_monitor {
+	float: left;
 }
 
 div.flex {
@@ -502,11 +541,11 @@ body.shutdown #status::before {
 	content: "응답 없음 ";
 }
 
-body.filter .i_face.item.disabled {
+body.filter .throughput.item.disabled {
 	display: none;
 }
 
-.i_face.item.no_select {
+.throughput.item.no_select {
 	cursor: not-allowed;
 }
 
@@ -572,8 +611,8 @@ body:not(.throughput) section.throughput,
 body:not(.process) section.process,
 body:not(.frame) .frame,
 body.frame article,
-body:not(.debug) .title.throughput >li:nth-of-type(4),
-body:not(.debug) .item.i_face >li:nth-of-type(4) {
+body:not(.debug) .throughput >li.debug,
+.application {
 	display: none;
 }
 
@@ -645,19 +684,19 @@ function createStorageGuage(used, size, label) {
 	
 	return clone;
 }
-	
-function createIFaceGuage(admin, oper, index, name, descr, alias, type, bandwidth, inBPS, outBPS, inErr, outErr) {
-	const clone = iFaceGauge.cloneNode(true),
-		barIn = clone.children[7],
-		barOut = clone.children[8];
+
+function createIFaceItem(admin, oper, index, name, descr, alias, type, bandwidth, monitor, inBPS, outBPS, error) {
+	const item = iFaceItem.cloneNode(true),
+		barIn = item.children[7],
+		barOut = item.children[9];
 	
 	let usageIn, usageOut;
 	
 	if (admin != 1) {
-		clone.classList.add("disabled");
+		item.classList.add("disabled");
 	}
 	else if (oper !== 1) {
-		clone.classList.add("shutdown");
+		item.classList.add("shutdown");
 	}
 	
 	usageIn = 100* inBPS / bandwidth;
@@ -683,36 +722,41 @@ function createIFaceGuage(admin, oper, index, name, descr, alias, type, bandwidt
 	usageIn = usageIn +"%";
 	usageOut = usageOut +"%";
 	
-	clone.children[1].textContent = name;
-	clone.children[2].textContent = alias;
-	clone.children[3].textContent = type + "("+ ITAhM.snmp.ifType[type] +")";
-	clone.children[4].textContent = ITAhM.util.toBPSString(bandwidth);
-	clone.children[5].textContent = ITAhM.util.toBPSString(inBPS);
-	clone.children[6].textContent = ITAhM.util.toBPSString(outBPS);
+	item.dataset.index = index;
+
+	item.children[1].children[0].checked = monitor? true: false;
+	item.children[2].textContent = name;
+	item.children[3].textContent = alias;
+	item.children[4].textContent = type + "("+ ITAhM.snmp.ifType[type] +")";
+	item.children[5].textContent = ITAhM.util.toBPSString(bandwidth);
+	item.children[6].textContent = ITAhM.util.toBPSString(inBPS);
+	item.children[8].textContent = ITAhM.util.toBPSString(outBPS);
 	barIn.dataset.value = usageIn; 
 	barOut.dataset.value = usageOut;
-	clone.children[9].children[0].textContent = Math.round(inErr /10);
-	clone.children[9].children[1].textContent = Math.round(outErr /10);
-	
+	item.children[10].textContent = error;
 	barIn.children[0].style.width = usageIn;
 	barOut.children[0].style.width = usageOut;
 	
-	clone.title = descr;
+	item.title = descr;
 	
 	if (bandwidth > 0) {
-		clone.onclick = onSelectResource.bind(window, "throughput", index);
+		item.onclick = function (index, e) {
+			if (e.target.nodeName.toUpperCase() !== "INPUT") {
+				onSelectResource("throughput", index);
+			}
+		}.bind(window, index);
 		
-		clone.children[9].onclick = function (index, e) {
+		item.children[9].onclick = function (index, e) {
 			onSelectResource("error", index);
 			
 			e.stopPropagation();
 		}.bind(undefined, index);
 	}
 	else {
-		clone.classList.add("no_select");
+		item.classList.add("no_select");
 	}
 	
-	return clone;
+	return item;
 }
 
 function initialize() {
@@ -886,7 +930,7 @@ function initMemory(memory, index, critical) {
 
 function initIFace(iFace, index, ifSpeed, critical) {
 	const item = interfaceArea.appendChild(
-		createIFaceGuage(
+		createIFaceItem(
 			iFace.ifAdminStatus,
 			iFace.ifOperStatus,
 			index,
@@ -895,10 +939,11 @@ function initIFace(iFace, index, ifSpeed, critical) {
 			iFace.ifAlias,
 			iFace.ifType,
 			ifSpeed || iFace.ifHighSpeed || iFace.ifSpeed,
+			iFace.monitor,
 			iFace.ifInBPS || 0,
 			iFace.ifOutBPS || 0,
-			iFace.ifInErrors || 0,
-			iFace.ifOutErrors || 0));
+			(iFace.ifInErrors || 0) + (iFace.ifOutErrors || 0)
+			));
 	
 	if (critical && critical[index] && critical[index].critical) {
 		item.classList.add("critical");
@@ -951,7 +996,7 @@ function setIFSpeed(f, index, speed) {
 		
 		<article>
 		
-			<section class="information readonly">
+			<section class="information">
 				<ul>
 					<li>장비명
 					<li id="sys_name">
@@ -974,19 +1019,27 @@ function setIFSpeed(f, index, speed) {
 				</ul>
 			</section>
 			
-			<section class="process readonly">
+			<section class="process">
 				<h2>프로세스</h2>
 				<div id="process"></div>
 			</section>
 			
-			<section class="processor">
+			<section class="application resource">
+				<h2>앱 모니터</h2>
+				<div id="application">
+					<img class="" src="/img/app_true.png" width="100" height="100">
+					<img src="/img/app_false.png" width="100" height="100">
+				</div>
+			</section>
+
+			<section class="processor resource">
 				<h2>프로세서 로드</h2>
 				<div>
 					<div id="processor"></div>
 				</div>
 			</section>
 			
-			<section class="memory">
+			<section class="memory resource">
 				<h2>물리적 메모리</h2>
 				<div>
 					<div class="memory bar">
@@ -999,7 +1052,7 @@ function setIFSpeed(f, index, speed) {
 				</div>
 			</section>
 			
-			<section class="response_time">
+			<section class="response_time resource">
 				<h2>응답 속도</h2>
 				<div id="response">
 					<iframe id="realtime_response"></iframe>
@@ -1010,14 +1063,14 @@ function setIFSpeed(f, index, speed) {
 		
 		<article>
 			
-			<section class="storage">
+			<section class="storage resource">
 				<h2>스토리지</h2>
 				<div>
 					<ul class="title storage">
-						<li>상태
-						<li>이름
-						<li>크기
-						<li>사용량
+						<li class="status">상태
+						<li >이름
+						<li class="size">크기
+						<li class="fixed">사용량
 						<li>사용률
 					</ul>
 					<div id="storage" class="tbody">
@@ -1028,41 +1081,28 @@ function setIFSpeed(f, index, speed) {
 		</article>
 		
 		<article>
-			<section class="throughput">
+			<section class="throughput resource">
 				<h2>통신
 					<label class="filter">
 						<input id="filter" type="checkbox" checked>
 						<span>비활성 인터페이스 감추기</span>
 					</label>
+					<input id="set_monitor" type="button" value="모니터 적용" title="선택된 인터페이스의 Up/Down을 모니터링 합니다.">
 				</h2>
 				<div>
 					<ul class="title throughput">
-						<li>상태
+						<li class="status">상태
+						<li class="monitor">
+							<input type="checkbox" id="monitor" title="모니터 전체 선택/해제">
 						<li>이름
 						<li>설명
-						<li>종류
-						<li>대역폭
-						<li>
-							<div>사용량</div>
-							<div class="flex">
-								<span>수신</span>
-								<span>송신</span>
-							</div>
-						<li>
-							<div>사용률</div>
-							<div class="flex">
-								<span>수신</span>
-								<span>송신</span>
-							</div>
-						<li>
-							<div>에러</div>
-							<div class="flex">
-								<span>수신</span>
-								<span>송신</span>
-							</div>
+						<li class="debug">종류
+						<li class="bandwidth">대역폭
+						<li class="input fixed">수신
+						<li class="output fixed">송신
+						<li class="error">에러
 					</ul>
-					<div id="i_face"  class="tbody">
-					</div>
+					<div id="throughput"  class="tbody"></div>
 				</div>
 			</section>
 		</article>
@@ -1098,29 +1138,29 @@ function setIFSpeed(f, index, speed) {
 			</div>
 			
 			<ul class="storage item">
-				<li>
-				<li>
-				<li>
-				<li>
+				<li class="status">
+				<li >
+				<li class="size right">
+				<li class="fixed right">
 				<li class="bar">
 					<div></div>
 			</ul>		
 	
-			<ul class="i_face item">
+			<ul class="throughput item">
+				<li class="status">
+				<li class="monitor">
+					<input type="checkbox">
 				<li>
 				<li>
-				<li>
-				<li>
-				<li>
-				<li>
-				<li>
+				<li class="debug">
+				<li class="bandwidth right">
+				<li class="fixed right">
 				<li class="bar">
 					<div></div>
+				<li  class="fixed right">
 				<li class="bar">
 					<div></div>
-				<li>
-					<div></div>
-					<div></div>
+				<li class="error right">
 			</ul>
 		</div>
 	
@@ -1131,14 +1171,16 @@ function setIFSpeed(f, index, speed) {
 var ip, snmp, ifSpeed,
 	origin = "status",
 	sendRequest = opener.top.sendRequest,
+	postRequest = opener.top.postRequest,
 	showDialog = opener.top.showDialog,
 	databases = opener.top.databases,
+	getMessage = opener.top.getMessage,
 	processorArea = document.getElementById("processor"),
 	storageArea = document.getElementById("storage"),
-	interfaceArea = document.getElementById("i_face"),
+	interfaceArea = document.getElementById("throughput"),
 	gauge = document.querySelector(".gauge"),
 	storageGauge = document.querySelector(".storage.item"),
-	iFaceGauge = document.querySelector(".i_face.item"),
+	iFaceItem = document.querySelector(".throughput.item"),
 	chartFrame = document.getElementById("chart"),
 	rtFrame = document.getElementById("realtime_response");
 
@@ -1160,6 +1202,48 @@ document.querySelector(".frame span").onclick = function () {
 	document.body.classList.remove("frame");;
 };
 
+document.getElementById("monitor").onclick = function (e) {
+	const checked = this.checked;
+
+	[].forEach.call(window.throughput.querySelectorAll("[type=checkbox]"), function (input) {
+		input.checked = checked;
+	});
+};
+
+document.getElementById("set_monitor").onclick = function (e) {
+	const ifMonitor = {};
+
+	[].forEach.call(window.throughput.querySelectorAll("[type=checkbox]"), function (input) {
+		ifMonitor[input.parentNode.parentNode.dataset.index] = input.checked;
+	});
+
+	document.body.classList.add("loading");
+
+	postRequest({
+		command: "extra",
+		extra: "monitor",
+		ip: window.ip,
+		monitor: ifMonitor	
+	}, function () {
+		switch(this.status) {
+		case 200:
+			alert("인터페이스의 모니터 설정 변경 사항을 적용하였습니다.");
+
+			break;
+		default:
+			const message = this.responseText? JSON.parse(this.responseText).error: "";
+
+			if (message) {
+				console.log(message);
+			}
+
+			alert(getMessage(this.status));
+		}
+	
+		document.body.classList.remove("loading");
+	});
+};
+
 (function (device) {
 	window.ip = device.ip;
 	window.device = device;
@@ -1169,7 +1253,7 @@ document.querySelector(".frame span").onclick = function () {
 		ip: device.ip	
 	}, function (snmp) {
 		window.snmp = snmp;
-		
+
 		initialize();
 	});
 })(window.databases.device[window.name]);

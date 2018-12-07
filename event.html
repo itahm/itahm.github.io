@@ -267,6 +267,13 @@ function createItem(log) {
 			}
 
 			break;
+
+		case "monitor":
+			if (!log.monitor) {
+				status = 2;
+			}
+
+			break;
 		}
 	} : function () {
 		//이전 버전

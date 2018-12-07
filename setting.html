@@ -119,6 +119,10 @@ input[name="clean"] {
 	text-align: right;
 }
 
+#email [type=submit] {
+	float: right;
+}
+
 .common> li {
 	margin: .5em 0;
 }
@@ -160,7 +164,8 @@ input[name="clean"] {
 	content: ")";
 }
 
-body:not(.debug) div.debug {
+body:not(.debug) div.debug,
+#sms {
 	display: none;
 }
 
@@ -824,6 +829,37 @@ function initialize() {
 			</div>
 		</form>
 		
+		<form id="email">
+			<h2>
+				메일연동
+				<input type="button" name="add" value="추가" title="알림 추가" class="root">
+			</h2>
+			<div class="box">
+				<input type="submit" value="적용">
+				<p>
+					SMTP 서버:
+					<input type="text" name="server" placeholder="smtp.example.com" required>
+				</p>
+				<p>
+					보안 프로토콜:
+					<select name="protocol" required>
+						<option value="tls" selected>TLS</option>
+						<option value="ssl">SSL</option>
+						<option value="">사용안함</option>
+					</select>
+				</p>
+				<p>
+					계정:
+					<input type="text" name="username" placeholder="홍길동@example.com" required>
+				</p>
+				<p>
+					비밀번호:
+					<input type="password" name="password" placeholder="계정 비밀번호" required>
+				</p>
+				<ul id="smtp_list" class="list"></ul>
+			</div>
+		</form>
+
 		<h2>고객 지원</h2>
 		<form class="box" id="support">
 			<input type="text" name="url" placeholder="company/service.html">
@@ -951,6 +987,77 @@ document.getElementById("interval").onsubmit = function (e) {
 	};
 	
 }) (document.getElementById("animation"));
+
+(function (form) {
+	
+	const smtp = top.getDB("config", "smtp"),
+		elements = form.elements,
+		server = elements["server"],
+		protocol = elements["protocol"],
+		username = elements["username"],
+		password = elements["password"],
+		smtpData = top.getDB("smtp"),
+		df = document.createDocumentFragment();
+		
+	if (smtp) {
+		server.value = smtp.server;
+		protocol.value = smtp.protocol || "";
+		username.value = smtp.username;
+		password.value = smtp.password;
+	}
+
+	for (let user in smtpData) {
+		df.appendChild(createItem("/img/email.png", user, onSelectSMTP));
+	}
+
+	document.getElementById("smtp_list").appendChild(df);
+
+	form.elements["add"].onclick = function () {
+		top.showDialog.call(window, "/smtp_dialog.html");
+	};
+
+	form.onsubmit = function (e) {
+		e.preventDefault();
+
+		const smtp = {
+				server: server.value,
+				protocol: protocol.value? protocol.value: undefined,
+				username: username.value,
+				password: password.value
+			};
+
+		document.body.classList.add("loading");
+
+		top.postRequest({
+			command: "config",
+			key: "smtp",
+			value: smtp
+		}, function () {
+			switch(this.status) {
+			case 200:
+				top.putDB("config", "smtp", smtp);
+				
+				alert("다음과 같이 등록을 성공하였습니다.\n"+ server.value +"\n"+ (protocol.value? protocol.value + "\n": "") + username.value);
+
+				break;
+			case 501:
+				alert("서버 "+ server.value +"에 연결할 수 없습니다.");
+				
+				break;
+
+			default:
+				alert(top.getMessage(this.status));
+			}
+
+			document.body.classList.remove("loading");
+		});
+	};
+
+	function onSelectSMTP(user) {
+		top.showDialog.call(window, "/smtp_dialog.html", user);
+	}
+	
+}) (document.getElementById("email"));
 
 window.sms.onsubmit = function (e) {
 	e.preventDefault();
