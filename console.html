@@ -792,7 +792,8 @@ function initialize (account) {
 
 	putDB("local", "level", account.level);
 	
-	sendInitRequest("config", ["gcm", "sms", , "icon", "profile", "account", "device", "position", "monitor", "critical", "smtp"]);
+	//sendInitRequest("config", ["gcm", "sms", , "icon", "profile", "account", "device", "position", "monitor", "critical", "smtp"]);
+	sendInitRequest("config", ["gcm", "sms", , "icon", "profile", "account", "device", "position", "monitor", "critical"]);
 }
 
 function onClose(e) {
