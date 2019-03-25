@@ -45,7 +45,6 @@ nav {
 
 .title_1_2 h2 {
 	width: 240px;
-	padding: 1em;
 	border: 3px solid #fff;
 	box-sizing: border-box;
 	text-align: center;
@@ -55,6 +54,10 @@ nav {
 	color: #0084ff;
 	background-color: #fff;
 	cursor: pointer;
+}
+
+.title_1_2 a {
+	padding: 1em;
 }
 
 .title_1_2 a:visited,
@@ -424,7 +427,7 @@ function myMap() {
 	<script>
 
 (function (preview) {
-	preview("div").addEventListener("animationiteration", function () {
+	preview.addEventListener("animationiteration", function () {
 		preview.appendChild(preview.firstElementChild);
 	});
 }) (document.querySelector(".preview"));
