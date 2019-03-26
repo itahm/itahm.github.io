@@ -56,7 +56,7 @@ nav {
 	cursor: pointer;
 }
 
-.title_1_2 a {
+.title_1_2 h2 >a {
 	display: block;
 	padding: 1em;
 }
@@ -68,8 +68,22 @@ nav {
 	color: #0084ff;
 }
 
-.title_1_2 a:hover {
+.title_1_2 a[href]:hover {
 	text-decoration: underline;
+}
+
+.download:not(:hover) >div {
+	display: none;
+}
+
+.download >div {
+	background-color: #000;
+	font-size: 16px;
+}
+
+.download a {
+	display: block;
+	padding: 5px;
 }
 
 .target {
@@ -169,25 +183,15 @@ img[src="img/home/preview.png"] {
 	display: flex;
 	justify-content: center;
 	overflow: hidden;
-}
-
-.preview >div {
-	position: relative;
-}
-
-.preview  >div::after {
-	content: "";
-	position: absolute; top: 0; right: 0; bottom: 0; left: 0;
-	background-color: rgba(255, 255, 255, 0.5);
-}
-
-.preview  >div {
 	animation: slide 5s infinite;
 }
-	
-.preview  >div:nth-child(3)::after {
-	background-color: rgba(255, 255, 255, 0);
-	animation: preview 3s;
+
+.preview >img {
+	width: 976px; height: 468px;
+}
+
+.preview >img:not(:first-of-type) {
+	display: none;
 }
 
 .map {
@@ -201,23 +205,14 @@ img[src="img/home/preview.png"] {
 
 @keyframes slide {
 	0% {
-		transform: translateX(100%);
+		opacity: 0;
 	}
-	60% {
-		transform: translateX(0);
+	40% {
+		transform: 1;
 	}
 	100% {
-		transform: translateX(0);
+		transform: 1;
 	}
-}
-
-@keyframes preview {
-	from {
-		background-color: rgba(255, 255, 255, 0.5);
-	}
-	to {
-		background-color: rgba(255, 255, 255, 0);
-	} 
 }
 
 footer {
@@ -263,8 +258,18 @@ footer img {
 						Console
 					</a>
 				</h2>
-				<h2>
-					<a href="http://www.itahm.com/download/ITAhMFree.exe">Free</a>
+				<h2 class="download">
+					<a>
+						Free
+					</a>
+					<div>
+						<a href="http://www.itahm.com/download/ITAhMFree.exe"
+							title="자바가 설치되어 있는 윈도우즈 환경">EXE</a>
+						<a href="http://www.itahm.com/download/ITAhMFree.zip"
+							title="자바가 설치되어 있지 않거나 OpenJDK를 사용하고자 하는 윈도우즈 환경">ZIP</a>
+						<a href="http://www.itahm.com/download/ITAhMFree.jar"
+							title="리눅스 또는 유닉스 환경">JAR</a>
+					</div>
 				</h2>
 			</div>
 		</div>
@@ -335,11 +340,12 @@ footer img {
 	</div>
 	
 	<div class="preview">
-		<div><img src="img/home/home_dashboard.png" width="732"></div>
-		<div><img src="img/home/home_summary.png" width="732"></div>
-		<div><img src="img/home/home_chart.png" width="732"></div>
-		<div><img src="img/home/home_zoom.png" width="732"></div>
-		<div><img src="img/home/home_scrap.png" width="732"></div>
+		<img src="img/home/home_dashboard.png">
+		<img src="img/home/home_summary.png">
+		<img src="img/home/home_chart.png">
+		<img src="img/home/home_zoom.png">
+		<img src="img/home/home_scrap.png">
+		<img src="img/home/home_list.png">
 	</div>
 	
 	<div class="reference">
