@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta http-equiv="Content-Script-Type" content="text/javascript">
+		<meta http-equiv="Content-Style-Type" content="text/css">
+		<title>Top @ ITAhM</title>
+		
+		<style>
+@import "/css/itahm.css";
+
+body {
+	color: #fff;
+}
+
+section:empty {
+	display: none;
+}
+
+section:not(:empty)::before {
+	content: attr(title);
+	display: block;
+	padding: .5em 2em; margin: 0.5em 0;
+	border-radius: 0.5em 0.5em 0 0;
+	font-weight: bold;
+	color: #fff;
+	background-color: #000;
+	text-shadow: 1px 1px 1px #777;
+}
+
+ul {
+	list-style: none;
+	padding: 0; margin: 0;
+}
+
+.list {
+	padding: .5em 1em;
+}
+
+.list_item {
+	font-size: 12px;
+	display: flex;
+	border-bottom: 1px solid #777;
+	cursor: pointer;
+	padding: 1px;
+}
+
+.list_item:hover {
+	background-color: #fff;
+	color: #0084ff;
+	outline: 1px solid #0084ff;
+}
+
+.list_item> li {
+	flex: 1;
+	box-sizing: border-box;
+	overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+	display: flex; align-items: center;
+}
+
+body:not(.name) .list_item> li:nth-child(1),
+body.name .list_item> li:nth-child(2) {
+	display: none;
+}
+
+.list_item> li:last-child {
+	text-align: right;
+	position: relative;
+	padding: 3px;
+	border: 2px solid transparent;
+	border-radius: 3px;
+}
+
+.list_item> li:last-child::after {
+	content: attr(data-value);
+}
+
+.list_item> li:last-child >div {
+	position: absolute; top: 0; bottom: 0; left: 0;
+	z-index: -1;
+	animation: gauge 2s cubic-bezier(0, 1, 1, 1.2);
+}
+
+@keyframes gauge {
+	30% {
+		width: 0%;
+	}
+}
+
+.list_item> li:last-child.red {
+	border-color: #f00;
+}
+
+#list.pastel .list_item> li:last-child.red {
+	border-color: #8e24aa;
+}
+
+.list_item> li:last-child.red >div {
+	background: linear-gradient(to right, rgba(255, 0, 0, 0.5), #f00);
+}
+
+#list.pastel .list_item> li:last-child.red >div {
+	background: linear-gradient(to right, rgba(142, 36, 170, 0.5), #8e24aa);
+}
+
+.list_item> li:last-child.orange {
+	border-color: #ffa500;
+}
+
+#list.pastel .list_item> li:last-child.orange {
+	border-color: #f6bf26;
+}
+
+.list_item> li:last-child.orange >div {
+	background: linear-gradient(to right, rgba(255, 165, 0, 0.5), #ffa500);
+}
+
+#list.pastel .list_item> li:last-child.orange >div {
+	background: linear-gradient(to right, rgba(246, 191, 38, 0.5), #f6bf26);
+}
+
+.list_item> li:last-child.green {
+	border-color: #0f0;
+}
+
+#list.pastel .list_item> li:last-child.green {
+	border-color: #00897b;
+}
+
+.list_item> li:last-child.green >div {
+	background: linear-gradient(to right, rgba(0, 255, 0, 0.5), #0f0);
+}
+
+#list.pastel .list_item> li:last-child.green >div {
+	background: linear-gradient(to right, rgba(0, 137, 123, 0.5), #00897b);
+}
+
+		</style>
+		
+		<script>
+
+function initialize() {
+	const list = document.getElementById("list");
+	
+	if ("color" in top.setting) {
+		list.classList.add(top.setting.color);
+	}
+
+	if ("dashboard" in top.setting) {
+		const df = document.createDocumentFragment();
+
+		top.setting.dashboard.forEach(id => {
+			df.appendChild(document.getElementById(id));
+		});
+
+		[].forEach.call(list.querySelectorAll("section"), section =>{
+			list.removeChild(section);
+		});
+
+		list.appendChild(df);
+	}
+
+	[].forEach.call(list.querySelectorAll("section"), section => {
+		section.draggable = true;
+		
+		section.addEventListener("dragstart", function (e) {
+			e.stopPropagation();
+			
+			window.draggable = this;
+		});
+		
+		section.addEventListener("dragover", function (e) {
+			e.preventDefault();
+			
+			if (window.draggable === this) {
+				return;
+			}
+			
+			switch (window.draggable) {
+			case this.previousElementSibling:
+				this.parentNode.insertBefore(this, window.draggable);
+				
+				break;
+			default:
+				this.parentNode.insertBefore(window.draggable, this);
+			}
+
+			top.setting.dashboard = [];
+
+			[].forEach.call(list.querySelectorAll("section"), section => {
+				top.setting.dashboard.push(section.id);
+			});
+		});
+	});
+}
+
+function toErrorString(value) {
+	return value;
+}
+
+function toMillsString(value) {
+	return value +"ms";
+}
+
+function toPercentageString(value) {
+	return value +"%";
+}
+
+function toBytesString(bytes) {
+	var unit = ["Bytes", "KBytes", "MBytes", "GBytes", "TBytes"];
+	
+	for(var i=0, _i=unit.length -1; i<_i; i++) {
+		if (bytes > 999) {
+			bytes /= 1024;
+		}
+		else {
+			break;
+		}
+	}
+	
+	return bytes.toFixed(2) + unit[i];
+}
+		
+function toBPSString(bandwidth) {
+	if (isNaN(bandwidth)) {
+		return "0bps";
+	}
+	
+	var unit = ["bps", "Kbps", "Mbps", "Gbps", "Tbps"];
+	
+	for(var i=0, _i=unit.length -1; i<_i; i++) {
+		if (bandwidth > 999) {
+			bandwidth /= 1000;
+		}
+		else {
+			break;
+		}
+	}
+	
+	return bandwidth.toFixed(2) + unit[i];
+}
+
+function setTop(topList, section) {
+	if (!section) {
+		return;
+	}
+
+	const
+		skipZero = section.dataset.zero,
+		sortByRate = section.dataset.rate,
+		toString = window[section.dataset.func];
+
+	for (let item; item = section.firstChild;) {
+		section.removeChild(item);
+	}
+
+	topList.forEach(map => {
+		var value;
+
+		for (let id in map) {
+			value = map[id];
+
+			if (value.value || !skipZero) {
+				section.appendChild(createTopItem(id, toString(value.value), value.rate, section.id, value.index));
+			}
+		}
+	});
+}
+
+function createTopItem(id, value, rate, resource, index) {
+	var 
+		base = parent.node[id],
+		item = document.createElement("ul"),
+		bar;
+
+	item.className = "list_item";
+	
+	item.appendChild(document.createElement("li")).textContent = base.name || base.ip || id;
+	item.appendChild(document.createElement("li")).textContent = base.ip;
+	
+	bar = item.appendChild(document.createElement("li"));
+	bar.dataset.value = value;
+			
+	bar.appendChild(document.createElement("div")).style.width = toPercentageString(rate);
+		
+	bar.classList.add(rate > 90? "red": rate > 70? "orange": "green");
+	
+	if (rate > -1) {
+		item.title = toPercentageString(rate);
+	}
+	
+	item.onclick = function () {
+		top.showStatus(id);
+	}
+	
+	bar.onclick = function (e) {
+		e.stopPropagation();
+		
+		top.showStatus(id, resource === "throughputErr"? "error": resource.replace("Rate", ""), index);
+	}
+	
+	return item;
+}
+
+		</script>
+		
+	</head>
+	
+	<body class="name">
+		<div id="list">
+			<section id="responseTime" data-func="toMillsString" title="응답시간"></section>
+			<section id="processor" data-func="toPercentageString" title="프로세서 로드"></section>
+			<section id="memory" data-func="toBytesString" title="메모리 사용량"></section>
+			<section id="memoryRate" data-func="toBytesString" data-rate="true" title="메모리 사용율(%)"></section>
+			<section id="storage" data-func="toBytesString" title="저장공간 사용량"></section>
+			<section id="storageRate" data-func="toBytesString" data-rate="true" title="저장공간 사용율(%)"></section>
+			<section id="throughput" data-func="toBPSString" title="통신 사용량"></section>
+			<section id="throughputRate" data-func="toBPSString" data-rate="true" title="통신 사용율(%)"></section>
+			<section id="throughputErr" data-func="toErrorString" data-zero="true" title="통신 오류"></section>
+		</div>
+		
+		<script>
+
+const INTERVAL = 8000;
+var request = {
+		command: "order",
+		order: "top"
+	},
+	rafID;
+
+if ("display" in top.setting && top.setting.display !== "name") {
+	document.body.classList.remove("name");
+}
+
+if (top.store.parent) {
+	window.request.top = parent.topList;
+}
+
+initialize();
+
+function reload() {
+	top.postRequest(window.request, function () {
+		switch (this.status) {
+		case 200:
+			const map = JSON.parse(this.responseText);
+
+			for (let id in map) {
+				setTop(map[id], document.getElementById(id));
+			}
+
+			break;
+		default:
+			alert(top.getMessage(this.status));
+
+			console.log(this.responseText && JSON.parse(this.responseText).error);
+		}
+	});
+
+	setTimeout(() => {
+		requestAnimationFrame(reload);
+	}, INTERVAL);
+}
+
+reload();
+
+		</script>
+	
+	</body>
+	
+</html>
