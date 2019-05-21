@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <style>
+
+body {
+    position: fixed; top: 0; right: 0; bottom: 0; left: 0;
+    padding: 0; margin: 0;
+    background: url("background.png") no-repeat center center fixed;
+	background-size: cover;
+}
+
+canvas {
+    width: 100%; height: 100%;
+}
+
+			</style>
+      <script src="three.min.js"></script>
+      <script src="OrbitControls.js"></script>
+      <script>
+
+function render() {      
+    const delta = clock.getDelta();
+
+    controls.update();
+    renderer.render(scene, camera);
+    
+    if (window.animation) {
+        var speed = Date.now() * 0.0001;
+    
+        camera.position.x = Math.cos(speed) * 100;
+        camera.position.z = Math.sin(speed) * 100;
+    }
+
+    markerList.forEach(marker => {
+        marker.material[0].opacity =
+        marker.material[1].opacity =
+        marker.material[4].opacity =
+        marker.material[5].opacity = ((marker.material[0].opacity *10 +1) %10) /10;
+    });
+
+    requestAnimationFrame(render);
+}
+
+function onResize() {
+    const size = document.body.getBoundingClientRect();
+    
+    camera.aspect = size.width / size.height;
+    camera.updateProjectionMatrix();
+    
+    renderer.setSize(size.width, size.height);
+}
+
+function createRack() {
+    const texture = loader.load("rack-texture.png");
+
+    texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+    texture.repeat.set(5, 10);
+
+    const
+        rack = new THREE.Group(),
+        sideGeo = new THREE.BoxBufferGeometry(THICK, HEIGHT, DEPTH);
+        planeGeo = new THREE.BoxBufferGeometry(WIDTH + THICK *2, THICK, DEPTH),
+        
+        mat = new THREE.MeshLambertMaterial({
+            color: 0x400080
+        }),
+        sideMat = new THREE.MeshBasicMaterial({
+            map: texture
+        }),
+        right = new THREE.Mesh(sideGeo, [sideMat, mat, mat, mat, mat, mat]),
+        left = new THREE.Mesh(sideGeo, [mat, sideMat, mat, mat, mat, mat]),
+        plane = new THREE.Mesh(planeGeo, mat);
+
+    right.position.set((WIDTH + THICK) /2, HEIGHT /2 + THICK, 0);
+    left.position.set((WIDTH + THICK) /-2, HEIGHT /2 + THICK, 0);
+    plane.position.set(0, THICK /2, 0);
+
+    rack.add(right);
+    rack.add(left);
+    rack.add(plane);
+
+    plane = new THREE.Mesh(planeGeo, mat);
+
+    plane.position.set(0, HEIGHT + THICK, 0);
+
+    rack.add(plane);
+
+    return rack;
+}
+
+function createDevice(front, back, unit) {
+    const
+        device = new THREE.Mesh(
+            new THREE.BoxBufferGeometry(WIDTH, unit, DEPTH),[
+                new THREE.MeshBasicMaterial(),
+                new THREE.MeshBasicMaterial(),
+                new THREE.MeshBasicMaterial(),
+                new THREE.MeshBasicMaterial(),
+                new THREE.MeshBasicMaterial({
+                    map: loader.load(front)
+                }),
+                back? new THREE.MeshBasicMaterial({
+                    map: loader.load(back)
+                }): new THREE.MeshBasicMaterial()]);
+
+    return device;
+}
+
+function putServer(rack, server, pos) {
+    const
+        rBox = new THREE.Box3().setFromObject(rack),
+        rMax = rBox.max,
+        rMin = rBox.min,
+        sBox = new THREE.Box3().setFromObject(server),
+        sMax = sBox.max,
+        sMin = sBox.min;
+
+    server.position.set((rMax.x + rMin.x) /2, rMin.y + THICK + pos + (sMax.y - sMin.y) /2, (rMax.z + rMin.z) /2);
+}
+
+function addFloor() {
+    const
+        texture = loader.load("floor.jpg");
+
+    texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+    texture.repeat.set(50, 50);
+
+    const
+        geo = new THREE.PlaneBufferGeometry(300, 300, 50, 50),
+        floor = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({
+            map: texture
+        })),
+        space = new THREE.Mesh(
+            new THREE.BoxBufferGeometry(300, 300, 300),
+            new THREE.MeshBasicMaterial({
+                //side:THREE.DoubleSide,
+                color: 0xdddddd
+            })
+        );
+    
+    floor.rotation.x = Math.PI /-2;
+    
+    //scene.add(space);
+    scene.add(floor);
+}
+
+function addAlert(mesh) {
+    const
+        box = new THREE.Box3().setFromObject( mesh ),
+        min = box.min,
+        max = box.max,
+        colorMat = new THREE.MeshBasicMaterial({
+            transparent: true,
+            color: new THREE.Color(0xff0000),
+            side:THREE.DoubleSide
+        }),
+        mat = new THREE.MeshBasicMaterial({
+            transparent: true,
+            opacity: 0
+        }),
+        marker = new THREE.Mesh(new THREE.BoxBufferGeometry(WIDTH +2, 1, DEPTH +2),[colorMat, colorMat, mat, mat, colorMat, colorMat]);
+    
+    marker.position.set((min.x + max.x) /2, max.y, (min.z + max.z) /2);
+
+    markerList.push(marker);
+    
+    scene.add(marker);
+}
+
+      </script>
+            
+        </head>
+        
+        <body>
+            
+        <script>
+const
+    WIDTH = 13.5,
+    HEIGHT = 42,
+    DEPTH = 22.5,
+    THICK = 0.5,
+    renderer = new THREE.WebGLRenderer({
+        antialias: true,
+        alpha: true
+    }),
+    scene = new THREE.Scene,
+    size = document.body.getBoundingClientRect(),
+    camera = new THREE.PerspectiveCamera(60, 1, 1, 2000), // 시야각이 클수록 외곡
+    //camera = new THREE.OrthographicCamera(size.width /-2, size.width /2, size.height /2, size.height /-2, 1, 2000),
+    controls = new THREE.OrbitControls(camera),
+    loader = new THREE.TextureLoader(),
+    clock = new THREE.Clock,
+    markerList = [],
+    deviceArray = [
+        {
+            front: "ibm.jpg",
+            back: "828642a-b.jpg",
+            unit: 5
+        },
+        {
+            front: "cisco.png",
+            back: "cisco-b.png",
+            unit: 1
+        },
+        {
+            front: "server.png",
+            unit: 1
+        },
+        {
+            front: "server.png",
+            back: "x3250m4-b.jpg",
+            unit: 1
+        },
+        {
+            front: "cisco.png",
+            back: "cisco-b.png",
+            unit: 1
+        },
+        {
+            front: "pa3060.png",
+            back: "pa3060-b.png",
+            unit: 1
+        },
+        {
+            front: "cisco.png",
+            back: "cisco-b.png",
+            unit: 1
+        },
+        {
+            front: "server.png",
+            back: "x3250m4-b.jpg",
+            unit: 1
+        },
+        {
+            front: "server.png",
+            back: "x3250m4-b.jpg",
+            unit: 1
+        },
+        {
+            front: "cisco.png",
+            back: "cisco-b.png",
+            unit: 1
+        },
+        {
+            front: "x3650m5.jpg",
+            back: "x3650m5-b.jpg",
+            unit: 2
+        }
+    ];
+var
+    animation = true,
+  light = new THREE.DirectionalLight(0xffffff, 1),
+  rack, server;
+
+renderer.setPixelRatio(window.devicePixelRatio);
+
+document.body.appendChild(renderer.domElement);
+
+scene.add(camera);
+
+scene.scale.set(0.5, 0.5, 0.5);
+
+controls.maxPolarAngle = Math.PI /2 -0.1;
+
+light.position.set(1, 1, 1);
+scene.add(light);
+
+camera.position.set(0, 60, 120);
+
+//renderer.setClearColor(new THREE.Color(0xffaa00), 0.5);
+
+window.addEventListener("resize", onResize);
+
+onResize();
+
+addFloor();
+
+for (let row=0, rowMax = 4; row<rowMax; row++) {
+    for (let col=0, colMax=8; col<colMax; col++) {
+        addRack((colMax/2 - col) * 20, (rowMax/2 - row) *50);
+    }
+}
+
+render();
+
+function addRack(x, z) {
+    const rack = createRack();
+
+    rack.position.x = x;
+    rack.position.z = z;
+
+    for (let i=0, height = 42, data, device; i< height;) {
+        data = deviceArray[Math.floor(Math.random() * deviceArray.length)];
+        
+        if (i + data.unit > height) {
+            continue;
+        }
+        
+        device = createDevice(data.front, data.back, data.unit);
+
+        scene.add(device);
+
+        putServer(rack, device, i);
+
+        if (Math.floor(Math.random() * 100) === 0) {
+            addAlert(device);
+        }
+
+        i += data.unit;
+    }
+
+    scene.add(rack);
+}
+
+        </script>
+    </body>
+</html>

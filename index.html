@@ -203,6 +203,16 @@ img[src="img/home/preview.png"] {
 	width: 100%; height: 100%;
 }
 
+iframe.demo {
+	border: none;
+	height: 400px;
+	width: 100%;
+}
+
+p.demo {
+	text-align: center;
+}
+
 @keyframes slide {
 	0% {
 		opacity: 0;
@@ -290,7 +300,14 @@ footer img {
 			<li><h3><a href="img/home/brochure.pdf">Brochure</a></h3>
 		</ul>
 	</div>
-	
+	<iframe class="demo" src="/idc/demo.html"></iframe>
+	<p class="demo">
+		<button id="start_ani">애니메이션 시작</button>
+		<button id="stop_ani">애니메이션 멈춤</button>
+	</p>
+	<p class="demo">
+		3D IDC 솔루션입니다. 드래그 하거나 스크롤 해서 시야를 변경해 보세요.
+	</p>
 	<div class="where intro">
 		<div>
 			<h1>Where?</h1>
@@ -438,6 +455,20 @@ function myMap() {
 		preview.appendChild(preview.firstElementChild);
 	});
 }) (document.querySelector(".preview"));
+
+(function (demo) {
+	demo.onload = e => {
+		document.getElementById("start_ani").onclick = e => {
+			demo.contentWindow.animation = true;
+		};
+
+		document.getElementById("stop_ani").onclick = e => {
+			demo.contentWindow.animation = false;
+		};
+	};
+
+	demo.src = "/idc/demo.html";
+}) (document.querySelector("iframe.demo"));
 
 	</script>
 </body>
