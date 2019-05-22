@@ -34,10 +34,7 @@ function render() {
     }
 
     markerList.forEach(marker => {
-        marker.material[0].opacity =
-        marker.material[1].opacity =
-        marker.material[4].opacity =
-        marker.material[5].opacity = ((marker.material[0].opacity *10 +1) %10) /10;
+        marker.material.opacity = ((marker.material.opacity *10 +1) %10) /10;
     });
 
     requestAnimationFrame(render);
@@ -64,7 +61,7 @@ function createRack() {
         planeGeo = new THREE.BoxBufferGeometry(WIDTH + THICK *2, THICK, DEPTH),
         
         mat = new THREE.MeshLambertMaterial({
-            color: 0x400080
+            color: 0x777777
         }),
         sideMat = new THREE.MeshBasicMaterial({
             map: texture
@@ -83,7 +80,7 @@ function createRack() {
 
     plane = new THREE.Mesh(planeGeo, mat);
 
-    plane.position.set(0, HEIGHT + THICK, 0);
+    plane.position.set(0, HEIGHT + THICK *3/2, 0);
 
     rack.add(plane);
 
@@ -108,7 +105,7 @@ function createDevice(front, back, unit) {
     return device;
 }
 
-function putServer(rack, server, pos) {
+function putDevice(rack, server, pos) {
     const
         rBox = new THREE.Box3().setFromObject(rack),
         rMax = rBox.max,
@@ -142,7 +139,6 @@ function addFloor() {
     
     floor.rotation.x = Math.PI /-2;
     
-    //scene.add(space);
     scene.add(floor);
 }
 
@@ -151,18 +147,13 @@ function addAlert(mesh) {
         box = new THREE.Box3().setFromObject( mesh ),
         min = box.min,
         max = box.max,
-        colorMat = new THREE.MeshBasicMaterial({
+        marker = new THREE.Mesh(new THREE.BoxBufferGeometry(WIDTH +2, max.y - min.y, DEPTH +2), new THREE.MeshBasicMaterial({
             transparent: true,
-            color: new THREE.Color(0xff0000),
-            side:THREE.DoubleSide
-        }),
-        mat = new THREE.MeshBasicMaterial({
-            transparent: true,
-            opacity: 0
-        }),
-        marker = new THREE.Mesh(new THREE.BoxBufferGeometry(WIDTH +2, 1, DEPTH +2),[colorMat, colorMat, mat, mat, colorMat, colorMat]);
+            opacity: 0.5,
+            color: new THREE.Color(0xff0000)
+        }));
     
-    marker.position.set((min.x + max.x) /2, max.y, (min.z + max.z) /2);
+    marker.position.set((min.x + max.x) /2, (min.y + max.y) /2, (min.z + max.z) /2);
 
     markerList.push(marker);
     
@@ -188,7 +179,6 @@ const
     scene = new THREE.Scene,
     size = document.body.getBoundingClientRect(),
     camera = new THREE.PerspectiveCamera(60, 1, 1, 2000), // 시야각이 클수록 외곡
-    //camera = new THREE.OrthographicCamera(size.width /-2, size.width /2, size.height /2, size.height /-2, 1, 2000),
     controls = new THREE.OrbitControls(camera),
     loader = new THREE.TextureLoader(),
     clock = new THREE.Clock,
@@ -252,8 +242,8 @@ const
     ];
 var
     animation = true,
-  light = new THREE.DirectionalLight(0xffffff, 1),
-  rack, server;
+    light = new THREE.DirectionalLight(0xffffff, 1),
+    rack, server;
 
 renderer.setPixelRatio(window.devicePixelRatio);
 
@@ -269,8 +259,6 @@ light.position.set(1, 1, 1);
 scene.add(light);
 
 camera.position.set(0, 60, 120);
-
-//renderer.setClearColor(new THREE.Color(0xffaa00), 0.5);
 
 window.addEventListener("resize", onResize);
 
@@ -294,7 +282,7 @@ function addRack(x, z) {
 
     for (let i=0, height = 42, data, device; i< height;) {
         data = deviceArray[Math.floor(Math.random() * deviceArray.length)];
-        
+
         if (i + data.unit > height) {
             continue;
         }
@@ -303,7 +291,7 @@ function addRack(x, z) {
 
         scene.add(device);
 
-        putServer(rack, device, i);
+        putDevice(rack, device, i);
 
         if (Math.floor(Math.random() * 100) === 0) {
             addAlert(device);
