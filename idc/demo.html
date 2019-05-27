@@ -4,6 +4,8 @@
         <meta charset="UTF-8">
         <style>
 
+@import "/css/itahm.css";
+
 body {
     position: fixed; top: 0; right: 0; bottom: 0; left: 0;
     padding: 0; margin: 0;
@@ -13,6 +15,10 @@ body {
 
 canvas {
     width: 100%; height: 100%;
+}
+
+button.play {
+    position: absolute; top: 5px; left: 5px;
 }
 
 			</style>
@@ -27,7 +33,7 @@ function render() {
     renderer.render(scene, camera);
     
     if (window.animation) {
-        var speed = Date.now() * 0.0001;
+        var speed = Date.now() * 0.00003;
     
         camera.position.x = Math.cos(speed) * 100;
         camera.position.z = Math.sin(speed) * 100;
@@ -160,12 +166,22 @@ function addAlert(mesh) {
     scene.add(marker);
 }
 
+function play(play) {
+    const button = document.querySelector("button.play");
+
+    button.classList[play? "add": "remove"]("ing");
+
+    window.animation = play;
+    
+    button.title = "Animation "+ (window.animation = play)? "중지": "시작";
+}
+
       </script>
             
         </head>
         
         <body>
-            
+            <button class="play" title="Animation 시작"></button>
         <script>
 const
     WIDTH = 13.5,
@@ -241,7 +257,7 @@ const
         }
     ];
 var
-    animation = true,
+    animation = false,
     light = new THREE.DirectionalLight(0xffffff, 1),
     rack, server;
 
@@ -259,6 +275,10 @@ light.position.set(1, 1, 1);
 scene.add(light);
 
 camera.position.set(0, 60, 120);
+
+document.querySelector("button.play").onclick = function () {
+    this.title = "Animation "+ (window.animation = this.classList.toggle("ing"))? "중지": "시작";
+};
 
 window.addEventListener("resize", onResize);
 

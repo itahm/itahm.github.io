@@ -473,11 +473,11 @@ function myMap() {
 
 	demo.onload = e => {
 		btnStart.onclick = e => {
-			demo.contentWindow.animation = true;
+			demo.contentWindow.play(true);
 		};
 
 		btnStop.onclick = e => {
-			demo.contentWindow.animation = false;
+			demo.contentWindow.play(false);
 		};
 	};
 }) (document.querySelector("iframe.demo"));
