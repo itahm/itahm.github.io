@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8">
         <style>
-
+@import "https://cems.corebrg.com/css/fa.css";
 @import "/css/itahm.css";
 
 body {
@@ -13,14 +13,34 @@ body {
 	background-size: cover;
 }
 
+nav {
+    position: absolute; top: 5px; left: 5px;
+}
+
+nav >span {
+    font: 20px "Font Awesome 5 Free";
+    border-radius: 50%;
+    display: inline-flex; width: 32px; height: 32px;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 132, 255, 0.5);
+    border-color: #0084ff;
+    color: #ffffff;
+    cursor: pointer;
+}
+
+nav >span:hover {
+    background-color: #0084ff;
+}
+
 canvas {
     width: 100%; height: 100%;
 }
 
-button.play {
-    position: absolute; top: 5px; left: 5px;
+body.play span.play.enable,
+body:not(.play) span.play.disable {
+    display: none;
 }
-
 			</style>
       <script src="three.min.js"></script>
       <script src="OrbitControls.js"></script>
@@ -166,22 +186,23 @@ function addAlert(mesh) {
     scene.add(marker);
 }
 
-function play(play) {
-    const button = document.querySelector("button.play");
-
-    button.classList[play? "add": "remove"]("ing");
-
-    window.animation = play;
-    
-    button.title = "Animation "+ (window.animation = play)? "중지": "시작";
-}
-
       </script>
             
         </head>
         
         <body>
-            <button class="play" title="Animation 시작"></button>
+            <nav>
+                <span class="play enable" title="Animation 시작">&#xf04b;</span>
+                <span class="play disable" title="Animation 중지">&#xf04d;</span>
+                <span title="==============================
+
+● 마우스 휠과 드래그, 키보드 화살표 버튼으로
+  데이터센터 화면을 컨트롤 합니다.
+● 재생 버튼으로 애니메이션을 실행하세요.
+● 재생 중에는 컨트롤 할 수 없습니다.
+
+==============================">&#xf128;</span>
+            </nav>
         <script>
 const
     WIDTH = 13.5,
@@ -276,8 +297,20 @@ scene.add(light);
 
 camera.position.set(0, 60, 120);
 
-document.querySelector("button.play").onclick = function () {
-    this.title = "Animation "+ (window.animation = this.classList.toggle("ing"))? "중지": "시작";
+document.querySelector(".play.enable").onclick = function () {
+    document.body.classList.add("play");
+
+    window.animation = true;
+
+    controls.enabled = false;
+};
+
+document.querySelector(".play.disable").onclick = function () {
+    document.body.classList.remove("play");
+    
+    window.animation = false;
+
+    controls.enabled = true;
 };
 
 window.addEventListener("resize", onResize);
