@@ -13,6 +13,16 @@ body {
 	background-size: cover;
 }
 
+.label {
+    pointer-events: none;
+    font-size: 12px;
+    position: absolute;
+    transform: translateY(-50%);
+    color: #ffffff;
+    background-color: rgba(0, 0, 0, 0.5);
+    pointer-events: none;
+}
+
 nav {
     position: absolute; top: 5px; left: 5px;
 }
@@ -37,13 +47,61 @@ canvas {
     width: 100%; height: 100%;
 }
 
+.label.hide,
 body.play span.play.enable,
 body:not(.play) span.play.disable {
     display: none;
 }
 			</style>
-      <script src="three.min.js"></script>
-      <script src="OrbitControls.js"></script>
+    
+            <script src="three.min.js"></script>
+            <script src="OrbitControls.js"></script>
+            <script>
+function Label() {
+    this.initialize(arguments);
+}
+
+Label.map = [];
+Label.prototype = {
+    initialize: function (args) {
+        this.device = args[0];
+        this.label = document.createElement("div");
+
+        this.label.appendChild(document.createElement("span")).textContent = args[1];
+        this.label.appendChild(document.createElement("span")).textContent = args[2];
+        
+        this.label.className = "label";
+
+        this.position = new THREE.Vector3(0, 0, 0);
+
+        document.body.appendChild(this.label);
+
+        Label.map.push(this);
+    },
+    update: function() {
+        const box = new THREE.Box3().setFromObject(this.device);
+
+        this.position.copy(this.device.position);
+        this.position.x -= (box.max.x - box.min.x) /2;
+        this.position.z += (box.max.z - box.min.z) /2;
+
+        const position = this.position.project(camera);    
+
+        position.x = (position.x +1) /2 * size.width;
+        position.y = -(position.y -1) /2 * size.height;
+
+        if (this.device.getObjectByName("status")) {
+            this.position.x += (THICK +BORDER);
+            this.position.z -= BORDER;
+        }
+
+        this.label.style.opacity = Math.max((100 - this.device.position.distanceTo(camera.position)) *brightness, 0) /100;
+        this.label.style.left = `${position.x}px`;
+        this.label.style.top = `${position.y}px`;
+    }
+};
+
+            </script>
       <script>
 
 function render() {      
@@ -62,6 +120,8 @@ function render() {
     markerList.forEach(marker => {
         marker.material.opacity = ((marker.material.opacity *10 +1) %10) /10;
     });
+
+    Label.map.forEach(label => label.update());
 
     requestAnimationFrame(render);
 }
@@ -112,10 +172,12 @@ function createRack() {
 
     return rack;
 }
+var index = 1;
 
 function createDevice(front, back, unit) {
     const
-        device = new THREE.Mesh(
+        device = new THREE.Group(),
+        model = new THREE.Mesh(
             new THREE.BoxBufferGeometry(WIDTH, unit, DEPTH),[
                 new THREE.MeshBasicMaterial(),
                 new THREE.MeshBasicMaterial(),
@@ -128,6 +190,12 @@ function createDevice(front, back, unit) {
                     map: loader.load(back)
                 }): new THREE.MeshBasicMaterial()]);
 
+    model.name = "intersect";
+    
+    device.add(model);
+
+    new Label(device, `Node.${index++}`, "");
+    
     return device;
 }
 
@@ -202,6 +270,8 @@ function addAlert(mesh) {
 ● 재생 중에는 컨트롤 할 수 없습니다.
 
 ==============================">&#xf128;</span>
+                <span class="bright plus" title="라벨 밝게">&#xf067;</span>
+                <span class="bright minus" title="라벨 어둡게">&#xf068;</span>
             </nav>
         <script>
 const
@@ -278,6 +348,7 @@ const
         }
     ];
 var
+    brightness = 1,
     animation = false,
     light = new THREE.DirectionalLight(0xffffff, 1),
     rack, server;
@@ -288,7 +359,7 @@ document.body.appendChild(renderer.domElement);
 
 scene.add(camera);
 
-scene.scale.set(0.5, 0.5, 0.5);
+//scene.scale.set(0.5, 0.5, 0.5);
 
 controls.maxPolarAngle = Math.PI /2 -0.1;
 
@@ -355,6 +426,14 @@ function addRack(x, z) {
 
     scene.add(rack);
 }
+
+document.querySelector(".bright.plus").onclick = function (e) {
+    brightness *=1.1;
+};
+
+document.querySelector(".bright.minus").onclick = function (e) {
+    brightness /=1.1;
+};
 
         </script>
     </body>
